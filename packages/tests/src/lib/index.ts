@@ -29,29 +29,24 @@ export class ServiceNodesFleet {
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
-    const nodes: ServiceNode[] = [];
+    const serviceNodePromises = Array.from(
+      { length: nodesToCreate },
+      async () => {
+        const node = new ServiceNode(
+          makeLogFileName(mochaContext) +
+            Math.random().toString(36).substring(7)
+        );
 
-    for (let i = 0; i < nodesToCreate; i++) {
-      const node = new ServiceNode(
-        makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
-      );
+        const args = getArgs(networkConfig, _args);
+        await node.start(args, {
+          retries: 3
+        });
 
-      const args = getArgs(networkConfig, _args);
-
-      // If this is not the first node and previous node had a nodekey, use its multiaddr as static node
-      if (i > 0) {
-        const prevNode = nodes[i - 1];
-        const multiaddr = await prevNode.getExternalWebsocketMultiaddr();
-        args.staticnode = multiaddr;
+        return node;
       }
+    );
 
-      await node.start(args, {
-        retries: 3
-      });
-
-      nodes.push(node);
-    }
-
+    const nodes = await Promise.all(serviceNodePromises);
     return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
@@ -112,24 +107,7 @@ export class ServiceNodesFleet {
     return relayMessages.every((message) => message);
   }
 
-  public async confirmMessageLength(
-    numMessages: number,
-    { encryptedPayload }: { encryptedPayload?: boolean } = {
-      encryptedPayload: false
-    }
-  ): Promise<void> {
-    if (encryptedPayload) {
-      const filteredMessageList = Array.from(
-        new Set(
-          this.messageCollector.messageList
-            .filter((msg) => msg.payload?.toString)
-            .map((msg) => msg.payload.toString())
-        )
-      );
-      expect(filteredMessageList.length).to.equal(numMessages);
-      return;
-    }
-
+  public async confirmMessageLength(numMessages: number): Promise<void> {
     if (this.strictChecking) {
       await Promise.all(
         this.nodes.map(async (node) =>
@@ -154,7 +132,7 @@ export class ServiceNodesFleet {
 
 class MultipleNodesMessageCollector {
   public callback: (msg: DecodedMessage) => void = () => {};
-  public readonly messageList: Array<DecodedMessage> = [];
+  protected messageList: Array<DecodedMessage> = [];
   public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
@@ -204,21 +182,21 @@ class MultipleNodesMessageCollector {
     }
   ): boolean {
     if (this.strictChecking) {
-      return this.messageCollectors.every((collector, _i) => {
+      return this.messageCollectors.every((collector) => {
         try {
           collector.verifyReceivedMessage(index, options);
-          return true;
+          return true; // Verification successful
         } catch (error) {
-          return false;
+          return false; // Verification failed, continue with the next collector
         }
       });
     } else {
-      return this.messageCollectors.some((collector, _i) => {
+      return this.messageCollectors.some((collector) => {
         try {
           collector.verifyReceivedMessage(index, options);
-          return true;
+          return true; // Verification successful
         } catch (error) {
-          return false;
+          return false; // Verification failed, continue with the next collector
         }
       });
     }
@@ -235,122 +213,37 @@ class MultipleNodesMessageCollector {
       exact?: boolean;
     }
   ): Promise<boolean> {
-    const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
-    const timeoutDuration = options?.timeoutDuration || 400;
-    const maxTimeout = Math.min(timeoutDuration * numMessages, 30000);
-    const exact = options?.exact || false;
-
-    try {
-      const timeoutPromise = new Promise<boolean>((resolve) => {
-        setTimeout(() => {
-          log.warn(`Timeout waiting for messages after ${maxTimeout}ms`);
-          resolve(false);
-        }, maxTimeout);
-      });
-
-      const checkMessagesPromise = new Promise<boolean>((resolve) => {
-        const checkMessages = (): void => {
-          // Check local messages
-          if (this.messageList.length >= numMessages) {
-            if (exact && this.messageList.length !== numMessages) {
-              log.warn(
-                `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
-              );
-              resolve(false);
-              return;
-            }
-            resolve(true);
-            return;
-          }
-
-          if (this.relayNodes) {
-            void Promise.all(
-              this.relayNodes.map((node) => node.messages(pubsubTopic))
-            ).then((nodeMessages) => {
-              const hasEnoughMessages = this.strictChecking
-                ? nodeMessages.every((msgs) => msgs.length >= numMessages)
-                : nodeMessages.some((msgs) => msgs.length >= numMessages);
-
-              if (hasEnoughMessages) {
-                resolve(true);
-                return;
-              }
-              setTimeout(checkMessages, 100);
-            });
-          } else {
-            setTimeout(checkMessages, 100);
-          }
-        };
-
-        // Start checking
-        checkMessages();
-      });
-
-      // Race between timeout and message checking
-      return Promise.race([timeoutPromise, checkMessagesPromise]);
-    } catch (error) {
-      log.error("Error in waitForMessages:", error);
-      return false;
-    }
-  }
-
-  /**
-   * Waits for a total number of messages across all nodes using autosharding.
-   */
-  public async waitForMessagesAutosharding(
-    numMessages: number,
-    options?: {
-      contentTopic: string;
-      timeoutDuration?: number;
-      exact?: boolean;
-    }
-  ): Promise<boolean> {
     const startTime = Date.now();
+    const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
     while (this.messageList.length < numMessages) {
       if (this.relayNodes) {
         if (this.strictChecking) {
-          // In strict mode, all nodes must have the messages
           const results = await Promise.all(
-            this.messageCollectors.map(async (collector) => {
-              return collector.waitForMessagesAutosharding(
-                numMessages,
-                options
-              );
+            this.relayNodes.map(async (node) => {
+              const msgs = await node.messages(pubsubTopic);
+              return msgs.length >= numMessages;
             })
           );
-          if (results.every((result) => result)) {
-            return true;
-          }
+          return results.every((result) => result);
         } else {
-          // In non-strict mode, at least one node must have the messages
           const results = await Promise.all(
-            this.messageCollectors.map(async (collector) => {
-              return collector.waitForMessagesAutosharding(
-                numMessages,
-                options
-              );
+            this.relayNodes.map(async (node) => {
+              const msgs = await node.messages(pubsubTopic);
+              return msgs.length >= numMessages;
             })
           );
-          if (results.some((result) => result)) {
-            return true;
-          }
+          return results.some((result) => result);
         }
-
-        if (Date.now() - startTime > timeoutDuration * numMessages) {
-          return false;
-        }
-
-        await delay(10);
-      } else {
-        // If no relay nodes, just wait for messages in the list
-        if (Date.now() - startTime > timeoutDuration * numMessages) {
-          return false;
-        }
-        await delay(10);
       }
+
+      if (Date.now() - startTime > timeoutDuration * numMessages) {
+        return false;
+      }
+
+      await delay(10);
     }
 
     if (exact) {
@@ -360,6 +253,7 @@ class MultipleNodesMessageCollector {
         log.warn(
           `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
         );
+
         return false;
       }
     } else {

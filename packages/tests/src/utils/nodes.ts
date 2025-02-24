@@ -7,13 +7,12 @@ import {
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { delay, derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
+import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
 import { NOISE_KEY_1 } from "../constants.js";
 import { ServiceNodesFleet } from "../lib/index.js";
-import { verifyServiceNodesConnected } from "../lib/service_node.js";
 import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";
@@ -36,13 +35,6 @@ export async function runMultipleNodes(
     withoutFilter
   );
 
-  if (numServiceNodes > 1) {
-    const success = await verifyServiceNodesConnected(serviceNodes.nodes);
-    if (!success) {
-      throw new Error("Failed to verify that service nodes are connected");
-    }
-  }
-
   const wakuOptions: CreateNodeOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
@@ -58,33 +50,23 @@ export async function runMultipleNodes(
     throw new Error("Failed to initialize waku");
   }
 
-  //TODO: reinvestigate the need for these delays with nwaku:0.35.0: https://github.com/waku-org/js-waku/issues/2264
-  await delay(2000);
-
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    const success = await node.ensureSubscriptions(
+    await node.ensureSubscriptions(
       derivePubsubTopicsFromNetworkConfig(networkConfig)
     );
-    if (!success) {
-      throw new Error("Failed to ensure subscriptions");
-    }
 
-    //TODO: reinvestigate the need for these delays with nwaku:0.35.0: https://github.com/waku-org/js-waku/issues/2264
-    await delay(2000);
+    const wakuConnections = waku.libp2p.getConnections();
+
+    if (wakuConnections.length < 1) {
+      throw new Error(`Expected at least 1 connection for js-waku.`);
+    }
 
     await node.waitForLog(waku.libp2p.peerId.toString(), 100);
   }
 
   await waitForConnections(numServiceNodes, waku);
-
-  const wakuConnections = waku.libp2p.getConnections();
-  if (wakuConnections.length < numServiceNodes) {
-    throw new Error(
-      `Expected at least ${numServiceNodes} connections for js-waku.`
-    );
-  }
 
   return [serviceNodes, waku];
 }

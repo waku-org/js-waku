@@ -13,12 +13,12 @@
     "packages/message-encryption",
     "packages/sdk",
     "packages/relay",
+    "packages/sds",
+    "packages/rln",
     "packages/tests",
     "packages/browser-tests",
     "packages/build-utils",
-    "packages/react-native-polyfills",
-    "packages/sds",
-    "packages/rln"
+    "packages/react-native-polyfills"
   ],
   "scripts": {
     "prepare": "husky",

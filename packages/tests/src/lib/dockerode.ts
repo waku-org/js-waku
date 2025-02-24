@@ -18,7 +18,7 @@ export default class Dockerode {
   public containerId?: string;
 
   private static network: Docker.Network;
-  public readonly containerIp: string;
+  private containerIp: string;
 
   private constructor(imageName: string, containerIp: string) {
     this.docker = new Docker();
@@ -107,7 +107,6 @@ export default class Dockerode {
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
       HostConfig: {
-        NetworkMode: NETWORK_NAME,
         AutoRemove: true,
         PortBindings: {
           [`${restPort}/tcp`]: [{ HostPort: restPort.toString() }],
@@ -117,8 +116,6 @@ export default class Dockerode {
             [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }]
           })
         },
-        Dns: ["8.8.8.8"],
-        Links: [],
         Mounts: args.rlnRelayEthClientAddress
           ? [
               {
@@ -138,19 +135,18 @@ export default class Dockerode {
           [`${discv5UdpPort}/udp`]: {}
         })
       },
-      Cmd: argsArrayWithIP,
-      NetworkingConfig: {
-        EndpointsConfig: {
-          [NETWORK_NAME]: {
-            IPAMConfig: {
-              IPv4Address: this.containerIp
-            }
-          }
-        }
-      }
+      Cmd: argsArrayWithIP
     });
     await container.start();
 
+    await Dockerode.network.connect({
+      Container: container.id,
+      EndpointConfig: {
+        IPAMConfig: {
+          IPv4Address: this.containerIp
+        }
+      }
+    });
     const logStream = fs.createWriteStream(logPath);
 
     container.logs(
