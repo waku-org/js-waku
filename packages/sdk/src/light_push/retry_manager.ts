@@ -13,7 +13,7 @@ type RetryManagerConfig = {
 
 type AttemptCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
-type ScheduledAttempt = {
+export type ScheduledTask = {
   maxAttempts: number;
   callback: AttemptCallback;
 };
@@ -28,7 +28,7 @@ export class RetryManager {
   private readonly retryIntervalMs: number;
 
   private inProgress: number = 0;
-  private readonly queue: ScheduledAttempt[] = [];
+  private readonly queue: ScheduledTask[] = [];
 
   private readonly peerManager: PeerManager;
 
@@ -72,62 +72,67 @@ export class RetryManager {
     }
   }
 
-  private scheduleTask(task: ScheduledAttempt): void {
+  private scheduleTask(task: ScheduledTask): void {
     const delayedTask = async (): Promise<void> => {
-      const peerId = this.peerManager.getPeers()[0];
-
-      if (!peerId) {
-        log.warn("scheduleTask: no peers, skipping");
-        return;
-      }
-
-      try {
-        this.inProgress += 1;
-
-        const response = await Promise.race([
-          timeout(TASK_TIMEOUT_MS),
-          task.callback(peerId)
-        ]);
-
-        this.inProgress -= 1;
-
-        if (response?.failure) {
-          throw Error(response.failure.error);
-        }
-
-        log.info("scheduleTask: executed successfully");
-
-        if (task.maxAttempts === 0) {
-          log.warn(
-            "scheduleTask: discarded a task due to limit of max attempts"
-          );
-          return;
-        }
-
-        this.queue.push(task);
-      } catch (_err) {
-        const error = _err as unknown as { message: string };
-
-        log.error("scheduleTask: task execution failed with error:", error);
-
-        if (isPeerShouldBeChanged(error.message)) {
-          this.peerManager.requestRenew(peerId);
-        }
-
-        if (task.maxAttempts === 0) {
-          log.warn(
-            "scheduleTask: discarded a task due to limit of max attempts"
-          );
-          return;
-        }
-
-        this.queue.push({ ...task, maxAttempts: task.maxAttempts - 1 });
-      } finally {
-        this.inProgress -= 1;
-      }
+      return this.taskExecutor(task);
     };
 
     // schedule execution ASAP
+    // need to use setTimeout to avoid blocking main execution
     setTimeout(delayedTask as () => void, 100);
+  }
+
+  private async taskExecutor(task: ScheduledTask): Promise<void> {
+    const peerId = this.peerManager.getPeers()[0];
+
+    if (!peerId) {
+      log.warn("scheduleTask: no peers, skipping");
+      return;
+    }
+
+    try {
+      this.inProgress += 1;
+
+      const response = await Promise.race([
+        timeout(TASK_TIMEOUT_MS),
+        task.callback(peerId)
+      ]);
+
+      if (response?.failure) {
+        throw Error(response.failure.error);
+      }
+
+      log.info("scheduleTask: executed successfully");
+
+      if (task.maxAttempts === 0) {
+        log.warn("scheduleTask: discarded a task due to limit of max attempts");
+        return;
+      }
+
+      this.queue.push({
+        ...task,
+        maxAttempts: task.maxAttempts - 1
+      });
+    } catch (_err) {
+      const error = _err as unknown as { message: string };
+
+      log.error("scheduleTask: task execution failed with error:", error);
+
+      if (isPeerShouldBeChanged(error.message)) {
+        this.peerManager.requestRenew(peerId);
+      }
+
+      if (task.maxAttempts === 0) {
+        log.warn("scheduleTask: discarded a task due to limit of max attempts");
+        return;
+      }
+
+      this.queue.push({
+        ...task,
+        maxAttempts: task.maxAttempts - 1
+      });
+    } finally {
+      this.inProgress -= 1;
+    }
   }
 }

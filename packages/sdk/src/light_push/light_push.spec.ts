@@ -17,7 +17,7 @@ import { LightPush } from "./light_push.js";
 const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-light-push/utf8";
 
-describe.only("LightPush SDK", () => {
+describe("LightPush SDK", () => {
   let libp2p: Libp2p;
   let encoder: Encoder;
   let lightPush: LightPush;

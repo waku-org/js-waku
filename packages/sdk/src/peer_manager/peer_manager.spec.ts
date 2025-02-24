@@ -36,7 +36,7 @@ describe("PeerManager", () => {
     ];
     sinon.stub(libp2p, "getConnections").returns(connections);
 
-    const peers = await peerManager.getPeers();
+    const peers = peerManager.getPeers();
     expect(peers.length).to.equal(2);
   });
 
@@ -48,7 +48,7 @@ describe("PeerManager", () => {
     ];
     sinon.stub(libp2p, "getConnections").returns(connections);
 
-    const peerId = await peerManager.requestRenew("1");
+    const peerId = peerManager.requestRenew("1");
     expect(peerId).to.not.be.undefined;
     expect(peerId).to.not.equal("1");
   });
@@ -59,11 +59,20 @@ describe("PeerManager", () => {
     peerManager["lockPeerIfNeeded"] = connectSpy;
     peerManager["requestRenew"] = disconnectSpy;
 
+    peerManager.start();
+
     libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "1" }));
     libp2p.dispatchEvent(new CustomEvent("peer:disconnect", { detail: "1" }));
 
     expect(connectSpy.calledOnce).to.be.true;
     expect(disconnectSpy.calledOnce).to.be.true;
+
+    const removeEventListenerSpy = sinon.spy(libp2p.removeEventListener);
+    libp2p.removeEventListener = removeEventListenerSpy;
+
+    peerManager.stop();
+
+    expect(removeEventListenerSpy.callCount).to.eq(2);
   });
 });
 

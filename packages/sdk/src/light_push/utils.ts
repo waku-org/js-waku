@@ -6,7 +6,8 @@ export const isPeerShouldBeChanged = (
   const toBeChanged =
     failure === ProtocolError.REMOTE_PEER_REJECTED ||
     failure === ProtocolError.NO_RESPONSE ||
-    failure === ProtocolError.RLN_LIMIT_MISSING;
+    failure === ProtocolError.RLN_LIMIT_MISSING ||
+    failure === ProtocolError.NO_PEER_AVAILABLE;
 
   if (toBeChanged) {
     return true;

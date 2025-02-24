@@ -85,15 +85,15 @@ export class PeerManager {
 
   private onConnected(event: CustomEvent<PeerId>): void {
     const peerId = event.detail;
-    void this.lockPeerIfNeeded(peerId);
+    this.lockPeerIfNeeded(peerId);
   }
 
   private onDisconnected(event: CustomEvent<PeerId>): void {
     const peerId = event.detail;
-    void this.requestRenew(peerId);
+    this.requestRenew(peerId);
   }
 
-  private async lockPeerIfNeeded(peerId: PeerId): Promise<void> {
+  private lockPeerIfNeeded(peerId: PeerId): void {
     const lockedConnections = this.getLockedConnections();
     const neededPeers = this.numPeersToUse - lockedConnections.length;
 
