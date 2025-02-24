@@ -45,7 +45,8 @@ export async function runNodes<T>(
   const waku_options: CreateNodeOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    networkConfig: shardInfo
+    networkConfig: shardInfo,
+    lightPush: { numPeersToUse: 2 }
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));
