@@ -11,7 +11,6 @@ import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,
   Callback,
-  CoreProtocolResult,
   CreateNodeOptions,
   IAsyncIterator,
   IDecodedMessage,
@@ -21,7 +20,8 @@ import {
   IRelay,
   Libp2p,
   ProtocolError,
-  PubsubTopic
+  PubsubTopic,
+  SDKProtocolResult
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
@@ -117,15 +117,17 @@ class Relay implements IRelay {
   public async send(
     encoder: IEncoder,
     message: IMessage
-  ): Promise<CoreProtocolResult> {
+  ): Promise<SDKProtocolResult> {
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
-        success: null,
-        failure: {
-          error: ProtocolError.TOPIC_NOT_CONFIGURED
-        }
+        successes: [],
+        failures: [
+          {
+            error: ProtocolError.TOPIC_NOT_CONFIGURED
+          }
+        ]
       };
     }
 
@@ -133,27 +135,31 @@ class Relay implements IRelay {
     if (!msg) {
       log.error("Failed to encode message, aborting publish");
       return {
-        success: null,
-        failure: {
-          error: ProtocolError.ENCODE_FAILED
-        }
+        successes: [],
+        failures: [
+          {
+            error: ProtocolError.ENCODE_FAILED
+          }
+        ]
       };
     }
 
     if (!isWireSizeUnderCap(msg)) {
       log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
-        success: null,
-        failure: {
-          error: ProtocolError.SIZE_TOO_BIG
-        }
+        successes: [],
+        failures: [
+          {
+            error: ProtocolError.SIZE_TOO_BIG
+          }
+        ]
       };
     }
 
     const { recipients } = await this.gossipSub.publish(pubsubTopic, msg);
     return {
-      success: recipients[0],
-      failure: null
+      successes: recipients,
+      failures: []
     };
   }
 

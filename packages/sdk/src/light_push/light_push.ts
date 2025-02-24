@@ -2,13 +2,15 @@ import type { PeerId } from "@libp2p/interface";
 import { ConnectionManager, LightPushCore } from "@waku/core";
 import {
   type CoreProtocolResult,
+  Failure,
   type IEncoder,
   ILightPush,
   type IMessage,
   type ISendOptions,
   type Libp2p,
   LightPushProtocolOptions,
-  ProtocolError
+  ProtocolError,
+  SDKProtocolResult
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -22,7 +24,8 @@ const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
   autoRetry: true,
   retryIntervalMs: 1000,
-  maxAttempts: DEFAULT_MAX_ATTEMPTS
+  maxAttempts: DEFAULT_MAX_ATTEMPTS,
+  numPeersToUse: 1
 };
 
 export class LightPush implements ILightPush {
@@ -61,7 +64,7 @@ export class LightPush implements ILightPush {
     encoder: IEncoder,
     message: IMessage,
     options: ISendOptions = {}
-  ): Promise<CoreProtocolResult> {
+  ): Promise<SDKProtocolResult> {
     options = {
       ...this.config,
       ...options
@@ -73,27 +76,51 @@ export class LightPush implements ILightPush {
 
     if (!this.protocol.pubsubTopics.includes(pubsubTopic)) {
       return {
-        success: null,
-        failure: {
-          error: ProtocolError.TOPIC_NOT_CONFIGURED
-        }
+        successes: [],
+        failures: [
+          {
+            error: ProtocolError.TOPIC_NOT_CONFIGURED
+          }
+        ]
       };
     }
 
-    const peerId = this.peerManager.getPeers()[0];
+    const peerIds = this.peerManager
+      .getPeers()
+      .slice(0, this.config.numPeersToUse);
 
-    if (!peerId) {
+    if (peerIds.length === 0) {
       return {
-        success: null,
-        failure: {
-          error: ProtocolError.NO_PEER_AVAILABLE
-        }
+        successes: [],
+        failures: [
+          {
+            error: ProtocolError.NO_PEER_AVAILABLE
+          }
+        ]
       };
     }
 
-    const result = await this.protocol.send(encoder, message, peerId);
+    const coreResults: CoreProtocolResult[] = await Promise.all(
+      peerIds.map((peerId) =>
+        this.protocol.send(encoder, message, peerId).catch((_e) => ({
+          success: null,
+          failure: {
+            error: ProtocolError.GENERIC_FAIL
+          }
+        }))
+      )
+    );
 
-    if (result.failure && options.autoRetry) {
+    const results: SDKProtocolResult = {
+      successes: coreResults
+        .filter((v) => v.success)
+        .map((v) => v.success) as PeerId[],
+      failures: coreResults
+        .filter((v) => v.failure)
+        .map((v) => v.failure) as Failure[]
+    };
+
+    if (options.autoRetry && results.successes.length === 0) {
       const sendCallback = (peerId: PeerId): Promise<CoreProtocolResult> =>
         this.protocol.send(encoder, message, peerId);
       this.retryManager.push(
@@ -102,7 +129,7 @@ export class LightPush implements ILightPush {
       );
     }
 
-    return result;
+    return results;
   }
 }
 

@@ -1,5 +1,5 @@
 import type { IEncoder, IMessage } from "./message.js";
-import { CoreProtocolResult } from "./protocols.js";
+import { SDKProtocolResult } from "./protocols.js";
 
 export type ISendOptions = {
   /**
@@ -20,5 +20,5 @@ export interface ISender {
     encoder: IEncoder,
     message: IMessage,
     sendOptions?: ISendOptions
-  ) => Promise<CoreProtocolResult>;
+  ) => Promise<SDKProtocolResult>;
 }
