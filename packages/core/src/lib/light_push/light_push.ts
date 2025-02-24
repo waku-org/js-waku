@@ -120,11 +120,12 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         async (source) => await all(source)
       );
     } catch (err) {
+      // can fail only because of `stream` abortion
       log.error("Failed to send waku light push request", err);
       return {
         success: null,
         failure: {
-          error: ProtocolError.GENERIC_FAIL,
+          error: ProtocolError.STREAM_ABORTED,
           peerId: peerId
         }
       };
@@ -161,12 +162,11 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     }
 
     if (isRLNResponseError(response.info)) {
-      const rlnErrorCase = matchRLNErrorMessage(response.info!);
-      log.error("Remote peer rejected the message: ", rlnErrorCase);
+      log.error("Remote peer fault: RLN generation");
       return {
         success: null,
         failure: {
-          error: rlnErrorCase,
+          error: ProtocolError.RLN_PROOF_GENERATION,
           peerId: peerId
         }
       };
