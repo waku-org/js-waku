@@ -20,7 +20,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../base_protocol.js";
 
 import { PushRpc } from "./push_rpc.js";
-import { isRLNResponseError, matchRLNErrorMessage } from "./utils.js";
+import { isRLNResponseError } from "./utils.js";
 
 const log = new Logger("light-push");
 

@@ -116,43 +116,27 @@ export type Callback<T extends IDecodedMessage> = (
 ) => void | Promise<void>;
 
 export enum ProtocolError {
-  /** Could not determine the origin of the fault. Best to check connectivity and try again */
-  GENERIC_FAIL = "Generic error",
+  //
+  // GENERAL ERRORS SECTION
+  //
   /**
-   * Failure to protobuf encode the message. This is not recoverable and needs
-   * further investigation.
+   * Could not determine the origin of the fault. Best to check connectivity and try again
+   * */
+  GENERIC_FAIL = "Generic error",
+
+  /**
+   * The remote peer rejected the message. Information provided by the remote peer
+   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
    */
-  ENCODE_FAILED = "Failed to encode",
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
+
   /**
    * Failure to protobuf decode the message. May be due to a remote peer issue,
    * ensuring that messages are sent via several peer enable mitigation of this error.
    */
   DECODE_FAILED = "Failed to decode",
-  /**
-   * The message payload is empty, making the message invalid. Ensure that a non-empty
-   * payload is set on the outgoing message.
-   */
-  EMPTY_PAYLOAD = "Payload is empty",
-  /**
-   * The message size is above the maximum message size allowed on the Waku Network.
-   * Compressing the message or using an alternative strategy for large messages is recommended.
-   */
-  SIZE_TOO_BIG = "Size is too big",
-  /**
-   * The PubsubTopic passed to the send function is not configured on the Waku node.
-   * Please ensure that the PubsubTopic is used when initializing the Waku node.
-   */
-  TOPIC_NOT_CONFIGURED = "Topic not configured",
-  /**
-   * The pubsub topic configured on the decoder does not match the pubsub topic setup on the protocol.
-   * Ensure that the pubsub topic used for decoder creation is the same as the one used for protocol.
-   */
-  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
-  /**
-   * The topics passed in the decoders do not match each other, or don't exist at all.
-   * Ensure that all the pubsub topics used in the decoders are valid and match each other.
-   */
-  INVALID_DECODER_TOPICS = "Invalid decoder topics",
+
   /**
    * Failure to find a peer with suitable protocols. This may due to a connection issue.
    * Mitigation can be: retrying after a given time period, display connectivity issue
@@ -160,36 +144,71 @@ export enum ProtocolError {
    * on the connection manager before retrying.
    */
   NO_PEER_AVAILABLE = "No peer available",
+
   /**
    * Failure to find a stream to the peer. This may be because the connection with the peer is not still alive.
    * Mitigation can be: retrying after a given time period, or mitigation for `NO_PEER_AVAILABLE` can be used.
    */
   NO_STREAM_AVAILABLE = "No stream available",
+
   /**
    * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */
   NO_RESPONSE = "No response received",
+
+  //
+  // SEND ERRORS SECTION
+  //
+  /**
+   * Failure to protobuf encode the message. This is not recoverable and needs
+   * further investigation.
+   */
+  ENCODE_FAILED = "Failed to encode",
+
+  /**
+   * The message payload is empty, making the message invalid. Ensure that a non-empty
+   * payload is set on the outgoing message.
+   */
+  EMPTY_PAYLOAD = "Payload is empty",
+
+  /**
+   * The message size is above the maximum message size allowed on the Waku Network.
+   * Compressing the message or using an alternative strategy for large messages is recommended.
+   */
+  SIZE_TOO_BIG = "Size is too big",
+
+  /**
+   * The PubsubTopic passed to the send function is not configured on the Waku node.
+   * Please ensure that the PubsubTopic is used when initializing the Waku node.
+   */
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
+
   /**
    * Fails when
    */
   STREAM_ABORTED = "Stream aborted",
-  /**
-   * The remote peer rejected the message. Information provided by the remote peer
-   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
-   * or `DECODE_FAILED` can be used.
-   */
-  REMOTE_PEER_REJECTED = "Remote peer rejected",
-  /**
-   * The protocol request timed out without a response. This may be due to a connection issue.
-   * Mitigation can be: retrying after a given time period
-   */
-  REQUEST_TIMEOUT = "Request timeout",
+
   /**
    * General proof generation error message.
    * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L201C19-L201C42
    */
-  RLN_PROOF_GENERATION = "Proof generation failed"
+  RLN_PROOF_GENERATION = "Proof generation failed",
+
+  //
+  // RECEIVE ERRORS SECTION
+  //
+  /**
+   * The pubsub topic configured on the decoder does not match the pubsub topic setup on the protocol.
+   * Ensure that the pubsub topic used for decoder creation is the same as the one used for protocol.
+   */
+  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
+
+  /**
+   * The topics passed in the decoders do not match each other, or don't exist at all.
+   * Ensure that all the pubsub topics used in the decoders are valid and match each other.
+   */
+  INVALID_DECODER_TOPICS = "Invalid decoder topics"
 }
 
 export interface Failure {
