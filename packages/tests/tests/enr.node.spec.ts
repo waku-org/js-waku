@@ -98,7 +98,6 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: true,
       lightpush: true,
-      legacyFilter: true,
       pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();

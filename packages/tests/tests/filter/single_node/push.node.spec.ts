@@ -174,12 +174,7 @@ describe("Waku Filter V2: FilterPush", function () {
       async (res) => res.status === 200
     );
 
-    // For go-waku the message is received (it is possible to send a message with no payload)
-    if (nwaku.type == "go-waku") {
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    } else {
-      expect(await messageCollector.waitForMessages(1)).to.eq(false);
-    }
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with non string payload is not received", async function () {

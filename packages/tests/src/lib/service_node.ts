@@ -29,8 +29,6 @@ const NODE_READY_LOG_LINE = "Node setup complete";
 export const DOCKER_IMAGE_NAME =
   process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.31.0";
 
-const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
-
 const LOG_DIR = "./log";
 
 const OneMillion = BigInt(1_000_000);
@@ -77,14 +75,6 @@ export class ServiceNode {
 
   public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
-  }
-
-  public get type(): "go-waku" | "nwaku" {
-    return isGoWaku ? "go-waku" : "nwaku";
-  }
-
-  public get nodeType(): "go-waku" | "nwaku" {
-    return isGoWaku ? "go-waku" : "nwaku";
   }
 
   public get containerName(): string | undefined {
@@ -141,9 +131,6 @@ export class ServiceNode {
           this.restPort = restPort;
           this.websocketPort = websocketPort;
 
-          // `legacyFilter` is required to enable filter v1 with go-waku
-          const { legacyFilter = false, ..._args } = args;
-
           // Object.assign overrides the properties with the source (if there are conflicts)
           Object.assign(
             mergedArgs,
@@ -152,11 +139,10 @@ export class ServiceNode {
               restPort,
               tcpPort,
               websocketPort,
-              ...(args?.peerExchange && { discv5UdpPort }),
-              ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
+              ...(args?.peerExchange && { discv5UdpPort })
             },
             { restAddress: "0.0.0.0" },
-            _args
+            args
           );
 
           process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
@@ -179,14 +165,12 @@ export class ServiceNode {
           throw error;
         }
         try {
-          log.info(
-            `Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`
-          );
+          log.info(`Waiting to see '${NODE_READY_LOG_LINE}' in logs`);
           await this.waitForLog(NODE_READY_LOG_LINE, 15000);
           if (process.env.CI) await delay(100);
-          log.info(`${this.type} node has been started`);
+          log.info(`Node has been started`);
         } catch (error) {
-          log.error(`Error starting ${this.type}: ${error}`);
+          log.error(`Error starting: ${error}`);
           if (this.docker.container) await this.docker.stop();
           throw error;
         }
@@ -356,9 +340,9 @@ export class ServiceNode {
     const multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!multiaddrWithId) throw `${this.type} did not return a ws multiaddr`;
+    if (!multiaddrWithId) throw `Did not return a ws multiaddr`;
     const peerIdStr = multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw `${this.type} multiaddr does not contain peerId`;
+    if (!peerIdStr) throw `Multiaddr does not contain peerId`;
     this.peerId = peerIdFromString(peerIdStr);
 
     return this.peerId;
@@ -399,7 +383,7 @@ export class ServiceNode {
 
   private checkProcess(): void {
     if (!this.docker?.container) {
-      throw `${this.type} container hasn't started`;
+      throw `Container hasn't started`;
     }
   }
 }
