@@ -123,10 +123,6 @@ export class ServiceNode {
             });
           });
 
-          if (!args.logLevel) {
-            args.logLevel = LogLevel.Debug;
-          }
-
           const { tcpPort, websocketPort, restPort, discv5UdpPort } = ports;
           this.restPort = restPort;
           this.websocketPort = websocketPort;
