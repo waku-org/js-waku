@@ -56,6 +56,7 @@ describe("Static Sharding: Running Nodes", function () {
       waku = await createLightNode({
         networkConfig: shardInfo
       });
+      await waku.start();
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waku.waitForPeers([Protocols.LightPush]);
 
@@ -96,6 +97,7 @@ describe("Static Sharding: Running Nodes", function () {
       waku = await createLightNode({
         networkConfig: shardInfo
       });
+      await waku.start();
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waku.waitForPeers([Protocols.LightPush]);
 
@@ -145,6 +147,7 @@ describe("Static Sharding: Running Nodes", function () {
         waku = await createLightNode({
           networkConfig: shardInfo
         });
+        await waku.start();
         await waku.dial(await nwaku.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.LightPush]);
 
@@ -211,6 +214,7 @@ describe("Static Sharding: Running Nodes", function () {
       waku = await createLightNode({
         networkConfig: shardInfoBothShards
       });
+      await waku.start();
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waku.waitForPeers([Protocols.LightPush]);
 
@@ -250,6 +254,7 @@ describe("Static Sharding: Running Nodes", function () {
       waku = await createLightNode({
         networkConfig: shardInfoFirstShard
       });
+      await waku.start();
 
       // use a pubsub topic that is not configured
       const encoder = createEncoder({
