@@ -1,6 +1,6 @@
 import { ProtocolError } from "@waku/interfaces";
 
-export const isPeerShouldBeChanged = (
+export const shouldPeerBeChanged = (
   failure: string | ProtocolError
 ): boolean => {
   const toBeChanged =

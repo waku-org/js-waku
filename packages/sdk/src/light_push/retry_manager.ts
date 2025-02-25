@@ -4,7 +4,7 @@ import { Logger } from "@waku/utils";
 
 import type { PeerManager } from "../peer_manager/index.js";
 
-import { isPeerShouldBeChanged, timeout } from "./utils.js";
+import { shouldPeerBeChanged, timeout } from "./utils.js";
 
 type RetryManagerConfig = {
   retryIntervalMs: number;
@@ -118,7 +118,7 @@ export class RetryManager {
 
       log.error("scheduleTask: task execution failed with error:", error);
 
-      if (isPeerShouldBeChanged(error.message)) {
+      if (shouldPeerBeChanged(error.message)) {
         this.peerManager.requestRenew(peerId);
       }
 
