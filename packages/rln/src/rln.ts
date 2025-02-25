@@ -4,6 +4,7 @@ import type {
   IDecodedMessage,
   EncoderOptions as WakuEncoderOptions
 } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 import init from "@waku/zerokit-rln-wasm";
 import * as zerokitRLN from "@waku/zerokit-rln-wasm";
 import { ethers } from "ethers";
@@ -28,6 +29,8 @@ import { WitnessCalculator } from "./resources/witness_calculator";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
+const log = new Logger("waku:rln");
+
 async function loadWitnessCalculator(): Promise<WitnessCalculator> {
   const url = new URL("./resources/rln.wasm", import.meta.url);
   const response = await fetch(url);
@@ -45,21 +48,26 @@ async function loadZkey(): Promise<Uint8Array> {
  * @returns RLNInstance
  */
 export async function create(): Promise<RLNInstance> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (init as any)?.();
-  zerokitRLN.init_panic_hook();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (init as any)?.();
+    zerokitRLN.init_panic_hook();
 
-  const witnessCalculator = await loadWitnessCalculator();
-  const zkey = await loadZkey();
+    const witnessCalculator = await loadWitnessCalculator();
+    const zkey = await loadZkey();
 
-  const stringEncoder = new TextEncoder();
-  const vkey = stringEncoder.encode(JSON.stringify(verificationKey));
+    const stringEncoder = new TextEncoder();
+    const vkey = stringEncoder.encode(JSON.stringify(verificationKey));
 
-  const DEPTH = 20;
-  const zkRLN = zerokitRLN.newRLN(DEPTH, zkey, vkey);
-  const zerokit = new Zerokit(zkRLN, witnessCalculator);
+    const DEPTH = 20;
+    const zkRLN = zerokitRLN.newRLN(DEPTH, zkey, vkey);
+    const zerokit = new Zerokit(zkRLN, witnessCalculator);
 
-  return new RLNInstance(zerokit);
+    return new RLNInstance(zerokit);
+  } catch (error) {
+    log.error("Failed to initialize RLN:", error);
+    throw error;
+  }
 }
 
 type StartRLNOptions = {
@@ -134,7 +142,7 @@ export class RLNInstance {
       this._contract = await RLNContract.init(this, {
         address: address!,
         signer: signer!,
-        rateLimit: 0
+        rateLimit: options.rateLimit
       });
       this.started = true;
     } finally {
@@ -263,7 +271,7 @@ export class RLNInstance {
     }
 
     const registryAddress = credentials.membership.address;
-    const currentRegistryAddress = this._contract.registry.address;
+    const currentRegistryAddress = this._contract.contract.address;
     if (registryAddress !== currentRegistryAddress) {
       throw Error(
         `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
@@ -271,7 +279,7 @@ export class RLNInstance {
     }
 
     const chainId = credentials.membership.chainId;
-    const network = await this._contract.registry.provider.getNetwork();
+    const network = await this._contract.contract.provider.getNetwork();
     const currentChainId = network.chainId;
     if (chainId !== currentChainId) {
       throw Error(

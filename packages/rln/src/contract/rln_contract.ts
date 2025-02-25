@@ -10,14 +10,35 @@ import { zeroPadLE } from "../utils/bytes.js";
 
 import { RLN_V2_ABI } from "./abi/rlnv2.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
-import {
-  FetchMembersOptions,
-  MembershipRegisteredEvent,
-  RLNContractInitOptions
-} from "./types.js";
-import { Member } from "./types.js";
 
 const log = new Logger("waku:rln:contract");
+
+type Member = {
+  idCommitment: string;
+  index: ethers.BigNumber;
+};
+
+interface RLNContractOptions {
+  signer: ethers.Signer;
+  address: string;
+  rateLimit?: number;
+}
+
+interface RLNContractInitOptions extends RLNContractOptions {
+  contract?: ethers.Contract;
+}
+
+export interface MembershipRegisteredEvent {
+  idCommitment: string;
+  rateLimit: number;
+  index: ethers.BigNumber;
+}
+
+type FetchMembersOptions = {
+  fromBlock?: number;
+  fetchRange?: number;
+  fetchChunks?: number;
+};
 
 export interface MembershipInfo {
   index: ethers.BigNumber;
@@ -36,15 +57,65 @@ export enum MembershipState {
 }
 
 export class RLNContract {
-  private contract: ethers.Contract;
+  public contract: ethers.Contract;
   private merkleRootTracker: MerkleRootTracker;
 
   private deployBlock: undefined | number;
   private rateLimit: number;
+
+  private _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
   private _membersRemovedFilter: ethers.EventFilter;
 
-  private _members: Map<number, Member> = new Map();
+  /**
+   * Asynchronous initializer for RLNContract.
+   * Allows injecting a mocked contract for testing purposes.
+   */
+  public static async init(
+    rlnInstance: RLNInstance,
+    options: RLNContractInitOptions
+  ): Promise<RLNContract> {
+    const rlnContract = new RLNContract(rlnInstance, options);
+
+    await rlnContract.fetchMembers(rlnInstance);
+    rlnContract.subscribeToMembers(rlnInstance);
+
+    return rlnContract;
+  }
+
+  private constructor(
+    rlnInstance: RLNInstance,
+    options: RLNContractInitOptions
+  ) {
+    const {
+      address,
+      signer,
+      rateLimit = DEFAULT_RATE_LIMIT,
+      contract
+    } = options;
+
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      );
+    }
+
+    this.rateLimit = rateLimit;
+
+    const initialRoot = rlnInstance.zerokit.getMerkleRoot();
+
+    // Use the injected contract if provided; otherwise, instantiate a new one.
+    this.contract =
+      contract || new ethers.Contract(address, RLN_V2_ABI, signer);
+    this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
+
+    // Initialize event filters for MembershipRegistered and MembershipRemoved
+    this._membersFilter = this.contract.filters.MembershipRegistered();
+    this._membersRemovedFilter = this.contract.filters.MembershipRemoved();
+  }
 
   /**
    * Gets the current rate limit for this contract instance
@@ -107,63 +178,6 @@ export class RLNContract {
    */
   public async setRateLimit(newRateLimit: number): Promise<void> {
     this.rateLimit = newRateLimit;
-  }
-
-  /**
-   * Private constructor to enforce the use of the async init method.
-   */
-  private constructor(
-    rlnInstance: RLNInstance,
-    options: RLNContractInitOptions
-  ) {
-    const {
-      address,
-      signer,
-      rateLimit = DEFAULT_RATE_LIMIT,
-      contract
-    } = options;
-
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
-      );
-    }
-
-    this.rateLimit = rateLimit;
-
-    const initialRoot = rlnInstance.zerokit.getMerkleRoot();
-
-    // Use the injected registryContract if provided; otherwise, instantiate a new one.
-    this.contract =
-      contract || new ethers.Contract(address, RLN_V2_ABI, signer);
-    this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
-
-    // Initialize event filters for MembershipRegistered and MembershipRemoved
-    this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membersRemovedFilter = this.contract.filters.MembershipRemoved();
-  }
-
-  /**
-   * Asynchronous initializer for RLNContract.
-   * Allows injecting a mocked registryContract for testing purposes.
-   */
-  public static async init(
-    rlnInstance: RLNInstance,
-    options: RLNContractInitOptions
-  ): Promise<RLNContract> {
-    const rlnContract = new RLNContract(rlnInstance, options);
-
-    await rlnContract.fetchMembers(rlnInstance);
-    rlnContract.subscribeToMembers(rlnInstance);
-
-    return rlnContract;
-  }
-
-  public get registry(): ethers.Contract {
-    return this.contract;
   }
 
   public get members(): Member[] {
@@ -271,7 +285,7 @@ export class RLNContract {
     rlnInstance: RLNInstance,
     toRemove: Map<number, number[]>
   ): void {
-    const removeDescending = new Map([...toRemove].sort((a, b) => b[0] - a[0]));
+    const removeDescending = new Map([...toRemove].reverse());
     removeDescending.forEach((indexes: number[], blockNumber: number) => {
       indexes.forEach((index) => {
         if (this._members.has(index)) {

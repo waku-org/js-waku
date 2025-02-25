@@ -15,19 +15,6 @@ use(chaiAsPromised);
 // Use the minimum allowed rate limit from RATE_LIMIT_TIERS
 const DEFAULT_RATE_LIMIT = 20;
 
-function mockRLNv2RegisteredEvent(idCommitment?: string): ethers.Event {
-  return {
-    args: {
-      idCommitment:
-        idCommitment ||
-        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-      rateLimit: DEFAULT_RATE_LIMIT,
-      index: ethers.BigNumber.from(1)
-    },
-    event: "MembershipRegistered"
-  } as unknown as ethers.Event;
-}
-
 describe("RLN Contract abstraction - RLN v2", () => {
   let sandbox: SinonSandbox;
   let rlnInstance: any;
@@ -83,33 +70,6 @@ describe("RLN Contract abstraction - RLN v2", () => {
 
   afterEach(() => {
     sandbox.restore();
-  });
-
-  describe("Rate Limit Management", () => {
-    it("should get contract rate limit parameters", async () => {
-      const minRate = await rlnContract.getMinRateLimit();
-      const maxRate = await rlnContract.getMaxRateLimit();
-      const maxTotal = await rlnContract.getMaxTotalRateLimit();
-      const currentTotal = await rlnContract.getCurrentTotalRateLimit();
-
-      expect(minRate).to.equal(mockRateLimits.minRate);
-      expect(maxRate).to.equal(mockRateLimits.maxRate);
-      expect(maxTotal).to.equal(mockRateLimits.maxTotalRate);
-      expect(currentTotal).to.equal(mockRateLimits.currentTotalRate);
-    });
-
-    it("should calculate remaining total rate limit", async () => {
-      const remaining = await rlnContract.getRemainingTotalRateLimit();
-      expect(remaining).to.equal(
-        mockRateLimits.maxTotalRate - mockRateLimits.currentTotalRate
-      );
-    });
-
-    it("should set rate limit", async () => {
-      const newRate = 300; // Any value, since validation is done by contract
-      await rlnContract.setRateLimit(newRate);
-      expect(rlnContract.getRateLimit()).to.equal(newRate);
-    });
   });
 
   it("should fetch members from events and store them in the RLN instance", async () => {
@@ -274,4 +234,44 @@ describe("RLN Contract abstraction - RLN v2", () => {
       expectedIdCommitment
     );
   });
+
+  describe("Rate Limit Management", () => {
+    it("should get contract rate limit parameters", async () => {
+      const minRate = await rlnContract.getMinRateLimit();
+      const maxRate = await rlnContract.getMaxRateLimit();
+      const maxTotal = await rlnContract.getMaxTotalRateLimit();
+      const currentTotal = await rlnContract.getCurrentTotalRateLimit();
+
+      expect(minRate).to.equal(mockRateLimits.minRate);
+      expect(maxRate).to.equal(mockRateLimits.maxRate);
+      expect(maxTotal).to.equal(mockRateLimits.maxTotalRate);
+      expect(currentTotal).to.equal(mockRateLimits.currentTotalRate);
+    });
+
+    it("should calculate remaining total rate limit", async () => {
+      const remaining = await rlnContract.getRemainingTotalRateLimit();
+      expect(remaining).to.equal(
+        mockRateLimits.maxTotalRate - mockRateLimits.currentTotalRate
+      );
+    });
+
+    it("should set rate limit", async () => {
+      const newRate = 300; // Any value, since validation is done by contract
+      await rlnContract.setRateLimit(newRate);
+      expect(rlnContract.getRateLimit()).to.equal(newRate);
+    });
+  });
 });
+
+function mockRLNv2RegisteredEvent(idCommitment?: string): ethers.Event {
+  return {
+    args: {
+      idCommitment:
+        idCommitment ||
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      rateLimit: DEFAULT_RATE_LIMIT,
+      index: ethers.BigNumber.from(1)
+    },
+    event: "MembershipRegistered"
+  } as unknown as ethers.Event;
+}
