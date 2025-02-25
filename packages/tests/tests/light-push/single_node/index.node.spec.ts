@@ -181,29 +181,15 @@ describe("Waku Light Push: Single Node", function () {
       messagePayload
     );
 
-    if (nwaku.type == "go-waku") {
-      expect(pushResponse.successes.length).to.eq(1);
-      expect(
-        await messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(true);
-      messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
-      });
-    } else {
-      expect(pushResponse.successes.length).to.eq(0);
-      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        ProtocolError.REMOTE_PEER_REJECTED
-      );
-      expect(
-        await messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(false);
-    }
+    expect(pushResponse.successes.length).to.eq(0);
+    expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+      ProtocolError.REMOTE_PEER_REJECTED
+    );
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(false);
   });
 
   it("Push message with rate limit", async function () {
