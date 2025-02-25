@@ -8,7 +8,7 @@ import {
 import { Libp2p, ProtocolError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import sinon from "sinon";
+import sinon, { SinonSpy } from "sinon";
 
 import { PeerManager } from "../peer_manager/index.js";
 
@@ -60,7 +60,7 @@ describe("LightPush SDK", () => {
     lightPush = mockLightPush({ libp2p, numPeersToUse: 2 });
     let sendSpy = sinon.spy(
       (_encoder: any, _message: any, peerId: PeerId) =>
-        ({ success: peerId }) as any
+        Promise.resolve({ success: peerId }) as any
     );
     lightPush.protocol.send = sendSpy;
 
@@ -68,39 +68,62 @@ describe("LightPush SDK", () => {
       payload: utf8ToBytes("test")
     });
 
-    expect(sendSpy.calledTwice).to.be.true;
-    expect(result.successes?.length).to.be.eq(2);
+    expect(sendSpy.calledTwice, "1").to.be.true;
+    expect(result.successes?.length, "2").to.be.eq(2);
 
     // check if setting another value works
     lightPush = mockLightPush({ libp2p, numPeersToUse: 3 });
     sendSpy = sinon.spy(
       (_encoder: any, _message: any, peerId: PeerId) =>
-        ({ success: peerId }) as any
+        Promise.resolve({ success: peerId }) as any
     );
     lightPush.protocol.send = sendSpy;
 
     result = await lightPush.send(encoder, { payload: utf8ToBytes("test") });
 
-    expect(sendSpy.calledThrice).to.be.true;
-    expect(result.successes?.length).to.be.eq(3);
+    expect(sendSpy.calledThrice, "3").to.be.true;
+    expect(result.successes?.length, "4").to.be.eq(3);
   });
 
-  it("should retry on failure if specified", async () => {
+  it("should retry on complete failure if specified", async () => {
     libp2p = mockLibp2p({
       peers: [mockPeer("1"), mockPeer("2")]
     });
 
     lightPush = mockLightPush({ libp2p });
-    let sendSpy = sinon.spy((_encoder: any, _message: any, peerId: PeerId) => {
-      if (peerId.toString() === "1") {
-        return { success: peerId };
-      }
-
-      return { failure: { error: "problem" } };
-    });
+    const sendSpy = sinon.spy((_encoder: any, _message: any, _peerId: PeerId) =>
+      Promise.resolve({ failure: { error: "problem" } })
+    );
     lightPush.protocol.send = sendSpy as any;
-    const attemptRetriesSpy = sinon.spy(lightPush["attemptRetries"]);
-    lightPush["attemptRetries"] = attemptRetriesSpy;
+
+    const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
+    const result = await lightPush.send(
+      encoder,
+      { payload: utf8ToBytes("test") },
+      { autoRetry: true }
+    );
+
+    expect(retryPushSpy.callCount).to.be.eq(1);
+    expect(result.failures?.length).to.be.eq(2);
+  });
+
+  it("should not retry if at least one success", async () => {
+    libp2p = mockLibp2p({
+      peers: [mockPeer("1"), mockPeer("2")]
+    });
+
+    lightPush = mockLightPush({ libp2p });
+    const sendSpy = sinon.spy(
+      (_encoder: any, _message: any, peerId: PeerId) => {
+        if (peerId.toString() === "1") {
+          return Promise.resolve({ success: peerId });
+        }
+
+        return Promise.resolve({ failure: { error: "problem" } });
+      }
+    );
+    lightPush.protocol.send = sendSpy as any;
+    const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
 
     const result = await lightPush.send(
       encoder,
@@ -108,19 +131,9 @@ describe("LightPush SDK", () => {
       { autoRetry: true }
     );
 
-    expect(attemptRetriesSpy.callCount).to.be.eq(1);
+    expect(retryPushSpy.callCount).to.be.eq(0);
     expect(result.successes?.length).to.be.eq(1);
     expect(result.failures?.length).to.be.eq(1);
-
-    sendSpy = sinon.spy(() => ({ failure: { error: "problem" } })) as any;
-    await lightPush["attemptRetries"](sendSpy as any);
-
-    expect(sendSpy.callCount).to.be.eq(3);
-
-    sendSpy = sinon.spy(() => ({ failure: { error: "problem" } })) as any;
-    await lightPush["attemptRetries"](sendSpy as any, 2);
-
-    expect(sendSpy.callCount).to.be.eq(2);
   });
 });
 
@@ -154,7 +167,7 @@ type MockLightPushOptions = {
 };
 
 function mockLightPush(options: MockLightPushOptions): LightPush {
-  return new LightPush({
+  const lightPush = new LightPush({
     connectionManager: {
       pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
     } as ConnectionManager,
@@ -164,8 +177,17 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
           .getPeers()
           .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
     } as unknown as PeerManager,
-    libp2p: options.libp2p
+    libp2p: options.libp2p,
+    options: {
+      numPeersToUse: options.numPeersToUse
+    }
   });
+
+  (lightPush as any)["retryManager"] = {
+    push: sinon.spy()
+  };
+
+  return lightPush;
 }
 
 function mockPeer(id: string): Peer {

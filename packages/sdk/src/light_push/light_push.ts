@@ -6,59 +6,84 @@ import {
   type IEncoder,
   ILightPush,
   type IMessage,
-  type ISenderOptions,
+  type ISendOptions,
   type Libp2p,
+  LightPushProtocolOptions,
   ProtocolError,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
+
+import { RetryManager } from "./retry_manager.js";
 
 const log = new Logger("sdk:light-push");
 
 const DEFAULT_MAX_ATTEMPTS = 3;
-const DEFAULT_SEND_OPTIONS: ISenderOptions = {
-  autoRetry: false,
-  maxAttempts: DEFAULT_MAX_ATTEMPTS
+const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
+  autoRetry: true,
+  retryIntervalMs: 1000,
+  maxAttempts: DEFAULT_MAX_ATTEMPTS,
+  numPeersToUse: 1
 };
-
-type RetryCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
 type LightPushConstructorParams = {
   connectionManager: ConnectionManager;
   peerManager: PeerManager;
   libp2p: Libp2p;
+  options?: Partial<LightPushProtocolOptions>;
 };
 
 export class LightPush implements ILightPush {
+  private readonly config: LightPushProtocolOptions;
+  private readonly retryManager: RetryManager;
   private peerManager: PeerManager;
 
   public readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {
+    this.config = {
+      ...DEFAULT_SEND_OPTIONS,
+      ...(params.options || {})
+    } as LightPushProtocolOptions;
+
     this.peerManager = params.peerManager;
     this.protocol = new LightPushCore(
       params.connectionManager.pubsubTopics,
       params.libp2p
     );
+    this.retryManager = new RetryManager({
+      peerManager: params.peerManager,
+      retryIntervalMs: this.config.retryIntervalMs
+    });
+  }
+
+  public start(): void {
+    this.retryManager.start();
+  }
+
+  public stop(): void {
+    this.retryManager.stop();
   }
 
   public async send(
     encoder: IEncoder,
     message: IMessage,
-    options: ISenderOptions = DEFAULT_SEND_OPTIONS
+    options: ISendOptions = {}
   ): Promise<SDKProtocolResult> {
-    const successes: PeerId[] = [];
-    const failures: Failure[] = [];
+    options = {
+      ...this.config,
+      ...options
+    };
 
     const { pubsubTopic } = encoder;
-    try {
-      ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
-    } catch (error) {
-      log.error("Failed to send waku light push: pubsub topic not configured");
+
+    log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
+
+    if (!this.protocol.pubsubTopics.includes(pubsubTopic)) {
       return {
-        successes,
+        successes: [],
         failures: [
           {
             error: ProtocolError.TOPIC_NOT_CONFIGURED
@@ -67,10 +92,13 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const peerIds = await this.peerManager.getPeers();
+    const peerIds = this.peerManager
+      .getPeers()
+      .slice(0, this.config.numPeersToUse);
+
     if (peerIds.length === 0) {
       return {
-        successes,
+        successes: [],
         failures: [
           {
             error: ProtocolError.NO_PEER_AVAILABLE
@@ -79,65 +107,35 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const results = await Promise.allSettled(
-      peerIds.map((id) => this.protocol.send(encoder, message, id))
+    const coreResults: CoreProtocolResult[] = await Promise.all(
+      peerIds.map((peerId) =>
+        this.protocol.send(encoder, message, peerId).catch((_e) => ({
+          success: null,
+          failure: {
+            error: ProtocolError.GENERIC_FAIL
+          }
+        }))
+      )
     );
 
-    for (const result of results) {
-      if (result.status !== "fulfilled") {
-        log.error("Failed unexpectedly while sending:", result.reason);
-        failures.push({ error: ProtocolError.GENERIC_FAIL });
-        continue;
-      }
-
-      const { failure, success } = result.value;
-
-      if (success) {
-        successes.push(success);
-        continue;
-      }
-
-      if (failure) {
-        failures.push(failure);
-
-        if (options?.autoRetry) {
-          void this.attemptRetries(
-            (id: PeerId) => this.protocol.send(encoder, message, id),
-            options.maxAttempts
-          );
-        }
-      }
-    }
-
-    return {
-      successes,
-      failures
+    const results: SDKProtocolResult = {
+      successes: coreResults
+        .filter((v) => v.success)
+        .map((v) => v.success) as PeerId[],
+      failures: coreResults
+        .filter((v) => v.failure)
+        .map((v) => v.failure) as Failure[]
     };
-  }
 
-  private async attemptRetries(
-    fn: RetryCallback,
-    maxAttempts?: number
-  ): Promise<void> {
-    maxAttempts = maxAttempts || DEFAULT_MAX_ATTEMPTS;
-    const peerIds = await this.peerManager.getPeers();
-
-    if (peerIds.length === 0) {
-      log.warn("Cannot retry with no connected peers.");
-      return;
-    }
-
-    for (let i = 0; i < maxAttempts; i++) {
-      const id = peerIds[i % peerIds.length]; // always present as we checked for the length already
-      const response = await fn(id);
-
-      if (response.success) {
-        return;
-      }
-
-      log.info(
-        `Attempted retry for peer:${id} failed with:${response?.failure?.error}`
+    if (options.autoRetry && results.successes.length === 0) {
+      const sendCallback = (peerId: PeerId): Promise<CoreProtocolResult> =>
+        this.protocol.send(encoder, message, peerId);
+      this.retryManager.push(
+        sendCallback.bind(this),
+        options.maxAttempts || DEFAULT_MAX_ATTEMPTS
       );
     }
+
+    return results;
   }
 }

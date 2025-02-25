@@ -40,7 +40,8 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    networkConfig
+    networkConfig,
+    lightPush: { numPeersToUse: numServiceNodes }
   };
 
   const waku = await createLightNode(wakuOptions);

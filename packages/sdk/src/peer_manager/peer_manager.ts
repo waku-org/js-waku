@@ -29,7 +29,9 @@ export class PeerManager {
       params?.config?.numPeersToUse || DEFAULT_NUM_PEERS_TO_USE;
 
     this.libp2p = params.libp2p;
+  }
 
+  public start(): void {
     this.startConnectionListener();
   }
 
@@ -37,13 +39,11 @@ export class PeerManager {
     this.stopConnectionListener();
   }
 
-  public async getPeers(): Promise<PeerId[]> {
-    return Promise.all(this.getLockedConnections().map((c) => c.remotePeer));
+  public getPeers(): PeerId[] {
+    return this.getLockedConnections().map((c) => c.remotePeer);
   }
 
-  public async requestRenew(
-    peerId: PeerId | string
-  ): Promise<PeerId | undefined> {
+  public requestRenew(peerId: PeerId | string): PeerId | undefined {
     const lockedConnections = this.getLockedConnections();
     const neededPeers = this.numPeersToUse - lockedConnections.length;
 
@@ -51,15 +51,13 @@ export class PeerManager {
       return;
     }
 
-    const result = await Promise.all(
-      this.getUnlockedConnections()
-        .filter((c) => !c.remotePeer.equals(peerId))
-        .slice(0, neededPeers)
-        .map((c) => this.lockConnection(c))
-        .map((c) => c.remotePeer)
-    );
+    const connections = this.getUnlockedConnections()
+      .filter((c) => !c.remotePeer.equals(peerId))
+      .slice(0, neededPeers)
+      .map((c) => this.lockConnection(c))
+      .map((c) => c.remotePeer);
 
-    const newPeerId = result[0];
+    const newPeerId = connections[0];
 
     if (!newPeerId) {
       log.warn(
@@ -87,15 +85,15 @@ export class PeerManager {
 
   private onConnected(event: CustomEvent<PeerId>): void {
     const peerId = event.detail;
-    void this.lockPeerIfNeeded(peerId);
+    this.lockPeerIfNeeded(peerId);
   }
 
   private onDisconnected(event: CustomEvent<PeerId>): void {
     const peerId = event.detail;
-    void this.requestRenew(peerId);
+    this.requestRenew(peerId);
   }
 
-  private async lockPeerIfNeeded(peerId: PeerId): Promise<void> {
+  private lockPeerIfNeeded(peerId: PeerId): void {
     const lockedConnections = this.getLockedConnections();
     const neededPeers = this.numPeersToUse - lockedConnections.length;
 

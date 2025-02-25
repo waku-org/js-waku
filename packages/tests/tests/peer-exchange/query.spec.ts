@@ -104,7 +104,7 @@ describe("Peer Exchange Query", function () {
                 () =>
                   resolve({
                     peerInfos: null,
-                    error: ProtocolError.REQUEST_TIMEOUT
+                    error: ProtocolError.GENERIC_FAIL
                   }),
                 5000
               )
@@ -115,11 +115,7 @@ describe("Peer Exchange Query", function () {
             queryResult?.peerInfos &&
             queryResult.peerInfos.length === numPeersToRequest;
           if (hasErrors) {
-            if (queryResult.error === ProtocolError.REQUEST_TIMEOUT) {
-              log.warn("Query timed out, retrying...");
-            } else {
-              log.error("Error encountered, retrying...", queryResult.error);
-            }
+            log.error("Error encountered, retrying...", queryResult.error);
             continue;
           }
           if (!hasPeerInfos) {

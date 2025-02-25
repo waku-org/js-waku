@@ -6,7 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { PubSub as Libp2pPubsub, PeerId } from "@libp2p/interface";
+import type { PubSub as Libp2pPubsub } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,
@@ -123,13 +123,11 @@ export class Relay implements IRelay {
     encoder: IEncoder,
     message: IMessage
   ): Promise<SDKProtocolResult> {
-    const successes: PeerId[] = [];
-
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
-        successes,
+        successes: [],
         failures: [
           {
             error: ProtocolError.TOPIC_NOT_CONFIGURED
@@ -142,7 +140,7 @@ export class Relay implements IRelay {
     if (!msg) {
       log.error("Failed to encode message, aborting publish");
       return {
-        successes,
+        successes: [],
         failures: [
           {
             error: ProtocolError.ENCODE_FAILED
@@ -154,7 +152,7 @@ export class Relay implements IRelay {
     if (!isWireSizeUnderCap(msg)) {
       log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
-        successes,
+        successes: [],
         failures: [
           {
             error: ProtocolError.SIZE_TOO_BIG
