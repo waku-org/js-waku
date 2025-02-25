@@ -188,7 +188,6 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   };
 
   return lightPush;
-  });
 }
 
 function mockPeer(id: string): Peer {

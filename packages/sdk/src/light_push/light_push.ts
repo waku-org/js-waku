@@ -28,8 +28,6 @@ const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
   numPeersToUse: 1
 };
 
-type RetryCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
-
 type LightPushConstructorParams = {
   connectionManager: ConnectionManager;
   peerManager: PeerManager;
@@ -56,7 +54,7 @@ export class LightPush implements ILightPush {
       params.libp2p
     );
     this.retryManager = new RetryManager({
-      params.peerManager,
+      peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
     });
   }

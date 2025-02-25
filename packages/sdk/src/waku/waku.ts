@@ -101,7 +101,7 @@ export class WakuNode implements IWaku {
         libp2p,
         peerManager: this.peerManager,
         connectionManager: this.connectionManager,
-        options: options?.lightPush,
+        options: options?.lightPush
       });
     }
 
