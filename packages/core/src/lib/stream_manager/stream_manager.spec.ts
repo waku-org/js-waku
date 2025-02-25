@@ -36,7 +36,7 @@ describe("StreamManager", () => {
 
       streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
 
-      const stream = await streamManager.getStream(mockPeer);
+      const stream = await streamManager.getStream(mockPeer.id);
 
       expect(stream).not.to.be.undefined;
       expect(stream?.id).to.be.eq("1");
@@ -48,7 +48,7 @@ describe("StreamManager", () => {
 
     let error: Error | undefined;
     try {
-      await streamManager.getStream(mockPeer);
+      await streamManager.getStream(mockPeer.id);
     } catch (e) {
       error = e as Error;
     }
@@ -76,7 +76,7 @@ describe("StreamManager", () => {
       con1.newStream = newStreamSpy;
       streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
 
-      const stream = await streamManager.getStream(mockPeer);
+      const stream = await streamManager.getStream(mockPeer.id);
 
       expect(stream).not.to.be.undefined;
       expect(stream?.id).to.be.eq("2");
@@ -102,8 +102,8 @@ describe("StreamManager", () => {
     streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
 
     const [stream1, stream2] = await Promise.all([
-      streamManager.getStream(mockPeer),
-      streamManager.getStream(mockPeer)
+      streamManager.getStream(mockPeer.id),
+      streamManager.getStream(mockPeer.id)
     ]);
 
     const expected = ["1", "2"].toString();

@@ -1,12 +1,12 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import { IConnectionManager } from "./connection_manager.js";
+import type { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
-import { IHealthManager } from "./health_manager.js";
+import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
-import { Protocols } from "./protocols.js";
+import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
 
@@ -16,9 +16,8 @@ export interface IWaku {
   store?: IStore;
   filter?: IFilter;
   lightPush?: ILightPush;
-
-  health: IHealthManager;
   connectionManager: IConnectionManager;
+  health: IHealthIndicator;
 
   /**
    * Returns a unique identifier for a node on the network.

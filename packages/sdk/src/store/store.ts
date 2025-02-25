@@ -1,4 +1,4 @@
-import type { Peer } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import { ConnectionManager, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
@@ -223,26 +223,29 @@ export class Store implements IStore {
     };
   }
 
-  private async getPeerToUse(): Promise<Peer | undefined> {
-    let peer: Peer | undefined;
+  private async getPeerToUse(): Promise<PeerId | undefined> {
+    let peerId: PeerId | undefined;
 
     if (this.options?.peer) {
       const connectedPeers = await this.connectionManager.getConnectedPeers();
 
-      peer = connectedPeers.find((p) => p.id.toString() === this.options?.peer);
+      const peer = connectedPeers.find(
+        (p) => p.id.toString() === this.options?.peer
+      );
+      peerId = peer?.id;
 
-      if (!peer) {
+      if (!peerId) {
         log.warn(
           `Passed node to use for Store not found: ${this.options.peer}. Attempting to use random peers.`
         );
       }
     }
 
-    const peers = await this.peerManager.getPeers();
+    const peerIds = await this.peerManager.getPeers();
 
-    if (peers.length > 0) {
+    if (peerIds.length > 0) {
       // TODO(weboko): implement smart way of getting a peer https://github.com/waku-org/js-waku/issues/2243
-      return peers[Math.floor(Math.random() * peers.length)];
+      return peerIds[Math.floor(Math.random() * peerIds.length)];
     }
 
     log.error("No peers available to use.");

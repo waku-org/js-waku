@@ -87,6 +87,16 @@ describe("Waku Light Push: Single Node: Fails as expected", function () {
     expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
       ProtocolError.EMPTY_PAYLOAD
     );
+
+    expect(pushResponse.successes.length).to.eq(0);
+    expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+      ProtocolError.REMOTE_PEER_REJECTED
+    );
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(false);
   });
 
   it("Push message with rate limit", async function () {

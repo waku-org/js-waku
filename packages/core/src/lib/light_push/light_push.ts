@@ -1,4 +1,4 @@
-import type { Peer, Stream } from "@libp2p/interface";
+import type { PeerId, Stream } from "@libp2p/interface";
 import {
   type CoreProtocolResult,
   type IBaseProtocolCore,
@@ -76,11 +76,10 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     }
   }
 
-  // TODO(weboko): use peer.id as parameter instead
   public async send(
     encoder: IEncoder,
     message: IMessage,
-    peer: Peer
+    peerId: PeerId
   ): Promise<CoreProtocolResult> {
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
@@ -92,21 +91,21 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: preparationError,
-          peerId: peer.id
+          peerId
         }
       };
     }
 
     let stream: Stream;
     try {
-      stream = await this.getStream(peer);
+      stream = await this.getStream(peerId);
     } catch (error) {
       log.error("Failed to get stream", error);
       return {
         success: null,
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -126,7 +125,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.GENERIC_FAIL,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -145,7 +144,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.DECODE_FAILED,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -156,7 +155,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.NO_RESPONSE,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -168,7 +167,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: rlnErrorCase,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -179,11 +178,11 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.REMOTE_PEER_REJECTED,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
 
-    return { success: peer.id, failure: null };
+    return { success: peerId, failure: null };
   }
 }

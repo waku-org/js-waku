@@ -15,3 +15,5 @@ export * as proto_store from './generated/store_v3.js'
 export * as proto_peer_exchange from "./generated/peer_exchange.js";
 
 export * as proto_metadata from './generated/metadata.js'
+
+export * as proto_sds_message from './generated/sds_message.js'

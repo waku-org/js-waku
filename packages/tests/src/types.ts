@@ -22,8 +22,6 @@ export interface Args {
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
-  // `legacyFilter` is required to enable filter v1 with go-waku
-  legacyFilter?: boolean;
   clusterId?: number;
   shard?: Array<number>;
   rlnRelayEthClientAddress?: string;

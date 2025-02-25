@@ -17,8 +17,6 @@ export { StoreCore, StoreCodec } from "./lib/store/index.js";
 
 export { ConnectionManager } from "./lib/connection_manager/index.js";
 
-export { getHealthManager } from "./lib/health_manager.js";
-
 export { StreamManager } from "./lib/stream_manager/index.js";
 
 export { MetadataCodec, wakuMetadata } from "./lib/metadata/index.js";

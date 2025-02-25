@@ -1,4 +1,4 @@
-import type { EventHandler, Peer, PeerId } from "@libp2p/interface";
+import type { EventHandler, PeerId } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import type {
   FilterProtocolOptions,
@@ -31,7 +31,7 @@ export class SubscriptionMonitor {
    * Cached peers that are in use by subscription.
    * Needed to understand if they disconnect later or not.
    */
-  public peers: Peer[] = [];
+  public peerIds: PeerId[] = [];
 
   private isStarted: boolean = false;
 
@@ -108,12 +108,12 @@ export class SubscriptionMonitor {
    * Method to get peers that are used by particular subscription or, if initially called, peers that can be used by subscription.
    * @returns array of peers
    */
-  public async getPeers(): Promise<Peer[]> {
+  public async getPeers(): Promise<PeerId[]> {
     if (!this.isStarted) {
-      this.peers = await this.peerManager.getPeers();
+      this.peerIds = await this.peerManager.getPeers();
     }
 
-    return this.peers;
+    return this.peerIds;
   }
 
   /**
@@ -168,7 +168,7 @@ export class SubscriptionMonitor {
       return;
     }
 
-    await Promise.all(this.peers.map((peer) => this.ping(peer, true)));
+    await Promise.all(this.peerIds.map((id) => this.ping(id, true)));
     this.startKeepAlive();
   }
 
@@ -178,7 +178,7 @@ export class SubscriptionMonitor {
     }
 
     this.keepAliveIntervalId = setInterval(() => {
-      void this.peers.map((peer) => this.ping(peer));
+      void this.peerIds.map((id) => this.ping(id));
     }, this.config.keepAliveIntervalMs) as unknown as number;
   }
 
@@ -216,40 +216,40 @@ export class SubscriptionMonitor {
   // this method keeps track of new connections and will trigger subscribe request if needed
   private async onPeerConnected(_event: CustomEvent<PeerId>): Promise<void> {
     // TODO(weboko): use config.numOfUsedPeers instead of this.peers
-    const hasSomePeers = this.peers.length > 0;
+    const hasSomePeers = this.peerIds.length > 0;
     if (hasSomePeers) {
       return;
     }
 
-    this.peers = await this.peerManager.getPeers();
-    await Promise.all(this.peers.map((peer) => this.subscribe(peer)));
+    this.peerIds = await this.peerManager.getPeers();
+    await Promise.all(this.peerIds.map((id) => this.subscribe(id)));
   }
 
   // this method keeps track of disconnects and will trigger subscribe request if needed
   private async onPeerDisconnected(event: CustomEvent<PeerId>): Promise<void> {
-    const hasNotBeenUsed = !this.peers.find((p) => p.id.equals(event.detail));
+    const hasNotBeenUsed = !this.peerIds.find((id) => id.equals(event.detail));
     if (hasNotBeenUsed) {
       return;
     }
 
-    this.peers = await this.peerManager.getPeers();
+    this.peerIds = await this.peerManager.getPeers();
 
     // we trigger subscribe for peer that was used before
     // it will expectedly fail and we will initiate addition of a new peer
-    await Promise.all(this.peers.map((peer) => this.subscribe(peer)));
+    await Promise.all(this.peerIds.map((id) => this.subscribe(id)));
   }
 
-  private async subscribe(_peer: Peer | undefined): Promise<void> {
-    let peer: Peer | undefined = _peer;
+  private async subscribe(_peerId: PeerId | undefined): Promise<void> {
+    let peerId: PeerId | undefined = _peerId;
 
     for (let i = 0; i < MAX_SUBSCRIBE_ATTEMPTS; i++) {
-      if (!peer) {
+      if (!peerId) {
         return;
       }
 
       const response = await this.filter.subscribe(
         this.pubsubTopic,
-        peer,
+        peerId,
         Array.from(this.activeSubscriptions.keys())
       );
 
@@ -257,19 +257,19 @@ export class SubscriptionMonitor {
         return;
       }
 
-      peer = await this.peerManager.requestRenew(peer.id);
+      peerId = await this.peerManager.requestRenew(peerId);
     }
   }
 
   private async ping(
-    peer: Peer,
+    peerId: PeerId,
     renewOnFirstFail: boolean = false
   ): Promise<void> {
-    const peerIdStr = peer.id.toString();
-    const response = await this.filter.ping(peer);
+    const peerIdStr = peerId.toString();
+    const response = await this.filter.ping(peerId);
 
     if (response.failure && renewOnFirstFail) {
-      const newPeer = await this.peerManager.requestRenew(peer.id);
+      const newPeer = await this.peerManager.requestRenew(peerId);
       await this.subscribe(newPeer);
       return;
     }
@@ -286,7 +286,7 @@ export class SubscriptionMonitor {
     const madeAttempts = this.pingFailedAttempts.get(peerIdStr) || 0;
 
     if (madeAttempts >= this.config.pingsBeforePeerRenewed) {
-      const newPeer = await this.peerManager.requestRenew(peer.id);
+      const newPeer = await this.peerManager.requestRenew(peerId);
       await this.subscribe(newPeer);
     }
   }
