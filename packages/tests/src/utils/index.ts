@@ -6,5 +6,4 @@ export * from "./delay.js";
 export * from "./base64_utf8.js";
 export * from "./waitForConnections.js";
 export * from "./custom_mocha_hooks.js";
-export * from "./waku_versions_utils.js";
 export * from "./nodes.js";

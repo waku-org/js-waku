@@ -123,7 +123,7 @@ export class ServiceNode {
             });
           });
 
-          if (isGoWaku && !args.logLevel) {
+          if (!args.logLevel) {
             args.logLevel = LogLevel.Debug;
           }
 
