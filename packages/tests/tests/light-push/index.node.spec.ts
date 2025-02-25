@@ -189,29 +189,15 @@ const runTests = (strictNodeCheck: boolean): void => {
         messagePayload
       );
 
-      if (serviceNodes.type == "go-waku") {
-        expect(pushResponse.successes.length).to.eq(numServiceNodes);
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestPubsubTopic
-          })
-        ).to.eq(true);
-        serviceNodes.messageCollector.verifyReceivedMessage(0, {
-          expectedMessageText: messageText,
-          expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
-        });
-      } else {
-        expect(pushResponse.successes.length).to.eq(0);
-        expect(
-          pushResponse.failures?.map((failure) => failure.error)
-        ).to.include(ProtocolError.REMOTE_PEER_REJECTED);
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestPubsubTopic
-          })
-        ).to.eq(false);
-      }
+      expect(pushResponse.successes.length).to.eq(0);
+      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+        ProtocolError.REMOTE_PEER_REJECTED
+      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(false);
     });
 
     it("Push message with rate limit", async function () {

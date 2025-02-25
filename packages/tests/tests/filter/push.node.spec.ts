@@ -182,16 +182,9 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestPubsubTopic
       );
 
-      // For go-waku the message is received (it is possible to send a message with no payload)
-      if (serviceNodes.type == "go-waku") {
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          true
-        );
-      } else {
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          false
-        );
-      }
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
     });
 
     it("Check message with non string payload is not received", async function () {
