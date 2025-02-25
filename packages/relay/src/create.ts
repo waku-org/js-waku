@@ -1,7 +1,7 @@
 import type { CreateNodeOptions, RelayNode } from "@waku/interfaces";
 import { createLibp2pAndUpdateOptions, WakuNode } from "@waku/sdk";
 
-import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "./relay.js";
+import { Relay, RelayCreateOptions, wakuGossipSub } from "./relay.js";
 
 /**
  * Create a Waku node that uses Waku Relay to send and receive messages,
@@ -27,7 +27,10 @@ export async function createRelayNode(
   };
 
   const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
-  const relay = wakuRelay(pubsubTopics || [])(libp2p);
+  const relay = new Relay({
+    pubsubTopics: pubsubTopics || [],
+    libp2p
+  });
 
   return new WakuNode(
     pubsubTopics,

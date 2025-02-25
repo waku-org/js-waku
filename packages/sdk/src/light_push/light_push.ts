@@ -25,15 +25,23 @@ const DEFAULT_SEND_OPTIONS: ISenderOptions = {
 
 type RetryCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
+type LightPushConstructorParams = {
+  connectionManager: ConnectionManager;
+  peerManager: PeerManager;
+  libp2p: Libp2p;
+};
+
 export class LightPush implements ILightPush {
+  private peerManager: PeerManager;
+
   public readonly protocol: LightPushCore;
 
-  public constructor(
-    connectionManager: ConnectionManager,
-    private peerManager: PeerManager,
-    libp2p: Libp2p
-  ) {
-    this.protocol = new LightPushCore(connectionManager.pubsubTopics, libp2p);
+  public constructor(params: LightPushConstructorParams) {
+    this.peerManager = params.peerManager;
+    this.protocol = new LightPushCore(
+      params.connectionManager.pubsubTopics,
+      params.libp2p
+    );
   }
 
   public async send(
@@ -132,12 +140,4 @@ export class LightPush implements ILightPush {
       );
     }
   }
-}
-
-export function wakuLightPush(
-  connectionManager: ConnectionManager,
-  peerManager: PeerManager
-): (libp2p: Libp2p) => ILightPush {
-  return (libp2p: Libp2p) =>
-    new LightPush(connectionManager, peerManager, libp2p);
 }

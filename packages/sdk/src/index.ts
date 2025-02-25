@@ -14,9 +14,9 @@ export {
   defaultLibp2p,
   createLibp2pAndUpdateOptions
 } from "./create/index.js";
-export { wakuLightPush } from "./light_push/index.js";
-export { wakuFilter } from "./filter/index.js";
-export { wakuStore } from "./store/index.js";
+export { LightPush } from "./light_push/index.js";
+export { Filter } from "./filter/index.js";
+export { Store } from "./store/index.js";
 
 export * as waku from "@waku/core";
 export * as utils from "@waku/utils";

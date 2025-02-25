@@ -40,22 +40,22 @@ module.exports = [
   {
     name: "Privacy preserving protocols",
     path: "packages/relay/bundle/index.js",
-    import: "{ wakuRelay }",
+    import: "{ Relay }",
   },
   {
     name: "Waku Filter",
     path: "packages/sdk/bundle/index.js",
-    import: "{ wakuFilter }",
+    import: "{ Filter }",
   },
   {
     name: "Waku LightPush",
     path: "packages/sdk/bundle/index.js",
-    import: "{ wakuLightPush }",
+    import: "{ LightPush }",
   },
   {
     name: "History retrieval protocols",
     path: "packages/sdk/bundle/index.js",
-    import: "{ wakuStore }",
+    import: "{ Store }",
   },
   {
     name: "Deterministic Message Hashing",

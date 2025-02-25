@@ -154,18 +154,18 @@ type MockLightPushOptions = {
 };
 
 function mockLightPush(options: MockLightPushOptions): LightPush {
-  return new LightPush(
-    {
+  return new LightPush({
+    connectionManager: {
       pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
     } as ConnectionManager,
-    {
+    peerManager: {
       getPeers: () =>
         options.libp2p
           .getPeers()
           .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
     } as unknown as PeerManager,
-    options.libp2p
-  );
+    libp2p: options.libp2p
+  });
 }
 
 function mockPeer(id: string): Peer {
