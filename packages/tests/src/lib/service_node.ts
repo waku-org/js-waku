@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.31.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.34.0";
 
 const LOG_DIR = "./log";
 
@@ -382,6 +382,15 @@ export class ServiceNode {
       throw `Container hasn't started`;
     }
   }
+
+  public async getExternalWebsocketMultiaddr(): Promise<string | undefined> {
+    if (!this.docker?.container) {
+      return undefined;
+    }
+    const containerIp = this.docker.containerIp;
+    const peerId = await this.getPeerId();
+    return `/ip4/${containerIp}/tcp/${this.websocketPort}/ws/p2p/${peerId}`;
+  }
 }
 
 export function defaultArgs(): Args {
@@ -401,4 +410,21 @@ interface RpcInfoResponse {
   // multiaddrs including peer id.
   listenAddresses: string[];
   enrUri?: string;
+}
+
+export async function verifyServiceNodesConnected(
+  nodes: ServiceNode[]
+): Promise<void> {
+  for (const node of nodes) {
+    const peers = await node.peers();
+    log.info(`Service node ${node.containerName} peers:`, peers.length);
+    log.info(`Service node ${node.containerName} peers:`, peers);
+
+    if (nodes.length > 1 && peers.length === 0) {
+      log.error(`Service node ${node.containerName} has no peers connected`);
+      throw new Error(
+        `Service node ${node.containerName} has no peers connected`
+      );
+    }
+  }
 }
