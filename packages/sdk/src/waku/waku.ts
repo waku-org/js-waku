@@ -15,11 +15,11 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "../filter/index.js";
+import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
-import { wakuLightPush } from "../light_push/index.js";
+import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
-import { wakuStore } from "../store/index.js";
+import { Store } from "../store/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
@@ -86,29 +86,33 @@ export class WakuNode implements IWaku {
           });
       }
 
-      const store = wakuStore(this.connectionManager, this.peerManager, {
-        peer: options.store?.peer
+      this.store = new Store({
+        libp2p,
+        connectionManager: this.connectionManager,
+        peerManager: this.peerManager,
+        options: {
+          peer: options.store?.peer
+        }
       });
-      this.store = store(libp2p);
     }
 
     if (protocolsEnabled.lightpush) {
-      const lightPush = wakuLightPush(
-        this.connectionManager,
-        this.peerManager,
-        options?.lightPush
-      );
-      this.lightPush = lightPush(libp2p);
+      this.lightPush = new LightPush({
+        libp2p,
+        peerManager: this.peerManager,
+        connectionManager: this.connectionManager,
+        options: options?.lightPush,
+      });
     }
 
     if (protocolsEnabled.filter) {
-      const filter = wakuFilter(
-        this.connectionManager,
-        this.peerManager,
-        this.lightPush,
-        options.filter
-      );
-      this.filter = filter(libp2p);
+      this.filter = new Filter({
+        libp2p,
+        connectionManager: this.connectionManager,
+        peerManager: this.peerManager,
+        lightPush: this.lightPush,
+        options: options.filter
+      });
     }
 
     log.info(

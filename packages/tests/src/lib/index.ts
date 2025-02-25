@@ -79,18 +79,6 @@ export class ServiceNodesFleet {
     );
   }
 
-  public get type(): "go-waku" | "nwaku" {
-    const nodeType = new Set(
-      this.nodes.map((node) => {
-        return node.type;
-      })
-    );
-    if (nodeType.size > 1) {
-      throw new Error("Multiple node types");
-    }
-    return nodeType.values().next().value;
-  }
-
   public async start(): Promise<void> {
     const startPromises = this.nodes.map((node) => node.start());
     await Promise.all(startPromises);

@@ -16,20 +16,33 @@ import { PeerManager } from "../peer_manager/index.js";
 
 const log = new Logger("waku:store:sdk");
 
+type StoreConstructorParams = {
+  connectionManager: ConnectionManager;
+  libp2p: Libp2p;
+  peerManager: PeerManager;
+  options?: Partial<StoreProtocolOptions>;
+};
+
 /**
  * StoreSDK is an implementation of the IStoreSDK interface.
  * It provides methods to interact with the Waku Store protocol.
  */
 export class Store implements IStore {
+  private options: Partial<StoreProtocolOptions>;
+  private peerManager: PeerManager;
+  private connectionManager: ConnectionManager;
+
   public readonly protocol: StoreCore;
 
-  public constructor(
-    private connectionManager: ConnectionManager,
-    libp2p: Libp2p,
-    private peerManager: PeerManager,
-    private options?: Partial<StoreProtocolOptions>
-  ) {
-    this.protocol = new StoreCore(connectionManager.pubsubTopics, libp2p);
+  public constructor(params: StoreConstructorParams) {
+    this.options = params.options || {};
+    this.peerManager = params.peerManager;
+    this.connectionManager = params.connectionManager;
+
+    this.protocol = new StoreCore(
+      params.connectionManager.pubsubTopics,
+      params.libp2p
+    );
   }
 
   /**
@@ -251,20 +264,4 @@ export class Store implements IStore {
     log.error("No peers available to use.");
     return;
   }
-}
-
-/**
- * Factory function to create an instance of the StoreSDK.
- *
- * @param init - Partial options for protocol creation.
- * @returns A function that takes a Libp2p instance and returns a StoreSDK instance.
- */
-export function wakuStore(
-  connectionManager: ConnectionManager,
-  peerManager: PeerManager,
-  options?: Partial<StoreProtocolOptions>
-): (libp2p: Libp2p) => IStore {
-  return (libp2p: Libp2p) => {
-    return new Store(connectionManager, libp2p, peerManager, options);
-  };
 }

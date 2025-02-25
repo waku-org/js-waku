@@ -28,26 +28,35 @@ const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
   numPeersToUse: 1
 };
 
+type RetryCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
+
+type LightPushConstructorParams = {
+  connectionManager: ConnectionManager;
+  peerManager: PeerManager;
+  libp2p: Libp2p;
+  options?: Partial<LightPushProtocolOptions>;
+};
+
 export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
+  private peerManager: PeerManager;
 
   public readonly protocol: LightPushCore;
 
-  public constructor(
-    connectionManager: ConnectionManager,
-    private peerManager: PeerManager,
-    libp2p: Libp2p,
-    config: Partial<LightPushProtocolOptions> = {}
-  ) {
+  public constructor(params: LightPushConstructorParams) {
     this.config = {
       ...DEFAULT_SEND_OPTIONS,
-      ...config
+      ...(params.options || {})
     } as LightPushProtocolOptions;
-    this.protocol = new LightPushCore(connectionManager.pubsubTopics, libp2p);
 
+    this.peerManager = params.peerManager;
+    this.protocol = new LightPushCore(
+      params.connectionManager.pubsubTopics,
+      params.libp2p
+    );
     this.retryManager = new RetryManager({
-      peerManager,
+      params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
     });
   }
@@ -131,13 +140,4 @@ export class LightPush implements ILightPush {
 
     return results;
   }
-}
-
-export function wakuLightPush(
-  connectionManager: ConnectionManager,
-  peerManager: PeerManager,
-  config?: Partial<LightPushProtocolOptions>
-): (libp2p: Libp2p) => ILightPush {
-  return (libp2p: Libp2p): ILightPush =>
-    new LightPush(connectionManager, peerManager, libp2p, config);
 }

@@ -29,20 +29,30 @@ import { buildConfig } from "./utils.js";
 
 const log = new Logger("sdk:filter");
 
-class Filter implements IFilter {
+type FilterConstructorParams = {
+  connectionManager: ConnectionManager;
+  libp2p: Libp2p;
+  peerManager: PeerManager;
+  lightPush?: ILightPush;
+  options?: Partial<FilterProtocolOptions>;
+};
+
+export class Filter implements IFilter {
   public readonly protocol: FilterCore;
 
   private readonly config: FilterProtocolOptions;
+  private connectionManager: ConnectionManager;
+  private libp2p: Libp2p;
+  private peerManager: PeerManager;
+  private lightPush?: ILightPush;
   private activeSubscriptions = new Map<string, Subscription>();
 
-  public constructor(
-    private connectionManager: ConnectionManager,
-    private libp2p: Libp2p,
-    private peerManager: PeerManager,
-    private lightPush?: ILightPush,
-    config?: Partial<FilterProtocolOptions>
-  ) {
-    this.config = buildConfig(config);
+  public constructor(params: FilterConstructorParams) {
+    this.config = buildConfig(params.options);
+    this.lightPush = params.lightPush;
+    this.peerManager = params.peerManager;
+    this.libp2p = params.libp2p;
+    this.connectionManager = params.connectionManager;
 
     this.protocol = new FilterCore(
       async (pubsubTopic, wakuMessage, peerIdStr) => {
@@ -57,8 +67,8 @@ class Filter implements IFilter {
         await subscription.processIncomingMessage(wakuMessage, peerIdStr);
       },
 
-      connectionManager.pubsubTopics,
-      libp2p
+      params.connectionManager.pubsubTopics,
+      params.libp2p
     );
 
     this.activeSubscriptions = new Map();
@@ -280,14 +290,4 @@ class Filter implements IFilter {
 
     return [...pubsubTopics];
   }
-}
-
-export function wakuFilter(
-  connectionManager: ConnectionManager,
-  peerManager: PeerManager,
-  lightPush?: ILightPush,
-  config?: Partial<FilterProtocolOptions>
-): (libp2p: Libp2p) => IFilter {
-  return (libp2p: Libp2p) =>
-    new Filter(connectionManager, libp2p, peerManager, lightPush, config);
 }

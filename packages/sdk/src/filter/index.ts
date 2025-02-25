@@ -1,1 +1,1 @@
-export { wakuFilter } from "./filter.js";
+export { Filter } from "./filter.js";

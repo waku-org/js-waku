@@ -167,27 +167,28 @@ type MockLightPushOptions = {
 };
 
 function mockLightPush(options: MockLightPushOptions): LightPush {
-  const lightPush = new LightPush(
-    {
+  const lightPush = new LightPush({
+    connectionManager: {
       pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
     } as ConnectionManager,
-    {
+    peerManager: {
       getPeers: () =>
         options.libp2p
           .getPeers()
           .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
     } as unknown as PeerManager,
-    options.libp2p,
-    {
+    libp2p: options.libp2p,
+    options: {
       numPeersToUse: options.numPeersToUse
     }
-  );
+  });
 
   (lightPush as any)["retryManager"] = {
     push: sinon.spy()
   };
 
   return lightPush;
+  });
 }
 
 function mockPeer(id: string): Peer {
