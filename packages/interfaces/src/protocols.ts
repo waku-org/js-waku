@@ -34,6 +34,14 @@ export type CreateNodeOptions = {
   userAgent?: string;
 
   /**
+   * Starts Waku node automatically upon creations.
+   * Calls {@link @waku/sdk!WakuNode.start} before returning {@link @waku/sdk!WakuNode}
+   *
+   * @default true
+   */
+  autoStart?: boolean;
+
+  /**
    * Configuration for determining the network in use.
    * Network configuration refers to the shards and clusters used in the network.
    *

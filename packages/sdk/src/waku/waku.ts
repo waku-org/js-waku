@@ -40,6 +40,9 @@ export class WakuNode implements IWaku {
   public connectionManager: ConnectionManager;
   public health: HealthIndicator;
 
+  // needed to create a lock for async operations
+  private _nodeStateLock = false;
+
   private readonly peerManager: PeerManager;
 
   public constructor(
@@ -190,18 +193,30 @@ export class WakuNode implements IWaku {
   }
 
   public async start(): Promise<void> {
+    if (this._nodeStateLock || this.isStarted()) return;
+
+    this._nodeStateLock = true;
+
     await this.libp2p.start();
     this.peerManager.start();
     this.health.start();
     this.lightPush?.start();
+
+    this._nodeStateLock = false;
   }
 
   public async stop(): Promise<void> {
+    if (this._nodeStateLock || !this.isStarted()) return;
+
+    this._nodeStateLock = true;
+
     this.lightPush?.stop();
     this.health.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();
+
+    this._nodeStateLock = false;
   }
 
   public async getConnectedPeers(): Promise<Peer[]> {
@@ -216,7 +231,7 @@ export class WakuNode implements IWaku {
   }
 
   public isStarted(): boolean {
-    return this.libp2p.status == "started";
+    return this.libp2p.status === "started";
   }
 
   public isConnected(): boolean {
