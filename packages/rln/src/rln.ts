@@ -25,26 +25,22 @@ import type {
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import verificationKey from "./resources/verification_key";
 import * as wc from "./resources/witness_calculator";
+import { WitnessCalculator } from "./resources/witness_calculator";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:rln");
 
-async function loadWitnessCalculator(): Promise<wc.WitnessCalculator> {
-  const res = await fetch("/base/rln.wasm");
-  if (!res.ok) {
-    throw new Error(`Failed to fetch rln.wasm: ${res.statusText}`);
-  }
-  const witnessBuffer = await res.arrayBuffer();
-  return wc.builder(new Uint8Array(witnessBuffer), false);
+async function loadWitnessCalculator(): Promise<WitnessCalculator> {
+  const url = new URL("./resources/rln.wasm", import.meta.url);
+  const response = await fetch(url);
+  return await wc.builder(new Uint8Array(await response.arrayBuffer()), false);
 }
 
 async function loadZkey(): Promise<Uint8Array> {
-  const res = await fetch("/base/rln_final.zkey");
-  if (!res.ok) {
-    throw new Error(`Failed to fetch rln_final.zkey: ${res.statusText}`);
-  }
-  return new Uint8Array(await res.arrayBuffer());
+  const url = new URL("./resources/rln_final.zkey", import.meta.url);
+  const response = await fetch(url);
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 /**
@@ -82,12 +78,16 @@ type StartRLNOptions = {
   /**
    * If not set - will use default SEPOLIA_CONTRACT address.
    */
-  registryAddress?: string;
+  address?: string;
   /**
    * Credentials to use for generating proofs and connecting to the contract and network.
    * If provided used for validating the network chainId and connecting to registry contract.
    */
   credentials?: EncryptedCredentials | DecryptedCredentials;
+  /**
+   * Rate limit for the member.
+   */
+  rateLimit?: number;
 };
 
 type RegisterMembershipOptions =
@@ -128,7 +128,7 @@ export class RLNInstance {
     try {
       const { credentials, keystore } =
         await RLNInstance.decryptCredentialsIfNeeded(options.credentials);
-      const { signer, registryAddress } = await this.determineStartOptions(
+      const { signer, address } = await this.determineStartOptions(
         options,
         credentials
       );
@@ -140,8 +140,9 @@ export class RLNInstance {
       this._credentials = credentials;
       this._signer = signer!;
       this._contract = await RLNContract.init(this, {
-        registryAddress: registryAddress!,
-        signer: signer!
+        address: address!,
+        signer: signer!,
+        rateLimit: options.rateLimit
       });
       this.started = true;
     } finally {
@@ -154,12 +155,12 @@ export class RLNInstance {
     credentials: KeystoreEntity | undefined
   ): Promise<StartRLNOptions> {
     let chainId = credentials?.membership.chainId;
-    const registryAddress =
+    const address =
       credentials?.membership.address ||
-      options.registryAddress ||
+      options.address ||
       SEPOLIA_CONTRACT.address;
 
-    if (registryAddress === SEPOLIA_CONTRACT.address) {
+    if (address === SEPOLIA_CONTRACT.address) {
       chainId = SEPOLIA_CONTRACT.chainId;
     }
 
@@ -174,7 +175,7 @@ export class RLNInstance {
 
     return {
       signer,
-      registryAddress
+      address
     };
   }
 
@@ -270,7 +271,7 @@ export class RLNInstance {
     }
 
     const registryAddress = credentials.membership.address;
-    const currentRegistryAddress = this._contract.registry.address;
+    const currentRegistryAddress = this._contract.contract.address;
     if (registryAddress !== currentRegistryAddress) {
       throw Error(
         `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
@@ -278,7 +279,7 @@ export class RLNInstance {
     }
 
     const chainId = credentials.membership.chainId;
-    const network = await this._contract.registry.provider.getNetwork();
+    const network = await this._contract.contract.provider.getNetwork();
     const currentChainId = network.chainId;
     if (chainId !== currentChainId) {
       throw Error(
