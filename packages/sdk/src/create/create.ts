@@ -14,9 +14,16 @@ export async function createLightNode(
 ): Promise<LightNode> {
   const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
-  return new WakuNode(pubsubTopics, options, libp2p, {
+  const node = new WakuNode(pubsubTopics, options, libp2p, {
     store: true,
     lightpush: true,
     filter: true
   }) as LightNode;
+
+  // only if `false` is passed explicitly
+  if (options?.autoStart !== false) {
+    await node.start();
+  }
+
+  return node;
 }
