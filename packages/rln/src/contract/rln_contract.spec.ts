@@ -16,7 +16,6 @@ describe("RLN Contract abstraction - RLN", () => {
   let sandbox: SinonSandbox;
   let rlnInstance: any;
   let mockedRegistryContract: any;
-  let rlnContract: RLNContract;
 
   const mockRateLimits = {
     minRate: 20,
@@ -57,7 +56,7 @@ describe("RLN Contract abstraction - RLN", () => {
       SEPOLIA_CONTRACT.address,
       provider
     );
-    rlnContract = await RLNContract.init(rlnInstance, {
+    await RLNContract.init(rlnInstance, {
       address: SEPOLIA_CONTRACT.address,
       signer: voidSigner,
       rateLimit: DEFAULT_RATE_LIMIT,
