@@ -33,15 +33,46 @@ import { Zerokit } from "./zerokit.js";
 const log = new Logger("waku:rln");
 
 async function loadWitnessCalculator(): Promise<WitnessCalculator> {
-  const url = new URL("./resources/rln.wasm", import.meta.url);
-  const response = await fetch(url);
-  return await wc.builder(new Uint8Array(await response.arrayBuffer()), false);
+  try {
+    const url = new URL("./resources/rln.wasm", import.meta.url);
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch witness calculator: ${response.status} ${response.statusText}`
+      );
+    }
+
+    return await wc.builder(
+      new Uint8Array(await response.arrayBuffer()),
+      false
+    );
+  } catch (error) {
+    log.error("Error loading witness calculator:", error);
+    throw new Error(
+      `Failed to load witness calculator: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 async function loadZkey(): Promise<Uint8Array> {
-  const url = new URL("./resources/rln_final.zkey", import.meta.url);
-  const response = await fetch(url);
-  return new Uint8Array(await response.arrayBuffer());
+  try {
+    const url = new URL("./resources/rln_final.zkey", import.meta.url);
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch zkey: ${response.status} ${response.statusText}`
+      );
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
+  } catch (error) {
+    log.error("Error loading zkey:", error);
+    throw new Error(
+      `Failed to load zkey: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 /**
