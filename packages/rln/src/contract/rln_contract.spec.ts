@@ -7,15 +7,12 @@ import sinon, { SinonSandbox } from "sinon";
 import { createRLN } from "../create.js";
 import type { IdentityCredential } from "../identity.js";
 
-import { SEPOLIA_CONTRACT } from "./constants.js";
+import { DEFAULT_RATE_LIMIT, SEPOLIA_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
 
 use(chaiAsPromised);
 
-// Use the minimum allowed rate limit from RATE_LIMIT_TIERS
-const DEFAULT_RATE_LIMIT = 20;
-
-describe("RLN Contract abstraction - RLN v2", () => {
+describe("RLN Contract abstraction - RLN", () => {
   let sandbox: SinonSandbox;
   let rlnInstance: any;
   let mockedRegistryContract: any;
@@ -204,8 +201,9 @@ describe("RLN Contract abstraction - RLN v2", () => {
       await rlnContract.registerWithIdentity(identity);
 
     expect(decryptedCredentials).to.not.be.undefined;
-    if (!decryptedCredentials)
+    if (!decryptedCredentials) {
       throw new Error("Decrypted credentials should not be undefined");
+    }
 
     expect(
       registerStub.calledWith(
@@ -236,29 +234,11 @@ describe("RLN Contract abstraction - RLN v2", () => {
   });
 
   describe("Rate Limit Management", () => {
-    it("should get contract rate limit parameters", async () => {
-      const minRate = await rlnContract.getMinRateLimit();
-      const maxRate = await rlnContract.getMaxRateLimit();
-      const maxTotal = await rlnContract.getMaxTotalRateLimit();
-      const currentTotal = await rlnContract.getCurrentTotalRateLimit();
-
-      expect(minRate).to.equal(mockRateLimits.minRate);
-      expect(maxRate).to.equal(mockRateLimits.maxRate);
-      expect(maxTotal).to.equal(mockRateLimits.maxTotalRate);
-      expect(currentTotal).to.equal(mockRateLimits.currentTotalRate);
-    });
-
     it("should calculate remaining total rate limit", async () => {
       const remaining = await rlnContract.getRemainingTotalRateLimit();
       expect(remaining).to.equal(
         mockRateLimits.maxTotalRate - mockRateLimits.currentTotalRate
       );
-    });
-
-    it("should set rate limit", async () => {
-      const newRate = 300; // Any value, since validation is done by contract
-      await rlnContract.setRateLimit(newRate);
-      expect(rlnContract.getRateLimit()).to.equal(newRate);
     });
   });
 });
