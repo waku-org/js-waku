@@ -271,7 +271,7 @@ export class RLNInstance {
     }
 
     const registryAddress = credentials.membership.address;
-    const currentRegistryAddress = this._contract.contract.address;
+    const currentRegistryAddress = this._contract.address;
     if (registryAddress !== currentRegistryAddress) {
       throw Error(
         `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
@@ -279,7 +279,7 @@ export class RLNInstance {
     }
 
     const chainId = credentials.membership.chainId;
-    const network = await this._contract.contract.provider.getNetwork();
+    const network = await this._contract.provider.getNetwork();
     const currentChainId = network.chainId;
     if (chainId !== currentChainId) {
       throw Error(

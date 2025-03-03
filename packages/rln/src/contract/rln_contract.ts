@@ -125,6 +125,20 @@ export class RLNContract {
   }
 
   /**
+   * Gets the contract address
+   */
+  public get address(): string {
+    return this.contract.address;
+  }
+
+  /**
+   * Gets the contract provider
+   */
+  public get provider(): ethers.providers.Provider {
+    return this.contract.provider;
+  }
+
+  /**
    * Gets the minimum allowed rate limit from the contract
    * @returns Promise<number> The minimum rate limit in messages per epoch
    */
