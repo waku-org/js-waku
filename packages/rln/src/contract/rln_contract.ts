@@ -8,7 +8,7 @@ import type { RLNInstance } from "../rln.js";
 import { MerkleRootTracker } from "../root_tracker.js";
 import { zeroPadLE } from "../utils/bytes.js";
 
-import { RLN_V2_ABI } from "./abi/rlnv2.js";
+import { RLN_V2_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 
 const log = new Logger("waku:rln:contract");

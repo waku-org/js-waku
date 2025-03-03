@@ -1,4 +1,4 @@
-import { RLN_V2_ABI } from "./abi/rlnv2.js";
+import { RLN_V2_ABI } from "./abi.js";
 
 export const SEPOLIA_CONTRACT = {
   chainId: 11155111,
