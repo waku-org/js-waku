@@ -15,8 +15,21 @@ import {
 export class Zerokit {
   public constructor(
     private readonly zkRLN: number,
-    private readonly witnessCalculator: WitnessCalculator
+    private readonly witnessCalculator: WitnessCalculator,
+    private readonly rateLimit: number = DEFAULT_RATE_LIMIT
   ) {}
+
+  public get getZkRLN(): number {
+    return this.zkRLN;
+  }
+
+  public get getWitnessCalculator(): WitnessCalculator {
+    return this.witnessCalculator;
+  }
+
+  public get getRateLimit(): number {
+    return this.rateLimit;
+  }
 
   public generateIdentityCredentials(): IdentityCredential {
     const memKeys = zerokitRLN.generateExtendedMembershipKey(this.zkRLN); // TODO: rename this function in zerokit rln-wasm
@@ -67,12 +80,17 @@ export class Zerokit {
     memIndex: number,
     epoch: Uint8Array,
     idKey: Uint8Array,
-    rateLimit: number = DEFAULT_RATE_LIMIT
+    rateLimit?: number
   ): Uint8Array {
     // calculate message length
     const msgLen = writeUIntLE(new Uint8Array(8), uint8Msg.length, 0, 8);
     const memIndexBytes = writeUIntLE(new Uint8Array(8), memIndex, 0, 8);
-    const rateLimitBytes = writeUIntLE(new Uint8Array(8), rateLimit, 0, 8);
+    const rateLimitBytes = writeUIntLE(
+      new Uint8Array(8),
+      rateLimit ?? this.rateLimit,
+      0,
+      8
+    );
 
     // [ id_key<32> | id_index<8> | epoch<32> | signal_len<8> | signal<var> | rate_limit<8> ]
     return concatenate(
@@ -90,7 +108,7 @@ export class Zerokit {
     index: number,
     epoch: Uint8Array | Date | undefined,
     idSecretHash: Uint8Array,
-    rateLimit: number = DEFAULT_RATE_LIMIT
+    rateLimit?: number
   ): Promise<IRateLimitProof> {
     if (epoch === undefined) {
       epoch = epochIntToBytes(dateToEpoch(new Date()));
@@ -98,12 +116,14 @@ export class Zerokit {
       epoch = epochIntToBytes(dateToEpoch(epoch));
     }
 
+    const effectiveRateLimit = rateLimit ?? this.rateLimit;
+
     if (epoch.length !== 32) throw new Error("invalid epoch");
     if (idSecretHash.length !== 32) throw new Error("invalid id secret hash");
     if (index < 0) throw new Error("index must be >= 0");
     if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+      effectiveRateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      effectiveRateLimit > RATE_LIMIT_PARAMS.MAX_RATE
     ) {
       throw new Error(
         `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
@@ -115,7 +135,7 @@ export class Zerokit {
       index,
       epoch,
       idSecretHash,
-      rateLimit
+      effectiveRateLimit
     );
     const rlnWitness = zerokitRLN.getSerializedRLNWitness(
       this.zkRLN,
@@ -150,9 +170,12 @@ export class Zerokit {
 
     // calculate message length
     const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = rateLimit
-      ? writeUIntLE(new Uint8Array(8), rateLimit, 0, 8)
-      : new Uint8Array(8); // Zero if not specified
+    const rateLimitBytes = writeUIntLE(
+      new Uint8Array(8),
+      rateLimit ?? this.rateLimit,
+      0,
+      8
+    );
 
     return zerokitRLN.verifyRLNProof(
       this.zkRLN,
@@ -174,9 +197,12 @@ export class Zerokit {
     }
     // calculate message length
     const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = rateLimit
-      ? writeUIntLE(new Uint8Array(8), rateLimit, 0, 8)
-      : new Uint8Array(8); // Zero if not specified
+    const rateLimitBytes = writeUIntLE(
+      new Uint8Array(8),
+      rateLimit ?? this.rateLimit,
+      0,
+      8
+    );
 
     const rootsBytes = concatenate(...roots);
 
@@ -201,9 +227,12 @@ export class Zerokit {
 
     // calculate message length
     const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = rateLimit
-      ? writeUIntLE(new Uint8Array(8), rateLimit, 0, 8)
-      : new Uint8Array(8); // Zero if not specified
+    const rateLimitBytes = writeUIntLE(
+      new Uint8Array(8),
+      rateLimit ?? this.rateLimit,
+      0,
+      8
+    );
 
     return zerokitRLN.verifyWithRoots(
       this.zkRLN,

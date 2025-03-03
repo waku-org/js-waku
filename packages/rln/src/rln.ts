@@ -15,6 +15,7 @@ import {
   type RLNDecoder,
   type RLNEncoder
 } from "./codec.js";
+import { DEFAULT_RATE_LIMIT } from "./contract/constants.js";
 import { RLNContract, SEPOLIA_CONTRACT } from "./contract/index.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -61,7 +62,7 @@ export async function create(): Promise<RLNInstance> {
 
     const DEPTH = 20;
     const zkRLN = zerokitRLN.newRLN(DEPTH, zkey, vkey);
-    const zerokit = new Zerokit(zkRLN, witnessCalculator);
+    const zerokit = new Zerokit(zkRLN, witnessCalculator, DEFAULT_RATE_LIMIT);
 
     return new RLNInstance(zerokit);
   } catch (error) {
@@ -142,7 +143,7 @@ export class RLNInstance {
       this._contract = await RLNContract.init(this, {
         address: address!,
         signer: signer!,
-        rateLimit: options.rateLimit
+        rateLimit: options.rateLimit ?? this.zerokit.getRateLimit
       });
       this.started = true;
     } finally {
