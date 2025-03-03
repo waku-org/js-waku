@@ -17,19 +17,12 @@ export const RATE_LIMIT_TIERS = {
   HIGH: 600 // Suggested maximum rate - 600 messages per epoch
 } as const;
 
-// Default to maximum rate limit if not specified
-export const DEFAULT_RATE_LIMIT = RATE_LIMIT_TIERS.HIGH;
-
-/**
- * Epoch length in seconds (10 minutes)
- * This is a constant defined in the smart contract
- */
-export const EPOCH_LENGTH = 600;
-
 // Global rate limit parameters
 export const RATE_LIMIT_PARAMS = {
   MIN_RATE: RATE_LIMIT_TIERS.LOW,
   MAX_RATE: RATE_LIMIT_TIERS.HIGH,
   MAX_TOTAL_RATE: 160_000, // Maximum total rate limit across all memberships
-  EPOCH_LENGTH: EPOCH_LENGTH // Epoch length in seconds (10 minutes)
+  EPOCH_LENGTH: 600 // Epoch length in seconds (10 minutes)
 } as const;
+
+export const DEFAULT_RATE_LIMIT = RATE_LIMIT_PARAMS.MAX_RATE;
