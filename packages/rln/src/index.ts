@@ -1,5 +1,5 @@
 import { RLNDecoder, RLNEncoder } from "./codec.js";
-import { RLN_V2_ABI } from "./contract/abi.js";
+import { RLN_ABI } from "./contract/abi.js";
 import { RLNContract, SEPOLIA_CONTRACT } from "./contract/index.js";
 import { createRLN } from "./create.js";
 import { IdentityCredential } from "./identity.js";
@@ -21,5 +21,5 @@ export {
   RLNContract,
   SEPOLIA_CONTRACT,
   extractMetaMaskSigner,
-  RLN_V2_ABI
+  RLN_ABI
 };

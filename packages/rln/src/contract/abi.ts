@@ -1,4 +1,4 @@
-export const RLN_V2_ABI = [
+export const RLN_ABI = [
   {
     type: "constructor",
     inputs: [],

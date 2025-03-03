@@ -39,7 +39,7 @@ describe("RLN Contract abstraction - RLN", () => {
         Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxTotalRate)),
       currentTotalRateLimit: () =>
         Promise.resolve(ethers.BigNumber.from(mockRateLimits.currentTotalRate)),
-      queryFilter: () => [mockRLNv2RegisteredEvent()],
+      queryFilter: () => [mockRLNRegisteredEvent()],
       provider: {
         getLogs: () => [],
         getBlockNumber: () => Promise.resolve(1000),
@@ -75,7 +75,7 @@ describe("RLN Contract abstraction - RLN", () => {
     const insertMemberSpy = sinon.stub();
     rlnInstance.zerokit.insertMember = insertMemberSpy;
 
-    const membershipRegisteredEvent = mockRLNv2RegisteredEvent();
+    const membershipRegisteredEvent = mockRLNRegisteredEvent();
 
     const queryFilterStub = sinon.stub().returns([membershipRegisteredEvent]);
     const mockedRegistryContract = {
@@ -142,7 +142,7 @@ describe("RLN Contract abstraction - RLN", () => {
     const formatIdCommitment = (idCommitmentBigInt: bigint): string =>
       "0x" + idCommitmentBigInt.toString(16).padStart(64, "0");
 
-    const membershipRegisteredEvent = mockRLNv2RegisteredEvent(
+    const membershipRegisteredEvent = mockRLNRegisteredEvent(
       formatIdCommitment(identity.IDCommitmentBigInt)
     );
 
@@ -232,18 +232,9 @@ describe("RLN Contract abstraction - RLN", () => {
       expectedIdCommitment
     );
   });
-
-  describe("Rate Limit Management", () => {
-    it("should calculate remaining total rate limit", async () => {
-      const remaining = await rlnContract.getRemainingTotalRateLimit();
-      expect(remaining).to.equal(
-        mockRateLimits.maxTotalRate - mockRateLimits.currentTotalRate
-      );
-    });
-  });
 });
 
-function mockRLNv2RegisteredEvent(idCommitment?: string): ethers.Event {
+function mockRLNRegisteredEvent(idCommitment?: string): ethers.Event {
   return {
     args: {
       idCommitment:

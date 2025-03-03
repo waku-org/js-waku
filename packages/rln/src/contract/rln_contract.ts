@@ -8,7 +8,7 @@ import type { RLNInstance } from "../rln.js";
 import { MerkleRootTracker } from "../root_tracker.js";
 import { zeroPadLE } from "../utils/bytes.js";
 
-import { RLN_V2_ABI } from "./abi.js";
+import { RLN_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 
 const log = new Logger("waku:rln:contract");
@@ -108,8 +108,7 @@ export class RLNContract {
     const initialRoot = rlnInstance.zerokit.getMerkleRoot();
 
     // Use the injected contract if provided; otherwise, instantiate a new one.
-    this.contract =
-      contract || new ethers.Contract(address, RLN_V2_ABI, signer);
+    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
     this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
 
     // Initialize event filters for MembershipRegistered and MembershipRemoved
