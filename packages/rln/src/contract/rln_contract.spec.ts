@@ -1,43 +1,130 @@
-import { expect } from "chai";
+import { hexToBytes } from "@waku/utils/bytes";
+import { expect, use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import * as ethers from "ethers";
+import sinon, { SinonSandbox } from "sinon";
 
 import { createRLN } from "../create.js";
+import type { IdentityCredential } from "../identity.js";
 
-import { SEPOLIA_CONTRACT } from "./constants.js";
+import { DEFAULT_RATE_LIMIT, SEPOLIA_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
 
-describe("RLN Contract abstraction", () => {
-  it("should be able to fetch members from events and store to rln instance", async () => {
-    const rlnInstance = await createRLN();
-    let insertMemberCalled = false;
+use(chaiAsPromised);
 
-    // Track if insertMember was called
-    const originalInsertMember = rlnInstance.zerokit.insertMember;
-    rlnInstance.zerokit.insertMember = function (
-      this: any,
-      ...args: Parameters<typeof originalInsertMember>
-    ) {
-      insertMemberCalled = true;
-      return originalInsertMember.apply(this, args);
+describe("RLN Contract abstraction - RLN", () => {
+  let sandbox: SinonSandbox;
+  let rlnInstance: any;
+  let mockedRegistryContract: any;
+
+  const mockRateLimits = {
+    minRate: 20,
+    maxRate: 600,
+    maxTotalRate: 1000,
+    currentTotalRate: 500
+  };
+
+  beforeEach(async () => {
+    sandbox = sinon.createSandbox();
+    rlnInstance = await createRLN();
+    rlnInstance.zerokit.insertMember = () => undefined;
+
+    mockedRegistryContract = {
+      minMembershipRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.minRate)),
+      maxMembershipRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxRate)),
+      maxTotalRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxTotalRate)),
+      currentTotalRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.currentTotalRate)),
+      queryFilter: () => [mockRLNRegisteredEvent()],
+      provider: {
+        getLogs: () => [],
+        getBlockNumber: () => Promise.resolve(1000),
+        getNetwork: () => Promise.resolve({ chainId: 11155111 })
+      },
+      filters: {
+        MembershipRegistered: () => ({}),
+        MembershipRemoved: () => ({})
+      },
+      on: () => ({})
     };
 
-    const voidSigner = new ethers.VoidSigner(SEPOLIA_CONTRACT.address);
-    const rlnContract = new RLNContract(rlnInstance, {
-      registryAddress: SEPOLIA_CONTRACT.address,
-      signer: voidSigner
+    const provider = new ethers.providers.JsonRpcProvider();
+    const voidSigner = new ethers.VoidSigner(
+      SEPOLIA_CONTRACT.address,
+      provider
+    );
+    await RLNContract.init(rlnInstance, {
+      address: SEPOLIA_CONTRACT.address,
+      signer: voidSigner,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      contract: mockedRegistryContract as unknown as ethers.Contract
+    });
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it("should fetch members from events and store them in the RLN instance", async () => {
+    const rlnInstance = await createRLN();
+
+    const insertMemberSpy = sinon.stub();
+    rlnInstance.zerokit.insertMember = insertMemberSpy;
+
+    const membershipRegisteredEvent = mockRLNRegisteredEvent();
+
+    const queryFilterStub = sinon.stub().returns([membershipRegisteredEvent]);
+    const mockedRegistryContract = {
+      queryFilter: queryFilterStub,
+      provider: {
+        getLogs: () => [],
+        getBlockNumber: () => Promise.resolve(1000)
+      },
+      interface: {
+        getEvent: (eventName: string) => ({
+          name: eventName,
+          format: () => {}
+        })
+      },
+      filters: {
+        MembershipRegistered: () => ({}),
+        MembershipRemoved: () => ({})
+      },
+      on: () => ({}),
+      removeAllListeners: () => ({})
+    };
+
+    const provider = new ethers.providers.JsonRpcProvider();
+    const voidSigner = new ethers.VoidSigner(
+      SEPOLIA_CONTRACT.address,
+      provider
+    );
+    const rlnContract = await RLNContract.init(rlnInstance, {
+      address: SEPOLIA_CONTRACT.address,
+      signer: voidSigner,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      contract: mockedRegistryContract as unknown as ethers.Contract
     });
 
-    rlnContract["storageContract"] = {
-      queryFilter: () => Promise.resolve([mockEvent()])
-    } as unknown as ethers.Contract;
-    rlnContract["_membersFilter"] = {
-      address: "",
-      topics: []
-    } as unknown as ethers.EventFilter;
+    await rlnContract.fetchMembers(rlnInstance, {
+      fromBlock: 0,
+      fetchRange: 1000,
+      fetchChunks: 2
+    });
 
-    await rlnContract.fetchMembers(rlnInstance);
+    expect(
+      insertMemberSpy.calledWith(
+        ethers.utils.zeroPad(
+          hexToBytes(membershipRegisteredEvent.args!.idCommitment),
+          32
+        )
+      )
+    ).to.be.true;
 
-    expect(insertMemberCalled).to.be.true;
+    expect(queryFilterStub.called).to.be.true;
   });
 
   it("should register a member", async () => {
@@ -45,38 +132,116 @@ describe("RLN Contract abstraction", () => {
       "0xdeb8a6b00a8e404deb1f52d3aa72ed7f60a2ff4484c737eedaef18a0aacb2dfb4d5d74ac39bb71fa358cf2eb390565a35b026cc6272f2010d4351e17670311c21c";
 
     const rlnInstance = await createRLN();
-    const voidSigner = new ethers.VoidSigner(SEPOLIA_CONTRACT.address);
-    const rlnContract = new RLNContract(rlnInstance, {
-      registryAddress: SEPOLIA_CONTRACT.address,
-      signer: voidSigner
+    const identity: IdentityCredential =
+      rlnInstance.zerokit.generateSeededIdentityCredential(mockSignature);
+
+    const insertMemberSpy = sinon.stub();
+    rlnInstance.zerokit.insertMember = insertMemberSpy;
+
+    const formatIdCommitment = (idCommitmentBigInt: bigint): string =>
+      "0x" + idCommitmentBigInt.toString(16).padStart(64, "0");
+
+    const membershipRegisteredEvent = mockRLNRegisteredEvent(
+      formatIdCommitment(identity.IDCommitmentBigInt)
+    );
+
+    const registerStub = sinon.stub().returns({
+      wait: () =>
+        Promise.resolve({
+          events: [
+            {
+              event: "MembershipRegistered",
+              args: {
+                idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
+                rateLimit: DEFAULT_RATE_LIMIT,
+                index: ethers.BigNumber.from(1)
+              }
+            }
+          ]
+        })
     });
 
-    let registerCalled = false;
-    rlnContract["storageIndex"] = 1;
-    rlnContract["_membersFilter"] = {
-      address: "",
-      topics: []
-    } as unknown as ethers.EventFilter;
-    rlnContract["registryContract"] = {
-      "register(uint16,uint256)": () => {
-        registerCalled = true;
-        return Promise.resolve({ wait: () => Promise.resolve(undefined) });
-      }
-    } as unknown as ethers.Contract;
+    const mockedRegistryContract = {
+      register: registerStub,
+      queryFilter: () => [membershipRegisteredEvent],
+      provider: {
+        getLogs: () => [],
+        getBlockNumber: () => Promise.resolve(1000),
+        getNetwork: () => Promise.resolve({ chainId: 11155111 })
+      },
+      address: SEPOLIA_CONTRACT.address,
+      interface: {
+        getEvent: (eventName: string) => ({
+          name: eventName,
+          format: () => {}
+        })
+      },
+      filters: {
+        MembershipRegistered: () => ({}),
+        MembershipRemoved: () => ({})
+      },
+      on: () => ({}),
+      removeAllListeners: () => ({})
+    };
 
-    const identity =
-      rlnInstance.zerokit.generateSeededIdentityCredential(mockSignature);
-    await rlnContract.registerWithIdentity(identity);
+    const provider = new ethers.providers.JsonRpcProvider();
+    const voidSigner = new ethers.VoidSigner(
+      SEPOLIA_CONTRACT.address,
+      provider
+    );
+    const rlnContract = await RLNContract.init(rlnInstance, {
+      signer: voidSigner,
+      address: SEPOLIA_CONTRACT.address,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      contract: mockedRegistryContract as unknown as ethers.Contract
+    });
 
-    expect(registerCalled).to.be.true;
+    const decryptedCredentials =
+      await rlnContract.registerWithIdentity(identity);
+
+    expect(decryptedCredentials).to.not.be.undefined;
+    if (!decryptedCredentials) {
+      throw new Error("Decrypted credentials should not be undefined");
+    }
+
+    expect(
+      registerStub.calledWith(
+        identity.IDCommitmentBigInt,
+        DEFAULT_RATE_LIMIT,
+        [],
+        {
+          gasLimit: 300000
+        }
+      )
+    ).to.be.true;
+
+    expect(decryptedCredentials).to.have.property("identity");
+    expect(decryptedCredentials).to.have.property("membership");
+    expect(decryptedCredentials.membership).to.include({
+      address: SEPOLIA_CONTRACT.address,
+      treeIndex: 1
+    });
+
+    const expectedIdCommitment = ethers.utils.zeroPad(
+      hexToBytes(formatIdCommitment(identity.IDCommitmentBigInt)),
+      32
+    );
+    expect(insertMemberSpy.callCount).to.equal(2);
+    expect(insertMemberSpy.getCall(1).args[0]).to.deep.equal(
+      expectedIdCommitment
+    );
   });
 });
 
-function mockEvent(): ethers.Event {
+function mockRLNRegisteredEvent(idCommitment?: string): ethers.Event {
   return {
     args: {
-      idCommitment: { _hex: "0xb3df1c4e5600ef2b" },
+      idCommitment:
+        idCommitment ||
+        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      rateLimit: DEFAULT_RATE_LIMIT,
       index: ethers.BigNumber.from(1)
-    }
+    },
+    event: "MembershipRegistered"
   } as unknown as ethers.Event;
 }

@@ -1,7 +1,7 @@
 // should match nwaku
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/rln_relay.nim#L309
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/tests/waku_rln_relay/rln/waku_rln_relay_utils.nim#L20
-const RLN_GENERATION_PREFIX_ERROR = "could not generate rln-v2 proof";
+const RLN_GENERATION_PREFIX_ERROR = "could not generate rln proof";
 const RLN_MESSAGE_ID_PREFIX_ERROR =
   "could not get new message id to generate an rln proof";
 

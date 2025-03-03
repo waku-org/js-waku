@@ -27,7 +27,7 @@ export class RlnMessage<T extends IDecodedMessage> implements IDecodedMessage {
       ? this.rlnInstance.zerokit.verifyWithRoots(
           this.rateLimitProof,
           toRLNSignal(this.msg.contentTopic, this.msg),
-          ...roots
+          roots
         ) // this.rlnInstance.verifyRLNProof once issue status-im/nwaku#1248 is fixed
       : undefined;
   }
