@@ -112,8 +112,10 @@ export class MessageChannel {
   public receiveMessage(message: Message): void {
     // review ack status
     this.reviewAckStatus(message);
-    // add to bloom filter
-    this.filter.insert(message.messageId);
+    // add to bloom filter (skip for messages with empty content)
+    if (message.content?.length && message.content.length > 0) {
+      this.filter.insert(message.messageId);
+    }
     // verify causal history
     const dependenciesMet = message.causalHistory.every((messageId) =>
       this.messageIdLog.some(
@@ -203,11 +205,49 @@ export class MessageChannel {
     );
   }
 
+  /**
+   * Send a sync message to the SDS channel.
+   *
+   * Increments the lamport timestamp, constructs a `Message` object
+   * with an empty load. Skips outgoing buffer, filter, and local log.
+   *
+   * See https://rfc.vac.dev/vac/raw/sds/#send-sync-message
+   *
+   * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
+   */
+  public sendSyncMessage(callback?: (message: Message) => boolean): boolean {
+    this.lamportTimestamp++;
+
+    const emptyMessage = new Uint8Array();
+
+    const message: Message = {
+      messageId: MessageChannel.getMessageId(emptyMessage),
+      channelId: this.channelId,
+      lamportTimestamp: this.lamportTimestamp,
+      causalHistory: this.messageIdLog
+        .slice(-this.causalHistorySize)
+        .map(({ messageId }) => messageId),
+      bloomFilter: this.filter.toBytes(),
+      content: emptyMessage
+    };
+
+    if (callback) {
+      return callback(message);
+    }
+    return false;
+  }
+
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
   private deliverMessage(message: Message): void {
     const messageLamportTimestamp = message.lamportTimestamp ?? 0;
     if (messageLamportTimestamp > this.lamportTimestamp) {
       this.lamportTimestamp = messageLamportTimestamp;
+    }
+
+    if (message.content?.length === 0) {
+      // Messages with empty content are sync messages.
+      // They are not added to the local log or bloom filter.
+      return;
     }
 
     // The participant MUST insert the message ID into its local log,
@@ -227,6 +267,8 @@ export class MessageChannel {
     });
   }
 
+  // For each received message (including sync messages), inspect the causal history and bloom filter
+  // to determine the acknowledgement status of messages in the outgoing buffer.
   // See https://rfc.vac.dev/vac/raw/sds/#review-ack-status
   private reviewAckStatus(receivedMessage: Message): void {
     // the participant MUST mark all messages in the received causal_history as acknowledged.
