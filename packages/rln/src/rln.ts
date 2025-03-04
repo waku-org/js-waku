@@ -254,6 +254,9 @@ export class RLNInstance {
       );
     }
 
+    // eslint-disable-next-line no-console
+    console.log("registering membership", identity);
+
     if (!identity) {
       throw Error("Missing signature or identity to register membership.");
     }
