@@ -535,7 +535,7 @@ export class RLNContract {
       const address = this.contract.address;
       console.log("registerWithIdentity - contract address:", address);
 
-      const membershipId = decodedData.index.toNumber();
+      const membershipId = Number(decodedData.index);
       console.log("registerWithIdentity - membershipId:", membershipId);
 
       const result = {
@@ -669,7 +669,7 @@ export class RLNContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = decodedData.index.toNumber();
+      const membershipId = Number(decodedData.index);
 
       return {
         identity,
