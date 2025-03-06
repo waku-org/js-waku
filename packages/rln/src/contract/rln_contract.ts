@@ -264,14 +264,12 @@ export class RLNContract {
         evt.event === "MembershipErased" ||
         evt.event === "MembershipExpired"
       ) {
-        // Both MembershipErased and MembershipExpired events should remove members
         let index = evt.args.index;
 
         if (!index) {
           return;
         }
 
-        // Convert index to ethers.BigNumber if it's not already
         if (typeof index === "number" || typeof index === "string") {
           index = ethers.BigNumber.from(index);
         }
@@ -309,12 +307,10 @@ export class RLNContract {
         const _idCommitment = evt.args.idCommitment as string;
         let index = evt.args.index;
 
-        // Ensure index is an ethers.BigNumber
         if (!_idCommitment || !index) {
           return;
         }
 
-        // Convert index to ethers.BigNumber if it's not already
         if (typeof index === "number" || typeof index === "string") {
           index = ethers.BigNumber.from(index);
         }
@@ -322,10 +318,9 @@ export class RLNContract {
         const idCommitment = zeroPadLE(hexToBytes(_idCommitment), 32);
         rlnInstance.zerokit.insertMember(idCommitment);
 
-        // Always store the numeric index as the key, but the BigNumber as the value
         const numericIndex = index.toNumber();
         this._members.set(numericIndex, {
-          index, // This is always a BigNumber
+          index,
           idCommitment: _idCommitment
         });
       });
