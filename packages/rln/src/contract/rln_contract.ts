@@ -180,12 +180,11 @@ export class RLNContract {
    * @returns Promise<number> The remaining rate limit that can be allocated
    */
   public async getRemainingTotalRateLimit(): Promise<number> {
-    // const [maxTotal, currentTotal] = await Promise.all([
-    //   this.contract.maxTotalRateLimit(),
-    //   this.contract.currentTotalRateLimit()
-    // ]);
-    // return maxTotal.sub(currentTotal).toNumber();
-    return 10_000;
+    const [maxTotal, currentTotal] = await Promise.all([
+      this.contract.maxTotalRateLimit(),
+      this.contract.currentTotalRateLimit()
+    ]);
+    return Number(maxTotal) - Number(currentTotal);
   }
 
   /**
