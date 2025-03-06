@@ -45,8 +45,13 @@ describe("RLN Contract abstraction - RLN", () => {
         getNetwork: () => Promise.resolve({ chainId: 11155111 })
       },
       filters: {
-        MembershipRegistered: () => ({}),
-        MembershipRemoved: () => ({})
+        MembershipRegistered: () => ({
+          idCommitment: "0x123",
+          membershipRateLimit: ethers.BigNumber.from(100),
+          index: ethers.BigNumber.from(1)
+        }),
+        MembershipErased: () => ({}),
+        MembershipExpired: () => ({})
       },
       on: () => ({})
     };
@@ -90,8 +95,12 @@ describe("RLN Contract abstraction - RLN", () => {
         })
       },
       filters: {
-        MembershipRegistered: () => ({}),
-        MembershipRemoved: () => ({})
+        MembershipRegistered: () => ({
+          idCommitment: "0x123",
+          membershipRateLimit: 100,
+          index: ethers.BigNumber.from(1)
+        }),
+        MembershipErased: () => ({})
       },
       on: () => ({}),
       removeAllListeners: () => ({})
@@ -177,8 +186,13 @@ describe("RLN Contract abstraction - RLN", () => {
         })
       },
       filters: {
-        MembershipRegistered: () => ({}),
-        MembershipRemoved: () => ({})
+        MembershipRegistered: () => ({
+          idCommitment: "0x123",
+          membershipRateLimit: ethers.BigNumber.from(100),
+          index: ethers.BigNumber.from(1)
+        }),
+        MembershipErased: () => ({}),
+        MembershipExpired: () => ({})
       },
       on: () => ({}),
       removeAllListeners: () => ({})
@@ -239,7 +253,7 @@ function mockRLNRegisteredEvent(idCommitment?: string): ethers.Event {
       idCommitment:
         idCommitment ||
         "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-      rateLimit: DEFAULT_RATE_LIMIT,
+      membershipRateLimit: ethers.BigNumber.from(DEFAULT_RATE_LIMIT),
       index: ethers.BigNumber.from(1)
     },
     event: "MembershipRegistered"
