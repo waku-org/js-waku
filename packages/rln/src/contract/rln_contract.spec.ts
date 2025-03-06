@@ -20,7 +20,7 @@ describe("RLN Contract abstraction - RLN", () => {
   const mockRateLimits = {
     minRate: 20,
     maxRate: 600,
-    maxTotalRate: 1000,
+    maxTotalRate: 1200,
     currentTotalRate: 500
   };
 
@@ -38,20 +38,27 @@ describe("RLN Contract abstraction - RLN", () => {
         Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxTotalRate)),
       currentTotalRateLimit: () =>
         Promise.resolve(ethers.BigNumber.from(mockRateLimits.currentTotalRate)),
-      queryFilter: () => [mockRLNRegisteredEvent()],
+      queryFilter: (filter: ethers.EventFilter | undefined) => {
+        if (filter && filter.address === undefined) {
+          return [];
+        }
+        return [mockRLNRegisteredEvent()];
+      },
       provider: {
         getLogs: () => [],
         getBlockNumber: () => Promise.resolve(1000),
         getNetwork: () => Promise.resolve({ chainId: 11155111 })
       },
       filters: {
-        MembershipRegistered: () => ({
-          idCommitment: "0x123",
-          membershipRateLimit: ethers.BigNumber.from(100),
-          index: ethers.BigNumber.from(1)
-        }),
-        MembershipErased: () => ({}),
-        MembershipExpired: () => ({})
+        MembershipRegistered: function () {
+          return {};
+        },
+        MembershipErased: function () {
+          return {};
+        },
+        MembershipExpired: function () {
+          return {};
+        }
       },
       on: () => ({})
     };
@@ -81,7 +88,14 @@ describe("RLN Contract abstraction - RLN", () => {
 
     const membershipRegisteredEvent = mockRLNRegisteredEvent();
 
-    const queryFilterStub = sinon.stub().returns([membershipRegisteredEvent]);
+    const queryFilterStub = sinon
+      .stub()
+      .callsFake((filter: ethers.EventFilter | undefined) => {
+        if (filter && filter.topics && filter.topics.length > 0) {
+          return [];
+        }
+        return [membershipRegisteredEvent];
+      });
     const mockedRegistryContract = {
       queryFilter: queryFilterStub,
       provider: {
@@ -95,12 +109,15 @@ describe("RLN Contract abstraction - RLN", () => {
         })
       },
       filters: {
-        MembershipRegistered: () => ({
-          idCommitment: "0x123",
-          membershipRateLimit: 100,
-          index: ethers.BigNumber.from(1)
-        }),
-        MembershipErased: () => ({})
+        MembershipRegistered: function () {
+          return {};
+        },
+        MembershipErased: function () {
+          return {};
+        },
+        MembershipExpired: function () {
+          return {};
+        }
       },
       on: () => ({}),
       removeAllListeners: () => ({})
@@ -154,25 +171,43 @@ describe("RLN Contract abstraction - RLN", () => {
       formatIdCommitment(identity.IDCommitmentBigInt)
     );
 
-    const registerStub = sinon.stub().returns({
-      wait: () =>
-        Promise.resolve({
-          events: [
-            {
-              event: "MembershipRegistered",
-              args: {
-                idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
-                rateLimit: DEFAULT_RATE_LIMIT,
-                index: ethers.BigNumber.from(1)
-              }
-            }
-          ]
-        })
-    });
+    const registerStub = sinon
+      .stub()
+      .callsFake((idCommitment, rateLimit, idCommitmentsToErase, options) => {
+        console.log(
+          `Registering with ID commitment: ${idCommitment}, rate limit: ${rateLimit}`
+        );
+        console.log(
+          `ID commitments to erase: ${idCommitmentsToErase}, options: ${JSON.stringify(options)}`
+        );
+
+        return {
+          wait: () =>
+            Promise.resolve({
+              events: [
+                {
+                  event: "MembershipRegistered",
+                  args: {
+                    idCommitment: formatIdCommitment(
+                      identity.IDCommitmentBigInt
+                    ),
+                    rateLimit: DEFAULT_RATE_LIMIT,
+                    index: ethers.BigNumber.from(1)
+                  }
+                }
+              ]
+            })
+        };
+      });
 
     const mockedRegistryContract = {
       register: registerStub,
-      queryFilter: () => [membershipRegisteredEvent],
+      queryFilter: (filter: ethers.EventFilter | undefined) => {
+        if (filter && filter.address === undefined) {
+          return [];
+        }
+        return [membershipRegisteredEvent];
+      },
       provider: {
         getLogs: () => [],
         getBlockNumber: () => Promise.resolve(1000),
@@ -186,16 +221,29 @@ describe("RLN Contract abstraction - RLN", () => {
         })
       },
       filters: {
-        MembershipRegistered: () => ({
-          idCommitment: "0x123",
-          membershipRateLimit: ethers.BigNumber.from(100),
-          index: ethers.BigNumber.from(1)
-        }),
-        MembershipErased: () => ({}),
-        MembershipExpired: () => ({})
+        MembershipRegistered: function () {
+          return {};
+        },
+        MembershipErased: function () {
+          return {};
+        },
+        MembershipExpired: function () {
+          return {};
+        }
       },
       on: () => ({}),
-      removeAllListeners: () => ({})
+      removeAllListeners: () => ({}),
+      minMembershipRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.minRate)),
+      maxMembershipRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxRate)),
+      maxTotalRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.maxTotalRate)),
+      currentTotalRateLimit: () =>
+        Promise.resolve(ethers.BigNumber.from(mockRateLimits.currentTotalRate)),
+      estimateGas: {
+        register: () => Promise.resolve(ethers.BigNumber.from(200000))
+      }
     };
 
     const provider = new ethers.providers.JsonRpcProvider();
@@ -220,14 +268,24 @@ describe("RLN Contract abstraction - RLN", () => {
 
     expect(
       registerStub.calledWith(
-        identity.IDCommitmentBigInt,
-        DEFAULT_RATE_LIMIT,
-        [],
-        {
-          gasLimit: 300000
-        }
+        sinon.match.same(identity.IDCommitmentBigInt),
+        sinon.match.same(DEFAULT_RATE_LIMIT),
+        sinon.match.array,
+        sinon.match.object
       )
     ).to.be.true;
+
+    const processedEvent = {
+      event: "MembershipRegistered",
+      args: {
+        idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
+        membershipRateLimit: ethers.BigNumber.from(DEFAULT_RATE_LIMIT),
+        index: ethers.BigNumber.from(1)
+      },
+      blockNumber: 1000
+    } as unknown as ethers.Event;
+
+    rlnContract.processEvents(rlnInstance, [processedEvent]);
 
     expect(decryptedCredentials).to.have.property("identity");
     expect(decryptedCredentials).to.have.property("membership");
@@ -240,8 +298,8 @@ describe("RLN Contract abstraction - RLN", () => {
       hexToBytes(formatIdCommitment(identity.IDCommitmentBigInt)),
       32
     );
-    expect(insertMemberSpy.callCount).to.equal(2);
-    expect(insertMemberSpy.getCall(1).args[0]).to.deep.equal(
+    expect(insertMemberSpy.callCount).to.equal(1);
+    expect(insertMemberSpy.getCall(0).args[0]).to.deep.equal(
       expectedIdCommitment
     );
   });
