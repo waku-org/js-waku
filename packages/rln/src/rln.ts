@@ -160,7 +160,7 @@ export class RLNInstance {
     try {
       const { credentials, keystore } =
         await RLNInstance.decryptCredentialsIfNeeded(options.credentials);
-      const { signer, address } = await this.determineStartOptions(
+      const { signer, address, rateLimit } = await this.determineStartOptions(
         options,
         credentials
       );
@@ -174,7 +174,7 @@ export class RLNInstance {
       this._contract = await RLNContract.init(this, {
         address: address!,
         signer: signer!,
-        rateLimit: options.rateLimit ?? this.zerokit.getRateLimit
+        rateLimit: rateLimit ?? this.zerokit.getRateLimit
       });
       this.started = true;
     } finally {
