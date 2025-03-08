@@ -80,6 +80,7 @@
   ],
   "dependencies": {
     "@chainsafe/bls-keystore": "3.0.0",
+    "@noble/hashes": "^1.2.0",
     "@waku/core": "^0.0.33",
     "@waku/utils": "^0.0.21",
     "@waku/zerokit-rln-wasm": "^0.0.13",
