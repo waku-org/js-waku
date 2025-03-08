@@ -59,6 +59,7 @@
         "node": ">=20"
     },
     "dependencies": {
+        "@libp2p/interface": "^2.7.0",
         "@noble/hashes": "^1.7.1",
         "@waku/message-hash": "^0.1.18",
         "@waku/proto": "^0.0.9",
