@@ -77,6 +77,7 @@
     "@chainsafe/bls-keystore": "3.0.0",
     "@waku/core": "^0.0.34",
     "@waku/utils": "^0.0.22",
+    "@noble/hashes": "^1.2.0",
     "@waku/zerokit-rln-wasm": "^0.0.13",
     "ethereum-cryptography": "^3.1.0",
     "ethers": "^5.7.2",
