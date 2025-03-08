@@ -97,7 +97,7 @@ export class RLNLightInstance {
 
       this._credentials = credentials;
       this._signer = signer!;
-      this._contract = await RLNLightContract.init(this, {
+      this._contract = await RLNLightContract.init({
         address: address!,
         signer: signer!,
         rateLimit: rateLimit

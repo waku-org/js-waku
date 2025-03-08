@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 
 import type { IdentityCredential } from "../identity.js";
 import type { DecryptedCredentials } from "../keystore/index.js";
-import { RLNLightInstance } from "../rln_light.js";
 
 import { RLN_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
@@ -69,13 +68,12 @@ export class RLNLightContract {
    * Allows injecting a mocked contract for testing purposes.
    */
   public static async init(
-    rlnLightInstance: RLNLightInstance,
     options: RLNContractInitOptions
   ): Promise<RLNLightContract> {
     const rlnContract = new RLNLightContract(options);
 
-    await rlnContract.fetchMembers(rlnLightInstance);
-    rlnContract.subscribeToMembers(rlnLightInstance);
+    await rlnContract.fetchMembers();
+    rlnContract.subscribeToMembers();
 
     return rlnContract;
   }
@@ -213,10 +211,7 @@ export class RLNLightContract {
     return this._membersExpiredFilter;
   }
 
-  public async fetchMembers(
-    rlnLightInstance: RLNLightInstance,
-    options: FetchMembersOptions = {}
-  ): Promise<void> {
+  public async fetchMembers(options: FetchMembersOptions = {}): Promise<void> {
     const registeredMemberEvents = await queryFilter(this.contract, {
       fromBlock: this.deployBlock,
       ...options,
@@ -238,13 +233,10 @@ export class RLNLightContract {
       ...removedMemberEvents,
       ...expiredMemberEvents
     ];
-    this.processEvents(rlnLightInstance, events);
+    this.processEvents(events);
   }
 
-  public processEvents(
-    rlnLightInstance: RLNLightInstance,
-    events: ethers.Event[]
-  ): void {
+  public processEvents(events: ethers.Event[]): void {
     const toRemoveTable = new Map<number, number[]>();
     const toInsertTable = new Map<number, ethers.Event[]>();
 
@@ -286,7 +278,7 @@ export class RLNLightContract {
     });
   }
 
-  public subscribeToMembers(rlnLightInstance: RLNLightInstance): void {
+  public subscribeToMembers(): void {
     this.contract.on(
       this.membersFilter,
       (
@@ -295,7 +287,7 @@ export class RLNLightContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnLightInstance, [event]);
+        this.processEvents([event]);
       }
     );
 
@@ -307,7 +299,7 @@ export class RLNLightContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnLightInstance, [event]);
+        this.processEvents([event]);
       }
     );
 
@@ -319,7 +311,7 @@ export class RLNLightContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnLightInstance, [event]);
+        this.processEvents([event]);
       }
     );
   }
