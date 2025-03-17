@@ -123,7 +123,7 @@ async function makeReleaseCandidate() {
       `npm version prerelease --preid $(git rev-parse --short HEAD) --workspaces true`
     );
   } catch (e) {
-    console.error("Failed to mark release candidate versions.", e);
+    console.error("Failed to mark release candidate versions.");
   }
 }
 
@@ -147,7 +147,7 @@ async function upgradeWakuDependencies(workspaces) {
     return acc;
   }, {});
   const packageNames = Object.keys(map);
-  workspaces.forEach(async (info) => {
+  const promises = workspaces.map(async (info) => {
     if (info.private) {
       return;
     }
@@ -171,4 +171,8 @@ async function upgradeWakuDependencies(workspaces) {
       );
     }
   });
+
+  for (const promise of promises) {
+    await promise;
+  }
 }
