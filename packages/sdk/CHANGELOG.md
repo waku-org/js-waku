@@ -47,6 +47,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.30](https://github.com/waku-org/js-waku/compare/sdk-v0.0.29...sdk-v0.0.30) (2025-03-17)
+
+
+### Features
+
+* Add HealthIndicator with simplified logic and testing ([#2251](https://github.com/waku-org/js-waku/issues/2251)) ([3136f3a](https://github.com/waku-org/js-waku/commit/3136f3a70452cbec8b4361cc9697622b0a2debf7))
+* Enable auto start upon node creation ([#2291](https://github.com/waku-org/js-waku/issues/2291)) ([09108d9](https://github.com/waku-org/js-waku/commit/09108d92842fd3c90f562cae1097a87ad48a2073))
+* Improve peer manager and re-integrate to light push  ([#2191](https://github.com/waku-org/js-waku/issues/2191)) ([62f93dc](https://github.com/waku-org/js-waku/commit/62f93dc8428132161dba8881c6adc162040ae758))
+* Migrate to latest LightPush version ([#2281](https://github.com/waku-org/js-waku/issues/2281)) ([f199d92](https://github.com/waku-org/js-waku/commit/f199d92d60af948da8a684666c8a4b1f5bc6c9ad))
+* Move Peer to PeerId ([#2246](https://github.com/waku-org/js-waku/issues/2246)) ([fc93fae](https://github.com/waku-org/js-waku/commit/fc93fae873ad032cc4f18c41ab98959eef785279))
+* **store:** Allow specifying node to use ([#2192](https://github.com/waku-org/js-waku/issues/2192)) ([4153396](https://github.com/waku-org/js-waku/commit/415339601476925874904b19be43f6e055a45004))
+
+
+### Bug Fixes
+
+* Remove peer deps ([#2200](https://github.com/waku-org/js-waku/issues/2200)) ([f34fc4b](https://github.com/waku-org/js-waku/commit/f34fc4b2442f1cec326c8ebd45596445232fa65b))
+* Remove window reference and improve waitForRemotePeer ([#2194](https://github.com/waku-org/js-waku/issues/2194)) ([88e33a9](https://github.com/waku-org/js-waku/commit/88e33a90fd2a4de93d4ce0cb99dbd77ff454ef34))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.33 to 0.0.34
+    * @waku/discovery bumped from 0.0.6 to 0.0.7
+    * @waku/interfaces bumped from 0.0.28 to 0.0.29
+    * @waku/proto bumped from ^0.0.8 to ^0.0.9
+    * @waku/utils bumped from 0.0.21 to 0.0.22
+    * @waku/message-hash bumped from 0.1.17 to 0.1.18
+
 ## [0.0.29](https://github.com/waku-org/js-waku/compare/sdk-v0.0.28...sdk-v0.0.29) (2024-10-16)
 
 

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.34](https://github.com/waku-org/js-waku/compare/core-v0.0.33...core-v0.0.34) (2025-03-17)
+
+
+### Features
+
+* Add HealthIndicator with simplified logic and testing ([#2251](https://github.com/waku-org/js-waku/issues/2251)) ([3136f3a](https://github.com/waku-org/js-waku/commit/3136f3a70452cbec8b4361cc9697622b0a2debf7))
+* Improve peer manager and re-integrate to light push  ([#2191](https://github.com/waku-org/js-waku/issues/2191)) ([62f93dc](https://github.com/waku-org/js-waku/commit/62f93dc8428132161dba8881c6adc162040ae758))
+* Migrate to latest LightPush version ([#2281](https://github.com/waku-org/js-waku/issues/2281)) ([f199d92](https://github.com/waku-org/js-waku/commit/f199d92d60af948da8a684666c8a4b1f5bc6c9ad))
+* Move Peer to PeerId ([#2246](https://github.com/waku-org/js-waku/issues/2246)) ([fc93fae](https://github.com/waku-org/js-waku/commit/fc93fae873ad032cc4f18c41ab98959eef785279))
+* **rln:** Migrate from v1 to v2, rate limiting, memberships, test coverage ([#2262](https://github.com/waku-org/js-waku/issues/2262)) ([6fc6bf3](https://github.com/waku-org/js-waku/commit/6fc6bf3916d6dad3d516a5769331245f1b6d55e8))
+* **store:** Allow specifying node to use ([#2192](https://github.com/waku-org/js-waku/issues/2192)) ([4153396](https://github.com/waku-org/js-waku/commit/415339601476925874904b19be43f6e055a45004))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.27 to ^0.0.28
+    * @waku/interfaces bumped from 0.0.28 to 0.0.29
+    * @waku/proto bumped from 0.0.8 to 0.0.9
+    * @waku/utils bumped from 0.0.21 to 0.0.22
+
 ## [0.0.33](https://github.com/waku-org/js-waku/compare/core-v0.0.32...core-v0.0.33) (2024-10-16)
 
 

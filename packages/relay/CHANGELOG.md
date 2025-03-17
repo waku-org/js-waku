@@ -25,6 +25,25 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/relay-v0.0.16...relay-v0.0.17) (2025-03-17)
+
+
+### Features
+
+* Improve peer manager and re-integrate to light push  ([#2191](https://github.com/waku-org/js-waku/issues/2191)) ([62f93dc](https://github.com/waku-org/js-waku/commit/62f93dc8428132161dba8881c6adc162040ae758))
+* Migrate to latest LightPush version ([#2281](https://github.com/waku-org/js-waku/issues/2281)) ([f199d92](https://github.com/waku-org/js-waku/commit/f199d92d60af948da8a684666c8a4b1f5bc6c9ad))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.33 to 0.0.34
+    * @waku/sdk bumped from 0.0.29 to 0.0.30
+    * @waku/interfaces bumped from 0.0.28 to 0.0.29
+    * @waku/proto bumped from 0.0.8 to 0.0.9
+    * @waku/utils bumped from 0.0.21 to 0.0.22
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/relay-v0.0.15...relay-v0.0.16) (2024-10-16)
 
 
