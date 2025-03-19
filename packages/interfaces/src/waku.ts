@@ -2,7 +2,7 @@ import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { IConnectionManager } from "./connection_manager.js";
-import type { IFilter } from "./filter.js";
+import type { IFilter, INewFilter } from "./filter.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
@@ -15,6 +15,7 @@ export interface IWaku {
   relay?: IRelay;
   store?: IStore;
   filter?: IFilter;
+  newFilter?: INewFilter;
   lightPush?: ILightPush;
   connectionManager: IConnectionManager;
   health: IHealthIndicator;
@@ -131,6 +132,7 @@ export interface LightNode extends IWaku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
+  newFilter: INewFilter;
   lightPush: ILightPush;
 }
 
