@@ -22,6 +22,8 @@ To build and test this repository, you need:
 - [Node.js & npm](https://nodejs.org/en/).
 - Chrome (for browser testing).
 
+Run `npm run build` at least once so that intra-dependencies are resolved.
+
 To ensure interoperability with [nim-waku](https://github.com/status-im/nim-waku/), some tests are run against a nim-waku node.
 This is why the relevant docker images for the node is pulled as part of the `pretest` script that runs before `npm run test`.
 
