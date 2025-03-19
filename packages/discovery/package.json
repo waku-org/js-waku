@@ -51,13 +51,13 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@waku/core": "0.0.33",
+    "@waku/enr": "0.0.27",
     "@waku/interfaces": "0.0.28",
     "@waku/proto": "^0.0.8",
-    "@waku/enr": "0.0.27",
-    "@waku/core": "0.0.33",
     "@waku/utils": "0.0.21",
     "debug": "^4.3.4",
-    "dns-query": "^0.11.2",
+    "dns-over-http-resolver": "^3.0.8",
     "hi-base32": "^0.5.1",
     "uint8arrays": "^5.0.1"
   },

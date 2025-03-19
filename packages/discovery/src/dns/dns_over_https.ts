@@ -1,7 +1,7 @@
 import type { DnsClient } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8 } from "@waku/utils/bytes";
-import { Endpoint, query, wellknown } from "dns-query";
+import DnsOverHttpResolver from "dns-over-http-resolver";
 
 const log = new Logger("dns-over-https");
 
@@ -9,25 +9,13 @@ export class DnsOverHttps implements DnsClient {
   /**
    * Create new Dns-Over-Http DNS client.
    *
-   * @param endpoints The endpoints for Dns-Over-Https queries;
-   * Defaults to using dns-query's API..
-   * @param retries Retries if a given endpoint fails.
-   *
    * @throws {code: string} If DNS query fails.
    */
-  public static async create(
-    endpoints?: Endpoint[],
-    retries?: number
-  ): Promise<DnsOverHttps> {
-    const _endpoints = endpoints ?? (await wellknown.endpoints("doh"));
-
-    return new DnsOverHttps(_endpoints, retries);
+  public static async create(): Promise<DnsOverHttps> {
+    return new DnsOverHttps();
   }
 
-  private constructor(
-    private endpoints: Endpoint[],
-    private retries: number = 3
-  ) {}
+  private constructor(private resolver = new DnsOverHttpResolver()) {}
 
   /**
    * Resolves a TXT record
@@ -39,16 +27,7 @@ export class DnsOverHttps implements DnsClient {
   public async resolveTXT(domain: string): Promise<string[]> {
     let answers;
     try {
-      const res = await query(
-        {
-          question: { type: "TXT", name: domain }
-        },
-        {
-          endpoints: this.endpoints,
-          retries: this.retries
-        }
-      );
-      answers = res.answers;
+      answers = await this.resolver.resolveTxt(domain);
     } catch (error) {
       log.error("query failed: ", error);
       throw new Error("DNS query failed");
@@ -56,13 +35,9 @@ export class DnsOverHttps implements DnsClient {
 
     if (!answers) throw new Error(`Could not resolve ${domain}`);
 
-    const data = answers.map((a) => a.data) as
-      | Array<string | Uint8Array>
-      | Array<Array<string | Uint8Array>>;
-
     const result: string[] = [];
 
-    data.forEach((d) => {
+    answers.forEach((d) => {
       if (typeof d === "string") {
         result.push(d);
       } else if (Array.isArray(d)) {
