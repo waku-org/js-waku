@@ -70,7 +70,7 @@
   "dependencies": {
     "@waku/enr": "^0.0.27",
     "@waku/interfaces": "0.0.28",
-    "@libp2p/ping": "2.0.1",
+    "@libp2p/ping": "2.0.27",
     "@waku/proto": "0.0.8",
     "@waku/utils": "0.0.21",
     "debug": "^4.3.4",
