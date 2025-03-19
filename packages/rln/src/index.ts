@@ -23,3 +23,14 @@ export {
   extractMetaMaskSigner,
   RLN_ABI
 };
+
+export type {
+  DecryptedCredentials,
+  EncryptedCredentials,
+  Keccak256Hash,
+  KeystoreEntity,
+  MembershipHash,
+  MembershipInfo,
+  Password,
+  Sha256Hash
+} from "./keystore/types.js";
