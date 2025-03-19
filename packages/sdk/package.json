@@ -85,7 +85,7 @@
     "@types/mocha": "^10.0.9",
     "@waku/build-utils": "*",
     "chai": "^5.1.1",
-    "cspell": "^8.6.1",
+    "cspell": "^8.17.5",
     "interface-datastore": "^8.2.10",
     "mocha": "^10.7.3",
     "npm-run-all": "^4.1.5",
