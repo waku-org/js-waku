@@ -27,12 +27,7 @@ describe("Peer Exchange", () => {
       this.timeout(50_000);
 
       const dns = await DnsNodeDiscovery.dnsOverHttp();
-      const dnsEnrs = await dns.getPeers(
-        [enrTree["SANDBOX"], enrTree["TEST"]],
-        {
-          lightPush: 1
-        }
-      );
+      const dnsEnrs = await dns.getPeers([enrTree["SANDBOX"]]);
       const dnsPeerMultiaddrs = dnsEnrs
         .flatMap(
           (enr) => enr.peerInfo?.multiaddrs.map((ma) => ma.toString()) ?? []
