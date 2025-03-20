@@ -10,7 +10,7 @@ import { type Libp2pComponents, PubsubTopic } from "@waku/interfaces";
 export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
-  const dnsEnrTrees = [enrTree["SANDBOX"], enrTree["TEST"]];
+  const dnsEnrTrees = [enrTree["SANDBOX"]];
 
   const discoveries = [
     wakuDnsDiscovery(dnsEnrTrees),
