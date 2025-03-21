@@ -1,25 +1,17 @@
 import { ENR, EnrDecoder } from "@waku/enr";
-import type {
-  DnsClient,
-  IEnr,
-  NodeCapabilityCount,
-  SearchContext
-} from "@waku/interfaces";
+import type { DnsClient, IEnr, SearchContext } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
-import {
-  fetchNodesUntilCapabilitiesFulfilled,
-  yieldNodesUntilCapabilitiesFulfilled
-} from "./fetch_nodes.js";
+import { fetchAndValidateNodes, yieldNodes } from "./fetch_nodes.js";
 
 const log = new Logger("discovery:dns");
 
 export class DnsNodeDiscovery {
   private readonly dns: DnsClient;
   private readonly _DNSTreeCache: { [key: string]: string };
-  private readonly _errorTolerance: number = 10;
+  private readonly _maxSearch: number = 10;
 
   public static async dnsOverHttp(
     dnsClient?: DnsClient
@@ -31,16 +23,11 @@ export class DnsNodeDiscovery {
   }
 
   /**
-   * Returns a list of verified peers listed in an EIP-1459 DNS tree. Method may
-   * return fewer peers than requested if @link wantedNodeCapabilityCount requires
-   * larger quantity of peers than available or the number of errors/duplicate
-   * peers encountered by randomized search exceeds the sum of the fields of
-   * @link wantedNodeCapabilityCount plus the @link _errorTolerance factor.
+   * Returns a list of verified peers listed in an EIP-1459 DNS tree. The
+   * underlying retrieval mechanism is capped by [[_maxSearch]] to avoid an
+   * infinite loop of DNS queries.
    */
-  public async getPeers(
-    enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): Promise<IEnr[]> {
+  public async getPeers(enrTreeUrls: string[]): Promise<IEnr[]> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
     const context: SearchContext = {
@@ -49,10 +36,8 @@ export class DnsNodeDiscovery {
       visits: {}
     };
 
-    const peers = await fetchNodesUntilCapabilitiesFulfilled(
-      wantedNodeCapabilityCount,
-      this._errorTolerance,
-      () => this._search(domain, context)
+    const peers = await fetchAndValidateNodes(this._maxSearch, () =>
+      this._search(domain, context)
     );
     log.info(
       "retrieved peers: ",
@@ -74,10 +59,7 @@ export class DnsNodeDiscovery {
   /**
    * {@inheritDoc getPeers}
    */
-  public async *getNextPeer(
-    enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): AsyncGenerator<IEnr> {
+  public async *getNextPeer(enrTreeUrls: string[]): AsyncGenerator<IEnr> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
     const context: SearchContext = {
@@ -86,11 +68,7 @@ export class DnsNodeDiscovery {
       visits: {}
     };
 
-    for await (const peer of yieldNodesUntilCapabilitiesFulfilled(
-      wantedNodeCapabilityCount,
-      this._errorTolerance,
-      () => this._search(domain, context)
-    )) {
+    for await (const peer of yieldNodes(() => this._search(domain, context))) {
       yield peer;
     }
   }
