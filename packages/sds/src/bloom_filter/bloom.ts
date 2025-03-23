@@ -1,5 +1,5 @@
-import { hashN } from "./nim_hashn/nim_hashn.mjs";
-import { getMOverNBitsForK } from "./probabilities.js";
+import { hashN } from "../nim_hashn/nim_hashn.mjs.js";
+import { getMOverNBitsForK } from "../probabilities.js";
 
 export interface BloomFilterOptions {
   // The expected maximum number of elements for which this BloomFilter is sized.

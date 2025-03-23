@@ -1,14 +1,13 @@
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { DefaultBloomFilter } from "./bloom.js";
+import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
+
+import { HistoryEntry, Message, MessageChannelEvent } from "./events.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
-  HistoryEntry,
-  Message,
-  MessageChannel,
-  MessageChannelEvent
-} from "./sds.js";
+  MessageChannel
+} from "./message_channel.js";
 
 const channelId = "test-channel";
 const callback = (_message: Message): Promise<{ success: boolean }> => {
@@ -28,6 +27,23 @@ const messagesB = [
   "message-7"
 ];
 
+const sendMessage = async (
+  channel: MessageChannel,
+  payload: Uint8Array,
+  callback: (message: Message) => Promise<{ success: boolean }>
+): Promise<void> => {
+  await channel.sendMessage(payload, callback);
+  await channel.processTasks();
+};
+
+const receiveMessage = async (
+  channel: MessageChannel,
+  message: Message
+): Promise<void> => {
+  channel.receiveMessage(message);
+  await channel.processTasks();
+};
+
 describe("MessageChannel", function () {
   this.timeout(5000);
   let channelA: MessageChannel;
@@ -40,21 +56,21 @@ describe("MessageChannel", function () {
 
     it("should increase lamport timestamp", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      await channelA.sendMessage(new Uint8Array(), callback);
+      await sendMessage(channelA, new Uint8Array(), callback);
       const timestampAfter = (channelA as any).lamportTimestamp;
       expect(timestampAfter).to.equal(timestampBefore + 1);
     });
 
     it("should push the message to the outgoing buffer", async () => {
       const bufferLengthBefore = (channelA as any).outgoingBuffer.length;
-      await channelA.sendMessage(new Uint8Array(), callback);
+      await sendMessage(channelA, new Uint8Array(), callback);
       const bufferLengthAfter = (channelA as any).outgoingBuffer.length;
       expect(bufferLengthAfter).to.equal(bufferLengthBefore + 1);
     });
 
     it("should insert message into bloom filter", async () => {
       const messageId = MessageChannel.getMessageId(new Uint8Array());
-      await channelA.sendMessage(new Uint8Array(), callback);
+      await sendMessage(channelA, new Uint8Array(), callback);
       const bloomFilter = getBloomFilter(channelA);
       expect(bloomFilter.lookup(messageId)).to.equal(true);
     });
@@ -62,7 +78,7 @@ describe("MessageChannel", function () {
     it("should insert message id into causal history", async () => {
       const expectedTimestamp = (channelA as any).lamportTimestamp + 1;
       const messageId = MessageChannel.getMessageId(new Uint8Array());
-      await channelA.sendMessage(new Uint8Array(), callback);
+      await sendMessage(channelA, new Uint8Array(), callback);
       const messageIdLog = (channelA as any).localHistory as {
         timestamp: number;
         historyEntry: HistoryEntry;
@@ -87,7 +103,7 @@ describe("MessageChannel", function () {
 
       for (const message of messages) {
         filterBytes.push(bloomFilter.toBytes());
-        await channelA.sendMessage(utf8ToBytes(message), callback);
+        await sendMessage(channelA, utf8ToBytes(message), callback);
         bloomFilter.insert(MessageChannel.getMessageId(utf8ToBytes(message)));
       }
 
@@ -123,9 +139,9 @@ describe("MessageChannel", function () {
 
     it("should increase lamport timestamp", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      await channelB.sendMessage(new Uint8Array(), (message) => {
-        channelA.receiveMessage(message);
-        return Promise.resolve({ success: true });
+      await sendMessage(channelB, new Uint8Array(), async (message) => {
+        await receiveMessage(channelA, message);
+        return { success: true };
       });
       const timestampAfter = (channelA as any).lamportTimestamp;
       expect(timestampAfter).to.equal(timestampBefore + 1);
@@ -133,12 +149,12 @@ describe("MessageChannel", function () {
 
     it("should update lamport timestamp if greater than current timestamp and dependencies are met", async () => {
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelA, utf8ToBytes(m), callback);
       }
       for (const m of messagesB) {
-        await channelB.sendMessage(utf8ToBytes(m), (message) => {
-          channelA.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        await sendMessage(channelB, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
         });
       }
       const timestampAfter = (channelA as any).lamportTimestamp;
@@ -148,20 +164,20 @@ describe("MessageChannel", function () {
     it("should maintain proper timestamps if all messages received", async () => {
       let timestamp = 0;
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
           timestamp++;
-          channelB.receiveMessage(message);
+          await receiveMessage(channelB, message);
           expect((channelB as any).lamportTimestamp).to.equal(timestamp);
-          return Promise.resolve({ success: true });
+          return { success: true };
         });
       }
 
       for (const m of messagesB) {
-        await channelB.sendMessage(utf8ToBytes(m), (message) => {
+        await sendMessage(channelB, utf8ToBytes(m), async (message) => {
           timestamp++;
-          channelA.receiveMessage(message);
+          await receiveMessage(channelA, message);
           expect((channelA as any).lamportTimestamp).to.equal(timestamp);
-          return Promise.resolve({ success: true });
+          return { success: true };
         });
       }
 
@@ -174,28 +190,32 @@ describe("MessageChannel", function () {
 
     it("should add received messages to bloom filter", async () => {
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
-          channelB.receiveMessage(message);
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelB, message);
           const bloomFilter = getBloomFilter(channelB);
           expect(bloomFilter.lookup(message.messageId)).to.equal(true);
-          return Promise.resolve({ success: true });
+          return { success: true };
         });
       }
     });
 
     it("should add to incoming buffer if dependencies are not met", async () => {
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelA, utf8ToBytes(m), callback);
       }
 
       let receivedMessage: Message | null = null;
       const timestampBefore = (channelB as any).lamportTimestamp;
 
-      await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
-        receivedMessage = message;
-        channelB.receiveMessage(message);
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          receivedMessage = message;
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
 
       const incomingBuffer = (channelB as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(1);
@@ -227,26 +247,35 @@ describe("MessageChannel", function () {
 
     it("should mark all messages in causal history as acknowledged", async () => {
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
-          channelB.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
         });
       }
 
       let notInHistory: Message | null = null;
-      await channelA.sendMessage(utf8ToBytes("not-in-history"), (message) => {
-        notInHistory = message;
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelA,
+        utf8ToBytes("not-in-history"),
+        async (message) => {
+          notInHistory = message;
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
 
       expect((channelA as any).outgoingBuffer.length).to.equal(
         messagesA.length + 1
       );
 
-      await channelB.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
-        channelA.receiveMessage(message);
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelB,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
+        }
+      );
 
       // Since messagesA are in causal history of channel B's message
       // they should be gone from channel A's outgoing buffer
@@ -268,23 +297,24 @@ describe("MessageChannel", function () {
       const messages = [...messagesA, ...messagesB.slice(0, -1)];
       // Send messages to be received by channel B
       for (const m of messages) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
-          channelB.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
         });
       }
 
       // Send messages not received by channel B
       for (const m of unacknowledgedMessages) {
-        await channelA.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelA, utf8ToBytes(m), callback);
       }
 
       // Channel B sends a message to channel A
-      await channelB.sendMessage(
+      await sendMessage(
+        channelB,
         utf8ToBytes(messagesB[messagesB.length - 1]),
-        (message) => {
-          channelA.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
         }
       );
 
@@ -316,9 +346,9 @@ describe("MessageChannel", function () {
       // in the bloom filter as before, which should mark them as fully acknowledged in channel A
       for (let i = 1; i < acknowledgementCount; i++) {
         // Send messages until acknowledgement count is reached
-        await channelB.sendMessage(utf8ToBytes(`x-${i}`), (message) => {
-          channelA.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        await sendMessage(channelB, utf8ToBytes(`x-${i}`), async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
         });
       }
 
@@ -349,13 +379,17 @@ describe("MessageChannel", function () {
     it("should detect messages with missing dependencies", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelA, utf8ToBytes(m), callback);
       }
 
-      await channelA.sendMessage(utf8ToBytes(messagesB[0]), async (message) => {
-        channelB.receiveMessage(message);
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
 
       const incomingBuffer = (channelB as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(1);
@@ -374,16 +408,21 @@ describe("MessageChannel", function () {
       const causalHistorySize = (channelA as any).causalHistorySize;
       const sentMessages = new Array<Message>();
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
           sentMessages.push(message);
-          return Promise.resolve({ success: true });
+          await receiveMessage(channelB, message);
+          return { success: true };
         });
       }
 
-      await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
-        channelB.receiveMessage(message);
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
 
       const missingMessages = channelB.sweepIncomingBuffer();
       expect(missingMessages.length).to.equal(causalHistorySize);
@@ -394,9 +433,9 @@ describe("MessageChannel", function () {
       let incomingBuffer = (channelB as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(1);
 
-      sentMessages.forEach((m) => {
-        channelB.receiveMessage(m);
-      });
+      for (const m of sentMessages) {
+        await receiveMessage(channelB, m);
+      }
 
       const missingMessages2 = channelB.sweepIncomingBuffer();
       expect(missingMessages2.length).to.equal(0);
@@ -414,13 +453,17 @@ describe("MessageChannel", function () {
       });
 
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelA, utf8ToBytes(m), callback);
       }
 
-      await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
-        channelC.receiveMessage(message);
-        return Promise.resolve({ success: true });
-      });
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelC, message);
+          return { success: true };
+        }
+      );
 
       const missingMessages = channelC.sweepIncomingBuffer();
       expect(missingMessages.length).to.equal(causalHistorySize);
@@ -444,10 +487,10 @@ describe("MessageChannel", function () {
     it("should partition messages based on acknowledgement status", async () => {
       const unacknowledgedMessages: Message[] = [];
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
           unacknowledgedMessages.push(message);
-          channelB.receiveMessage(message);
-          return Promise.resolve({ success: true });
+          await receiveMessage(channelB, message);
+          return { success: true };
         });
       }
 
@@ -459,14 +502,15 @@ describe("MessageChannel", function () {
       // Make sure messages sent by channel A are not in causal history
       const causalHistorySize = (channelA as any).causalHistorySize;
       for (const m of messagesB.slice(0, causalHistorySize)) {
-        await channelB.sendMessage(utf8ToBytes(m), callback);
+        await sendMessage(channelB, utf8ToBytes(m), callback);
       }
 
-      await channelB.sendMessage(
+      await sendMessage(
+        channelB,
         utf8ToBytes(messagesB[causalHistorySize]),
-        (message) => {
-          channelA.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
         }
       );
 
@@ -486,9 +530,9 @@ describe("MessageChannel", function () {
     });
 
     it("should be sent with empty content", async () => {
-      await channelA.sendSyncMessage((message) => {
+      await channelA.sendSyncMessage(async (message) => {
         expect(message.content?.length).to.equal(0);
-        return Promise.resolve(true);
+        return true;
       });
     });
 
@@ -513,10 +557,10 @@ describe("MessageChannel", function () {
     it("should be delivered but not added to local log or bloom filter", async () => {
       const timestampBefore = (channelB as any).lamportTimestamp;
       let expectedTimestamp: number | undefined;
-      await channelA.sendSyncMessage((message) => {
+      await channelA.sendSyncMessage(async (message) => {
         expectedTimestamp = message.lamportTimestamp;
-        channelB.receiveMessage(message);
-        return Promise.resolve(true);
+        await receiveMessage(channelB, message);
+        return true;
       });
       const timestampAfter = (channelB as any).lamportTimestamp;
       expect(timestampAfter).to.equal(expectedTimestamp);
@@ -536,15 +580,15 @@ describe("MessageChannel", function () {
 
     it("should update ack status of messages in outgoing buffer", async () => {
       for (const m of messagesA) {
-        await channelA.sendMessage(utf8ToBytes(m), (message) => {
-          channelB.receiveMessage(message);
-          return Promise.resolve({ success: true });
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
         });
       }
 
-      await channelB.sendSyncMessage((message) => {
-        channelA.receiveMessage(message);
-        return Promise.resolve(true);
+      await sendMessage(channelB, new Uint8Array(), async (message) => {
+        await receiveMessage(channelA, message);
+        return { success: true };
       });
 
       const causalHistorySize = (channelA as any).causalHistorySize;
@@ -560,9 +604,9 @@ describe("MessageChannel", function () {
       channelA = new MessageChannel(channelId);
     });
 
-    it("should be sent without a timestamp, causal history, or bloom filter", () => {
+    it("should be sent without a timestamp, causal history, or bloom filter", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      channelA.sendEphemeralMessage(new Uint8Array(), (message) => {
+      await channelA.sendEphemeralMessage(new Uint8Array(), async (message) => {
         expect(message.lamportTimestamp).to.equal(undefined);
         expect(message.causalHistory).to.deep.equal([]);
         expect(message.bloomFilter).to.equal(undefined);
@@ -577,33 +621,37 @@ describe("MessageChannel", function () {
     });
 
     it("should be delivered immediately if received", async () => {
-      let deliveredMessageId: string | undefined;
       let sentMessage: Message | undefined;
 
-      const channelB = new MessageChannel(channelId, {
-        deliveredMessageCallback: (messageId) => {
-          deliveredMessageId = messageId;
-        }
-      });
+      const channelB = new MessageChannel(channelId);
 
-      const waitForMessageDelivered = new Promise<string>((resolve) => {
+      const waitForMessageDelivered = new Promise<{
+        messageId: string;
+        sentOrReceived: "sent" | "received";
+      }>((resolve) => {
         channelB.addEventListener(
           MessageChannelEvent.MessageDelivered,
           (event) => {
-            resolve(event.detail);
+            resolve({
+              messageId: event.detail.messageId,
+              sentOrReceived: event.detail.sentOrReceived
+            });
           }
         );
 
-        channelA.sendEphemeralMessage(utf8ToBytes(messagesA[0]), (message) => {
-          sentMessage = message;
-          channelB.receiveMessage(message);
-          return true;
-        });
+        // channelA.sendEphemeralMessage(
+        //   utf8ToBytes(messagesA[0]),
+        //   async (message) => {
+        //     sentMessage = message;
+        //     await receiveMessage(channelB, message);
+        //     return true;
+        //   }
+        // );
       });
 
-      const eventMessageId = await waitForMessageDelivered;
-      expect(deliveredMessageId).to.equal(sentMessage?.messageId);
-      expect(eventMessageId).to.equal(sentMessage?.messageId);
+      const { messageId, sentOrReceived } = await waitForMessageDelivered;
+      expect(messageId).to.equal(sentMessage?.messageId);
+      expect(sentOrReceived).to.equal("sent");
     });
   });
 });
