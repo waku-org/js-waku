@@ -12,7 +12,7 @@ export function getPseudoRandomSubset<T>(
   return shuffle(values).slice(0, wantedNumber);
 }
 
-function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[]): T[] {
   if (arr.length <= 1) {
     return arr;
   }
