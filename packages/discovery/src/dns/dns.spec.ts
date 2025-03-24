@@ -17,7 +17,6 @@ const branchDomainD = "D5SNLTAGWNQ34NTQTPHNZDECFU";
 const partialBranchA = "AAAA";
 const partialBranchB = "BBBB";
 const singleBranch = `enrtree-branch:${branchDomainA}`;
-const doubleBranch = `enrtree-branch:${branchDomainA},${branchDomainB}`;
 const multiComponentBranch = [
   `enrtree-branch:${branchDomainA},${partialBranchA}`,
   `${partialBranchB},${branchDomainB}`
@@ -72,9 +71,10 @@ describe("DNS Node Discovery", () => {
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrWithWaku2Relay]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(1);
     expect(peers[0].ip).to.eq("192.168.178.251");
@@ -88,9 +88,10 @@ describe("DNS Node Discovery", () => {
     mockDns.addRes(`${branchDomainA}.${host}`, [singleBranch]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(0);
   });
@@ -102,17 +103,21 @@ describe("DNS Node Discovery", () => {
     mockDns.addRes(`${branchDomainA}.${host}`, []);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    let peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peersA = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peersA.push(peer);
+    }
 
-    expect(peers.length).to.eq(0);
+    expect(peersA.length).to.eq(0);
 
     // No TXT records case
     mockDns.addRes(`${branchDomainA}.${host}`, []);
 
-    peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], { relay: 1 });
-    expect(peers.length).to.eq(0);
+    const peersB = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peersB.push(peer);
+    }
+    expect(peersB.length).to.eq(0);
   });
 
   it("ignores domain fetching errors", async function () {
@@ -120,18 +125,20 @@ describe("DNS Node Discovery", () => {
     mockDns.addThrow(`${branchDomainC}.${host}`);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
     expect(peers.length).to.eq(0);
   });
 
   it("ignores unrecognized TXT record formats", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrBranchBadPrefix]);
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
     expect(peers.length).to.eq(0);
   });
 
@@ -140,18 +147,20 @@ describe("DNS Node Discovery", () => {
     mockDns.addRes(`${branchDomainD}.${host}`, [mockData.enrWithWaku2Relay]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peersA = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peersA = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peersA.push(peer);
+    }
     expect(peersA.length).to.eq(1);
 
     // Specify that a subsequent network call retrieving the same peer should throw.
     // This test passes only if the peer is fetched from cache
     mockDns.addThrow(`${branchDomainD}.${host}`);
 
-    const peersB = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peersB = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peersB.push(peer);
+    }
     expect(peersB.length).to.eq(1);
     expect(peersA[0].ip).to.eq(peersB[0].ip);
   });
@@ -169,9 +178,10 @@ describe("DNS Node Discovery w/ capabilities", () => {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Relay]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
@@ -183,52 +193,14 @@ describe("DNS Node Discovery w/ capabilities", () => {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2RelayStore]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      store: 1,
-      relay: 1
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
       "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
-    );
-  });
-
-  it("should only return 1 node with store capability", async () => {
-    mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrWithWaku2Store]);
-
-    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      store: 1
-    });
-
-    expect(peers.length).to.eq(1);
-    expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd"
-    );
-  });
-
-  it("retrieves all peers (2) when cannot fulfill all requirements", async () => {
-    mockDns.addRes(`${rootDomain}.${host}`, [doubleBranch]);
-    mockDns.addRes(`${branchDomainA}.${host}`, [
-      mockData.enrWithWaku2RelayStore
-    ]);
-    mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrWithWaku2Relay]);
-
-    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      store: 1,
-      relay: 2,
-      filter: 1
-    });
-
-    expect(peers.length).to.eq(2);
-    const peerIds = peers.map((p) => p.peerId?.toString());
-    expect(peerIds).to.contain(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
-    );
-    expect(peerIds).to.contain(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
     );
   });
 
@@ -243,10 +215,10 @@ describe("DNS Node Discovery w/ capabilities", () => {
     ]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
-    const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      store: 2,
-      relay: 2
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([mockData.enrTree])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(3);
     const peerIds = peers.map((p) => p.peerId?.toString());
@@ -275,12 +247,10 @@ describe("DNS Node Discovery [live data]", function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
-    const peers = await dnsNodeDiscovery.getPeers([enrTree.TEST], {
-      relay: maxQuantity,
-      store: maxQuantity,
-      filter: maxQuantity,
-      lightPush: maxQuantity
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([enrTree.TEST])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(maxQuantity);
 
@@ -298,12 +268,10 @@ describe("DNS Node Discovery [live data]", function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
-    const peers = await dnsNodeDiscovery.getPeers([enrTree.SANDBOX], {
-      relay: maxQuantity,
-      store: maxQuantity,
-      filter: maxQuantity,
-      lightPush: maxQuantity
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([enrTree.SANDBOX])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(maxQuantity);
 
