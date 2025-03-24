@@ -1,6 +1,6 @@
 import { ENR, EnrDecoder } from "@waku/enr";
 import type { DnsClient, IEnr, SearchContext } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { Logger, shuffle } from "@waku/utils";
 
 import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
@@ -27,19 +27,23 @@ export class DnsNodeDiscovery {
   }
 
   /**
-   * {@inheritDoc getPeers}
+   * Retrieve the next peers from the passed [[enrTreeUrls]],
    */
   public async *getNextPeer(enrTreeUrls: string[]): AsyncGenerator<IEnr> {
-    const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
-    const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
-    const context: SearchContext = {
-      domain,
-      publicKey,
-      visits: {}
-    };
+    // Shuffle the ENR Trees so that not all clients connect to same nodes first.
+    for (const enrTreeUrl of shuffle(enrTreeUrls)) {
+      const { publicKey, domain } = ENRTree.parseTree(enrTreeUrl);
+      const context: SearchContext = {
+        domain,
+        publicKey,
+        visits: {}
+      };
 
-    for await (const peer of fetchNodes(() => this._search(domain, context))) {
-      yield peer;
+      for await (const peer of fetchNodes(() =>
+        this._search(domain, context)
+      )) {
+        yield peer;
+      }
     }
   }
 
@@ -113,7 +117,7 @@ export class DnsNodeDiscovery {
       throw new Error("Received empty result array while fetching TXT record");
     if (!response[0].length) throw new Error("Received empty TXT record");
 
-    // Branch entries can be an array of strings of comma delimited subdomains, with
+    // Branch entries can be an array of strings of comma-delimited subdomains, with
     // some subdomain strings split across the array elements
     const result = response.join("");
 
