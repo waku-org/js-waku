@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/proto-v0.0.8...proto-v0.0.9) (2025-03-24)
+
+
+### Features
+
+* **sds:** Add message channel with buffers and send/receive logic ([4cd1eea](https://github.com/waku-org/js-waku/commit/4cd1eea05a470a23cde8a6457addd3ac76289045))
+* **sds:** Add message channel with buffers and send/receive logic ([389ca40](https://github.com/waku-org/js-waku/commit/389ca4062eebda91eac6d8e212ca4d063e7ac103))
+* **sds:** Create package for sds and add protobuf def ([6abd2d1](https://github.com/waku-org/js-waku/commit/6abd2d18a13f4a960c1d34404afd5972956035b4))
+* **sds:** Create package for sds and add protobuf def ([468512f](https://github.com/waku-org/js-waku/commit/468512fa85a5e6c1618803338e0e9d17e1a9c4b7))
+
 ## [0.0.8](https://github.com/waku-org/js-waku/compare/proto-v0.0.7...proto-v0.0.8) (2024-08-29)
 
 
