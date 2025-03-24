@@ -11,6 +11,7 @@
   "separate-pull-requests": false,
   "versioning": "always-bump-patch",
   "group-pull-request-title-pattern": "chore: release ${branch}",
+  "include-component-in-tag": true,
   "packages": {
     "packages/utils": {},
     "packages/proto": {},
@@ -22,6 +23,8 @@
     "packages/sdk": {},
     "packages/relay": {},
     "packages/discovery": {},
-    "packages/react-native-polyfills": {}
+    "packages/react-native-polyfills": {},
+    "packages/sds": {},
+    "packages/rln": {}
   }
 }
