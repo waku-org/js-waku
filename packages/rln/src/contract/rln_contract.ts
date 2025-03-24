@@ -354,7 +354,7 @@ export class RLNContract {
       const txRegisterReceipt = await txRegisterResponse.wait();
 
       const memberRegistered = txRegisterReceipt.events?.find(
-        (event) => event.event === "MembershipRegistered"
+        (event: ethers.Event) => event.event === "MembershipRegistered"
       );
 
       if (!memberRegistered || !memberRegistered.args) {
@@ -455,7 +455,7 @@ export class RLNContract {
       const txRegisterReceipt = await txRegisterResponse.wait();
 
       const memberRegistered = txRegisterReceipt.events?.find(
-        (event) => event.event === "MembershipRegistered"
+        (event: ethers.Event) => event.event === "MembershipRegistered"
       );
 
       if (!memberRegistered || !memberRegistered.args) {
