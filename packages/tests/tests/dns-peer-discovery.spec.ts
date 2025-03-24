@@ -77,7 +77,7 @@ describe("DNS Node Discovery [live data]", function () {
     expect(dnsPeers).to.gte(minQuantityExpected);
   });
 
-  it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
+  it(`should retrieve ${maxQuantity} multiaddrs for sandbox.waku.nodes.status.im`, async function () {
     if (process.env.CI) this.skip();
 
     this.timeout(10000);
@@ -102,6 +102,34 @@ describe("DNS Node Discovery [live data]", function () {
       seen.push(ma!.toString());
     }
   });
+
+  it(`should retrieve all multiaddrs when several ENR Tree URLs are passed`, async function () {
+    if (process.env.CI) this.skip();
+
+    this.timeout(10000);
+    // Google's dns server address. Needs to be set explicitly to run in CI
+    const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
+
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([
+      enrTree["SANDBOX"],
+      enrTree["TEST"]
+    ])) {
+      peers.push(peer);
+    }
+
+    expect(peers.length).to.eq(6);
+
+    const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
+
+    const seen: string[] = [];
+    for (const ma of multiaddrs) {
+      expect(ma).to.not.be.undefined;
+      expect(seen).to.not.include(ma!.toString());
+      seen.push(ma!.toString());
+    }
+  });
+
   it("passes more than one ENR URLs and attempts connection", async function () {
     if (process.env.CI) this.skip();
     this.timeout(30_000);
