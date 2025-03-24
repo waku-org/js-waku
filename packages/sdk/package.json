@@ -92,6 +92,9 @@
     "rollup": "^4.12.0",
     "sinon": "^19.0.2"
   },
+  "overrides": {
+    "@chainsafe/libp2p-noise": "16.0.0"
+  },
   "files": [
     "dist",
     "bundle",
