@@ -3,12 +3,11 @@ import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import { ENR } from "@waku/enr";
 import { EnrCreator } from "@waku/enr";
-import type { Waku2 } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes.js";
+import { fetchNodes } from "./fetch_nodes.js";
 
-async function createEnr(waku2: Waku2): Promise<ENR> {
+async function createEnr(): Promise<ENR> {
   const peerId = await generateKeyPair("secp256k1").then(peerIdFromPrivateKey);
   const enr = await EnrCreator.fromPeerId(peerId);
   enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
@@ -20,38 +19,13 @@ async function createEnr(waku2: Waku2): Promise<ENR> {
     )
   ];
 
-  enr.waku2 = waku2;
+  enr.waku2 = { lightPush: true, filter: true, relay: false, store: false };
   return enr;
 }
 
-const Waku2None = {
-  relay: false,
-  store: false,
-  filter: false,
-  lightPush: false
-};
-
-describe("Fetch nodes until capabilities are fulfilled", function () {
-  it("1 Relay, 1 fetch", async function () {
-    const relayNode = await createEnr({ ...Waku2None, relay: true });
-
-    const getNode = (): Promise<ENR> => Promise.resolve(relayNode);
-
-    const res = await fetchNodesUntilCapabilitiesFulfilled(
-      { relay: 1 },
-      0,
-      getNode
-    );
-
-    expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toString()).to.eq(relayNode.peerId?.toString());
-  });
-
-  it("1 Store, 2 fetches", async function () {
-    const relayNode = await createEnr({ ...Waku2None, relay: true });
-    const storeNode = await createEnr({ ...Waku2None, store: true });
-
-    const retrievedNodes = [relayNode, storeNode];
+describe("Fetch nodes", function () {
+  it("Get Nodes", async function () {
+    const retrievedNodes = [await createEnr(), await createEnr()];
 
     let fetchCount = 0;
     const getNode = (): Promise<ENR> => {
@@ -60,27 +34,21 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
       return Promise.resolve(node);
     };
 
-    const res = await fetchNodesUntilCapabilitiesFulfilled(
-      { store: 1 },
-      1,
-      getNode
-    );
+    const res = [];
+    for await (const node of fetchNodes(getNode, 5)) {
+      res.push(node);
+    }
 
-    expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toString()).to.eq(storeNode.peerId?.toString());
+    expect(res.length).to.eq(2);
+    expect(res[0].peerId!.toString()).to.not.eq(res[1].peerId!.toString());
   });
 
-  it("1 Store, 2 relays, 2 fetches", async function () {
-    const relayNode1 = await createEnr({ ...Waku2None, relay: true });
-    const relayNode2 = await createEnr({ ...Waku2None, relay: true });
-    const relayNode3 = await createEnr({ ...Waku2None, relay: true });
-    const relayStoreNode = await createEnr({
-      ...Waku2None,
-      relay: true,
-      store: true
-    });
-
-    const retrievedNodes = [relayNode1, relayNode2, relayNode3, relayStoreNode];
+  it("Stops search when maxGet is reached", async function () {
+    const retrievedNodes = [
+      await createEnr(),
+      await createEnr(),
+      await createEnr()
+    ];
 
     let fetchCount = 0;
     const getNode = (): Promise<ENR> => {
@@ -89,30 +57,29 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
       return Promise.resolve(node);
     };
 
-    const res = await fetchNodesUntilCapabilitiesFulfilled(
-      { store: 1, relay: 2 },
-      1,
-      getNode
-    );
+    const res = [];
+    for await (const node of fetchNodes(getNode, 2)) {
+      res.push(node);
+    }
 
-    expect(res.length).to.eq(3);
-    expect(res[0].peerId!.toString()).to.eq(relayNode1.peerId?.toString());
-    expect(res[1].peerId!.toString()).to.eq(relayNode2.peerId?.toString());
-    expect(res[2].peerId!.toString()).to.eq(relayStoreNode.peerId?.toString());
+    expect(res.length).to.eq(2);
   });
 
-  it("1 Relay, 1 Filter, gives up", async function () {
-    const relayNode = await createEnr({ ...Waku2None, relay: true });
+  it("Stops search when 2 null results are returned", async function () {
+    const retrievedNodes = [await createEnr(), null, null, await createEnr()];
 
-    const getNode = (): Promise<ENR> => Promise.resolve(relayNode);
+    let fetchCount = 0;
+    const getNode = (): Promise<ENR | null> => {
+      const node = retrievedNodes[fetchCount];
+      fetchCount++;
+      return Promise.resolve(node);
+    };
 
-    const res = await fetchNodesUntilCapabilitiesFulfilled(
-      { filter: 1, relay: 1 },
-      5,
-      getNode
-    );
+    const res = [];
+    for await (const node of fetchNodes(getNode, 10, 2)) {
+      res.push(node);
+    }
 
     expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toString()).to.eq(relayNode.peerId?.toString());
   });
 });
