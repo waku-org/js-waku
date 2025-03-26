@@ -5,7 +5,7 @@ import sinon from "sinon";
 
 import type { IdentityCredential } from "../identity.js";
 
-import { DEFAULT_RATE_LIMIT, SEPOLIA_CONTRACT } from "./constants.js";
+import { DEFAULT_RATE_LIMIT, LINEA_CONTRACT } from "./constants.js";
 
 export const mockRateLimits = {
   minRate: 20,
@@ -36,9 +36,9 @@ export function createMockProvider(): MockProvider {
 
 export function createMockFilters(): MockFilters {
   return {
-    MembershipRegistered: () => ({ address: SEPOLIA_CONTRACT.address }),
-    MembershipErased: () => ({ address: SEPOLIA_CONTRACT.address }),
-    MembershipExpired: () => ({ address: SEPOLIA_CONTRACT.address })
+    MembershipRegistered: () => ({ address: LINEA_CONTRACT.address }),
+    MembershipErased: () => ({ address: LINEA_CONTRACT.address }),
+    MembershipExpired: () => ({ address: LINEA_CONTRACT.address })
   };
 }
 
@@ -51,9 +51,9 @@ export function createMockRegistryContract(
   overrides: ContractOverrides = {}
 ): ethers.Contract {
   const filters = {
-    MembershipRegistered: () => ({ address: SEPOLIA_CONTRACT.address }),
-    MembershipErased: () => ({ address: SEPOLIA_CONTRACT.address }),
-    MembershipExpired: () => ({ address: SEPOLIA_CONTRACT.address })
+    MembershipRegistered: () => ({ address: LINEA_CONTRACT.address }),
+    MembershipErased: () => ({ address: LINEA_CONTRACT.address }),
+    MembershipExpired: () => ({ address: LINEA_CONTRACT.address })
   };
 
   const baseContract = {
@@ -89,7 +89,7 @@ export function createMockRegistryContract(
         format: () => {}
       })
     },
-    address: SEPOLIA_CONTRACT.address
+    address: LINEA_CONTRACT.address
   };
 
   // Merge overrides while preserving filters
@@ -163,7 +163,7 @@ export function verifyRegistration(
   expect(decryptedCredentials).to.have.property("identity");
   expect(decryptedCredentials).to.have.property("membership");
   expect(decryptedCredentials.membership).to.include({
-    address: SEPOLIA_CONTRACT.address,
+    address: LINEA_CONTRACT.address,
     treeIndex: 1
   });
 
