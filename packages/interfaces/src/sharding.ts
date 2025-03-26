@@ -4,7 +4,7 @@ export type ShardInfo = {
 };
 
 export type ContentTopicInfo = {
-  clusterId?: number;
+  clusterId: number;
   contentTopics: string[];
 };
 
