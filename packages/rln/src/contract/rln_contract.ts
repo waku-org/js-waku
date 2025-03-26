@@ -272,6 +272,12 @@ export class RLNContract {
 
         if (typeof index === "number" || typeof index === "string") {
           index = ethers.BigNumber.from(index);
+        } else {
+          log.error("Index is not a number or string", {
+            index,
+            event: evt
+          });
+          return;
         }
 
         const toRemoveVal = toRemoveTable.get(evt.blockNumber);
@@ -581,7 +587,7 @@ export class RLNContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = ethers.BigNumber.from(decodedData.index).toNumber();
 
       return {
         identity,
