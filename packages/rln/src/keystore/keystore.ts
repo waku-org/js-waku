@@ -274,7 +274,8 @@ export class Keystore {
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
           chainId: _.get(obj, "membershipContract.chainId"),
-          address: _.get(obj, "membershipContract.address")
+          address: _.get(obj, "membershipContract.address"),
+          rateLimit: _.get(obj, "membershipContract.rateLimit")
         }
       };
     } catch (err) {
