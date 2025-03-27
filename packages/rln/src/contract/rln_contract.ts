@@ -95,15 +95,7 @@ export class RLNContract {
       contract
     } = options;
 
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
-      );
-    }
-
+    this.validateRateLimit(rateLimit);
     this.rateLimit = rateLimit;
 
     const initialRoot = rlnInstance.zerokit.getMerkleRoot();
@@ -116,6 +108,21 @@ export class RLNContract {
     this._membersFilter = this.contract.filters.MembershipRegistered();
     this._membershipErasedFilter = this.contract.filters.MembershipErased();
     this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+  }
+
+  /**
+   * Validates that the rate limit is within the allowed range
+   * @throws Error if the rate limit is outside the allowed range
+   */
+  private validateRateLimit(rateLimit: number): void {
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      );
+    }
   }
 
   /**
@@ -192,6 +199,7 @@ export class RLNContract {
    * @param newRateLimit The new rate limit to use
    */
   public async setRateLimit(newRateLimit: number): Promise<void> {
+    this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
 
@@ -469,7 +477,8 @@ export class RLNContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {
@@ -594,7 +603,8 @@ export class RLNContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {
@@ -669,16 +679,9 @@ export class RLNContract {
 
   public async registerMembership(
     idCommitment: string,
-    rateLimit: number = DEFAULT_RATE_LIMIT
+    rateLimit: number = this.rateLimit
   ): Promise<ethers.ContractTransaction> {
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
-      );
-    }
+    this.validateRateLimit(rateLimit);
     return this.contract.register(idCommitment, rateLimit, []);
   }
 
