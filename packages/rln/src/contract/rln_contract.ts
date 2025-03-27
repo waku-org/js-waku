@@ -152,7 +152,7 @@ export class RLNContract {
    */
   public async getMinRateLimit(): Promise<number> {
     const minRate = await this.contract.minMembershipRateLimit();
-    return minRate.toNumber();
+    return ethers.BigNumber.from(minRate).toNumber();
   }
 
   /**
@@ -161,7 +161,7 @@ export class RLNContract {
    */
   public async getMaxRateLimit(): Promise<number> {
     const maxRate = await this.contract.maxMembershipRateLimit();
-    return maxRate.toNumber();
+    return ethers.BigNumber.from(maxRate).toNumber();
   }
 
   /**

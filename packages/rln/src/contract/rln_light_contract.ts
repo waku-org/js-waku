@@ -133,7 +133,7 @@ export class RLNLightContract {
    */
   public async getMinRateLimit(): Promise<number> {
     const minRate = await this.contract.minMembershipRateLimit();
-    return minRate.toNumber();
+    return ethers.BigNumber.from(minRate).toNumber();
   }
 
   /**
@@ -142,7 +142,7 @@ export class RLNLightContract {
    */
   public async getMaxRateLimit(): Promise<number> {
     const maxRate = await this.contract.maxMembershipRateLimit();
-    return maxRate.toNumber();
+    return ethers.BigNumber.from(maxRate).toNumber();
   }
 
   /**
@@ -151,7 +151,7 @@ export class RLNLightContract {
    */
   public async getMaxTotalRateLimit(): Promise<number> {
     const maxTotalRate = await this.contract.maxTotalRateLimit();
-    return maxTotalRate.toNumber();
+    return ethers.BigNumber.from(maxTotalRate).toNumber();
   }
 
   /**
@@ -160,7 +160,7 @@ export class RLNLightContract {
    */
   public async getCurrentTotalRateLimit(): Promise<number> {
     const currentTotal = await this.contract.currentTotalRateLimit();
-    return currentTotal.toNumber();
+    return ethers.BigNumber.from(currentTotal).toNumber();
   }
 
   /**
@@ -172,7 +172,9 @@ export class RLNLightContract {
       this.contract.maxTotalRateLimit(),
       this.contract.currentTotalRateLimit()
     ]);
-    return Number(maxTotal) - Number(currentTotal);
+    return ethers.BigNumber.from(maxTotal)
+      .sub(ethers.BigNumber.from(currentTotal))
+      .toNumber();
   }
 
   /**
@@ -451,7 +453,12 @@ export class RLNLightContract {
         membershipId,
         currentEpochStart
       );
-      return Math.max(0, rateLimit.sub(messageCount).toNumber());
+      return Math.max(
+        0,
+        ethers.BigNumber.from(rateLimit)
+          .sub(ethers.BigNumber.from(messageCount))
+          .toNumber()
+      );
     } catch (error) {
       log.error(
         `Error getting remaining messages: ${(error as Error).message}`
