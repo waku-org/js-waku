@@ -1,4 +1,4 @@
-import { hashN } from "../nim_hashn/nim_hashn.mjs.js";
+import { hashN } from "../nim_hashn/nim_hashn.mjs";
 import { getMOverNBitsForK } from "../probabilities.js";
 
 export interface BloomFilterOptions {
