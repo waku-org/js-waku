@@ -394,7 +394,8 @@ export class RLNLightContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {
@@ -519,7 +520,8 @@ export class RLNLightContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {

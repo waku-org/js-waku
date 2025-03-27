@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { SEPOLIA_CONTRACT } from "./contract/constants.js";
+import { LINEA_CONTRACT } from "./contract/constants.js";
 import { RLNLightContract } from "./contract/rln_light_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -120,10 +120,10 @@ export class RLNLightInstance {
     const address =
       credentials?.membership.address ||
       options.address ||
-      SEPOLIA_CONTRACT.address;
+      LINEA_CONTRACT.address;
 
-    if (address === SEPOLIA_CONTRACT.address) {
-      chainId = SEPOLIA_CONTRACT.chainId;
+    if (address === LINEA_CONTRACT.address) {
+      chainId = LINEA_CONTRACT.chainId;
     }
 
     const signer = options.signer || (await extractMetaMaskSigner());
