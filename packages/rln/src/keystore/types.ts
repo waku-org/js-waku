@@ -11,6 +11,7 @@ export type MembershipInfo = {
   chainId: number;
   address: string;
   treeIndex: number;
+  rateLimit: number;
 };
 
 export type KeystoreEntity = {

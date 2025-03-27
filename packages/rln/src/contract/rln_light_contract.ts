@@ -1,12 +1,8 @@
 import { Logger } from "@waku/utils";
-import { hexToBytes } from "@waku/utils/bytes";
 import { ethers } from "ethers";
 
 import type { IdentityCredential } from "../identity.js";
 import type { DecryptedCredentials } from "../keystore/index.js";
-import type { RLNInstance } from "../rln.js";
-import { MerkleRootTracker } from "../root_tracker.js";
-import { zeroPadLE } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
@@ -56,9 +52,8 @@ export enum MembershipState {
   ErasedAwaitsWithdrawal = "ErasedAwaitsWithdrawal"
 }
 
-export class RLNContract {
+export class RLNLightContract {
   public contract: ethers.Contract;
-  private merkleRootTracker: MerkleRootTracker;
 
   private deployBlock: undefined | number;
   private rateLimit: number;
@@ -73,21 +68,17 @@ export class RLNContract {
    * Allows injecting a mocked contract for testing purposes.
    */
   public static async init(
-    rlnInstance: RLNInstance,
     options: RLNContractInitOptions
-  ): Promise<RLNContract> {
-    const rlnContract = new RLNContract(rlnInstance, options);
+  ): Promise<RLNLightContract> {
+    const rlnContract = new RLNLightContract(options);
 
-    await rlnContract.fetchMembers(rlnInstance);
-    rlnContract.subscribeToMembers(rlnInstance);
+    await rlnContract.fetchMembers();
+    rlnContract.subscribeToMembers();
 
     return rlnContract;
   }
 
-  private constructor(
-    rlnInstance: RLNInstance,
-    options: RLNContractInitOptions
-  ) {
+  private constructor(options: RLNContractInitOptions) {
     const {
       address,
       signer,
@@ -95,26 +86,6 @@ export class RLNContract {
       contract
     } = options;
 
-    this.validateRateLimit(rateLimit);
-    this.rateLimit = rateLimit;
-
-    const initialRoot = rlnInstance.zerokit.getMerkleRoot();
-
-    // Use the injected contract if provided; otherwise, instantiate a new one.
-    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
-    this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
-
-    // Initialize event filters
-    this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membershipErasedFilter = this.contract.filters.MembershipErased();
-    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
-  }
-
-  /**
-   * Validates that the rate limit is within the allowed range
-   * @throws Error if the rate limit is outside the allowed range
-   */
-  private validateRateLimit(rateLimit: number): void {
     if (
       rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
       rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
@@ -123,6 +94,16 @@ export class RLNContract {
         `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
       );
     }
+
+    this.rateLimit = rateLimit;
+
+    // Use the injected contract if provided; otherwise, instantiate a new one.
+    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
+
+    // Initialize event filters
+    this._membersFilter = this.contract.filters.MembershipRegistered();
+    this._membershipErasedFilter = this.contract.filters.MembershipErased();
+    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
   }
 
   /**
@@ -170,7 +151,7 @@ export class RLNContract {
    */
   public async getMaxTotalRateLimit(): Promise<number> {
     const maxTotalRate = await this.contract.maxTotalRateLimit();
-    return maxTotalRate.toNumber();
+    return ethers.BigNumber.from(maxTotalRate).toNumber();
   }
 
   /**
@@ -179,7 +160,7 @@ export class RLNContract {
    */
   public async getCurrentTotalRateLimit(): Promise<number> {
     const currentTotal = await this.contract.currentTotalRateLimit();
-    return currentTotal.toNumber();
+    return ethers.BigNumber.from(currentTotal).toNumber();
   }
 
   /**
@@ -191,7 +172,9 @@ export class RLNContract {
       this.contract.maxTotalRateLimit(),
       this.contract.currentTotalRateLimit()
     ]);
-    return Number(maxTotal) - Number(currentTotal);
+    return ethers.BigNumber.from(maxTotal)
+      .sub(ethers.BigNumber.from(currentTotal))
+      .toNumber();
   }
 
   /**
@@ -199,7 +182,6 @@ export class RLNContract {
    * @param newRateLimit The new rate limit to use
    */
   public async setRateLimit(newRateLimit: number): Promise<void> {
-    this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
 
@@ -231,10 +213,7 @@ export class RLNContract {
     return this._membersExpiredFilter;
   }
 
-  public async fetchMembers(
-    rlnInstance: RLNInstance,
-    options: FetchMembersOptions = {}
-  ): Promise<void> {
+  public async fetchMembers(options: FetchMembersOptions = {}): Promise<void> {
     const registeredMemberEvents = await queryFilter(this.contract, {
       fromBlock: this.deployBlock,
       ...options,
@@ -256,10 +235,10 @@ export class RLNContract {
       ...removedMemberEvents,
       ...expiredMemberEvents
     ];
-    this.processEvents(rlnInstance, events);
+    this.processEvents(events);
   }
 
-  public processEvents(rlnInstance: RLNInstance, events: ethers.Event[]): void {
+  public processEvents(events: ethers.Event[]): void {
     const toRemoveTable = new Map<number, number[]>();
     const toInsertTable = new Map<number, ethers.Event[]>();
 
@@ -280,12 +259,6 @@ export class RLNContract {
 
         if (typeof index === "number" || typeof index === "string") {
           index = ethers.BigNumber.from(index);
-        } else {
-          log.error("Index is not a number or string", {
-            index,
-            event: evt
-          });
-          return;
         }
 
         const toRemoveVal = toRemoveTable.get(evt.blockNumber);
@@ -305,63 +278,9 @@ export class RLNContract {
         toInsertTable.set(evt.blockNumber, eventsPerBlock);
       }
     });
-
-    this.removeMembers(rlnInstance, toRemoveTable);
-    this.insertMembers(rlnInstance, toInsertTable);
   }
 
-  private insertMembers(
-    rlnInstance: RLNInstance,
-    toInsert: Map<number, ethers.Event[]>
-  ): void {
-    toInsert.forEach((events: ethers.Event[], blockNumber: number) => {
-      events.forEach((evt) => {
-        if (!evt.args) return;
-
-        const _idCommitment = evt.args.idCommitment as string;
-        let index = evt.args.index;
-
-        if (!_idCommitment || !index) {
-          return;
-        }
-
-        if (typeof index === "number" || typeof index === "string") {
-          index = ethers.BigNumber.from(index);
-        }
-
-        const idCommitment = zeroPadLE(hexToBytes(_idCommitment), 32);
-        rlnInstance.zerokit.insertMember(idCommitment);
-
-        const numericIndex = index.toNumber();
-        this._members.set(numericIndex, {
-          index,
-          idCommitment: _idCommitment
-        });
-      });
-
-      const currentRoot = rlnInstance.zerokit.getMerkleRoot();
-      this.merkleRootTracker.pushRoot(blockNumber, currentRoot);
-    });
-  }
-
-  private removeMembers(
-    rlnInstance: RLNInstance,
-    toRemove: Map<number, number[]>
-  ): void {
-    const removeDescending = new Map([...toRemove].reverse());
-    removeDescending.forEach((indexes: number[], blockNumber: number) => {
-      indexes.forEach((index) => {
-        if (this._members.has(index)) {
-          this._members.delete(index);
-          rlnInstance.zerokit.deleteMember(index);
-        }
-      });
-
-      this.merkleRootTracker.backFill(blockNumber);
-    });
-  }
-
-  public subscribeToMembers(rlnInstance: RLNInstance): void {
+  public subscribeToMembers(): void {
     this.contract.on(
       this.membersFilter,
       (
@@ -370,7 +289,7 @@ export class RLNContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnInstance, [event]);
+        this.processEvents([event]);
       }
     );
 
@@ -382,7 +301,7 @@ export class RLNContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnInstance, [event]);
+        this.processEvents([event]);
       }
     );
 
@@ -394,7 +313,7 @@ export class RLNContract {
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
-        this.processEvents(rlnInstance, [event]);
+        this.processEvents([event]);
       }
     );
   }
@@ -534,7 +453,12 @@ export class RLNContract {
         membershipId,
         currentEpochStart
       );
-      return Math.max(0, rateLimit.sub(messageCount).toNumber());
+      return Math.max(
+        0,
+        ethers.BigNumber.from(rateLimit)
+          .sub(ethers.BigNumber.from(messageCount))
+          .toNumber()
+      );
     } catch (error) {
       log.error(
         `Error getting remaining messages: ${(error as Error).message}`
@@ -596,7 +520,7 @@ export class RLNContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = ethers.BigNumber.from(decodedData.index).toNumber();
+      const membershipId = Number(decodedData.index);
 
       return {
         identity,
@@ -613,10 +537,6 @@ export class RLNContract {
       );
       return undefined;
     }
-  }
-
-  public roots(): Uint8Array[] {
-    return this.merkleRootTracker.roots();
   }
 
   public async withdraw(token: string, holder: string): Promise<void> {
@@ -679,9 +599,16 @@ export class RLNContract {
 
   public async registerMembership(
     idCommitment: string,
-    rateLimit: number = this.rateLimit
+    rateLimit: number = DEFAULT_RATE_LIMIT
   ): Promise<ethers.ContractTransaction> {
-    this.validateRateLimit(rateLimit);
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
+      );
+    }
     return this.contract.register(idCommitment, rateLimit, []);
   }
 
