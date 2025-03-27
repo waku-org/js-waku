@@ -298,7 +298,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public sweepIncomingBuffer(): HistoryEntry[] {
     const { buffer, missing } = this.incomingBuffer.reduce<{
       buffer: Message[];
-      missing: HistoryEntry[];
+      missing: Set<HistoryEntry>;
     }>(
       ({ buffer, missing }, message) => {
         // Check each message for missing dependencies
@@ -335,21 +335,24 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
         // Any message with missing dependencies stays in the buffer
         // and the missing message IDs are returned for processing.
+        missingDependencies.forEach((dependency) => {
+          missing.add(dependency);
+        });
         return {
           buffer: buffer.concat(message),
-          missing: missing.concat(missingDependencies)
+          missing
         };
       },
-      { buffer: new Array<Message>(), missing: new Array<HistoryEntry>() }
+      { buffer: new Array<Message>(), missing: new Set<HistoryEntry>() }
     );
     // Update the incoming buffer to only include messages with no missing dependencies
     this.incomingBuffer = buffer;
-    if (missing.length > 0) {
+    if (missing.size > 0) {
       this.safeDispatchEvent(MessageChannelEvent.MissedMessages, {
-        detail: missing
+        detail: Array.from(missing)
       });
     }
-    return missing;
+    return Array.from(missing);
   }
 
   // https://rfc.vac.dev/vac/raw/sds/#periodic-outgoing-buffer-sweep
