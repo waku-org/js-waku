@@ -58,16 +58,45 @@ export class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: Partial<QueryRequestParams>
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    const { pubsubTopic, contentTopics, decodersAsMap } =
-      this.validateDecodersAndPubsubTopic(decoders);
+    // For message hash queries, don't validate decoders but still need decodersAsMap
+    const isHashQuery =
+      options?.messageHashes && options.messageHashes.length > 0;
 
-    const queryOpts = {
-      pubsubTopic,
-      contentTopics,
-      includeData: true,
-      paginationForward: true,
-      ...options
-    };
+    let pubsubTopic: string;
+    let contentTopics: string[];
+    let decodersAsMap: Map<string, IDecoder<T>>;
+
+    if (isHashQuery) {
+      // For hash queries, we still need decoders to decode messages
+      // but we don't validate pubsubTopic consistency
+      pubsubTopic = "";
+      contentTopics = [];
+      decodersAsMap = new Map();
+      decoders.forEach((dec) => {
+        decodersAsMap.set(dec.contentTopic, dec);
+      });
+    } else {
+      const validated = this.validateDecodersAndPubsubTopic(decoders);
+      pubsubTopic = validated.pubsubTopic;
+      contentTopics = validated.contentTopics;
+      decodersAsMap = validated.decodersAsMap;
+    }
+
+    const queryOpts: QueryRequestParams = isHashQuery
+      ? {
+          pubsubTopic: "", // Required field, but ignored for hash queries
+          contentTopics: [], // Required field, but ignored for hash queries
+          includeData: true,
+          paginationForward: true,
+          ...options
+        }
+      : {
+          pubsubTopic,
+          contentTopics,
+          includeData: true,
+          paginationForward: true,
+          ...options
+        };
 
     const peer = await this.getPeerToUse();
 
