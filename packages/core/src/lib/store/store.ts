@@ -41,8 +41,9 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
     peerId: PeerId
   ): AsyncGenerator<Promise<T | undefined>[]> {
     if (
+      queryOpts.contentTopics &&
       queryOpts.contentTopics.toString() !==
-      Array.from(decoders.keys()).toString()
+        Array.from(decoders.keys()).toString()
     ) {
       throw new Error(
         "Internal error, the decoders should match the query's content topics"
