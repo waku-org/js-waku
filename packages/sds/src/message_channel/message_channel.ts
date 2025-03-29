@@ -249,22 +249,29 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   public _receiveMessage(message: Message): void {
-    if (this.timeReceived.has(message.messageId)) {
+    if (
+      message.content &&
+      message.content.length > 0 &&
+      this.timeReceived.has(message.messageId)
+    ) {
       // Received a duplicate message
       return;
     }
 
     if (!message.lamportTimestamp) {
       // Messages with no timestamp are ephemeral messages and should be delivered immediately
-      this.safeDispatchEvent(MessageChannelEvent.SyncReceived, {
-        detail: message
-      });
       this.deliverMessage(message);
       return;
     }
-    this.safeDispatchEvent(MessageChannelEvent.MessageReceived, {
-      detail: message
-    });
+    if (message.content?.length === 0) {
+      this.safeDispatchEvent(MessageChannelEvent.SyncReceived, {
+        detail: message
+      });
+    } else {
+      this.safeDispatchEvent(MessageChannelEvent.MessageReceived, {
+        detail: message
+      });
+    }
     // review ack status
     this.reviewAckStatus(message);
     // add to bloom filter (skip for messages with empty content)
@@ -347,11 +354,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
     // Update the incoming buffer to only include messages with no missing dependencies
     this.incomingBuffer = buffer;
-    if (missing.size > 0) {
-      this.safeDispatchEvent(MessageChannelEvent.MissedMessages, {
-        detail: Array.from(missing)
-      });
-    }
+
+    this.safeDispatchEvent(MessageChannelEvent.MissedMessages, {
+      detail: Array.from(missing)
+    });
+
     return Array.from(missing);
   }
 

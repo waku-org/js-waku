@@ -282,6 +282,8 @@ describe("MessageChannel", function () {
       // and notInHistory should still be in the outgoing buffer
       const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
       expect(outgoingBuffer.length).to.equal(1);
+      console.log(outgoingBuffer);
+      console.log(notInHistory);
       expect(outgoingBuffer[0].messageId).to.equal(notInHistory!.messageId);
     });
 
