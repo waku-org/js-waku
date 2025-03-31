@@ -130,7 +130,7 @@ export function createRegisterStub(
             event: "MembershipRegistered",
             args: {
               idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
-              rateLimit: DEFAULT_RATE_LIMIT,
+              membershipRateLimit: ethers.BigNumber.from(DEFAULT_RATE_LIMIT),
               index: ethers.BigNumber.from(1)
             }
           }

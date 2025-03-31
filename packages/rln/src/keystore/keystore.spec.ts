@@ -231,7 +231,8 @@ describe("Keystore", () => {
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
-      address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71"
+      address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71",
+      rateLimit: undefined
     } as unknown as MembershipInfo;
 
     const store = Keystore.create();
@@ -246,6 +247,11 @@ describe("Keystore", () => {
       expectedHash,
       DEFAULT_PASSWORD
     );
+
+    if (!actualCredentials) {
+      throw new Error("Failed to retrieve credentials");
+    }
+
     expect(actualCredentials).to.deep.equalInAnyOrder({
       identity,
       membership
@@ -276,7 +282,8 @@ describe("Keystore", () => {
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
-      address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71"
+      address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71",
+      rateLimit: undefined
     } as unknown as MembershipInfo;
 
     const store = Keystore.fromObject(NWAKU_KEYSTORE as any);
