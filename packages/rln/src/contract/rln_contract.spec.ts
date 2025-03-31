@@ -75,6 +75,10 @@ describe("RLN Contract abstraction - RLN", () => {
       const decryptedCredentials =
         await rlnContract.registerWithIdentity(identity);
 
+      if (!decryptedCredentials) {
+        throw new Error("Failed to retrieve credentials");
+      }
+
       verifyRegistration(
         decryptedCredentials,
         identity,
