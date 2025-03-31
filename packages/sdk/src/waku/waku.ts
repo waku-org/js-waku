@@ -1,19 +1,30 @@
 import { isPeerId } from "@libp2p/interface";
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, StoreCodec } from "@waku/core";
+import {
+  ConnectionManager,
+  createDecoder,
+  createEncoder,
+  StoreCodec
+} from "@waku/core";
 import type {
   CreateNodeOptions,
+  EncoderOptions,
+  IDecoder,
+  IEncoder,
   IFilter,
   ILightPush,
   IRelay,
   IStore,
   IWaku,
   Libp2p,
-  PubsubTopic
+  NetworkConfig,
+  PubsubTopic,
+  SingleShardInfo,
+  StaticSharding
 } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
+import { contentTopicToShardIndex, Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -44,6 +55,8 @@ export class WakuNode implements IWaku {
   private _nodeStateLock = false;
   private _nodeStarted = false;
 
+  private networkConfig: StaticSharding;
+
   private readonly peerManager: PeerManager;
 
   public constructor(
@@ -55,6 +68,10 @@ export class WakuNode implements IWaku {
   ) {
     this.relay = relay;
     this.libp2p = libp2p;
+
+    this.networkConfig = options.networkConfig
+      ? this.mapToShardInfo(options.networkConfig)
+      : DefaultNetworkConfig;
 
     protocolsEnabled = {
       filter: false,
@@ -241,9 +258,60 @@ export class WakuNode implements IWaku {
     return this.connectionManager.isConnected();
   }
 
+  public createEncoder(options: EncoderOptions): IEncoder {
+    const shardInfo = options?.shardInfo || {
+      clusterId: this.networkConfig.clusterId,
+      shard: this.networkConfig.shards[0]
+    };
+
+    if (options.shardInfo && !this.isMatchingShardInfo(options?.shardInfo)) {
+      throw Error("Provided ShardInfo is not supported by the node.");
+    }
+
+    return createEncoder({
+      contentTopic: options?.contentTopic,
+      ephemeral: options?.ephemeral,
+      shardInfo: shardInfo
+    });
+  }
+
+  public createDecoder(
+    contentTopic: string,
+    shardInfo?: SingleShardInfo
+  ): IDecoder {
+    return createDecoder(
+      contentTopic,
+      shardInfo || this.mapToSingleShardInfo(this.networkConfig)
+    );
+  }
+
   private mapToPeerIdOrMultiaddr(
     peerId: PeerId | MultiaddrInput
   ): PeerId | Multiaddr {
     return isPeerId(peerId) ? peerId : multiaddr(peerId);
+  }
+
+  private mapToShardInfo(networkConfig: NetworkConfig): StaticSharding {
+    return {
+      clusterId: networkConfig.clusterId,
+      shards:
+        "contentTopics" in networkConfig
+          ? networkConfig.contentTopics.map(contentTopicToShardIndex)
+          : networkConfig.shards
+    };
+  }
+
+  private mapToSingleShardInfo(sharding: StaticSharding): SingleShardInfo {
+    return {
+      clusterId: sharding.clusterId,
+      shard: sharding.shards[0]
+    };
+  }
+
+  private isMatchingShardInfo(shardInfo: SingleShardInfo): boolean {
+    return (
+      shardInfo.clusterId !== this.networkConfig.clusterId ||
+      !this.networkConfig.shards.includes(shardInfo.shard)
+    );
   }
 }
