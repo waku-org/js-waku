@@ -16,7 +16,7 @@ import {
   type RLNEncoder
 } from "./codec.js";
 import { DEFAULT_RATE_LIMIT } from "./contract/constants.js";
-import { RLNContract, SEPOLIA_CONTRACT } from "./contract/index.js";
+import { LINEA_CONTRACT, RLNContract } from "./contract/index.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
 import type {
@@ -108,7 +108,7 @@ type StartRLNOptions = {
    */
   signer?: ethers.Signer;
   /**
-   * If not set - will use default SEPOLIA_CONTRACT address.
+   * If not set - will use default LINEA_CONTRACT address.
    */
   address?: string;
   /**
@@ -190,10 +190,10 @@ export class RLNInstance {
     const address =
       credentials?.membership.address ||
       options.address ||
-      SEPOLIA_CONTRACT.address;
+      LINEA_CONTRACT.address;
 
-    if (address === SEPOLIA_CONTRACT.address) {
-      chainId = SEPOLIA_CONTRACT.chainId;
+    if (address === LINEA_CONTRACT.address) {
+      chainId = LINEA_CONTRACT.chainId;
     }
 
     const signer = options.signer || (await extractMetaMaskSigner());

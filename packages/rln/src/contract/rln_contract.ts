@@ -30,7 +30,7 @@ interface RLNContractInitOptions extends RLNContractOptions {
 
 export interface MembershipRegisteredEvent {
   idCommitment: string;
-  rateLimit: number;
+  membershipRateLimit: ethers.BigNumber;
   index: ethers.BigNumber;
 }
 
@@ -65,7 +65,8 @@ export class RLNContract {
 
   private _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
-  private _membersRemovedFilter: ethers.EventFilter;
+  private _membershipErasedFilter: ethers.EventFilter;
+  private _membersExpiredFilter: ethers.EventFilter;
 
   /**
    * Asynchronous initializer for RLNContract.
@@ -94,15 +95,7 @@ export class RLNContract {
       contract
     } = options;
 
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
-      );
-    }
-
+    this.validateRateLimit(rateLimit);
     this.rateLimit = rateLimit;
 
     const initialRoot = rlnInstance.zerokit.getMerkleRoot();
@@ -111,9 +104,25 @@ export class RLNContract {
     this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
     this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
 
-    // Initialize event filters for MembershipRegistered and MembershipRemoved
+    // Initialize event filters
     this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membersRemovedFilter = this.contract.filters.MembershipRemoved();
+    this._membershipErasedFilter = this.contract.filters.MembershipErased();
+    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+  }
+
+  /**
+   * Validates that the rate limit is within the allowed range
+   * @throws Error if the rate limit is outside the allowed range
+   */
+  private validateRateLimit(rateLimit: number): void {
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      );
+    }
   }
 
   /**
@@ -182,7 +191,7 @@ export class RLNContract {
       this.contract.maxTotalRateLimit(),
       this.contract.currentTotalRateLimit()
     ]);
-    return maxTotal.sub(currentTotal).toNumber();
+    return Number(maxTotal) - Number(currentTotal);
   }
 
   /**
@@ -190,6 +199,7 @@ export class RLNContract {
    * @param newRateLimit The new rate limit to use
    */
   public async setRateLimit(newRateLimit: number): Promise<void> {
+    this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
 
@@ -207,11 +217,18 @@ export class RLNContract {
     return this._membersFilter;
   }
 
-  private get membersRemovedFilter(): ethers.EventFilter {
-    if (!this._membersRemovedFilter) {
-      throw Error("MembersRemoved filter was not initialized.");
+  private get membershipErasedFilter(): ethers.EventFilter {
+    if (!this._membershipErasedFilter) {
+      throw Error("MembershipErased filter was not initialized.");
     }
-    return this._membersRemovedFilter;
+    return this._membershipErasedFilter;
+  }
+
+  private get membersExpiredFilter(): ethers.EventFilter {
+    if (!this._membersExpiredFilter) {
+      throw Error("MembersExpired filter was not initialized.");
+    }
+    return this._membersExpiredFilter;
   }
 
   public async fetchMembers(
@@ -226,10 +243,19 @@ export class RLNContract {
     const removedMemberEvents = await queryFilter(this.contract, {
       fromBlock: this.deployBlock,
       ...options,
-      membersFilter: this.membersRemovedFilter
+      membersFilter: this.membershipErasedFilter
+    });
+    const expiredMemberEvents = await queryFilter(this.contract, {
+      fromBlock: this.deployBlock,
+      ...options,
+      membersFilter: this.membersExpiredFilter
     });
 
-    const events = [...registeredMemberEvents, ...removedMemberEvents];
+    const events = [
+      ...registeredMemberEvents,
+      ...removedMemberEvents,
+      ...expiredMemberEvents
+    ];
     this.processEvents(rlnInstance, events);
   }
 
@@ -242,8 +268,26 @@ export class RLNContract {
         return;
       }
 
-      if (evt.event === "MembershipRemoved") {
-        const index = evt.args.index as ethers.BigNumber;
+      if (
+        evt.event === "MembershipErased" ||
+        evt.event === "MembershipExpired"
+      ) {
+        let index = evt.args.index;
+
+        if (!index) {
+          return;
+        }
+
+        if (typeof index === "number" || typeof index === "string") {
+          index = ethers.BigNumber.from(index);
+        } else {
+          log.error("Index is not a number or string", {
+            index,
+            event: evt
+          });
+          return;
+        }
+
         const toRemoveVal = toRemoveTable.get(evt.blockNumber);
         if (toRemoveVal != undefined) {
           toRemoveVal.push(index.toNumber());
@@ -275,15 +319,21 @@ export class RLNContract {
         if (!evt.args) return;
 
         const _idCommitment = evt.args.idCommitment as string;
-        const index = evt.args.index as ethers.BigNumber;
+        let index = evt.args.index;
 
         if (!_idCommitment || !index) {
           return;
         }
 
+        if (typeof index === "number" || typeof index === "string") {
+          index = ethers.BigNumber.from(index);
+        }
+
         const idCommitment = zeroPadLE(hexToBytes(_idCommitment), 32);
         rlnInstance.zerokit.insertMember(idCommitment);
-        this._members.set(index.toNumber(), {
+
+        const numericIndex = index.toNumber();
+        this._members.set(numericIndex, {
           index,
           idCommitment: _idCommitment
         });
@@ -316,7 +366,7 @@ export class RLNContract {
       this.membersFilter,
       (
         _idCommitment: string,
-        _rateLimit: number,
+        _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
@@ -325,9 +375,22 @@ export class RLNContract {
     );
 
     this.contract.on(
-      this.membersRemovedFilter,
+      this.membershipErasedFilter,
       (
         _idCommitment: string,
+        _membershipRateLimit: ethers.BigNumber,
+        _index: ethers.BigNumber,
+        event: ethers.Event
+      ) => {
+        this.processEvents(rlnInstance, [event]);
+      }
+    );
+
+    this.contract.on(
+      this.membersExpiredFilter,
+      (
+        _idCommitment: string,
+        _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
       ) => {
@@ -344,14 +407,44 @@ export class RLNContract {
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
 
+      // Check if the ID commitment is already registered
+      const existingIndex = await this.getMemberIndex(
+        identity.IDCommitmentBigInt.toString()
+      );
+      if (existingIndex) {
+        throw new Error(
+          `ID commitment is already registered with index ${existingIndex}`
+        );
+      }
+
+      // Check if there's enough remaining rate limit
+      const remainingRateLimit = await this.getRemainingTotalRateLimit();
+      if (remainingRateLimit < this.rateLimit) {
+        throw new Error(
+          `Not enough remaining rate limit. Requested: ${this.rateLimit}, Available: ${remainingRateLimit}`
+        );
+      }
+
+      const estimatedGas = await this.contract.estimateGas.register(
+        identity.IDCommitmentBigInt,
+        this.rateLimit,
+        []
+      );
+      const gasLimit = estimatedGas.add(10000);
+
       const txRegisterResponse: ethers.ContractTransaction =
         await this.contract.register(
           identity.IDCommitmentBigInt,
           this.rateLimit,
           [],
-          { gasLimit: 300000 }
+          { gasLimit }
         );
+
       const txRegisterReceipt = await txRegisterResponse.wait();
+
+      if (txRegisterReceipt.status === 0) {
+        throw new Error("Transaction failed on-chain");
+      }
 
       const memberRegistered = txRegisterReceipt.events?.find(
         (event) => event.event === "MembershipRegistered"
@@ -366,30 +459,55 @@ export class RLNContract {
 
       const decodedData: MembershipRegisteredEvent = {
         idCommitment: memberRegistered.args.idCommitment,
-        rateLimit: memberRegistered.args.rateLimit,
+        membershipRateLimit: memberRegistered.args.membershipRateLimit,
         index: memberRegistered.args.index
       };
 
       log.info(
         `Successfully registered membership with index ${decodedData.index} ` +
-          `and rate limit ${decodedData.rateLimit}`
+          `and rate limit ${decodedData.membershipRateLimit}`
       );
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = decodedData.index.toNumber();
+      const membershipId = Number(decodedData.index);
 
       return {
         identity,
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {
-      log.error(`Error in registerWithIdentity: ${(error as Error).message}`);
-      return undefined;
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+        log.error("registerWithIdentity - error message:", errorMessage);
+        log.error("registerWithIdentity - error stack:", error.stack);
+
+        // Try to extract more specific error information
+        if (errorMessage.includes("CannotExceedMaxTotalRateLimit")) {
+          throw new Error(
+            "Registration failed: Cannot exceed maximum total rate limit"
+          );
+        } else if (errorMessage.includes("InvalidIdCommitment")) {
+          throw new Error("Registration failed: Invalid ID commitment");
+        } else if (errorMessage.includes("InvalidMembershipRateLimit")) {
+          throw new Error("Registration failed: Invalid membership rate limit");
+        } else if (errorMessage.includes("execution reverted")) {
+          throw new Error(
+            "Contract execution reverted. Check contract requirements."
+          );
+        } else {
+          throw new Error(`Error in registerWithIdentity: ${errorMessage}`);
+        }
+      } else {
+        throw new Error("Unknown error in registerWithIdentity", {
+          cause: error
+        });
+      }
     }
   }
 
@@ -467,25 +585,26 @@ export class RLNContract {
 
       const decodedData: MembershipRegisteredEvent = {
         idCommitment: memberRegistered.args.idCommitment,
-        rateLimit: memberRegistered.args.rateLimit,
+        membershipRateLimit: memberRegistered.args.membershipRateLimit,
         index: memberRegistered.args.index
       };
 
       log.info(
         `Successfully registered membership with permit. Index: ${decodedData.index}, ` +
-          `Rate limit: ${decodedData.rateLimit}, Erased ${idCommitmentsToErase.length} commitments`
+          `Rate limit: ${decodedData.membershipRateLimit}, Erased ${idCommitmentsToErase.length} commitments`
       );
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = decodedData.index.toNumber();
+      const membershipId = ethers.BigNumber.from(decodedData.index).toNumber();
 
       return {
         identity,
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId
+          chainId: network.chainId,
+          rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
     } catch (error) {
@@ -560,16 +679,9 @@ export class RLNContract {
 
   public async registerMembership(
     idCommitment: string,
-    rateLimit: number = DEFAULT_RATE_LIMIT
+    rateLimit: number = this.rateLimit
   ): Promise<ethers.ContractTransaction> {
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
-      );
-    }
+    this.validateRateLimit(rateLimit);
     return this.contract.register(idCommitment, rateLimit, []);
   }
 
