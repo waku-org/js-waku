@@ -477,7 +477,7 @@ export class RLNContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId,
+          chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
@@ -603,7 +603,7 @@ export class RLNContract {
         membership: {
           address,
           treeIndex: membershipId,
-          chainId: network.chainId,
+          chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };

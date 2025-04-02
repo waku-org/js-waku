@@ -197,7 +197,7 @@ export class RLNInstance {
     }
 
     const signer = options.signer || (await extractMetaMaskSigner());
-    const currentChainId = await signer.getChainId();
+    const currentChainId = (await signer.getChainId()).toString();
 
     if (chainId && chainId !== currentChainId) {
       throw Error(
@@ -312,7 +312,7 @@ export class RLNInstance {
 
     const chainId = credentials.membership.chainId;
     const network = await this._contract.provider.getNetwork();
-    const currentChainId = network.chainId;
+    const currentChainId = network.chainId.toString();
     if (chainId !== currentChainId) {
       throw Error(
         `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`

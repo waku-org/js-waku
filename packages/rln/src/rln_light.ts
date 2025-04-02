@@ -127,7 +127,7 @@ export class RLNLightInstance {
     }
 
     const signer = options.signer || (await extractMetaMaskSigner());
-    const currentChainId = await signer.getChainId();
+    const currentChainId = (await signer.getChainId()).toString();
 
     if (chainId && chainId !== currentChainId) {
       throw Error(
