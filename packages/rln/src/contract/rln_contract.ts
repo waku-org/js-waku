@@ -470,7 +470,7 @@ export class RLNContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,
@@ -596,7 +596,7 @@ export class RLNContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = ethers.BigNumber.from(decodedData.index).toNumber();
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,

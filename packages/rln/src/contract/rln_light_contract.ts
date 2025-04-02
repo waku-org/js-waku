@@ -389,7 +389,7 @@ export class RLNLightContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,
@@ -520,7 +520,7 @@ export class RLNLightContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,
