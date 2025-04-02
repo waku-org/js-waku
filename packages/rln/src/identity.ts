@@ -29,13 +29,13 @@ export class IdentityCredential {
     );
   }
 
-  public toJSON(): [number[], number[], number[], number[], string] {
-    return [
-      Array.from(this.IDTrapdoor),
-      Array.from(this.IDNullifier),
-      Array.from(this.IDSecretHash),
-      Array.from(this.IDCommitment),
-      this.IDCommitmentBigInt.toString()
-    ];
+  public toJSON(): Record<string, number[] | string> {
+    return {
+      idTrapdoor: Array.from(this.IDTrapdoor),
+      idNullifier: Array.from(this.IDNullifier),
+      idSecretHash: Array.from(this.IDSecretHash),
+      idCommitment: Array.from(this.IDCommitment),
+      idCommitmentBigInt: this.IDCommitmentBigInt.toString()
+    };
   }
 }

@@ -251,11 +251,11 @@ export class Keystore {
       const str = bytesToUtf8(bytes);
       const obj = JSON.parse(str);
 
-      // Get identity arrays
-      const [idTrapdoor, idNullifier, idSecretHash, idCommitment] = _.get(
+      // Get identity fields from named object
+      const { idTrapdoor, idNullifier, idSecretHash, idCommitment } = _.get(
         obj,
         "identityCredential",
-        []
+        {}
       );
 
       const idTrapdoorArray = new Uint8Array(idTrapdoor || []);
@@ -299,12 +299,12 @@ export class Keystore {
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
-        identityCredential: [
-          Array.from(options.identity.IDTrapdoor),
-          Array.from(options.identity.IDNullifier),
-          Array.from(options.identity.IDSecretHash),
-          Array.from(options.identity.IDCommitment)
-        ],
+        identityCredential: {
+          idTrapdoor: Array.from(options.identity.IDTrapdoor),
+          idNullifier: Array.from(options.identity.IDNullifier),
+          idSecretHash: Array.from(options.identity.IDSecretHash),
+          idCommitment: Array.from(options.identity.IDCommitment)
+        },
         membershipContract: {
           chainId: options.membership.chainId,
           address: options.membership.address
