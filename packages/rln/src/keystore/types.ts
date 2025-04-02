@@ -10,7 +10,7 @@ export type Password = string | Uint8Array;
 export type MembershipInfo = {
   chainId: string;
   address: string;
-  treeIndex: `0x${string}`; // hexadecimal string
+  treeIndex: number;
   rateLimit: number;
 };
 

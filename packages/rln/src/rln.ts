@@ -288,7 +288,7 @@ export class RLNInstance {
     return createRLNEncoder({
       encoder: createEncoder(options),
       rlnInstance: this,
-      index: parseInt(credentials.membership.treeIndex),
+      index: credentials.membership.treeIndex,
       credential: credentials.identity
     });
   }

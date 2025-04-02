@@ -395,7 +395,7 @@ export class RLNLightContract {
         identity,
         membership: {
           address,
-          treeIndex: `0x${membershipId}`,
+          treeIndex: parseInt(membershipId),
           chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
@@ -526,7 +526,7 @@ export class RLNLightContract {
         identity,
         membership: {
           address,
-          treeIndex: `0x${membershipId}`,
+          treeIndex: parseInt(membershipId),
           chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
