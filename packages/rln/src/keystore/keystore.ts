@@ -14,6 +14,7 @@ import {
 import _ from "lodash";
 import { v4 as uuidV4 } from "uuid";
 
+import { IdentityCredential } from "../identity.js";
 import { buildBigIntFromUint8Array } from "../utils/bytes.js";
 
 import { decryptEipKeystore, keccak256Checksum } from "./cipher.js";
@@ -250,27 +251,27 @@ export class Keystore {
       const str = bytesToUtf8(bytes);
       const obj = JSON.parse(str);
 
-      // TODO: add runtime validation of nwaku credentials
+      // Get identity arrays
+      const [idTrapdoor, idNullifier, idSecretHash, idCommitment] = _.get(
+        obj,
+        "identityCredential",
+        []
+      );
+
+      const idTrapdoorArray = new Uint8Array(idTrapdoor || []);
+      const idNullifierArray = new Uint8Array(idNullifier || []);
+      const idSecretHashArray = new Uint8Array(idSecretHash || []);
+      const idCommitmentArray = new Uint8Array(idCommitment || []);
+      const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitmentArray);
+
       return {
-        identity: {
-          IDCommitment: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idCommitment", [])
-          ),
-          IDTrapdoor: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idTrapdoor", [])
-          ),
-          IDNullifier: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idNullifier", [])
-          ),
-          IDCommitmentBigInt: buildBigIntFromUint8Array(
-            Keystore.fromArraylikeToBytes(
-              _.get(obj, "identityCredential.idCommitment", [])
-            )
-          ),
-          IDSecretHash: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idSecretHash", [])
-          )
-        },
+        identity: new IdentityCredential(
+          idTrapdoorArray,
+          idNullifierArray,
+          idSecretHashArray,
+          idCommitmentArray,
+          idCommitmentBigInt
+        ),
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
           chainId: _.get(obj, "membershipContract.chainId"),
@@ -282,23 +283,6 @@ export class Keystore {
       log.error("Cannot parse bytes to Nwaku Credentials:", err);
       return;
     }
-  }
-
-  private static fromArraylikeToBytes(obj: {
-    [key: number]: number;
-  }): Uint8Array {
-    const bytes = [];
-
-    let index = 0;
-    let lastElement = obj[index];
-
-    while (lastElement !== undefined) {
-      bytes.push(lastElement);
-      index += 1;
-      lastElement = obj[index];
-    }
-
-    return new Uint8Array(bytes);
   }
 
   // follows nwaku implementation
@@ -315,12 +299,12 @@ export class Keystore {
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
-        identityCredential: {
-          idCommitment: options.identity.IDCommitment,
-          idNullifier: options.identity.IDNullifier,
-          idSecretHash: options.identity.IDSecretHash,
-          idTrapdoor: options.identity.IDTrapdoor
-        },
+        identityCredential: [
+          Array.from(options.identity.IDTrapdoor),
+          Array.from(options.identity.IDNullifier),
+          Array.from(options.identity.IDSecretHash),
+          Array.from(options.identity.IDCommitment)
+        ],
         membershipContract: {
           chainId: options.membership.chainId,
           address: options.membership.address
