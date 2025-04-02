@@ -17,7 +17,6 @@ import {
 } from "./codec.js";
 import { DEFAULT_RATE_LIMIT } from "./contract/constants.js";
 import { LINEA_CONTRACT, RLNContract } from "./contract/index.js";
-import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
 import type {
   DecryptedCredentials,
@@ -27,6 +26,7 @@ import { KeystoreEntity, Password } from "./keystore/types.js";
 import verificationKey from "./resources/verification_key";
 import * as wc from "./resources/witness_calculator";
 import { WitnessCalculator } from "./resources/witness_calculator";
+import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
@@ -101,30 +101,6 @@ export async function create(): Promise<RLNInstance> {
     throw error;
   }
 }
-
-type StartRLNOptions = {
-  /**
-   * If not set - will extract MetaMask account and get signer from it.
-   */
-  signer?: ethers.Signer;
-  /**
-   * If not set - will use default LINEA_CONTRACT address.
-   */
-  address?: string;
-  /**
-   * Credentials to use for generating proofs and connecting to the contract and network.
-   * If provided used for validating the network chainId and connecting to registry contract.
-   */
-  credentials?: EncryptedCredentials | DecryptedCredentials;
-  /**
-   * Rate limit for the member.
-   */
-  rateLimit?: number;
-};
-
-type RegisterMembershipOptions =
-  | { signature: string }
-  | { identity: IdentityCredential };
 
 type WakuRLNEncoderOptions = WakuEncoderOptions & {
   credentials: EncryptedCredentials | DecryptedCredentials;

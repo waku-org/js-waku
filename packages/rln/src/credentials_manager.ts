@@ -12,51 +12,20 @@ import type {
   EncryptedCredentials
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
+import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
 import {
   buildBigIntFromUint8Array,
   extractMetaMaskSigner
 } from "./utils/index.js";
 
-const log = new Logger("waku:rln");
+const log = new Logger("waku:credentials");
 
 /**
- * Create an instance of RLN
- * @returns RLNInstance
+ * Manages credentials for RLN
+ * This is a lightweight implementation of the RLN contract that doesn't require Zerokit
+ * It is used to register membership and generate identity credentials
  */
-export async function create(): Promise<RLNLightInstance> {
-  try {
-    return new RLNLightInstance();
-  } catch (error) {
-    log.error("Failed to initialize RLN:", error);
-    throw error;
-  }
-}
-
-type StartRLNOptions = {
-  /**
-   * If not set - will extract MetaMask account and get signer from it.
-   */
-  signer?: ethers.Signer;
-  /**
-   * If not set - will use default SEPOLIA_CONTRACT address.
-   */
-  address?: string;
-  /**
-   * Credentials to use for generating proofs and connecting to the contract and network.
-   * If provided used for validating the network chainId and connecting to registry contract.
-   */
-  credentials?: EncryptedCredentials | DecryptedCredentials;
-  /**
-   * Rate limit for the member.
-   */
-  rateLimit?: number;
-};
-
-type RegisterMembershipOptions =
-  | { signature: string }
-  | { identity: IdentityCredential };
-
-export class RLNLightInstance {
+export class RLNCredentialsManager {
   private started = false;
   private starting = false;
 
@@ -66,7 +35,9 @@ export class RLNLightInstance {
   private keystore = Keystore.create();
   private _credentials: undefined | DecryptedCredentials;
 
-  public constructor() {}
+  public constructor() {
+    log.info("RLNCredentialsManager initialized");
+  }
 
   public get contract(): undefined | RLNLightContract {
     return this._contract;
@@ -78,21 +49,33 @@ export class RLNLightInstance {
 
   public async start(options: StartRLNOptions = {}): Promise<void> {
     if (this.started || this.starting) {
+      log.info("RLNCredentialsManager already started or starting");
       return;
     }
 
+    log.info("Starting RLNCredentialsManager");
     this.starting = true;
 
     try {
       const { credentials, keystore } =
-        await RLNLightInstance.decryptCredentialsIfNeeded(options.credentials);
+        await RLNCredentialsManager.decryptCredentialsIfNeeded(
+          options.credentials
+        );
+
+      if (credentials) {
+        log.info("Credentials successfully decrypted");
+      }
+
       const { signer, address, rateLimit } = await this.determineStartOptions(
         options,
         credentials
       );
 
+      log.info(`Using contract address: ${address}`);
+
       if (keystore) {
         this.keystore = keystore;
+        log.info("Using provided keystore");
       }
 
       this._credentials = credentials;
@@ -102,7 +85,12 @@ export class RLNLightInstance {
         signer: signer!,
         rateLimit: rateLimit
       });
+
+      log.info("RLNCredentialsManager successfully started");
       this.started = true;
+    } catch (error) {
+      log.error("Failed to start RLNCredentialsManager", error);
+      throw error;
     } finally {
       this.starting = false;
     }
@@ -124,12 +112,17 @@ export class RLNLightInstance {
 
     if (address === LINEA_CONTRACT.address) {
       chainId = LINEA_CONTRACT.chainId;
+      log.info(`Using Linea contract with chainId: ${chainId}`);
     }
 
     const signer = options.signer || (await extractMetaMaskSigner());
     const currentChainId = await signer.getChainId();
+    log.info(`Current chain ID: ${currentChainId}`);
 
     if (chainId && chainId !== currentChainId) {
+      log.error(
+        `Chain ID mismatch: contract=${chainId}, current=${currentChainId}`
+      );
       throw Error(
         `Failed to start RLN contract, chain ID of contract is different from current one: contract-${chainId}, current network-${currentChainId}`
       );
@@ -145,28 +138,38 @@ export class RLNLightInstance {
     credentials?: EncryptedCredentials | DecryptedCredentials
   ): Promise<{ credentials?: DecryptedCredentials; keystore?: Keystore }> {
     if (!credentials) {
+      log.info("No credentials provided");
       return {};
     }
 
     if ("identity" in credentials) {
+      log.info("Using already decrypted credentials");
       return { credentials };
     }
 
+    log.info("Attempting to decrypt credentials");
     const keystore = Keystore.fromString(credentials.keystore);
 
     if (!keystore) {
+      log.warn("Failed to create keystore from string");
       return {};
     }
 
-    const decryptedCredentials = await keystore.readCredential(
-      credentials.id,
-      credentials.password
-    );
+    try {
+      const decryptedCredentials = await keystore.readCredential(
+        credentials.id,
+        credentials.password
+      );
+      log.info(`Successfully decrypted credentials with ID: ${credentials.id}`);
 
-    return {
-      keystore,
-      credentials: decryptedCredentials
-    };
+      return {
+        keystore,
+        credentials: decryptedCredentials
+      };
+    } catch (error) {
+      log.error("Failed to decrypt credentials", error);
+      throw error;
+    }
   }
 
   /**
@@ -176,6 +179,7 @@ export class RLNLightInstance {
    * @returns IdentityCredential
    */
   private generateSeededIdentityCredential(seed: string): IdentityCredential {
+    log.info("Generating seeded identity credential");
     // Convert the seed to bytes
     const encoder = new TextEncoder();
     const seedBytes = encoder.encode(seed);
@@ -195,6 +199,7 @@ export class RLNLightInstance {
     // Convert IDCommitment to BigInt
     const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
 
+    log.info("Successfully generated identity credential");
     return new IdentityCredential(
       idTrapdoor,
       idNullifier,
@@ -208,19 +213,24 @@ export class RLNLightInstance {
     options: RegisterMembershipOptions
   ): Promise<undefined | DecryptedCredentials> {
     if (!this.contract) {
+      log.error("RLN Contract is not initialized");
       throw Error("RLN Contract is not initialized.");
     }
 
+    log.info("Registering membership");
     let identity = "identity" in options && options.identity;
 
     if ("signature" in options) {
+      log.info("Generating identity from signature");
       identity = this.generateSeededIdentityCredential(options.signature);
     }
 
     if (!identity) {
+      log.error("Missing signature or identity to register membership");
       throw Error("Missing signature or identity to register membership.");
     }
 
+    log.info("Registering identity with contract");
     return this.contract.registerWithIdentity(identity);
   }
 
@@ -230,6 +240,12 @@ export class RLNLightInstance {
    * @param password: string or bytes to use to decrypt credentials from Keystore
    */
   public async useCredentials(id: string, password: Password): Promise<void> {
+    log.info(`Attempting to use credentials with ID: ${id}`);
     this._credentials = await this.keystore?.readCredential(id, password);
+    if (this._credentials) {
+      log.info("Successfully loaded credentials");
+    } else {
+      log.warn("Failed to load credentials");
+    }
   }
 }
