@@ -61,21 +61,6 @@ export class RLNBaseContract {
   }
 
   /**
-   * Validates that the rate limit is within the allowed range
-   * @throws Error if the rate limit is outside the allowed range
-   */
-  private validateRateLimit(rateLimit: number): void {
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
-      );
-    }
-  }
-
-  /**
    * Gets the current rate limit for this contract instance
    */
   public getRateLimit(): number {
@@ -158,27 +143,6 @@ export class RLNBaseContract {
       (left, right) => left.index.toNumber() - right.index.toNumber()
     );
     return sortedMembers;
-  }
-
-  private get membersFilter(): ethers.EventFilter {
-    if (!this._membersFilter) {
-      throw Error("Members filter was not initialized.");
-    }
-    return this._membersFilter;
-  }
-
-  private get membershipErasedFilter(): ethers.EventFilter {
-    if (!this._membershipErasedFilter) {
-      throw Error("MembershipErased filter was not initialized.");
-    }
-    return this._membershipErasedFilter;
-  }
-
-  private get membersExpiredFilter(): ethers.EventFilter {
-    if (!this._membersExpiredFilter) {
-      throw Error("MembersExpired filter was not initialized.");
-    }
-    return this._membersExpiredFilter;
   }
 
   public async fetchMembers(options: FetchMembersOptions = {}): Promise<void> {
@@ -480,23 +444,6 @@ export class RLNBaseContract {
     );
   }
 
-  private async getMemberIndex(
-    idCommitment: string
-  ): Promise<ethers.BigNumber | undefined> {
-    try {
-      const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitment)
-      );
-      if (events.length === 0) return undefined;
-
-      // Get the most recent registration event
-      const event = events[events.length - 1];
-      return event.args?.index;
-    } catch (error) {
-      return undefined;
-    }
-  }
-
   public async registerMembership(
     idCommitment: string,
     rateLimit: number = DEFAULT_RATE_LIMIT
@@ -701,6 +648,59 @@ export class RLNBaseContract {
       log.error(
         `Error in registerWithPermitAndErase: ${(error as Error).message}`
       );
+      return undefined;
+    }
+  }
+
+  /**
+   * Validates that the rate limit is within the allowed range
+   * @throws Error if the rate limit is outside the allowed range
+   */
+  private validateRateLimit(rateLimit: number): void {
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      );
+    }
+  }
+
+  private get membersFilter(): ethers.EventFilter {
+    if (!this._membersFilter) {
+      throw Error("Members filter was not initialized.");
+    }
+    return this._membersFilter;
+  }
+
+  private get membershipErasedFilter(): ethers.EventFilter {
+    if (!this._membershipErasedFilter) {
+      throw Error("MembershipErased filter was not initialized.");
+    }
+    return this._membershipErasedFilter;
+  }
+
+  private get membersExpiredFilter(): ethers.EventFilter {
+    if (!this._membersExpiredFilter) {
+      throw Error("MembersExpired filter was not initialized.");
+    }
+    return this._membersExpiredFilter;
+  }
+
+  private async getMemberIndex(
+    idCommitment: string
+  ): Promise<ethers.BigNumber | undefined> {
+    try {
+      const events = await this.contract.queryFilter(
+        this.contract.filters.MembershipRegistered(idCommitment)
+      );
+      if (events.length === 0) return undefined;
+
+      // Get the most recent registration event
+      const event = events[events.length - 1];
+      return event.args?.index;
+    } catch (error) {
       return undefined;
     }
   }

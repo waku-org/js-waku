@@ -120,6 +120,54 @@ export class RLNCredentialsManager {
     }
   }
 
+  public async registerMembership(
+    options: RegisterMembershipOptions
+  ): Promise<undefined | DecryptedCredentials> {
+    if (!this.contract) {
+      log.error("RLN Contract is not initialized");
+      throw Error("RLN Contract is not initialized.");
+    }
+
+    log.info("Registering membership");
+    let identity = "identity" in options && options.identity;
+
+    if ("signature" in options) {
+      log.info("Generating identity from signature");
+      if (this.zerokit) {
+        log.info("Using Zerokit to generate identity");
+        identity = this.zerokit.generateSeededIdentityCredential(
+          options.signature
+        );
+      } else {
+        log.info("Using local implementation to generate identity");
+        identity = this.generateSeededIdentityCredential(options.signature);
+      }
+    }
+
+    if (!identity) {
+      log.error("Missing signature or identity to register membership");
+      throw Error("Missing signature or identity to register membership.");
+    }
+
+    log.info("Registering identity with contract");
+    return this.contract.registerWithIdentity(identity);
+  }
+
+  /**
+   * Changes credentials in use by relying on provided Keystore earlier in rln.start
+   * @param id: string, hash of credentials to select from Keystore
+   * @param password: string or bytes to use to decrypt credentials from Keystore
+   */
+  public async useCredentials(id: string, password: Password): Promise<void> {
+    log.info(`Attempting to use credentials with ID: ${id}`);
+    this._credentials = await this.keystore?.readCredential(id, password);
+    if (this._credentials) {
+      log.info("Successfully loaded credentials");
+    } else {
+      log.warn("Failed to load credentials");
+    }
+  }
+
   protected async determineStartOptions(
     options: StartRLNOptions,
     credentials: KeystoreEntity | undefined
@@ -192,6 +240,33 @@ export class RLNCredentialsManager {
     }
   }
 
+  protected async verifyCredentialsAgainstContract(
+    credentials: KeystoreEntity
+  ): Promise<void> {
+    if (!this.contract) {
+      throw Error(
+        "Failed to verify chain coordinates: no contract initialized."
+      );
+    }
+
+    const registryAddress = credentials.membership.address;
+    const currentRegistryAddress = this.contract.address;
+    if (registryAddress !== currentRegistryAddress) {
+      throw Error(
+        `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
+      );
+    }
+
+    const chainId = credentials.membership.chainId;
+    const network = await this.contract.provider.getNetwork();
+    const currentChainId = network.chainId;
+    if (chainId !== currentChainId) {
+      throw Error(
+        `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`
+      );
+    }
+  }
+
   /**
    * Generates an identity credential from a seed string
    * This is a pure implementation that doesn't rely on Zerokit
@@ -227,80 +302,5 @@ export class RLNCredentialsManager {
       idCommitment,
       idCommitmentBigInt
     );
-  }
-
-  public async registerMembership(
-    options: RegisterMembershipOptions
-  ): Promise<undefined | DecryptedCredentials> {
-    if (!this.contract) {
-      log.error("RLN Contract is not initialized");
-      throw Error("RLN Contract is not initialized.");
-    }
-
-    log.info("Registering membership");
-    let identity = "identity" in options && options.identity;
-
-    if ("signature" in options) {
-      log.info("Generating identity from signature");
-      if (this.zerokit) {
-        log.info("Using Zerokit to generate identity");
-        identity = this.zerokit.generateSeededIdentityCredential(
-          options.signature
-        );
-      } else {
-        log.info("Using local implementation to generate identity");
-        identity = this.generateSeededIdentityCredential(options.signature);
-      }
-    }
-
-    if (!identity) {
-      log.error("Missing signature or identity to register membership");
-      throw Error("Missing signature or identity to register membership.");
-    }
-
-    log.info("Registering identity with contract");
-    return this.contract.registerWithIdentity(identity);
-  }
-
-  /**
-   * Changes credentials in use by relying on provided Keystore earlier in rln.start
-   * @param id: string, hash of credentials to select from Keystore
-   * @param password: string or bytes to use to decrypt credentials from Keystore
-   */
-  public async useCredentials(id: string, password: Password): Promise<void> {
-    log.info(`Attempting to use credentials with ID: ${id}`);
-    this._credentials = await this.keystore?.readCredential(id, password);
-    if (this._credentials) {
-      log.info("Successfully loaded credentials");
-    } else {
-      log.warn("Failed to load credentials");
-    }
-  }
-
-  protected async verifyCredentialsAgainstContract(
-    credentials: KeystoreEntity
-  ): Promise<void> {
-    if (!this.contract) {
-      throw Error(
-        "Failed to verify chain coordinates: no contract initialized."
-      );
-    }
-
-    const registryAddress = credentials.membership.address;
-    const currentRegistryAddress = this.contract.address;
-    if (registryAddress !== currentRegistryAddress) {
-      throw Error(
-        `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
-      );
-    }
-
-    const chainId = credentials.membership.chainId;
-    const network = await this.contract.provider.getNetwork();
-    const currentChainId = network.chainId;
-    if (chainId !== currentChainId) {
-      throw Error(
-        `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`
-      );
-    }
   }
 }
