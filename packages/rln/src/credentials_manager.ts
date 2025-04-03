@@ -4,7 +4,7 @@ import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
 import { LINEA_CONTRACT } from "./contract/constants.js";
-import { RLNLightContract } from "./contract/rln_light_contract.js";
+import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
 import type {
@@ -29,7 +29,7 @@ export class RLNCredentialsManager {
   private started = false;
   private starting = false;
 
-  private _contract: undefined | RLNLightContract;
+  private _contract: undefined | RLNBaseContract;
   private _signer: undefined | ethers.Signer;
 
   private keystore = Keystore.create();
@@ -39,7 +39,7 @@ export class RLNCredentialsManager {
     log.info("RLNCredentialsManager initialized");
   }
 
-  public get contract(): undefined | RLNLightContract {
+  public get contract(): undefined | RLNBaseContract {
     return this._contract;
   }
 
@@ -80,7 +80,7 @@ export class RLNCredentialsManager {
 
       this._credentials = credentials;
       this._signer = signer!;
-      this._contract = await RLNLightContract.init({
+      this._contract = new RLNBaseContract({
         address: address!,
         signer: signer!,
         rateLimit: rateLimit
