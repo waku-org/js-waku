@@ -17,6 +17,7 @@ import {
   buildBigIntFromUint8Array,
   extractMetaMaskSigner
 } from "./utils/index.js";
+import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:credentials");
 
@@ -26,25 +27,48 @@ const log = new Logger("waku:credentials");
  * It is used to register membership and generate identity credentials
  */
 export class RLNCredentialsManager {
-  private started = false;
-  private starting = false;
+  protected started = false;
+  protected starting = false;
 
   private _contract: undefined | RLNBaseContract;
   private _signer: undefined | ethers.Signer;
 
-  private keystore = Keystore.create();
+  protected keystore = Keystore.create();
   private _credentials: undefined | DecryptedCredentials;
 
-  public constructor() {
+  public zerokit: undefined | Zerokit;
+
+  public constructor(zerokit?: Zerokit) {
     log.info("RLNCredentialsManager initialized");
+    this.zerokit = zerokit;
   }
 
   public get contract(): undefined | RLNBaseContract {
     return this._contract;
   }
 
+  public set contract(contract: RLNBaseContract | undefined) {
+    this._contract = contract;
+  }
+
   public get signer(): undefined | ethers.Signer {
     return this._signer;
+  }
+
+  public set signer(signer: ethers.Signer | undefined) {
+    this._signer = signer;
+  }
+
+  public get credentials(): undefined | DecryptedCredentials {
+    return this._credentials;
+  }
+
+  public set credentials(credentials: DecryptedCredentials | undefined) {
+    this._credentials = credentials;
+  }
+
+  public get provider(): undefined | ethers.providers.Provider {
+    return this.contract?.provider;
   }
 
   public async start(options: StartRLNOptions = {}): Promise<void> {
@@ -83,7 +107,7 @@ export class RLNCredentialsManager {
       this._contract = new RLNBaseContract({
         address: address!,
         signer: signer!,
-        rateLimit: rateLimit
+        rateLimit: rateLimit ?? this.zerokit?.getRateLimit
       });
 
       log.info("RLNCredentialsManager successfully started");
@@ -96,11 +120,7 @@ export class RLNCredentialsManager {
     }
   }
 
-  public get credentials(): DecryptedCredentials | undefined {
-    return this._credentials;
-  }
-
-  private async determineStartOptions(
+  protected async determineStartOptions(
     options: StartRLNOptions,
     credentials: KeystoreEntity | undefined
   ): Promise<StartRLNOptions> {
@@ -134,7 +154,7 @@ export class RLNCredentialsManager {
     };
   }
 
-  private static async decryptCredentialsIfNeeded(
+  protected static async decryptCredentialsIfNeeded(
     credentials?: EncryptedCredentials | DecryptedCredentials
   ): Promise<{ credentials?: DecryptedCredentials; keystore?: Keystore }> {
     if (!credentials) {
@@ -222,7 +242,15 @@ export class RLNCredentialsManager {
 
     if ("signature" in options) {
       log.info("Generating identity from signature");
-      identity = this.generateSeededIdentityCredential(options.signature);
+      if (this.zerokit) {
+        log.info("Using Zerokit to generate identity");
+        identity = this.zerokit.generateSeededIdentityCredential(
+          options.signature
+        );
+      } else {
+        log.info("Using local implementation to generate identity");
+        identity = this.generateSeededIdentityCredential(options.signature);
+      }
     }
 
     if (!identity) {
@@ -246,6 +274,33 @@ export class RLNCredentialsManager {
       log.info("Successfully loaded credentials");
     } else {
       log.warn("Failed to load credentials");
+    }
+  }
+
+  protected async verifyCredentialsAgainstContract(
+    credentials: KeystoreEntity
+  ): Promise<void> {
+    if (!this.contract) {
+      throw Error(
+        "Failed to verify chain coordinates: no contract initialized."
+      );
+    }
+
+    const registryAddress = credentials.membership.address;
+    const currentRegistryAddress = this.contract.address;
+    if (registryAddress !== currentRegistryAddress) {
+      throw Error(
+        `Failed to verify chain coordinates: credentials contract address=${registryAddress} is not equal to registryContract address=${currentRegistryAddress}`
+      );
+    }
+
+    const chainId = credentials.membership.chainId;
+    const network = await this.contract.provider.getNetwork();
+    const currentChainId = network.chainId;
+    if (chainId !== currentChainId) {
+      throw Error(
+        `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`
+      );
     }
   }
 }
