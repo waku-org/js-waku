@@ -28,4 +28,13 @@ export class IdentityCredential {
       idCommitmentBigInt
     );
   }
+
+  public toJSON(): Record<string, number[]> {
+    return {
+      idTrapdoor: Array.from(this.IDTrapdoor),
+      idNullifier: Array.from(this.IDNullifier),
+      idSecretHash: Array.from(this.IDSecretHash),
+      idCommitment: Array.from(this.IDCommitment)
+    };
+  }
 }

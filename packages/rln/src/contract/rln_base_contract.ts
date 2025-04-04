@@ -539,14 +539,14 @@ export class RLNBaseContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,
         membership: {
           address,
-          treeIndex: membershipId,
-          chainId: network.chainId,
+          treeIndex: parseInt(membershipId),
+          chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
@@ -633,14 +633,14 @@ export class RLNBaseContract {
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
+      const membershipId = decodedData.index.toString();
 
       return {
         identity,
         membership: {
           address,
-          treeIndex: membershipId,
-          chainId: network.chainId,
+          treeIndex: parseInt(membershipId),
+          chainId: network.chainId.toString(),
           rateLimit: decodedData.membershipRateLimit.toNumber()
         }
       };
