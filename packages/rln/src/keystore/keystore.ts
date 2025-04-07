@@ -284,11 +284,18 @@ export class Keystore {
     }
   }
 
-  private static fromArraylikeToBytes(obj: {
-    [key: number]: number;
-  }): Uint8Array {
-    const bytes = [];
+  private static fromArraylikeToBytes(
+    obj:
+      | number[]
+      | {
+          [key: number]: number;
+        }
+  ): Uint8Array {
+    if (Array.isArray(obj)) {
+      return new Uint8Array(obj);
+    }
 
+    const bytes = [];
     let index = 0;
     let lastElement = obj[index];
 
@@ -316,10 +323,10 @@ export class Keystore {
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
         identityCredential: {
-          idCommitment: options.identity.IDCommitment,
-          idNullifier: options.identity.IDNullifier,
-          idSecretHash: options.identity.IDSecretHash,
-          idTrapdoor: options.identity.IDTrapdoor
+          idCommitment: Array.from(options.identity.IDCommitment),
+          idNullifier: Array.from(options.identity.IDNullifier),
+          idSecretHash: Array.from(options.identity.IDSecretHash),
+          idTrapdoor: Array.from(options.identity.IDTrapdoor)
         },
         membershipContract: {
           chainId: options.membership.chainId,
