@@ -426,17 +426,30 @@ export class RLNBaseContract {
   public async extendMembership(
     idCommitmentBigInt: bigint
   ): Promise<ethers.ContractTransaction> {
-    return this.contract.extendMemberships([idCommitmentBigInt]);
+    const tx = await this.contract.extendMemberships([idCommitmentBigInt]);
+    await tx.wait();
+    return tx;
   }
 
   public async eraseMembership(
     idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
-    return this.contract.eraseMemberships(
+    const tx = await this.contract.eraseMemberships(
       [idCommitmentBigInt],
       eraseFromMembershipSet
     );
+    await tx.wait();
+    return tx;
+  }
+
+  public async withdraw(token: string, from: string): Promise<void> {
+    try {
+      const tx = await this.contract.withdraw(token, from);
+      await tx.wait();
+    } catch (error) {
+      log.error(`Error in withdraw: ${(error as Error).message}`);
+    }
   }
 
   public async registerMembership(
@@ -452,15 +465,6 @@ export class RLNBaseContract {
       );
     }
     return this.contract.register(idCommitmentBigInt, rateLimit, []);
-  }
-
-  public async withdraw(token: string, from: string): Promise<void> {
-    try {
-      const tx = await this.contract.withdraw(token, from);
-      await tx.wait();
-    } catch (error) {
-      log.error(`Error in withdraw: ${(error as Error).message}`);
-    }
   }
 
   public async registerWithIdentity(
