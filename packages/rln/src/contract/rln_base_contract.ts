@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
@@ -40,13 +41,24 @@ export class RLNBaseContract {
       contract
     } = options;
 
+    log.info("Initializing RLNBaseContract", { address, rateLimit });
+
     this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
     this.rateLimit = rateLimit;
 
-    // Initialize event filters
-    this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membershipErasedFilter = this.contract.filters.MembershipErased();
-    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+    try {
+      log.info("Setting up event filters");
+      // Initialize event filters
+      this._membersFilter = this.contract.filters.MembershipRegistered();
+      this._membershipErasedFilter = this.contract.filters.MembershipErased();
+      this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+      log.info("Event filters initialized successfully");
+    } catch (error) {
+      log.error("Failed to initialize event filters", { error });
+      throw new Error(
+        "Failed to initialize event filters: " + (error as Error).message
+      );
+    }
 
     // Initialize members and subscriptions
     this.fetchMembers()
@@ -365,14 +377,17 @@ export class RLNBaseContract {
     idCommitmentBigInt: bigint
   ): Promise<MembershipInfo | undefined> {
     try {
+      console.log("idCommitmentBigInt", idCommitmentBigInt);
       const membershipData =
         await this.contract.memberships(idCommitmentBigInt);
       const currentBlock = await this.contract.provider.getBlockNumber();
+      console.log("membershipData", membershipData);
 
       let state: MembershipState;
       const gracePeriodEnd = membershipData.gracePeriodStartTimestamp.add(
         membershipData.gracePeriodDuration
       );
+      console.log("gracePeriodEnd", gracePeriodEnd);
 
       if (currentBlock < membershipData.gracePeriodStartTimestamp) {
         state = MembershipState.Active;
@@ -381,6 +396,17 @@ export class RLNBaseContract {
       } else {
         state = MembershipState.Expired;
       }
+
+      console.log("state", state);
+
+      console.log("membershipData.index", membershipData.index);
+      console.log("membershipData.idCommitment", membershipData.idCommitment);
+      console.log("membershipData.rateLimit", membershipData.rateLimit);
+      console.log(
+        "membershipData.gracePeriodStartTimestamp",
+        membershipData.gracePeriodStartTimestamp
+      );
+      console.log("gracePeriodEnd", gracePeriodEnd);
 
       return {
         index: membershipData.index,
