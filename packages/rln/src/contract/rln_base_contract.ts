@@ -362,10 +362,11 @@ export class RLNBaseContract {
   }
 
   public async getMembershipInfo(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<MembershipInfo | undefined> {
     try {
-      const membershipData = await this.contract.memberships(idCommitment);
+      const membershipData =
+        await this.contract.memberships(idCommitmentBigInt);
       const currentBlock = await this.contract.provider.getBlockNumber();
 
       let state: MembershipState;
@@ -383,7 +384,7 @@ export class RLNBaseContract {
 
       return {
         index: membershipData.index,
-        idCommitment,
+        idCommitment: membershipData.idCommitment,
         rateLimit: membershipData.rateLimit.toNumber(),
         startBlock: membershipData.gracePeriodStartTimestamp.toNumber(),
         endBlock: gracePeriodEnd.toNumber(),
