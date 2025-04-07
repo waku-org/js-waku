@@ -463,9 +463,9 @@ export class RLNBaseContract {
     return this.contract.register(idCommitment, rateLimit, []);
   }
 
-  public async withdraw(token: string): Promise<void> {
+  public async withdraw(token: string, from: string): Promise<void> {
     try {
-      const tx = await this.contract.withdraw(token);
+      const tx = await this.contract.withdraw(token, from);
       await tx.wait();
     } catch (error) {
       log.error(`Error in withdraw: ${(error as Error).message}`);
