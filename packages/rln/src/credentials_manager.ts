@@ -30,41 +30,17 @@ export class RLNCredentialsManager {
   protected started = false;
   protected starting = false;
 
-  private _contract: undefined | RLNBaseContract;
-  private _signer: undefined | ethers.Signer;
+  public contract: undefined | RLNBaseContract;
+  public signer: undefined | ethers.Signer;
 
   protected keystore = Keystore.create();
-  private _credentials: undefined | DecryptedCredentials;
+  public credentials: undefined | DecryptedCredentials;
 
   public zerokit: undefined | Zerokit;
 
   public constructor(zerokit?: Zerokit) {
     log.info("RLNCredentialsManager initialized");
     this.zerokit = zerokit;
-  }
-
-  public get contract(): undefined | RLNBaseContract {
-    return this._contract;
-  }
-
-  public set contract(contract: RLNBaseContract | undefined) {
-    this._contract = contract;
-  }
-
-  public get signer(): undefined | ethers.Signer {
-    return this._signer;
-  }
-
-  public set signer(signer: ethers.Signer | undefined) {
-    this._signer = signer;
-  }
-
-  public get credentials(): undefined | DecryptedCredentials {
-    return this._credentials;
-  }
-
-  public set credentials(credentials: DecryptedCredentials | undefined) {
-    this._credentials = credentials;
   }
 
   public get provider(): undefined | ethers.providers.Provider {
@@ -102,12 +78,12 @@ export class RLNCredentialsManager {
         log.info("Using provided keystore");
       }
 
-      this._credentials = credentials;
-      this._signer = signer!;
-      this._contract = new RLNBaseContract({
+      this.credentials = credentials;
+      this.signer = signer!;
+      this.contract = new RLNBaseContract({
         address: address!,
         signer: signer!,
-        rateLimit: rateLimit ?? this.zerokit?.getRateLimit
+        rateLimit: rateLimit ?? this.zerokit?.rateLimit
       });
 
       log.info("RLNCredentialsManager successfully started");
@@ -160,8 +136,8 @@ export class RLNCredentialsManager {
    */
   public async useCredentials(id: string, password: Password): Promise<void> {
     log.info(`Attempting to use credentials with ID: ${id}`);
-    this._credentials = await this.keystore?.readCredential(id, password);
-    if (this._credentials) {
+    this.credentials = await this.keystore?.readCredential(id, password);
+    if (this.credentials) {
       log.info("Successfully loaded credentials");
     } else {
       log.warn("Failed to load credentials");

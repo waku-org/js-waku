@@ -58,6 +58,7 @@ export class RLNInstance extends RLNCredentialsManager {
       throw error;
     }
   }
+
   private constructor(public zerokit: Zerokit) {
     super(zerokit);
   }
