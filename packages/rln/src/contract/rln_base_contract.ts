@@ -397,7 +397,7 @@ export class RLNBaseContract {
 
   public async getMembershipInfo(
     idCommitment: string
-  ): Promise<MembershipInfo | undefined> {
+  ): Promise<MembershipInfo> {
     try {
       const [startBlock, endBlock, rateLimit] =
         await this.contract.getMembershipInfo(idCommitment);
@@ -413,7 +413,9 @@ export class RLNBaseContract {
       }
 
       const index = await this.getMemberIndex(idCommitment);
-      if (!index) return undefined;
+      if (!index) {
+        throw new Error("Membership not found");
+      }
 
       return {
         index,
@@ -424,7 +426,9 @@ export class RLNBaseContract {
         state
       };
     } catch (error) {
-      return undefined;
+      throw new Error("Error getting membership info", {
+        cause: error
+      });
     }
   }
 
@@ -692,15 +696,14 @@ export class RLNBaseContract {
     idCommitment: string
   ): Promise<ethers.BigNumber | undefined> {
     try {
-      const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitment)
-      );
-      if (events.length === 0) return undefined;
+      const isValid = await this.contract.isInMembershipSet(idCommitment);
+      if (!isValid) return undefined;
 
-      // Get the most recent registration event
-      const event = events[events.length - 1];
-      return event.args?.index;
+      const membershipInfo = await this.contract.memberships(idCommitment);
+
+      return ethers.BigNumber.from(membershipInfo.index);
     } catch (error) {
+      log.error(`Error getting member index: ${(error as Error).message}`);
       return undefined;
     }
   }
