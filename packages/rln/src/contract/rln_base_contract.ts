@@ -383,45 +383,51 @@ export class RLNBaseContract {
       const currentBlock = await this.contract.provider.getBlockNumber();
       console.log("membershipData", membershipData);
 
-      let state: MembershipState;
-      const gracePeriodEnd = membershipData.gracePeriodStartTimestamp.add(
-        membershipData.gracePeriodDuration
-      );
+      const [
+        depositAmount,
+        activeDuration,
+        gracePeriodStartTimestamp,
+        gracePeriodDuration,
+        rateLimit,
+        index,
+        holder,
+        token
+      ] = membershipData;
+
+      const gracePeriodEnd = gracePeriodStartTimestamp.add(gracePeriodDuration);
       console.log("gracePeriodEnd", gracePeriodEnd);
 
-      if (currentBlock < membershipData.gracePeriodStartTimestamp) {
+      let state: MembershipState;
+      if (currentBlock < gracePeriodStartTimestamp.toNumber()) {
         state = MembershipState.Active;
-      } else if (currentBlock < gracePeriodEnd) {
+      } else if (currentBlock < gracePeriodEnd.toNumber()) {
         state = MembershipState.GracePeriod;
       } else {
         state = MembershipState.Expired;
       }
 
       console.log("state", state);
-
-      console.log("membershipData.index", membershipData.index);
-      console.log("membershipData.idCommitment", membershipData.idCommitment);
-      console.log("membershipData.rateLimit", membershipData.rateLimit);
-      console.log(
-        "membershipData.gracePeriodStartTimestamp",
-        membershipData.gracePeriodStartTimestamp
-      );
+      console.log("index", index);
+      console.log("idCommitment", idCommitmentBigInt.toString());
+      console.log("rateLimit", rateLimit);
+      console.log("gracePeriodStartTimestamp", gracePeriodStartTimestamp);
       console.log("gracePeriodEnd", gracePeriodEnd);
 
       return {
-        index: membershipData.index,
-        idCommitment: membershipData.idCommitment,
-        rateLimit: membershipData.rateLimit.toNumber(),
-        startBlock: membershipData.gracePeriodStartTimestamp.toNumber(),
+        index,
+        idCommitment: idCommitmentBigInt.toString(),
+        rateLimit: Number(rateLimit),
+        startBlock: gracePeriodStartTimestamp.toNumber(),
         endBlock: gracePeriodEnd.toNumber(),
         state,
-        depositAmount: membershipData.depositAmount,
-        activeDuration: membershipData.activeDuration,
-        gracePeriodDuration: membershipData.gracePeriodDuration,
-        holder: membershipData.holder,
-        token: membershipData.token
+        depositAmount,
+        activeDuration,
+        gracePeriodDuration,
+        holder,
+        token
       };
     } catch (error) {
+      console.error("Error in getMembershipInfo:", error);
       return undefined;
     }
   }
