@@ -7,6 +7,16 @@ import { DecryptedCredentials } from "../keystore/types.js";
 import { RLN_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 import {
+  ContractStateError,
+  InvalidMembershipError,
+  InvalidRateLimitError,
+  MembershipExistsError,
+  MembershipNotFoundError,
+  RateLimitExceededError,
+  RLNContractError,
+  TransactionError
+} from "./errors.js";
+import {
   CustomQueryOptions,
   FetchMembersOptions,
   Member,
@@ -381,17 +391,41 @@ export class RLNBaseContract {
         membershipId,
         currentEpochStart
       );
-      return Math.max(
-        0,
-        ethers.BigNumber.from(rateLimit)
-          .sub(ethers.BigNumber.from(messageCount))
-          .toNumber()
-      );
+
+      const remaining = ethers.BigNumber.from(rateLimit)
+        .sub(ethers.BigNumber.from(messageCount))
+        .toNumber();
+
+      return Math.max(0, remaining);
     } catch (error) {
+      if (error instanceof RLNContractError) {
+        throw error;
+      }
       log.error(
         `Error getting remaining messages: ${(error as Error).message}`
       );
-      return 0; // Fail safe: assume no messages remaining on error
+      throw new MembershipNotFoundError(membershipId.toString());
+    }
+  }
+
+  /**
+   * Gets the member index if it exists, or null if it doesn't
+   * Throws only on actual errors (invalid input, network issues, etc)
+   */
+  private async getMemberIndex(
+    idCommitment: string
+  ): Promise<ethers.BigNumber | null> {
+    try {
+      const isValid = await this.contract.isInMembershipSet(idCommitment);
+      if (!isValid) {
+        return null;
+      }
+
+      const membershipInfo = await this.contract.memberships(idCommitment);
+      return ethers.BigNumber.from(membershipInfo.index);
+    } catch (error) {
+      log.error(`Error getting member index: ${(error as Error).message}`);
+      throw new InvalidMembershipError(idCommitment);
     }
   }
 
@@ -413,8 +447,8 @@ export class RLNBaseContract {
       }
 
       const index = await this.getMemberIndex(idCommitment);
-      if (!index) {
-        throw new Error("Membership not found");
+      if (index === null) {
+        throw new MembershipNotFoundError(idCommitment);
       }
 
       return {
@@ -426,9 +460,11 @@ export class RLNBaseContract {
         state
       };
     } catch (error) {
-      throw new Error("Error getting membership info", {
-        cause: error
-      });
+      if (error instanceof RLNContractError) {
+        throw error;
+      }
+      log.error(`Error getting membership info: ${(error as Error).message}`);
+      throw new InvalidMembershipError(idCommitment);
     }
   }
 
@@ -484,18 +520,18 @@ export class RLNBaseContract {
       const existingIndex = await this.getMemberIndex(
         identity.IDCommitmentBigInt.toString()
       );
-      if (existingIndex) {
-        throw new Error(
-          `ID commitment is already registered with index ${existingIndex}`
+
+      if (existingIndex !== null) {
+        throw new MembershipExistsError(
+          identity.IDCommitmentBigInt.toString(),
+          existingIndex.toString()
         );
       }
 
       // Check if there's enough remaining rate limit
       const remainingRateLimit = await this.getRemainingTotalRateLimit();
       if (remainingRateLimit < this.rateLimit) {
-        throw new Error(
-          `Not enough remaining rate limit. Requested: ${this.rateLimit}, Available: ${remainingRateLimit}`
-        );
+        throw new RateLimitExceededError(this.rateLimit, remainingRateLimit);
       }
 
       const estimatedGas = await this.contract.estimateGas.register(
@@ -516,7 +552,7 @@ export class RLNBaseContract {
       const txRegisterReceipt = await txRegisterResponse.wait();
 
       if (txRegisterReceipt.status === 0) {
-        throw new Error("Transaction failed on-chain");
+        throw new TransactionError("Transaction failed on-chain");
       }
 
       const memberRegistered = txRegisterReceipt.events?.find(
@@ -524,10 +560,7 @@ export class RLNBaseContract {
       );
 
       if (!memberRegistered || !memberRegistered.args) {
-        log.error(
-          "Failed to register membership: No MembershipRegistered event found"
-        );
-        return undefined;
+        throw new ContractStateError("No MembershipRegistered event found");
       }
 
       const decodedData: MembershipRegisteredEvent = {
@@ -555,32 +588,43 @@ export class RLNBaseContract {
         }
       };
     } catch (error) {
+      if (error instanceof RLNContractError) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         const errorMessage = error.message;
         log.error("registerWithIdentity - error message:", errorMessage);
         log.error("registerWithIdentity - error stack:", error.stack);
 
-        // Try to extract more specific error information
+        // Map contract errors to our custom errors
         if (errorMessage.includes("CannotExceedMaxTotalRateLimit")) {
-          throw new Error(
-            "Registration failed: Cannot exceed maximum total rate limit"
+          throw new RateLimitExceededError(
+            this.rateLimit,
+            await this.getRemainingTotalRateLimit()
           );
         } else if (errorMessage.includes("InvalidIdCommitment")) {
-          throw new Error("Registration failed: Invalid ID commitment");
+          throw new InvalidMembershipError(
+            identity.IDCommitmentBigInt.toString()
+          );
         } else if (errorMessage.includes("InvalidMembershipRateLimit")) {
-          throw new Error("Registration failed: Invalid membership rate limit");
+          throw new InvalidRateLimitError(
+            this.rateLimit,
+            RATE_LIMIT_PARAMS.MIN_RATE,
+            RATE_LIMIT_PARAMS.MAX_RATE
+          );
         } else if (errorMessage.includes("execution reverted")) {
-          throw new Error(
+          throw new TransactionError(
             "Contract execution reverted. Check contract requirements."
           );
-        } else {
-          throw new Error(`Error in registerWithIdentity: ${errorMessage}`);
         }
-      } else {
-        throw new Error("Unknown error in registerWithIdentity", {
-          cause: error
-        });
+
+        throw new RLNContractError(
+          `Error in registerWithIdentity: ${errorMessage}`
+        );
       }
+
+      throw new RLNContractError("Unknown error in registerWithIdentity");
     }
   }
 
@@ -665,8 +709,10 @@ export class RLNBaseContract {
       rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
       rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
     ) {
-      throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      throw new InvalidRateLimitError(
+        rateLimit,
+        RATE_LIMIT_PARAMS.MIN_RATE,
+        RATE_LIMIT_PARAMS.MAX_RATE
       );
     }
   }
@@ -690,21 +736,5 @@ export class RLNBaseContract {
       throw Error("MembersExpired filter was not initialized.");
     }
     return this._membersExpiredFilter;
-  }
-
-  private async getMemberIndex(
-    idCommitment: string
-  ): Promise<ethers.BigNumber | undefined> {
-    try {
-      const isValid = await this.contract.isInMembershipSet(idCommitment);
-      if (!isValid) return undefined;
-
-      const membershipInfo = await this.contract.memberships(idCommitment);
-
-      return ethers.BigNumber.from(membershipInfo.index);
-    } catch (error) {
-      log.error(`Error getting member index: ${(error as Error).message}`);
-      return undefined;
-    }
   }
 }
