@@ -40,7 +40,7 @@ describe("RLN Contract abstraction - RLN", () => {
         mockedRegistryContract
       );
 
-      await rlnContract.fetchMembers(rlnInstance, {
+      await rlnContract.fetchMembers({
         fromBlock: 0,
         fetchRange: 1000,
         fetchChunks: 2
