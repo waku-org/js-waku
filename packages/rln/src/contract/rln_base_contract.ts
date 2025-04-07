@@ -339,7 +339,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membersFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -351,7 +351,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membershipErasedFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -363,7 +363,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membersExpiredFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -377,7 +377,6 @@ export class RLNBaseContract {
     idCommitmentBigInt: bigint
   ): Promise<MembershipInfo | undefined> {
     try {
-      console.log("idCommitmentBigInt", idCommitmentBigInt);
       const membershipData =
         await this.contract.memberships(idCommitmentBigInt);
       const currentBlock = await this.contract.provider.getBlockNumber();
@@ -395,7 +394,6 @@ export class RLNBaseContract {
       ] = membershipData;
 
       const gracePeriodEnd = gracePeriodStartTimestamp.add(gracePeriodDuration);
-      console.log("gracePeriodEnd", gracePeriodEnd);
 
       let state: MembershipState;
       if (currentBlock < gracePeriodStartTimestamp.toNumber()) {
@@ -405,13 +403,6 @@ export class RLNBaseContract {
       } else {
         state = MembershipState.Expired;
       }
-
-      console.log("state", state);
-      console.log("index", index);
-      console.log("idCommitment", idCommitmentBigInt.toString());
-      console.log("rateLimit", rateLimit);
-      console.log("gracePeriodStartTimestamp", gracePeriodStartTimestamp);
-      console.log("gracePeriodEnd", gracePeriodEnd);
 
       return {
         index,
@@ -433,23 +424,23 @@ export class RLNBaseContract {
   }
 
   public async extendMembership(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<ethers.ContractTransaction> {
-    return this.contract.extendMemberships([idCommitment]);
+    return this.contract.extendMemberships([idCommitmentBigInt]);
   }
 
   public async eraseMembership(
-    idCommitment: string,
+    idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
     return this.contract.eraseMemberships(
-      [idCommitment],
+      [idCommitmentBigInt],
       eraseFromMembershipSet
     );
   }
 
   public async registerMembership(
-    idCommitment: string,
+    idCommitmentBigInt: bigint,
     rateLimit: number = DEFAULT_RATE_LIMIT
   ): Promise<ethers.ContractTransaction> {
     if (
@@ -460,7 +451,7 @@ export class RLNBaseContract {
         `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
       );
     }
-    return this.contract.register(idCommitment, rateLimit, []);
+    return this.contract.register(idCommitmentBigInt, rateLimit, []);
   }
 
   public async withdraw(token: string, from: string): Promise<void> {
@@ -482,7 +473,7 @@ export class RLNBaseContract {
 
       // Check if the ID commitment is already registered
       const existingIndex = await this.getMemberIndex(
-        identity.IDCommitmentBigInt.toString()
+        identity.IDCommitmentBigInt
       );
       if (existingIndex) {
         throw new Error(
@@ -698,11 +689,11 @@ export class RLNBaseContract {
   }
 
   private async getMemberIndex(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<ethers.BigNumber | undefined> {
     try {
       const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitment)
+        this.contract.filters.MembershipRegistered(idCommitmentBigInt)
       );
       if (events.length === 0) return undefined;
 
