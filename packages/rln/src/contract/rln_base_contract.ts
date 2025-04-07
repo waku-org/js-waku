@@ -33,6 +33,21 @@ export class RLNBaseContract {
    * Allows injecting a mocked contract for testing purposes.
    */
   public constructor(options: RLNContractInitOptions) {
+    const {
+      address,
+      signer,
+      rateLimit = DEFAULT_RATE_LIMIT,
+      contract
+    } = options;
+
+    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
+    this.rateLimit = rateLimit;
+
+    // Initialize event filters
+    this._membersFilter = this.contract.filters.MembershipRegistered();
+    this._membershipErasedFilter = this.contract.filters.MembershipErased();
+    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+
     // Initialize members and subscriptions
     this.fetchMembers()
       .then(() => {
@@ -42,22 +57,10 @@ export class RLNBaseContract {
         log.error("Failed to initialize members", { error });
       });
 
-    const {
-      address,
-      signer,
-      rateLimit = DEFAULT_RATE_LIMIT,
-      contract
-    } = options;
-
-    this.validateRateLimit(rateLimit);
-
-    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
-    this.rateLimit = rateLimit;
-
-    // Initialize event filters
-    this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membershipErasedFilter = this.contract.filters.MembershipErased();
-    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+    // Validate rate limit asynchronously
+    this.validateRateLimit(rateLimit).catch((error) => {
+      log.error("Failed to validate initial rate limit", { error });
+    });
   }
 
   /**
@@ -134,7 +137,7 @@ export class RLNBaseContract {
    * @param newRateLimit The new rate limit to use
    */
   public async setRateLimit(newRateLimit: number): Promise<void> {
-    this.validateRateLimit(newRateLimit);
+    await this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
 
@@ -358,70 +361,38 @@ export class RLNBaseContract {
     );
   }
 
-  /**
-   * Helper method to get remaining messages in current epoch
-   * @param membershipId The ID of the membership to check
-   * @returns number of remaining messages allowed in current epoch
-   */
-  public async getRemainingMessages(membershipId: number): Promise<number> {
-    try {
-      const [startTime, , rateLimit] =
-        await this.contract.getMembershipInfo(membershipId);
-
-      // Calculate current epoch
-      const currentTime = Math.floor(Date.now() / 1000);
-      const epochsPassed = Math.floor(
-        (currentTime - startTime) / RATE_LIMIT_PARAMS.EPOCH_LENGTH
-      );
-      const currentEpochStart =
-        startTime + epochsPassed * RATE_LIMIT_PARAMS.EPOCH_LENGTH;
-
-      // Get message count in current epoch using contract's function
-      const messageCount = await this.contract.getMessageCount(
-        membershipId,
-        currentEpochStart
-      );
-      return Math.max(
-        0,
-        ethers.BigNumber.from(rateLimit)
-          .sub(ethers.BigNumber.from(messageCount))
-          .toNumber()
-      );
-    } catch (error) {
-      log.error(
-        `Error getting remaining messages: ${(error as Error).message}`
-      );
-      return 0; // Fail safe: assume no messages remaining on error
-    }
-  }
-
   public async getMembershipInfo(
     idCommitment: string
   ): Promise<MembershipInfo | undefined> {
     try {
-      const [startBlock, endBlock, rateLimit] =
-        await this.contract.getMembershipInfo(idCommitment);
+      const membershipData = await this.contract.memberships(idCommitment);
       const currentBlock = await this.contract.provider.getBlockNumber();
 
       let state: MembershipState;
-      if (currentBlock < startBlock) {
+      const gracePeriodEnd = membershipData.gracePeriodStartTimestamp.add(
+        membershipData.gracePeriodDuration
+      );
+
+      if (currentBlock < membershipData.gracePeriodStartTimestamp) {
         state = MembershipState.Active;
-      } else if (currentBlock < endBlock) {
+      } else if (currentBlock < gracePeriodEnd) {
         state = MembershipState.GracePeriod;
       } else {
         state = MembershipState.Expired;
       }
 
-      const index = await this.getMemberIndex(idCommitment);
-      if (!index) return undefined;
-
       return {
-        index,
+        index: membershipData.index,
         idCommitment,
-        rateLimit: rateLimit.toNumber(),
-        startBlock: startBlock.toNumber(),
-        endBlock: endBlock.toNumber(),
-        state
+        rateLimit: membershipData.rateLimit.toNumber(),
+        startBlock: membershipData.gracePeriodStartTimestamp.toNumber(),
+        endBlock: gracePeriodEnd.toNumber(),
+        state,
+        depositAmount: membershipData.depositAmount,
+        activeDuration: membershipData.activeDuration,
+        gracePeriodDuration: membershipData.gracePeriodDuration,
+        holder: membershipData.holder,
+        token: membershipData.token
       };
     } catch (error) {
       return undefined;
@@ -459,9 +430,9 @@ export class RLNBaseContract {
     return this.contract.register(idCommitment, rateLimit, []);
   }
 
-  public async withdraw(token: string, holder: string): Promise<void> {
+  public async withdraw(token: string): Promise<void> {
     try {
-      const tx = await this.contract.withdraw(token, { from: holder });
+      const tx = await this.contract.withdraw(token);
       await tx.wait();
     } catch (error) {
       log.error(`Error in withdraw: ${(error as Error).message}`);
@@ -656,13 +627,18 @@ export class RLNBaseContract {
    * Validates that the rate limit is within the allowed range
    * @throws Error if the rate limit is outside the allowed range
    */
-  private validateRateLimit(rateLimit: number): void {
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
+  private async validateRateLimit(rateLimit: number): Promise<void> {
+    const [minRate, maxRate] = await Promise.all([
+      this.contract.minMembershipRateLimit(),
+      this.contract.maxMembershipRateLimit()
+    ]);
+
+    const minRateNum = ethers.BigNumber.from(minRate).toNumber();
+    const maxRateNum = ethers.BigNumber.from(maxRate).toNumber();
+
+    if (rateLimit < minRateNum || rateLimit > maxRateNum) {
       throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+        `Rate limit must be between ${minRateNum} and ${maxRateNum} messages per epoch`
       );
     }
   }
