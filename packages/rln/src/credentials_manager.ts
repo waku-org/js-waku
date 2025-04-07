@@ -107,7 +107,7 @@ export class RLNCredentialsManager {
       this._contract = new RLNBaseContract({
         address: address!,
         signer: signer!,
-        rateLimit: rateLimit ?? this.zerokit?.getRateLimit
+        rateLimit: rateLimit ?? this.zerokit?.rateLimit
       });
 
       log.info("RLNCredentialsManager successfully started");
