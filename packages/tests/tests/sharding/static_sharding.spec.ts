@@ -204,7 +204,10 @@ describe("Static Sharding: Running Nodes", function () {
       // use a pubsub topic that is not configured
       const encoder = createEncoder({
         contentTopic: ContentTopic,
-        pubsubTopicShardInfo: singleShardInfo2
+        pubsubTopicShardInfo: {
+          clusterId,
+          shard: 4
+        }
       });
 
       const request = await waku?.lightPush.send(encoder, {
