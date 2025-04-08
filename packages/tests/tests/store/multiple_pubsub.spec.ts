@@ -153,7 +153,8 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 });
 
-describe("Waku Store (Autosharding), custom pubsub topic", function () {
+// TODO: blocked by https://github.com/waku-org/nwaku/issues/3362
+describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: ServiceNode;
