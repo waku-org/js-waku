@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.31.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.35.1";
 
 const LOG_DIR = "./log";
 
@@ -375,6 +375,15 @@ export class ServiceNode {
       log.error(`${this.httpUrl} failed with error:`, error);
       throw error;
     }
+  }
+
+  public async getExternalMultiaddr(): Promise<string | undefined> {
+    if (!this.docker?.container) {
+      return undefined;
+    }
+    const containerIp = this.docker.containerIp;
+    const peerId = await this.getPeerId();
+    return `/ip4/${containerIp}/tcp/${this.websocketPort}/ws/p2p/${peerId}`;
   }
 
   private checkProcess(): void {

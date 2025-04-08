@@ -29,24 +29,27 @@ export class ServiceNodesFleet {
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
-    const serviceNodePromises = Array.from(
-      { length: nodesToCreate },
-      async () => {
-        const node = new ServiceNode(
-          makeLogFileName(mochaContext) +
-            Math.random().toString(36).substring(7)
-        );
+    const nodes: ServiceNode[] = [];
 
-        const args = getArgs(networkConfig, _args);
-        await node.start(args, {
-          retries: 3
-        });
+    for (let i = 0; i < nodesToCreate; i++) {
+      const node = new ServiceNode(
+        makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
+      );
 
-        return node;
+      const args = getArgs(networkConfig, _args);
+
+      if (nodes[0]) {
+        const addr = await nodes[0].getExternalMultiaddr();
+        args.staticnode = addr ?? args.staticnode;
       }
-    );
 
-    const nodes = await Promise.all(serviceNodePromises);
+      await node.start(args, {
+        retries: 3
+      });
+
+      nodes.push(node);
+    }
+
     return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
