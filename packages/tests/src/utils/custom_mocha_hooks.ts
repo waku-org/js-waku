@@ -50,7 +50,7 @@ export const beforeEachCustom = function (
 ): void {
   const timeoutBefore = suite.timeout();
   suite.timeout(timeout);
-  suite.beforeEach((done) => {
+  suite.beforeAll((done) => {
     withGracefulTimeout(cb, done, timeout);
   });
   suite.timeout(timeoutBefore); // restore timeout to the original value
@@ -63,7 +63,7 @@ export const afterEachCustom = function (
 ): void {
   const timeoutBefore = suite.timeout();
   suite.timeout(timeout);
-  suite.afterEach((done) => {
+  suite.afterAll((done) => {
     withGracefulTimeout(cb, done, timeout);
   });
   suite.timeout(timeoutBefore); // restore timeout to the original value
