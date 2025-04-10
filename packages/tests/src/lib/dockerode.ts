@@ -161,9 +161,6 @@ export default class Dockerode {
         }
         if (stream) {
           stream.pipe(logStream);
-          // stream.on("data", (chunk) => {
-          // console.log(chunk.toString());
-          // });
         }
       }
     );
