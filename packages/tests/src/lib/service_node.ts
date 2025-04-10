@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { isDefined } from "@waku/utils";
+import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
@@ -235,9 +235,15 @@ export class ServiceNode {
     );
   }
 
-  public async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
+  public async messages(_pubsubTopic?: string): Promise<MessageRpcResponse[]> {
+    const pubsubTopic =
+      _pubsubTopic ??
+      shardInfoToPubsubTopics({
+        clusterId: this.args?.clusterId,
+        shards: this.args?.shard
+      })[0];
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "GET",
       null,
       async (response) => {
@@ -262,7 +268,7 @@ export class ServiceNode {
 
   public async sendMessage(
     message: MessageRpcQuery,
-    pubsubTopic?: string
+    _pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -270,8 +276,14 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
+    const pubsubTopic =
+      _pubsubTopic ??
+      shardInfoToPubsubTopics({
+        clusterId: this.args?.clusterId,
+        shards: this.args?.shard
+      })[0];
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || DefaultTestPubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
@@ -346,10 +358,6 @@ export class ServiceNode {
 
   public get httpUrl(): string {
     return `http://127.0.0.1:${this.restPort}`;
-  }
-
-  public get pubsubTopics(): string[] {
-    return this.args?.pubsubTopic ?? [];
   }
 
   public async restCall<T>(

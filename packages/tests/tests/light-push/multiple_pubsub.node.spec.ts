@@ -99,8 +99,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
         filter: true,
         lightpush: true,
         relay: true,
-        pubsubTopic: [customEncoder2.pubsubTopic],
-        clusterId: ClusterId
+        clusterId: ClusterId,
+        shard: [2]
       });
       await nwaku2.ensureSubscriptionsAutosharding([
         customEncoder2.pubsubTopic

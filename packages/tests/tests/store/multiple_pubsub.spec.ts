@@ -109,8 +109,8 @@ describe("Waku Store, custom pubsub topic", function () {
     nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      pubsubTopic: [TestDecoder2.pubsubTopic],
       clusterId: TestShardInfo.clusterId,
+      shard: TestShardInfo.shards,
       relay: true
     });
     await nwaku2.ensureSubscriptions([TestDecoder2.pubsubTopic]);
@@ -163,6 +163,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const clusterId = 5;
+  const Shard2 = [1];
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId
@@ -245,10 +246,10 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      pubsubTopic: [autoshardingPubsubTopic2],
       contentTopic: [customContentTopic2],
       relay: true,
-      clusterId
+      clusterId,
+      shard: Shard2
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
 
@@ -369,9 +370,9 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      pubsubTopic: [TestDecoder2.pubsubTopic],
       relay: true,
-      clusterId: TestShardInfo.clusterId
+      clusterId: TestShardInfo.clusterId,
+      shard: TestShardInfo.shards
     });
     await nwaku2.ensureSubscriptions([TestDecoder2.pubsubTopic]);
 

@@ -562,8 +562,8 @@ const runTests = (strictCheckNodes: boolean): void => {
           filter: true,
           lightpush: true,
           relay: true,
-          pubsubTopic: [customDecoder.pubsubTopic],
-          clusterId: ClusterId
+          clusterId: ClusterId,
+          shard: [4]
         });
         await waku.dial(await nwaku2.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);

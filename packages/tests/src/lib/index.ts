@@ -1,6 +1,6 @@
 import { DecodedMessage } from "@waku/core";
-import { NetworkConfig } from "@waku/interfaces";
-import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
+import { AutoSharding, NetworkConfig, StaticSharding } from "@waku/interfaces";
+import { contentTopicToShardIndex, Logger } from "@waku/utils";
 import { expect } from "chai";
 
 import { DefaultTestPubsubTopic } from "../constants.js";
@@ -254,16 +254,23 @@ class MultipleNodesMessageCollector {
 }
 
 function getArgs(networkConfig: NetworkConfig, args?: Args): Args {
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
   const defaultArgs = {
     lightpush: true,
     filter: true,
     discv5Discovery: true,
     peerExchange: true,
     relay: true,
-    pubsubTopic: pubsubTopics,
     clusterId: networkConfig.clusterId
   } as Args;
+
+  if ((networkConfig as StaticSharding).shards) {
+    defaultArgs.shard = (networkConfig as StaticSharding).shards;
+  } else if ((networkConfig as AutoSharding).contentTopics) {
+    defaultArgs.contentTopic = (networkConfig as AutoSharding).contentTopics;
+    defaultArgs.shard = (networkConfig as AutoSharding).contentTopics.map(
+      (topic) => contentTopicToShardIndex(topic)
+    );
+  }
 
   return { ...defaultArgs, ...args };
 }
