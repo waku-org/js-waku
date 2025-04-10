@@ -10,6 +10,7 @@ import {
 } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import chai, { expect } from "chai";
@@ -57,7 +58,6 @@ describe("Static Sharding: Peer Management", function () {
       const shardInfo: ShardInfo = { clusterId: clusterId, shards: [2] };
 
       await nwaku1.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         relay: true,
@@ -68,7 +68,6 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
@@ -80,7 +79,6 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
@@ -133,13 +131,9 @@ describe("Static Sharding: Peer Management", function () {
         singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 2 })
       ];
       const shardInfoToDial: ShardInfo = { clusterId: clusterId, shards: [2] };
-      const pubsubTopicsToIgnore = [
-        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 1 })
-      ];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
-        pubsubTopic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -150,7 +144,6 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -162,7 +155,6 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -213,6 +205,7 @@ describe("Static Sharding: Peer Management", function () {
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = 8;
+  const Shard = [contentTopicToShardIndex(ContentTopic)];
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
@@ -243,35 +236,35 @@ describe("Autosharding: Peer Management", function () {
       };
 
       await nwaku1.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         relay: true,
         clusterId: clusterId,
+        shard: Shard,
         contentTopic: [ContentTopic]
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
         relay: true,
         clusterId: clusterId,
+        shard: Shard,
         contentTopic: [ContentTopic]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
         relay: true,
         clusterId: clusterId,
+        shard: Shard,
         contentTopic: [ContentTopic]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
@@ -322,38 +315,37 @@ describe("Autosharding: Peer Management", function () {
         clusterId: clusterId,
         contentTopics: [ContentTopic]
       };
-      const pubsubTopicsToIgnore = [contentTopicToPubsubTopic(ContentTopic, 3)];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
-        pubsubTopic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        clusterId: 3
+        clusterId: 3,
+        shard: Shard
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
         clusterId: clusterId,
+        shard: Shard,
         contentTopic: [ContentTopic]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
         clusterId: clusterId,
+        shard: Shard,
         contentTopic: [ContentTopic]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();

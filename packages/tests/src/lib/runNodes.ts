@@ -37,7 +37,7 @@ export async function runNodes<T>(
       lightpush: true,
       relay: true,
       store: true,
-      pubsubTopic: pubsubTopics,
+      shard: shardInfo.shards,
       clusterId: shardInfo.clusterId
     },
     { retries: 3 }

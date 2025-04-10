@@ -24,7 +24,13 @@ import {
 
 export const log = new Logger("test:pe");
 
-const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
+const ShardInfo = { clusterId: 0, shards: [2] };
+const pubsubTopic = [
+  singleShardInfoToPubsubTopic({
+    clusterId: ShardInfo.clusterId,
+    shard: ShardInfo.shards[0]
+  })
+];
 
 describe("Peer Exchange Query", function () {
   this.timeout(30_000);
@@ -47,21 +53,24 @@ describe("Peer Exchange Query", function () {
       nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
       nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
       await nwaku1.start({
-        pubsubTopic: pubsubTopic,
+        shard: ShardInfo.shards,
+        clusterId: ShardInfo.clusterId,
         discv5Discovery: true,
         peerExchange: true,
         relay: true
       });
       nwaku1PeerId = await nwaku1.getPeerId();
       await nwaku2.start({
-        pubsubTopic: pubsubTopic,
+        shard: ShardInfo.shards,
+        clusterId: ShardInfo.clusterId,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: (await nwaku1.info()).enrUri,
         relay: true
       });
       await nwaku3.start({
-        pubsubTopic: pubsubTopic,
+        shard: ShardInfo.shards,
+        clusterId: ShardInfo.clusterId,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: (await nwaku2.info()).enrUri,

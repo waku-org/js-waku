@@ -45,7 +45,6 @@ export async function runMultipleNodes(
   };
 
   const waku = await createLightNode(wakuOptions);
-  await waku.start();
 
   if (!waku) {
     throw new Error("Failed to initialize waku");
