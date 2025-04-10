@@ -155,7 +155,7 @@ export class RLNCredentialsManager {
       LINEA_CONTRACT.address;
 
     if (address === LINEA_CONTRACT.address) {
-      chainId = LINEA_CONTRACT.chainId;
+      chainId = LINEA_CONTRACT.chainId.toString();
       log.info(`Using Linea contract with chainId: ${chainId}`);
     }
 
@@ -163,7 +163,7 @@ export class RLNCredentialsManager {
     const currentChainId = await signer.getChainId();
     log.info(`Current chain ID: ${currentChainId}`);
 
-    if (chainId && chainId !== currentChainId) {
+    if (chainId && chainId !== currentChainId.toString()) {
       log.error(
         `Chain ID mismatch: contract=${chainId}, current=${currentChainId}`
       );
@@ -236,7 +236,7 @@ export class RLNCredentialsManager {
     const chainId = credentials.membership.chainId;
     const network = await this.contract.provider.getNetwork();
     const currentChainId = network.chainId;
-    if (chainId !== currentChainId) {
+    if (chainId !== currentChainId.toString()) {
       throw Error(
         `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`
       );
