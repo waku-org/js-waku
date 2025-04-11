@@ -74,5 +74,6 @@
   },
   "dependencies": {
     "@waku/utils": "^0.0.21"
-  }
+  },
+  "version": ""
 }
