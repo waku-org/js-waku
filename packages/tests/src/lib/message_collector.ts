@@ -269,8 +269,6 @@ export class MessageCollector {
   }
 
   private getPubsubTopicToUse(pubsubTopic: string | undefined): string {
-    return (
-      pubsubTopic || this.nwaku?.pubsubTopics?.[0] || DefaultTestPubsubTopic
-    );
+    return pubsubTopic || DefaultTestPubsubTopic;
   }
 }

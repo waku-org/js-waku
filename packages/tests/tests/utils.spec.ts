@@ -13,7 +13,7 @@ import {
   tearDownNodes
 } from "../src/index.js";
 
-import { runNodes } from "./filter/single_node/utils.js";
+import { runNodes } from "./light-push/utils.js";
 
 chai.use(chaiAsPromised);
 

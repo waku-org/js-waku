@@ -2,7 +2,6 @@ import { MetadataCodec } from "@waku/core";
 import type { LightNode, ShardInfo } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { decodeRelayShard } from "@waku/utils";
-import { shardInfoToPubsubTopics } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
@@ -42,7 +41,7 @@ describe("Metadata Protocol", function () {
         discv5Discovery: true,
         peerExchange: true,
         clusterId: shardInfo.clusterId,
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+        shard: shardInfo.shards
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -89,7 +88,7 @@ describe("Metadata Protocol", function () {
         discv5Discovery: true,
         peerExchange: true,
         clusterId: shardInfo1.clusterId,
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo1)
+        shard: shardInfo1.shards
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -136,7 +135,7 @@ describe("Metadata Protocol", function () {
         discv5Discovery: true,
         peerExchange: true,
         clusterId: shardInfo1.clusterId,
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo1)
+        shard: shardInfo1.shards
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -174,7 +173,7 @@ describe("Metadata Protocol", function () {
         discv5Discovery: true,
         peerExchange: true,
         clusterId: shardInfo1.clusterId,
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo1)
+        shard: shardInfo1.shards
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -209,7 +208,7 @@ describe("Metadata Protocol", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+      shard: shardInfo.shards
     });
 
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -245,7 +244,7 @@ describe("Metadata Protocol", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+      shard: shardInfo.shards
     });
 
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();

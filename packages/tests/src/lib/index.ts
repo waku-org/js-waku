@@ -1,6 +1,6 @@
 import { DecodedMessage } from "@waku/core";
-import { NetworkConfig } from "@waku/interfaces";
-import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
+import { AutoSharding, NetworkConfig, StaticSharding } from "@waku/interfaces";
+import { contentTopicToShardIndex, Logger } from "@waku/utils";
 import { expect } from "chai";
 
 import { DefaultTestPubsubTopic } from "../constants.js";
@@ -29,24 +29,27 @@ export class ServiceNodesFleet {
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
-    const serviceNodePromises = Array.from(
-      { length: nodesToCreate },
-      async () => {
-        const node = new ServiceNode(
-          makeLogFileName(mochaContext) +
-            Math.random().toString(36).substring(7)
-        );
+    const nodes: ServiceNode[] = [];
 
-        const args = getArgs(networkConfig, _args);
-        await node.start(args, {
-          retries: 3
-        });
+    for (let i = 0; i < nodesToCreate; i++) {
+      const node = new ServiceNode(
+        makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
+      );
 
-        return node;
+      const args = getArgs(networkConfig, _args);
+
+      if (nodes[0]) {
+        const addr = await nodes[0].getExternalMultiaddr();
+        args.staticnode = addr ?? args.staticnode;
       }
-    );
 
-    const nodes = await Promise.all(serviceNodePromises);
+      await node.start(args, {
+        retries: 3
+      });
+
+      nodes.push(node);
+    }
+
     return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
@@ -251,16 +254,23 @@ class MultipleNodesMessageCollector {
 }
 
 function getArgs(networkConfig: NetworkConfig, args?: Args): Args {
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
   const defaultArgs = {
     lightpush: true,
     filter: true,
     discv5Discovery: true,
     peerExchange: true,
     relay: true,
-    pubsubTopic: pubsubTopics,
     clusterId: networkConfig.clusterId
   } as Args;
+
+  if ((networkConfig as StaticSharding).shards) {
+    defaultArgs.shard = (networkConfig as StaticSharding).shards;
+  } else if ((networkConfig as AutoSharding).contentTopics) {
+    defaultArgs.contentTopic = (networkConfig as AutoSharding).contentTopics;
+    defaultArgs.shard = (networkConfig as AutoSharding).contentTopics.map(
+      (topic) => contentTopicToShardIndex(topic)
+    );
+  }
 
   return { ...defaultArgs, ...args };
 }

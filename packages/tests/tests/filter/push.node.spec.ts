@@ -146,6 +146,29 @@ const runTests = (strictCheckNodes: boolean): void => {
       ).to.eq(false);
     });
 
+    it("Check message with no pubsub topic is not received", async function () {
+      await waku.filter.subscribe(
+        [TestDecoder],
+        serviceNodes.messageCollector.callback
+      );
+      await delay(400);
+
+      await serviceNodes.nodes[0].restCall<boolean>(
+        `/relay/v1/messages/`,
+        "POST",
+        {
+          contentTopic: TestContentTopic,
+          payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
+          timestamp: BigInt(Date.now()) * BigInt(1000000)
+        },
+        async (res) => res.status === 200
+      );
+
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
+    });
+
     it("Check message with no content topic is not received", async function () {
       await waku.filter.subscribe(
         [TestDecoder],
