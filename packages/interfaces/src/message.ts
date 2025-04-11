@@ -5,7 +5,7 @@ export interface SingleShardInfo {
   /**
    * Specifying this field indicates to the encoder/decoder that static sharding must be used.
    */
-  shard?: number;
+  shard: number;
 }
 
 export interface IRateLimitProof {
@@ -36,34 +36,38 @@ export interface IProtoMessage {
  * Interface for messages to encode and send.
  */
 export interface IMessage {
+  /**
+   * Payload of the message.
+   */
   payload: Uint8Array;
+  /**
+   * Timestamp of the message.
+   */
   timestamp?: Date;
+  /**
+   * Application specific metadata of the message.
+   */
+  meta?: Uint8Array;
+  /**
+   * RLN proof for the message.
+   */
   rateLimitProof?: IRateLimitProof;
-}
-
-export interface IMetaSetter {
-  (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }
 
 export interface EncoderOptions {
   /**
-   * @deprecated
+   * Shard information for for the message.
    */
-  pubsubTopic?: PubsubTopic;
-  pubsubTopicShardInfo?: SingleShardInfo;
-  /** The content topic to set on outgoing messages. */
+  shardInfo?: SingleShardInfo;
+  /**
+   * The content topic to set on outgoing messages.
+   */
   contentTopic: string;
   /**
    * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
    * @defaultValue `false`
    */
   ephemeral?: boolean;
-  /**
-   * A function called when encoding messages to set the meta field.
-   * @param IProtoMessage The message encoded for wire, without the meta field.
-   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
-   */
-  metaSetter?: IMetaSetter;
 }
 
 export interface IEncoder {
@@ -84,12 +88,12 @@ export interface IDecodedMessage {
   meta: Uint8Array | undefined;
 }
 
-export interface IDecoder<T extends IDecodedMessage> {
+export interface IDecoder {
   pubsubTopic: PubsubTopic;
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,
     proto: IProtoMessage
-  ) => Promise<T | undefined>;
+  ) => Promise<IDecodedMessage | undefined>;
 }

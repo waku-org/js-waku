@@ -75,8 +75,7 @@ export class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubsubTopic: PubsubTopic,
-    public metaSetter?: IMetaSetter
+    public pubsubTopic: PubsubTopic
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -95,15 +94,10 @@ export class Encoder implements IEncoder {
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
-      meta: undefined,
+      meta: message?.meta ?? undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral
     };
-
-    if (this.metaSetter) {
-      const meta = this.metaSetter(protoMessage);
-      return { ...protoMessage, meta };
-    }
 
     return protoMessage;
   }
@@ -118,17 +112,14 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
+  shardInfo,
   contentTopic,
-  ephemeral,
-  metaSetter
+  ephemeral
 }: EncoderOptions): Encoder {
   return new Encoder(
     contentTopic,
     ephemeral,
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
-    metaSetter
+    determinePubsubTopic(contentTopic, shardInfo)
   );
 }
 
@@ -186,13 +177,14 @@ export class Decoder implements IDecoder<DecodedMessage> {
  * messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param shardInfo The resulting decoder will handle message from specified shard only.
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  shardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(contentTopic, shardInfo),
     contentTopic
   );
 }
