@@ -1,6 +1,7 @@
 import { createEncoder } from "@waku/core";
 import { IRateLimitProof, LightNode, ProtocolError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
+import { delay } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -24,13 +25,14 @@ import {
 
 const runTests = (strictNodeCheck: boolean): void => {
   const numServiceNodes = 2;
-  describe(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
+  describe.only(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(15000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
 
     beforeEachCustom(this, async () => {
+      console.log("DEBUG(test-case): initiating new test case");
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
@@ -65,31 +67,56 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
     });
 
-    it("Push 30 different messages", async function () {
-      const generateMessageText = (index: number): string => `M${index}`;
+    for (let i = 0; i < 10; i++) {
+      it.only("Push 30 different messages" + " #" + i, async function () {
+        const generateMessageText = (index: number): string => `M${index}`;
 
-      for (let i = 0; i < 30; i++) {
-        const pushResponse = await waku.lightPush.send(TestEncoder, {
-          payload: utf8ToBytes(generateMessageText(i))
-        });
+        for (let i = 0; i < 30; i++) {
+          const pushResponse = await waku.lightPush.send(TestEncoder, {
+            payload: utf8ToBytes(generateMessageText(i))
+          });
 
-        expect(pushResponse.successes.length).to.eq(numServiceNodes);
-      }
+          await delay(100);
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(30, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(true);
+          console.log(
+            "DEBUG(test-case): pushed to ",
+            "failures:",
+            pushResponse.failures.toString(),
+            " successes: ",
+            pushResponse.successes.toString(),
+            " expected successes:",
+            numServiceNodes
+          );
 
-      for (let i = 0; i < 30; i++) {
-        serviceNodes.messageCollector.verifyReceivedMessage(i, {
-          expectedMessageText: generateMessageText(i),
-          expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
-        });
-      }
-    });
+          if (pushResponse.failures.length) {
+            for (let i = 0; i < serviceNodes.nodes.length; i++) {
+              const node = serviceNodes.nodes[i];
+              console.log(
+                "DEBUG(test-cause): nwaku has peers",
+                await node.peers()
+              );
+              console.log("DEBUG(test-cause): nwaku logs", node["logPath"]);
+            }
+          }
+
+          expect(pushResponse.successes.length).to.eq(numServiceNodes);
+        }
+
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(30, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(true);
+
+        for (let i = 0; i < 30; i++) {
+          serviceNodes.messageCollector.verifyReceivedMessage(i, {
+            expectedMessageText: generateMessageText(i),
+            expectedContentTopic: TestContentTopic,
+            expectedPubsubTopic: TestPubsubTopic
+          });
+        }
+      });
+    }
 
     it("Throws when trying to push message with empty payload", async function () {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
@@ -282,4 +309,6 @@ const runTests = (strictNodeCheck: boolean): void => {
   });
 };
 
-[true].map(runTests);
+for (let i = 0; i < 5; i++) {
+  [true, false].map(runTests);
+}
