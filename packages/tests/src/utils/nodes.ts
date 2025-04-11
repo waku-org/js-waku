@@ -68,6 +68,12 @@ export async function runMultipleNodes(
 
   await waitForConnections(numServiceNodes, waku);
 
+  for (let i = 0; i < serviceNodes.nodes.length; i++) {
+    const node = serviceNodes.nodes[i];
+    // eslint-disable-next-line no-console
+    console.log("DEBUG(node-setup): nwaku has peers", await node.peers());
+  }
+
   return [serviceNodes, waku];
 }
 
