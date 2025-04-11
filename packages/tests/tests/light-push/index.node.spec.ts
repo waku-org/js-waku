@@ -283,4 +283,4 @@ const runTests = (strictNodeCheck: boolean): void => {
   });
 };
 
-[true].map(runTests);
+[true, false].map(runTests);
