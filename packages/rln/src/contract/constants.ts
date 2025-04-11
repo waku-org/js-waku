@@ -1,8 +1,8 @@
 import { RLN_ABI } from "./abi.js";
 
-export const SEPOLIA_CONTRACT = {
-  chainId: 11155111,
-  address: "0xCB33Aa5B38d79E3D9Fa8B10afF38AA201399a7e3",
+export const LINEA_CONTRACT = {
+  chainId: 59141,
+  address: "0xb9cd878c90e49f797b4431fbf4fb333108cb90e6",
   abi: RLN_ABI
 };
 

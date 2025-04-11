@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { isDefined } from "@waku/utils";
+import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.31.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.35.1";
 
 const LOG_DIR = "./log";
 
@@ -235,9 +235,15 @@ export class ServiceNode {
     );
   }
 
-  public async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
+  public async messages(_pubsubTopic?: string): Promise<MessageRpcResponse[]> {
+    const pubsubTopic =
+      _pubsubTopic ??
+      shardInfoToPubsubTopics({
+        clusterId: this.args?.clusterId,
+        shards: this.args?.shard
+      })[0];
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "GET",
       null,
       async (response) => {
@@ -262,7 +268,7 @@ export class ServiceNode {
 
   public async sendMessage(
     message: MessageRpcQuery,
-    pubsubTopic?: string
+    _pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -270,8 +276,14 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
+    const pubsubTopic =
+      _pubsubTopic ??
+      shardInfoToPubsubTopics({
+        clusterId: this.args?.clusterId,
+        shards: this.args?.shard
+      })[0];
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || DefaultTestPubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
@@ -348,10 +360,6 @@ export class ServiceNode {
     return `http://127.0.0.1:${this.restPort}`;
   }
 
-  public get pubsubTopics(): string[] {
-    return this.args?.pubsubTopic ?? [];
-  }
-
   public async restCall<T>(
     endpoint: string,
     method: "GET" | "POST",
@@ -375,6 +383,15 @@ export class ServiceNode {
       log.error(`${this.httpUrl} failed with error:`, error);
       throw error;
     }
+  }
+
+  public async getExternalMultiaddr(): Promise<string | undefined> {
+    if (!this.docker?.container) {
+      return undefined;
+    }
+    const containerIp = this.docker.containerIp;
+    const peerId = await this.getPeerId();
+    return `/ip4/${containerIp}/tcp/${this.websocketPort}/ws/p2p/${peerId}`;
   }
 
   private checkProcess(): void {
