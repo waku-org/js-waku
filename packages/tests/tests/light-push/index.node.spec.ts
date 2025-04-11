@@ -65,7 +65,8 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
     });
 
-    it("Push 30 different messages", async function () {
+    // TODO: skiped till https://github.com/waku-org/nwaku/issues/3369 resolved
+    it.skip("Push 30 different messages", async function () {
       const generateMessageText = (index: number): string => `M${index}`;
 
       for (let i = 0; i < 30; i++) {
