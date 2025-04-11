@@ -58,16 +58,32 @@ export class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: Partial<QueryRequestParams>
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    const { pubsubTopic, contentTopics, decodersAsMap } =
-      this.validateDecodersAndPubsubTopic(decoders);
+    let queryOpts: QueryRequestParams;
+    let decodersAsMap: Map<string, IDecoder<T>> = new Map();
+    if (options?.messageHashes) {
+      queryOpts = {
+        ...options,
+        contentTopics: [],
+        includeData: true,
+        paginationForward: true
+      };
+    } else {
+      const {
+        pubsubTopic,
+        contentTopics,
+        decodersAsMap: _decodersAsMap
+      } = this.validateDecodersAndPubsubTopic(decoders);
 
-    const queryOpts = {
-      pubsubTopic,
-      contentTopics,
-      includeData: true,
-      paginationForward: true,
-      ...options
-    };
+      decodersAsMap = _decodersAsMap;
+
+      queryOpts = {
+        pubsubTopic,
+        contentTopics,
+        includeData: true,
+        paginationForward: true,
+        ...options
+      };
+    }
 
     const peer = await this.getPeerToUse();
 
