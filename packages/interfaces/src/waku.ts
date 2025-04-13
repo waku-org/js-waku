@@ -158,7 +158,7 @@ export interface IWaku {
    * });
    * ```
    */
-  createDecoder(params: CreateEncoderParams): IDecoder<IDecodedMessage>;
+  createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage>;
 
   /**
    * Creates an encoder for Waku messages on a specific content topic.
