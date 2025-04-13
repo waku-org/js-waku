@@ -85,12 +85,10 @@ export const createRLNEncoder = (options: RLNEncoderOptions): RLNEncoder => {
   );
 };
 
-export class RLNDecoder<T extends IDecodedMessage>
-  implements IDecoder<RlnMessage<T>>
-{
+export class RLNDecoder implements IDecoder {
   public constructor(
     private readonly rlnInstance: RLNInstance,
-    private readonly decoder: IDecoder<T>
+    private readonly decoder: IDecoder
   ) {}
 
   public get pubsubTopic(): string {
@@ -112,8 +110,8 @@ export class RLNDecoder<T extends IDecodedMessage>
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<RlnMessage<T> | undefined> {
-    const msg: T | undefined = await this.decoder.fromProtoObj(
+  ): Promise<IDecodedMessage | undefined> {
+    const msg: IDecodedMessage | undefined = await this.decoder.fromProtoObj(
       pubsubTopic,
       proto
     );
@@ -122,13 +120,11 @@ export class RLNDecoder<T extends IDecodedMessage>
   }
 }
 
-type RLNDecoderOptions<T extends IDecodedMessage> = {
-  decoder: IDecoder<T>;
+type RLNDecoderOptions = {
+  decoder: IDecoder;
   rlnInstance: RLNInstance;
 };
 
-export const createRLNDecoder = <T extends IDecodedMessage>(
-  options: RLNDecoderOptions<T>
-): RLNDecoder<T> => {
+export const createRLNDecoder = (options: RLNDecoderOptions): IDecoder => {
   return new RLNDecoder(options.rlnInstance, options.decoder);
 };

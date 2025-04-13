@@ -35,11 +35,11 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
     super(StoreCodec, libp2p.components, pubsubTopics);
   }
 
-  public async *queryPerPage<T extends IDecodedMessage>(
+  public async *queryPerPage(
     queryOpts: QueryRequestParams,
-    decoders: Map<string, IDecoder<T>>,
+    decoders: Map<string, IDecoder>,
     peerId: PeerId
-  ): AsyncGenerator<Promise<T | undefined>[]> {
+  ): AsyncGenerator<Promise<IDecodedMessage | undefined>[]> {
     if (
       queryOpts.contentTopics.toString() !==
       Array.from(decoders.keys()).toString()

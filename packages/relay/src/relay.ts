@@ -13,7 +13,6 @@ import {
   Callback,
   CreateNodeOptions,
   IAsyncIterator,
-  IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
@@ -34,9 +33,9 @@ import { TopicOnlyDecoder } from "./topic_only_message.js";
 
 const log = new Logger("relay");
 
-export type Observer<T extends IDecodedMessage> = {
-  decoder: IDecoder<T>;
-  callback: Callback<T>;
+export type Observer = {
+  decoder: IDecoder;
+  callback: Callback;
 };
 
 export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
@@ -53,7 +52,7 @@ type RelayConstructorParams = {
  */
 export class Relay implements IRelay {
   public readonly pubsubTopics: Set<PubsubTopic>;
-  private defaultDecoder: IDecoder<IDecodedMessage>;
+  private defaultDecoder: IDecoder;
 
   public static multicodec: string = RelayCodecs[0];
   public readonly gossipSub: GossipSub;
@@ -168,15 +167,15 @@ export class Relay implements IRelay {
     };
   }
 
-  public subscribeWithUnsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public subscribeWithUnsubscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): () => void {
-    const observers: Array<[PubsubTopic, Observer<T>]> = [];
+    const observers: Array<[PubsubTopic, Observer]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
       const { pubsubTopic } = decoder;
-      const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
+      const ctObs: Map<ContentTopic, Set<Observer>> = this.observers.get(
         pubsubTopic
       ) ?? new Map();
       const observer = { pubsubTopic, decoder, callback };
@@ -193,9 +192,7 @@ export class Relay implements IRelay {
 
   public subscribe = this.subscribeWithUnsubscribe;
 
-  private removeObservers<T extends IDecodedMessage>(
-    observers: Array<[PubsubTopic, Observer<T>]>
-  ): void {
+  private removeObservers(observers: Array<[PubsubTopic, Observer]>): void {
     for (const [pubsubTopic, observer] of observers) {
       const ctObs = this.observers.get(pubsubTopic);
       if (!ctObs) continue;
@@ -210,9 +207,9 @@ export class Relay implements IRelay {
     }
   }
 
-  public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<IAsyncIterator<T>> {
+  public toSubscriptionIterator(
+    decoders: IDecoder | IDecoder[]
+  ): Promise<IAsyncIterator> {
     return toAsyncIterator(this, decoders);
   }
 
@@ -235,7 +232,7 @@ export class Relay implements IRelay {
     }
   }
 
-  private async processIncomingMessage<T extends IDecodedMessage>(
+  private async processIncomingMessage(
     pubsubTopic: string,
     bytes: Uint8Array
   ): Promise<void> {
@@ -252,9 +249,9 @@ export class Relay implements IRelay {
     }
 
     // Retrieve the set of observers for the given contentTopic
-    const observers = contentTopicMap.get(topicOnlyMsg.contentTopic) as Set<
-      Observer<T>
-    >;
+    const observers = contentTopicMap.get(
+      topicOnlyMsg.contentTopic
+    ) as Set<Observer>;
     if (!observers) {
       return;
     }

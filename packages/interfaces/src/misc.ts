@@ -1,8 +1,8 @@
 import type { IDecodedMessage } from "./message.js";
 import { ProtocolError } from "./protocols.js";
 
-export interface IAsyncIterator<T extends IDecodedMessage> {
-  iterator: AsyncIterator<T>;
+export interface IAsyncIterator {
+  iterator: AsyncIterator<IDecodedMessage>;
   stop: Unsubscribe;
 }
 

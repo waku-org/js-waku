@@ -1,6 +1,7 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import {
   type EncoderOptions as BaseEncoderOptions,
+  IDecodedMessage,
   type IDecoder,
   type IEncoder,
   type IMessage,
@@ -111,7 +112,7 @@ export function createEncoder({
   sigPrivKey,
   ephemeral = false,
   metaSetter
-}: EncoderOptions): Encoder {
+}: EncoderOptions): IEncoder {
   return new Encoder(
     determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
@@ -122,7 +123,7 @@ export function createEncoder({
   );
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder {
   public constructor(
     pubsubTopic: PubsubTopic,
     contentTopic: string,
@@ -134,7 +135,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     protoMessage: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
@@ -202,7 +203,7 @@ export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
-): Decoder {
+): IDecoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic,

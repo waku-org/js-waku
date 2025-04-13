@@ -54,10 +54,10 @@ export class Store implements IStore {
    * @returns An asynchronous generator of promises of decoded messages.
    * @throws If no peers are available to query or if an error occurs during the query.
    */
-  public async *queryGenerator<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+  public async *queryGenerator(
+    decoders: IDecoder[],
     options?: Partial<QueryRequestParams>
-  ): AsyncGenerator<Promise<T | undefined>[]> {
+  ): AsyncGenerator<Promise<IDecodedMessage | undefined>[]> {
     const { pubsubTopic, contentTopics, decodersAsMap } =
       this.validateDecodersAndPubsubTopic(decoders);
 
@@ -96,9 +96,11 @@ export class Store implements IStore {
    * @param options - Optional query parameters.
    * @returns A promise that resolves when the query and message processing are completed.
    */
-  public async queryWithOrderedCallback<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
-    callback: (message: T) => Promise<void | boolean> | boolean | void,
+  public async queryWithOrderedCallback(
+    decoders: IDecoder[],
+    callback: (
+      message: IDecodedMessage
+    ) => Promise<void | boolean> | boolean | void,
     options?: Partial<QueryRequestParams>
   ): Promise<void> {
     log.info("Querying store with ordered callback");
@@ -115,10 +117,10 @@ export class Store implements IStore {
    * @param options - Optional query parameters.
    * @returns A promise that resolves when the query and message processing are completed.
    */
-  public async queryWithPromiseCallback<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+  public async queryWithPromiseCallback(
+    decoders: IDecoder[],
     callback: (
-      message: Promise<T | undefined>
+      message: Promise<IDecodedMessage | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: Partial<QueryRequestParams>
   ): Promise<void> {
@@ -143,13 +145,17 @@ export class Store implements IStore {
    * @returns A promise that resolves to a boolean indicating whether the processing should abort.
    * @private
    */
-  private async processMessages<T extends IDecodedMessage>(
-    messages: Promise<T | undefined>[],
-    callback: (message: T) => Promise<void | boolean> | boolean | void
+  private async processMessages(
+    messages: Promise<IDecodedMessage | undefined>[],
+    callback: (
+      message: IDecodedMessage
+    ) => Promise<void | boolean> | boolean | void
   ): Promise<boolean> {
     let abort = false;
-    const messagesOrUndef: Array<T | undefined> = await Promise.all(messages);
-    const processedMessages: Array<T> = messagesOrUndef.filter(isDefined);
+    const messagesOrUndef: Array<IDecodedMessage | undefined> =
+      await Promise.all(messages);
+    const processedMessages: Array<IDecodedMessage> =
+      messagesOrUndef.filter(isDefined);
 
     await Promise.all(
       processedMessages.map(async (msg) => {
@@ -180,12 +186,10 @@ export class Store implements IStore {
    * @throws If no decoders are provided, if multiple pubsub topics are provided, or if no decoders are found for the pubsub topic.
    * @private
    */
-  private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[]
-  ): {
+  private validateDecodersAndPubsubTopic(decoders: IDecoder[]): {
     pubsubTopic: string;
     contentTopics: string[];
-    decodersAsMap: Map<string, IDecoder<T>>;
+    decodersAsMap: Map<string, IDecoder>;
   } {
     if (decoders.length === 0) {
       log.error("No decoders provided");

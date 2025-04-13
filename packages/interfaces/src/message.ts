@@ -84,12 +84,12 @@ export interface IDecodedMessage {
   meta: Uint8Array | undefined;
 }
 
-export interface IDecoder<T extends IDecodedMessage> {
+export interface IDecoder {
   pubsubTopic: PubsubTopic;
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,
     proto: IProtoMessage
-  ) => Promise<T | undefined>;
+  ) => Promise<IDecodedMessage | undefined>;
 }

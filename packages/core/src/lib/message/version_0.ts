@@ -123,7 +123,7 @@ export function createEncoder({
   contentTopic,
   ephemeral,
   metaSetter
-}: EncoderOptions): Encoder {
+}: EncoderOptions): IEncoder {
   return new Encoder(
     contentTopic,
     ephemeral,
@@ -132,7 +132,7 @@ export function createEncoder({
   );
 }
 
-export class Decoder implements IDecoder<IDecodedMessage> {
+export class Decoder implements IDecoder {
   public constructor(
     public pubsubTopic: PubsubTopic,
     public contentTopic: string
@@ -160,7 +160,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {
@@ -190,7 +190,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
-): Decoder {
+): IDecoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic

@@ -81,20 +81,22 @@ export type IStoreCore = IBaseProtocolCore;
 export type IStore = {
   protocol: IBaseProtocolCore;
   createCursor(message: IDecodedMessage): StoreCursor;
-  queryGenerator: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+  queryGenerator: (
+    decoders: IDecoder[],
     options?: Partial<QueryRequestParams>
-  ) => AsyncGenerator<Promise<T | undefined>[]>;
+  ) => AsyncGenerator<Promise<IDecodedMessage | undefined>[]>;
 
-  queryWithOrderedCallback: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
-    callback: (message: T) => Promise<void | boolean> | boolean | void,
+  queryWithOrderedCallback: (
+    decoders: IDecoder[],
+    callback: (
+      message: IDecodedMessage
+    ) => Promise<void | boolean> | boolean | void,
     options?: Partial<QueryRequestParams>
   ) => Promise<void>;
-  queryWithPromiseCallback: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+  queryWithPromiseCallback: (
+    decoders: IDecoder[],
     callback: (
-      message: Promise<T | undefined>
+      message: Promise<IDecodedMessage | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: Partial<QueryRequestParams>
   ) => Promise<void>;
