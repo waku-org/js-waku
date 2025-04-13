@@ -1,5 +1,5 @@
-import { createDecoder, createEncoder } from "@waku/core";
-import { LightNode } from "@waku/interfaces";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
+import { IDecoder, LightNode } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -30,6 +30,7 @@ import {
   ClusterId,
   messagePayload,
   messageText,
+  ShardIndex,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -433,14 +434,23 @@ const runTests = (strictCheckNodes: boolean): void => {
     TEST_STRING.forEach((testItem) => {
       it(`Subscribe to topic containing ${testItem.description} and receive message`, async function () {
         const newContentTopic = testItem.value;
-        const newEncoder = createEncoder({
+        const newEncoder = waku.createEncoder({
           contentTopic: newContentTopic,
-          pubsubTopic: TestPubsubTopic
+          shardInfo: {
+            clusterId: ClusterId,
+            shard: ShardIndex
+          }
         });
-        const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+        const newDecoder = waku.createDecoder({
+          contentTopic: newContentTopic,
+          shardInfo: {
+            clusterId: ClusterId,
+            shard: ShardIndex
+          }
+        });
 
         await waku.filter.subscribe(
-          [newDecoder],
+          [newDecoder as IDecoder<DecodedMessage>],
           serviceNodes.messageCollector.callback
         );
         await waku.lightPush.send(newEncoder, messagePayload);

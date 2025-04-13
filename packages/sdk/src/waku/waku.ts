@@ -1,6 +1,5 @@
-import { isPeerId } from "@libp2p/interface";
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
-import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
+import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManager,
   createDecoder,
@@ -21,15 +20,10 @@ import type {
   IWaku,
   Libp2p,
   NetworkConfig,
-  PubsubTopic,
-  SingleShardInfo
+  PubsubTopic
 } from "@waku/interfaces";
-import {
-  DEFAULT_NUM_SHARDS,
-  DefaultNetworkConfig,
-  Protocols
-} from "@waku/interfaces";
-import { contentTopicToShardIndex, Logger } from "@waku/utils";
+import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -37,6 +31,11 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
+import {
+  decoderParamsToShardInfo,
+  isShardCompatible,
+  mapToPeerIdOrMultiaddr
+} from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -207,7 +206,7 @@ export class WakuNode implements IWaku {
       }
     }
 
-    const peerId = this.mapToPeerIdOrMultiaddr(peer);
+    const peerId = mapToPeerIdOrMultiaddr(peer);
     log.info(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
     return await this.connectionManager.rawDialPeerWithProtocols(peer, codecs);
   }
@@ -261,13 +260,16 @@ export class WakuNode implements IWaku {
   }
 
   public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
-    const singleShardInfo = this.decoderParamsToShardInfo(params);
+    const singleShardInfo = decoderParamsToShardInfo(
+      params,
+      this.networkConfig
+    );
 
     log.info(
       `Creating Decoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
     );
 
-    if (!this.isShardCompatible(singleShardInfo)) {
+    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
       throw Error(`Cannot create decoder: incompatible shard configuration.`);
     }
 
@@ -275,13 +277,16 @@ export class WakuNode implements IWaku {
   }
 
   public createEncoder(params: CreateEncoderParams): IEncoder {
-    const singleShardInfo = this.decoderParamsToShardInfo(params);
+    const singleShardInfo = decoderParamsToShardInfo(
+      params,
+      this.networkConfig
+    );
 
     log.info(
       `Creating Encoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
     );
 
-    if (!this.isShardCompatible(singleShardInfo)) {
+    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
       throw Error(`Cannot create encoder: incompatible shard configuration.`);
     }
 
@@ -290,47 +295,5 @@ export class WakuNode implements IWaku {
       ephemeral: params.ephemeral,
       pubsubTopicShardInfo: singleShardInfo
     });
-  }
-
-  private mapToPeerIdOrMultiaddr(
-    peerId: PeerId | MultiaddrInput
-  ): PeerId | Multiaddr {
-    return isPeerId(peerId) ? peerId : multiaddr(peerId);
-  }
-
-  private decoderParamsToShardInfo(
-    params: CreateDecoderParams
-  ): SingleShardInfo {
-    const clusterId = (params.shardInfo?.clusterId ||
-      this.networkConfig.clusterId) as number;
-    const shardsUnderCluster =
-      params.shardInfo && "shardsUnderCluster" in params.shardInfo
-        ? params.shardInfo.shardsUnderCluster
-        : DEFAULT_NUM_SHARDS;
-
-    const shardIndex =
-      params.shardInfo && "shard" in params.shardInfo
-        ? params.shardInfo.shard
-        : contentTopicToShardIndex(params.contentTopic, shardsUnderCluster);
-
-    return {
-      clusterId,
-      shard: shardIndex
-    };
-  }
-
-  private isShardCompatible(shardInfo: SingleShardInfo): boolean {
-    if (this.networkConfig.clusterId !== shardInfo.clusterId) {
-      return false;
-    }
-
-    if (
-      "shards" in this.networkConfig &&
-      !this.networkConfig.shards.includes(shardInfo.shard!)
-    ) {
-      return false;
-    }
-
-    return true;
   }
 }
