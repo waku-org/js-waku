@@ -34,7 +34,9 @@ export type {
   Keccak256Hash,
   KeystoreEntity,
   MembershipHash,
-  MembershipInfo,
+  KeystoreMembershipInfo,
   Password,
   Sha256Hash
 } from "./keystore/types.js";
+
+export * from "./contract/index.js";
