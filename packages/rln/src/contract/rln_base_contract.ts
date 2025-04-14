@@ -432,9 +432,15 @@ export class RLNBaseContract {
     idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
+    const estimatedGas = await this.contract.estimateGas[
+      "eraseMemberships(uint256[],bool)"
+    ]([idCommitmentBigInt], eraseFromMembershipSet);
+    const gasLimit = estimatedGas.add(10000);
+
     const tx = await this.contract["eraseMemberships(uint256[],bool)"](
       [idCommitmentBigInt],
-      eraseFromMembershipSet
+      eraseFromMembershipSet,
+      { gasLimit }
     );
     await tx.wait();
     return tx;
