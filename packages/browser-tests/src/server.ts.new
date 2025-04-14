@@ -1,0 +1,106 @@
+/* eslint-disable no-console */
+import { exec } from "child_process";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+import { LightNode } from "@waku/sdk";
+import cors from "cors";
+import express, { Request, Response } from "express";
+
+import { IWakuNode } from "./api/common.js";
+import { createWakuNode, dialPeers, getDebugInfo, getPeerInfo, pushMessage, subscribe } from "./api/shared.js";
+import { closeBrowser, initBrowser } from "./browser/index.js";
+
+// Import route modules
+import adminRoutes from "./routes/admin.js";
+import infoRoutes from "./routes/info.js";
+import pushRoutes from "./routes/push.js";
+
+// Define types for the Waku node and window
+declare global {
+  interface Window {
+    waku: IWakuNode & LightNode;
+    wakuAPI: {
+      getPeerInfo: typeof getPeerInfo;
+      getDebugInfo: typeof getDebugInfo;
+      pushMessage: typeof pushMessage;
+      dialPeers: typeof dialPeers;
+      createWakuNode: typeof createWakuNode;
+      subscribe: typeof subscribe;
+      [key: string]: any;
+    };
+  }
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Enable CORS
+app.use(cors());
+app.use(express.json());
+
+// Default route
+app.get("/", (_req: Request, res: Response) => {
+  res.json({ status: "Waku simulation server is running" });
+});
+
+// Register route modules
+app.use(infoRoutes);
+app.use(pushRoutes);
+app.use(adminRoutes);
+
+// Start the server and initialize the browser
+async function startServer(): Promise<void> {
+  try {
+    // Start serving the headless app
+    console.log("Starting headless app server...");
+    const serverProcess = exec(
+      `serve ${join(__dirname, "../headless")} -p 8080 -s`,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error starting serve: ${error}`);
+          return;
+        }
+        console.log(`serve stdout: ${stdout}`);
+        console.error(`serve stderr: ${stderr}`);
+      }
+    );
+
+    // Wait a moment to ensure the server is running
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Initialize the browser
+    await initBrowser();
+
+    // Start the API server
+    app.listen(port, () => {
+      console.log(`Waku simulation server running on port ${port}`);
+    });
+
+    // Handle cleanup on process exit
+    process.on("SIGINT", async () => {
+      console.log("Shutting down...");
+      await closeBrowser();
+      if (serverProcess.pid) {
+        try {
+          process.kill(serverProcess.pid);
+        } catch (error) {
+          console.error("Error killing server process:", error);
+        }
+      }
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error("Error starting server:", error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
+});
