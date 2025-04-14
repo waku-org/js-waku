@@ -11,7 +11,7 @@ import { IdentityCredential } from "../identity.js";
 import { buildBigIntFromUint8Array } from "../utils/bytes.js";
 
 import { Keystore } from "./keystore.js";
-import type { MembershipInfo } from "./types.js";
+import type { KeystoreMembershipInfo } from "./types.js";
 
 const DEFAULT_PASSWORD = "sup3rsecure";
 const NWAKU_KEYSTORE = {
@@ -233,7 +233,7 @@ describe("Keystore", () => {
       treeIndex: 8,
       address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71",
       rateLimit: undefined
-    } as unknown as MembershipInfo;
+    } as unknown as KeystoreMembershipInfo;
 
     const store = Keystore.create();
     const hash = await store.addCredential(
@@ -284,7 +284,7 @@ describe("Keystore", () => {
       treeIndex: 8,
       address: "0x8e1F3742B987d8BA376c0CBbD7357fE1F003ED71",
       rateLimit: undefined
-    } as unknown as MembershipInfo;
+    } as unknown as KeystoreMembershipInfo;
 
     const store = Keystore.fromObject(NWAKU_KEYSTORE as any);
 
