@@ -66,7 +66,7 @@
         "chai": "^5.1.2"
     },
     "devDependencies": {
-        "@rollup/plugin-commonjs": "^25.0.7",
+        "@rollup/plugin-commonjs": "^28.0.3",
         "@rollup/plugin-json": "^6.0.0",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@waku/build-utils": "*",
