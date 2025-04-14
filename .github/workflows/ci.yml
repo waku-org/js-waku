@@ -22,13 +22,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
-          
+
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
+      - name: Install headless dependencies
+        run: cd packages/browser-tests/headless && npm install
       - run: npm run build
       - run: npm run check
       - run: npm run doc
@@ -37,12 +39,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
+      - name: Install headless dependencies
+        run: cd packages/browser-tests/headless && npm install
       - name: Generate protobuf code
         run: |
           npm run proto
@@ -62,12 +66,14 @@ jobs:
       HOME: "/root"
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
+      - name: Install headless dependencies
+        run: cd packages/browser-tests/headless && npm install
       - run: npm run build:esm
       - run: npm run test:browser
 
@@ -150,7 +156,7 @@ jobs:
           token: ${{ secrets.CI_TOKEN }}
 
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
         if: ${{ steps.release.outputs.releases_created }}
 

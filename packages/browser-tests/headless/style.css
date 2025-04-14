@@ -1,0 +1,153 @@
+* {
+    margin: 0;
+    padding: 0;
+    word-wrap: break-word;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+html {
+    font-size: 16px;
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    justify-content: center;
+}
+
+details {
+    margin-bottom: 15px;
+}
+
+details p {
+    margin-bottom: 10px;
+}
+
+summary {
+    cursor: pointer;
+    max-width: 100%;
+    margin-bottom: 5px;
+}
+
+span {
+    font-weight: 300;
+}
+
+input, textarea {
+    line-height: 1rem;
+    padding: 5px;
+}
+
+textarea {
+    min-height: 3rem;
+}
+
+h3 {
+    margin-bottom: 5px;
+}
+
+.content {
+    width: 800px;
+    min-width: 300px;
+    max-width: 800px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-content: space-between;
+}
+
+#messages {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.message + .message {
+    margin-top: 15px;
+}
+
+.message :first-child {
+    font-weight: bold;
+}
+
+.message p + p {
+    margin-top: 5px;
+}
+
+.message span {
+    font-size: 0.8rem;
+}
+
+.inputArea {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.controls button {
+    flex-grow: 1;
+    cursor: pointer;
+    padding: 10px;
+}
+
+#send {
+    background-color: #32d1a0;
+    border: none;
+    color: white;
+}
+#send:hover {
+    background-color: #3abd96;
+}
+#send:active {
+    background-color: #3ba183;
+}
+
+#exit {
+    color: white;
+    border: none;
+    background-color: #ff3a31;
+}
+#exit:hover {
+    background-color: #e4423a;
+}
+#exit:active {
+    background-color: #c84740;
+}
+
+.success {
+    color: #3ba183;
+}
+
+.progress {
+    color: #9ea13b;
+}
+
+.terminated {
+    color: black;
+}
+
+.error {
+    color: #c84740;
+}
+
+.footer {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-self: flex-end;
+}
