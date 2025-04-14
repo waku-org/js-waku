@@ -432,7 +432,7 @@ export class RLNBaseContract {
     idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
-    const tx = await this.contract.eraseMemberships(
+    const tx = await this.contract["eraseMemberships(uint256[],bool)"](
       [idCommitmentBigInt],
       eraseFromMembershipSet
     );
