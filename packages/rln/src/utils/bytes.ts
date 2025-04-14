@@ -65,8 +65,16 @@ export function buildBigIntFromUint8Array(
   array: Uint8Array,
   byteOffset: number = 0
 ): bigint {
-  const dataView = new DataView(array.buffer);
-  return dataView.getBigUint64(byteOffset, true);
+  // Convert byte array to BigInt in big-endian format (to match nwaku)
+  let result = 0n;
+  // Process all 32 bytes (or the available bytes if less)
+  const length = Math.min(array.length - byteOffset, 32);
+
+  for (let i = 0; i < length; i++) {
+    result = (result << 8n) | BigInt(array[byteOffset + i]);
+  }
+
+  return result;
 }
 
 /**
