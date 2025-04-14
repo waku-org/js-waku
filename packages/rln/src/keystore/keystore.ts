@@ -21,8 +21,8 @@ import { isCredentialValid, isKeystoreValid } from "./schema_validator.js";
 import type {
   Keccak256Hash,
   KeystoreEntity,
+  KeystoreMembershipInfo,
   MembershipHash,
-  MembershipInfo,
   Password,
   Sha256Hash
 } from "./types.js";
@@ -310,7 +310,9 @@ export class Keystore {
 
   // follows nwaku implementation
   // https://github.com/waku-org/nwaku/blob/f05528d4be3d3c876a8b07f9bb7dfaae8aa8ec6e/waku/waku_keystore/protocol_types.nim#L111
-  private static computeMembershipHash(info: MembershipInfo): MembershipHash {
+  private static computeMembershipHash(
+    info: KeystoreMembershipInfo
+  ): MembershipHash {
     return bytesToHex(
       sha256(utf8ToBytes(`${info.chainId}${info.address}${info.treeIndex}`))
     ).toUpperCase();
