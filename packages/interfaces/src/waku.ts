@@ -6,9 +6,29 @@ import type { IFilter } from "./filter.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
+import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
+
+type AutoShardSingle = {
+  clusterId: number;
+  shardsUnderCluster: number;
+};
+
+type StaticShardSingle = {
+  clusterId: number;
+  shard: number;
+};
+
+export type CreateDecoderParams = {
+  contentTopic: string;
+  shardInfo?: AutoShardSingle | StaticShardSingle;
+};
+
+export type CreateEncoderParams = CreateDecoderParams & {
+  ephemeral?: boolean;
+};
 
 export interface IWaku {
   libp2p: Libp2p;
@@ -110,6 +130,65 @@ export interface IWaku {
    * ```
    */
   waitForPeers(protocols?: Protocols[], timeoutMs?: number): Promise<void>;
+
+  /**
+   * Creates a decoder for Waku messages on a specific content topic.
+   *
+   * A decoder is used to decode messages from the Waku network format.
+   * The decoder automatically handles shard configuration based on the Waku node's network settings.
+   *
+   * @param {CreateDecoderParams} params - Configuration for the decoder
+   * @returns {IDecoder<IDecodedMessage>} A decoder instance configured for the specified content topic
+   * @throws {Error} If the shard configuration is incompatible with the node's network settings
+   *
+   * @example
+   * ```typescript
+   * // Create a decoder with default network shard settings
+   * const decoder = waku.createDecoder({
+   *   contentTopic: "/my-app/1/chat/proto"
+   * });
+   *
+   * // Create a decoder with custom shard settings
+   * const customDecoder = waku.createDecoder({
+   *   contentTopic: "/my-app/1/chat/proto",
+   *   shardInfo: {
+   *     clusterId: 1,
+   *     shard: 5
+   *   }
+   * });
+   * ```
+   */
+  createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage>;
+
+  /**
+   * Creates an encoder for Waku messages on a specific content topic.
+   *
+   * An encoder is used to encode messages into the Waku network format.
+   * The encoder automatically handles shard configuration based on the Waku node's network settings.
+   *
+   * @param {CreateEncoderParams} params - Configuration for the encoder including content topic and optionally shard information and ephemeral flag
+   * @returns {IEncoder} An encoder instance configured for the specified content topic
+   * @throws {Error} If the shard configuration is incompatible with the node's network settings
+   *
+   * @example
+   * ```typescript
+   * // Create a basic encoder with default network shard settings
+   * const encoder = waku.createEncoder({
+   *   contentTopic: "/my-app/1/chat/proto"
+   * });
+   *
+   * // Create an ephemeral encoder (messages won't be stored by store nodes)
+   * const ephemeralEncoder = waku.createEncoder({
+   *   contentTopic: "/my-app/1/notifications/proto",
+   *   ephemeral: true,
+   *   shardInfo: {
+   *     clusterId: 2,
+   *     shardsUnderCluster: 16
+   *   }
+   * });
+   * ```
+   */
+  createEncoder(params: CreateEncoderParams): IEncoder;
 
   /**
    * @returns {boolean} `true` if the node was started and `false` otherwise

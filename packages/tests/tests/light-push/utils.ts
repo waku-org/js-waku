@@ -2,7 +2,11 @@ import { createEncoder } from "@waku/core";
 import { LightNode, NetworkConfig, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { createLightNode } from "@waku/sdk";
-import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
+  Logger
+} from "@waku/utils";
 import { Context } from "mocha";
 
 import { runNodes as runNodesBuilder, ServiceNode } from "../../src/index.js";
@@ -11,6 +15,7 @@ import { runNodes as runNodesBuilder, ServiceNode } from "../../src/index.js";
 export const log = new Logger("test:lightpush");
 export const TestContentTopic = "/test/1/waku-light-push/utf8";
 export const ClusterId = 3;
+export const ShardIndex = contentTopicToShardIndex(TestContentTopic);
 export const TestPubsubTopic = contentTopicToPubsubTopic(
   TestContentTopic,
   ClusterId

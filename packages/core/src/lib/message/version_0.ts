@@ -132,7 +132,7 @@ export function createEncoder({
   );
 }
 
-export class Decoder implements IDecoder<DecodedMessage> {
+export class Decoder implements IDecoder<IDecodedMessage> {
   public constructor(
     public pubsubTopic: PubsubTopic,
     public contentTopic: string
