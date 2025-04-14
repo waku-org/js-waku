@@ -3,6 +3,7 @@ import "dotenv-flow/config";
 import { execSync } from "child_process";
 import path from "path";
 
+// eslint-disable-next-line import/extensions
 import { __dirname, readJSON } from "./utils.js";
 
 const ROOT_PATH = path.resolve(__dirname, "../../../");
@@ -15,8 +16,8 @@ const EXAMPLE_PATH = path.resolve(__dirname, "..", EXAMPLE_NAME);
 run();
 
 function run() {
-  cleanExampleIfExists();
-  bootstrapExample();
+  // cleanExampleIfExists();
+  // bootstrapExample();
   linkPackages();
 }
 

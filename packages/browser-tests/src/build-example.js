@@ -3,6 +3,7 @@ import "dotenv-flow/config";
 import { execSync } from "child_process";
 import path from "path";
 
+// eslint-disable-next-line import/extensions
 import { __dirname } from "./utils.js";
 
 const EXAMPLE_NAME = process.env.EXAMPLE_NAME;
@@ -12,14 +13,14 @@ const BUILD_FOLDER = "build";
 const BUILD_PATH = path.resolve(EXAMPLE_PATH, BUILD_FOLDER);
 
 // required by web-chat example
-const WEB_CHAT_BUILD_PATH = path.resolve(EXAMPLE_PATH, "web-chat");
+// const WEB_CHAT_BUILD_PATH = path.resolve(EXAMPLE_PATH, "web-chat");
 
 run();
 
 function run() {
   cleanPrevBuildIfExists();
   buildExample();
-  renameBuildFolderForWebChat();
+  // renameBuildFolderForWebChat();
 }
 
 function cleanPrevBuildIfExists() {
@@ -42,14 +43,14 @@ function buildExample() {
   }
 }
 
-function renameBuildFolderForWebChat() {
-  try {
-    console.log("Renaming example's build folder.");
-    execSync(`mv ${BUILD_PATH} ${WEB_CHAT_BUILD_PATH}`, { stdio: "ignore" });
-  } catch (error) {
-    console.error(
-      `Failed to rename build folder for web-chat: ${error.message}`
-    );
-    throw error;
-  }
-}
+// function renameBuildFolderForWebChat() {
+//   try {
+//     console.log("Renaming example's build folder.");
+//     execSync(`mv ${BUILD_PATH} ${WEB_CHAT_BUILD_PATH}`, { stdio: "ignore" });
+//   } catch (error) {
+//     console.error(
+//       `Failed to rename build folder for web-chat: ${error.message}`
+//     );
+//     throw error;
+//   }
+// }
