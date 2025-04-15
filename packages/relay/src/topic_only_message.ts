@@ -13,6 +13,8 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public meta: undefined;
   public ephemeral: undefined;
 
+  public version = 0;
+
   public constructor(
     public pubsubTopic: string,
     private proto: ProtoTopicOnlyMessage

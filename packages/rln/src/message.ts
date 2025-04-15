@@ -61,6 +61,10 @@ export class RlnMessage implements IDecodedMessage {
     return this.msg.meta;
   }
 
+  public get version(): number | undefined {
+    return this.msg.version;
+  }
+
   public get epoch(): number | undefined {
     const bytes = this.rateLimitProof?.epoch;
     if (!bytes) return undefined;
