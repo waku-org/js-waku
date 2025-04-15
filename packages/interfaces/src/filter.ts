@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface";
 
-import type { IDecodedMessage, IDecoder } from "./message.js";
+import type { IDecoder } from "./message.js";
 import type { ContentTopic, ThisOrThat } from "./misc.js";
 import type {
   Callback,
@@ -10,9 +10,9 @@ import type {
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
-export type SubscriptionCallback<T extends IDecodedMessage> = {
-  decoders: IDecoder<T>[];
-  callback: Callback<T>;
+export type SubscriptionCallback = {
+  decoders: IDecoder[];
+  callback: Callback;
 };
 
 export type FilterProtocolOptions = {
@@ -40,9 +40,9 @@ export type FilterProtocolOptions = {
 };
 
 export interface ISubscription {
-  subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  subscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): Promise<SDKProtocolResult>;
 
   unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
@@ -53,9 +53,9 @@ export interface ISubscription {
 }
 
 export type IFilter = IReceiver & { protocol: IBaseProtocolCore } & {
-  subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  subscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): Promise<SubscribeResult>;
 };
 

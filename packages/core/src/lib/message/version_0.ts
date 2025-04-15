@@ -22,7 +22,7 @@ export { proto };
 export class DecodedMessage implements IDecodedMessage {
   public constructor(
     public pubsubTopic: string,
-    protected proto: proto.WakuMessage
+    private proto: proto.WakuMessage
   ) {}
 
   public get ephemeral(): boolean {
@@ -35,10 +35,6 @@ export class DecodedMessage implements IDecodedMessage {
 
   public get contentTopic(): string {
     return this.proto.contentTopic;
-  }
-
-  public get _rawTimestamp(): bigint | undefined {
-    return this.proto.timestamp;
   }
 
   public get timestamp(): Date | undefined {
@@ -90,7 +86,7 @@ export class Encoder implements IEncoder {
   public async toProtoObj(message: IMessage): Promise<IProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
-    const protoMessage = {
+    const protoMessage: IProtoMessage = {
       payload: message.payload,
       version: Version,
       contentTopic: this.contentTopic,
@@ -100,10 +96,12 @@ export class Encoder implements IEncoder {
       ephemeral: this.ephemeral
     };
 
-    if (this.metaSetter) {
-      const meta = this.metaSetter(protoMessage);
-      return { ...protoMessage, meta };
-    }
+    const meta =
+      !message.meta && this.metaSetter
+        ? this.metaSetter(protoMessage)
+        : message.meta;
+
+    protoMessage.meta = meta;
 
     return protoMessage;
   }
@@ -123,7 +121,7 @@ export function createEncoder({
   contentTopic,
   ephemeral,
   metaSetter
-}: EncoderOptions): Encoder {
+}: EncoderOptions): IEncoder {
   return new Encoder(
     contentTopic,
     ephemeral,
@@ -132,7 +130,7 @@ export function createEncoder({
   );
 }
 
-export class Decoder implements IDecoder<IDecodedMessage> {
+export class Decoder implements IDecoder {
   public constructor(
     public pubsubTopic: PubsubTopic,
     public contentTopic: string
@@ -160,7 +158,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {
@@ -190,7 +188,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
-): Decoder {
+): IDecoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic

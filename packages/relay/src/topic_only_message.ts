@@ -13,6 +13,8 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public meta: undefined;
   public ephemeral: undefined;
 
+  public version = 0;
+
   public constructor(
     public pubsubTopic: string,
     private proto: ProtoTopicOnlyMessage
@@ -24,7 +26,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 }
 
 // This decoder is used only for reading `contentTopic` from the WakuMessage
-export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
+export class TopicOnlyDecoder implements IDecoder {
   public contentTopic = "";
 
   // pubsubTopic is ignored
@@ -48,7 +50,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<TopicOnlyMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     return new TopicOnlyMessage(pubsubTopic, proto);
   }
 }
