@@ -16,6 +16,7 @@
     "packages/sds",
     "packages/rln",
     "packages/tests",
+    "packages/reliability-tests",
     "packages/browser-tests",
     "packages/build-utils",
     "packages/react-native-polyfills"

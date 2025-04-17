@@ -25,7 +25,7 @@ import {
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Longevity", function () {
-  const testDurationMs = 1 * 60 * 60 * 1000; // 2 hours
+  const testDurationMs = 2 * 60 * 60 * 1000; // 2 hours
   this.timeout(testDurationMs + 5 * 60 * 1000);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -40,7 +40,7 @@ describe("Longevity", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  it.only("Filter - 2 hours", async function () {
+  it("Filter - 2 hours", async function () {
     const singleShardInfo = { clusterId: 0, shard: 0 };
     const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
 
@@ -56,12 +56,17 @@ describe("Longevity", function () {
       error?: string;
     }[] = [];
 
-    await nwaku.start({
-      store: true,
-      filter: true,
-      relay: true,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
-    });
+    await nwaku.start(
+      {
+        store: true,
+        filter: true,
+        relay: true,
+        clusterId: 0,
+        shard: [0],
+        contentTopic: [ContentTopic]
+      },
+      { retries: 3 }
+    );
 
     await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
@@ -141,7 +146,6 @@ describe("Longevity", function () {
     console.log("End time:", new Date().toISOString());
     console.log("Total messages:", report.length);
     console.log("Failures:", failedMessages.length);
-    console.log("Failures:", report);
 
     if (failedMessages.length > 0) {
       console.log("\n--- Failed Messages ---");
