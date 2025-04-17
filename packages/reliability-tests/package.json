@@ -1,0 +1,92 @@
+{
+  "name": "@waku/reliability-tests",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Waku reliability tests",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "type": "module",
+  "author": "Waku Team",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/reliability-tests#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "decentralized",
+    "secure",
+    "communication",
+    "web3",
+    "ethereum",
+    "dapps",
+    "privacy"
+  ],
+  "scripts": {
+    "build": "run-s build:**",
+    "build:esm": "tsc",
+    "fix": "run-s fix:*",
+    "fix:lint": "eslint src tests --fix",
+    "check": "run-s check:*",
+    "check:lint": "eslint src tests",
+    "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
+    "check:tsc": "tsc -p tsconfig.dev.json",
+    "test:longevity": "NODE_ENV=test node ./src/run-tests.js tests/longevity.spec.ts",
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@libp2p/interface-compliance-tests": "^6.0.1",
+    "@libp2p/peer-id": "^5.0.1",
+    "@waku/core": "*",
+    "@waku/enr": "*",
+    "@waku/interfaces": "*",
+    "@waku/utils": "*",
+    "app-root-path": "^3.1.0",
+    "chai-as-promised": "^7.1.1",
+    "debug": "^4.3.4",
+    "dockerode": "^4.0.2",
+    "fast-check": "^3.19.0",
+    "p-retry": "^6.1.0",
+    "p-timeout": "^6.1.0",
+    "portfinder": "^1.0.32",
+    "sinon": "^18.0.0",
+    "tail": "^2.2.6"
+  },
+  "devDependencies": {
+    "@libp2p/bootstrap": "^11.0.1",
+    "@libp2p/crypto": "^5.0.1",
+    "@types/chai": "^4.3.11",
+    "@types/dockerode": "^3.3.19",
+    "@types/mocha": "^10.0.6",
+    "@types/sinon": "^17.0.3",
+    "@types/tail": "^2.2.3",
+    "@waku/discovery": "*",
+    "@waku/message-encryption": "*",
+    "@waku/relay": "*",
+    "@waku/sdk": "*",
+    "allure-commandline": "^2.27.0",
+    "allure-mocha": "^2.9.2",
+    "chai": "^4.3.10",
+    "cspell": "^8.6.1",
+    "datastore-core": "^10.0.2",
+    "debug": "^4.3.4",
+    "interface-datastore": "^8.2.10",
+    "libp2p": "2.1.8",
+    "mocha": "^10.3.0",
+    "mocha-multi-reporters": "^1.5.1",
+    "npm-run-all": "^4.1.5"
+  }
+}
