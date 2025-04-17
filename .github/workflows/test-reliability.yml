@@ -4,9 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "master"
-      - "staging"
-      - "trying"
+      - "chore/longevity-tests"
 
 env:
   NODE_JS: "20"
