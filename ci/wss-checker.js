@@ -85,7 +85,7 @@ class ConnectionChecker {
     );
 
     console.log(
-      "Plain WSS connection:\n",
+      "Raw WSS connection:\n",
       results.map(([addr, result]) => `${addr}:\t${result}`).join("\n")
     );
 
