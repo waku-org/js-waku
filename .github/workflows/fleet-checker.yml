@@ -1,0 +1,24 @@
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pre-release:
+      name: pre-release
+      runs-on: ubuntu-latest
+      if: github.event_name == 'workflow_dispatch'
+      steps:
+        - uses: actions/checkout@v3
+          with: 
+            repository: waku-org/js-waku
+  
+        - uses: actions/setup-node@v3
+          with:
+            node-version: ${{ env.NODE_JS }}
+            registry-url: "https://registry.npmjs.org"
+  
+        - run: npm install
+  
+        - run: npm run build
+  
+        - run: node --unhandled-rejections=none ./ci/wss-checker.js
