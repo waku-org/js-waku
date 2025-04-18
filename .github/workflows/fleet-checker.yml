@@ -4,7 +4,7 @@ on:
 
 jobs:
   pre-release:
-      name: pre-release
+      name: fleet-checker
       runs-on: ubuntu-latest
       if: github.event_name == 'workflow_dispatch'
       steps:
