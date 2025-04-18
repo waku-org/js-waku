@@ -11,6 +11,7 @@ import {
 import { createLightNode } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
   derivePubsubTopicsFromNetworkConfig,
   Logger
 } from "@waku/utils";
@@ -28,6 +29,7 @@ import {
 export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter/default";
 export const ClusterId = 2;
+export const ShardIndex = contentTopicToShardIndex(TestContentTopic);
 export const TestShardInfo = {
   contentTopics: [TestContentTopic],
   clusterId: ClusterId

@@ -16,7 +16,7 @@ export class Zerokit {
   public constructor(
     private readonly zkRLN: number,
     private readonly witnessCalculator: WitnessCalculator,
-    private readonly rateLimit: number = DEFAULT_RATE_LIMIT
+    private readonly _rateLimit: number = DEFAULT_RATE_LIMIT
   ) {}
 
   public get getZkRLN(): number {
@@ -27,8 +27,8 @@ export class Zerokit {
     return this.witnessCalculator;
   }
 
-  public get getRateLimit(): number {
-    return this.rateLimit;
+  public get rateLimit(): number {
+    return this._rateLimit;
   }
 
   public generateIdentityCredentials(): IdentityCredential {

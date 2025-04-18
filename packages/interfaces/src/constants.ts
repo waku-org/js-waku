@@ -6,6 +6,11 @@ import type { ShardInfo } from "./sharding";
 export const DEFAULT_CLUSTER_ID = 1;
 
 /**
+ * The default number of shards under a cluster.
+ */
+export const DEFAULT_NUM_SHARDS = 8;
+
+/**
  * DefaultShardInfo is default configuration for The Waku Network.
  */
 export const DefaultShardInfo: ShardInfo = {

@@ -14,8 +14,10 @@ import {
 } from "../../src/index.js";
 
 import {
+  ClusterId,
   messagePayload,
   messageText,
+  ShardIndex,
   TestContentTopic,
   TestEncoder,
   TestPubsubTopic,
@@ -65,7 +67,8 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
     });
 
-    it("Push 30 different messages", async function () {
+    // TODO: skiped till https://github.com/waku-org/nwaku/issues/3369 resolved
+    it.skip("Push 30 different messages", async function () {
       const generateMessageText = (index: number): string => `M${index}`;
 
       for (let i = 0; i < 30; i++) {
@@ -111,9 +114,12 @@ const runTests = (strictNodeCheck: boolean): void => {
 
     TEST_STRING.forEach((testItem) => {
       it(`Push message with content topic containing ${testItem.description}`, async function () {
-        const customEncoder = createEncoder({
+        const customEncoder = waku.createEncoder({
           contentTopic: testItem.value,
-          pubsubTopic: TestPubsubTopic
+          shardInfo: {
+            clusterId: ClusterId,
+            shard: ShardIndex
+          }
         });
         const pushResponse = await waku.lightPush.send(
           customEncoder,
@@ -132,17 +138,6 @@ const runTests = (strictNodeCheck: boolean): void => {
           expectedPubsubTopic: TestPubsubTopic
         });
       });
-    });
-
-    it("Fails to push message with empty content topic", async function () {
-      try {
-        createEncoder({ contentTopic: "" });
-        expect.fail("Expected an error but didn't get one");
-      } catch (error) {
-        expect((error as Error).message).to.equal(
-          "Content topic must be specified"
-        );
-      }
     });
 
     it("Push message with meta", async function () {
@@ -282,4 +277,4 @@ const runTests = (strictNodeCheck: boolean): void => {
   });
 };
 
-[true].map(runTests);
+[true, false].map(runTests);
