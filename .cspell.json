@@ -75,6 +75,7 @@
     "Merkle",
     "mkdir",
     "mplex",
+    "yamux",
     "multiaddr",
     "multiaddresses",
     "multiaddrs",
