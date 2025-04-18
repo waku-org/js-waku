@@ -89,7 +89,7 @@ class ConnectionChecker {
       results.map(([addr, result]) => `${addr}:\t${result}`).join("\n")
     );
 
-    return results.some(([_addr, result]) => result);
+    return results;
   }
 
   static async dialPlainWss(maddr) {
@@ -123,7 +123,7 @@ class ConnectionChecker {
       results.map(([addr, result]) => `${addr}:\t${result}`).join("\n")
     );
 
-    return results.some(([_addr, result]) => result);
+    return results;
   }
 
   static async dialWaku(waku, maddr) {
