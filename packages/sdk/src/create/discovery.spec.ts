@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 
-describe.only("Default Peer Discoveries", () => {
+describe("Default Peer Discoveries", () => {
   const pubsubTopics: PubsubTopic[] = [];
 
   it("should enable all discoveries by default", () => {
