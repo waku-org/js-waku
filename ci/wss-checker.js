@@ -96,7 +96,7 @@ class ConnectionChecker {
     const { domain, port } = ConnectionChecker.parseMaddr(maddr);
     return [
       maddr,
-      await ConnectionChecker.spawn(`wscat -c wss://${domain}:${port}`)
+      await ConnectionChecker.spawn(`npx wscat -c wss://${domain}:${port}`)
     ];
   }
 
@@ -169,9 +169,17 @@ async function run() {
 
   let maddrs = [...sandbox, ...test];
 
-  await ConnectionChecker.checkPlainWss(maddrs),
-    await ConnectionChecker.checkWakuWss(maddrs),
-    process.exit(0);
+  const plainWssResult = await ConnectionChecker.checkPlainWss(maddrs);
+  const wakuWssResult = await ConnectionChecker.checkWakuWss(maddrs);
+
+  const plainWssFail = plainWssResult.some(([_, status]) => status === "FAIL");
+  const wakuWssFail = wakuWssResult.some(([_, status]) => status === "FAIL");
+
+  if (plainWssFail || wakuWssFail) {
+    process.exit(1);
+  }
+
+  process.exit(0);
 }
 
 (async () => {
