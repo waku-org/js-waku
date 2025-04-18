@@ -72,8 +72,5 @@
     "*.{ts,js}": [
       "eslint --fix"
     ]
-  },
-  "dependencies": {
-    "@waku/utils": "^0.0.21"
   }
 }
