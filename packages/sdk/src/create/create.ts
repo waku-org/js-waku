@@ -10,7 +10,13 @@ import { createLibp2pAndUpdateOptions } from "./libp2p.js";
  * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
-  options: CreateNodeOptions = {}
+  options: CreateNodeOptions = {
+    discoveriesEnabled: {
+      dns: true,
+      peerExchange: true,
+      localPeerCache: true
+    }
+  }
 ): Promise<LightNode> {
   const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
