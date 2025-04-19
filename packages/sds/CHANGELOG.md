@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.3](https://github.com/waku-org/js-waku/compare/sds-v0.0.2...sds-v0.0.3) (2025-04-18)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/message-hash bumped from ^0.1.18 to ^0.1.19
+    * @waku/utils bumped from ^0.0.22 to ^0.0.23
+
 ## [0.0.2](https://github.com/waku-org/js-waku/compare/sds-v0.0.1...sds-v0.0.2) (2025-03-24)
 
 
