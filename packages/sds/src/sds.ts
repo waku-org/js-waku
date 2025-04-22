@@ -13,6 +13,7 @@ type MessageChannelEvents = {
 };
 
 export type Message = proto_sds_message.SdsMessage;
+export type HistoryEntry = proto_sds_message.HistoryEntry;
 export type ChannelId = string;
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -36,7 +37,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private outgoingBuffer: Message[];
   private acknowledgements: Map<string, number>;
   private incomingBuffer: Message[];
-  private messageIdLog: { timestamp: number; messageId: string }[];
+  private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private channelId: ChannelId;
   private causalHistorySize: number;
   private acknowledgementCount: number;
@@ -56,7 +57,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.outgoingBuffer = [];
     this.acknowledgements = new Map();
     this.incomingBuffer = [];
-    this.messageIdLog = [];
+    this.localHistory = [];
     this.causalHistorySize =
       options.causalHistorySize ?? DEFAULT_CAUSAL_HISTORY_SIZE;
     this.acknowledgementCount = this.getAcknowledgementCount();
@@ -90,7 +91,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    */
   public async sendMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (message: Message) => Promise<{
+      success: boolean;
+      retrievalHint?: Uint8Array;
+    }>
   ): Promise<void> {
     this.lamportTimestamp++;
 
@@ -100,9 +104,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       messageId,
       channelId: this.channelId,
       lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.messageIdLog
+      causalHistory: this.localHistory
         .slice(-this.causalHistorySize)
-        .map(({ messageId }) => messageId),
+        .map(({ historyEntry }) => historyEntry),
       bloomFilter: this.filter.toBytes(),
       content: payload
     };
@@ -110,10 +114,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.outgoingBuffer.push(message);
 
     if (callback) {
-      const success = await callback(message);
+      const { success, retrievalHint } = await callback(message);
       if (success) {
         this.filter.insert(messageId);
-        this.messageIdLog.push({ timestamp: this.lamportTimestamp, messageId });
+        this.localHistory.push({
+          timestamp: this.lamportTimestamp,
+          historyEntry: {
+            messageId,
+            retrievalHint
+          }
+        });
       }
     }
   }
@@ -175,9 +185,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.filter.insert(message.messageId);
     }
     // verify causal history
-    const dependenciesMet = message.causalHistory.every((messageId) =>
-      this.messageIdLog.some(
-        ({ messageId: logMessageId }) => logMessageId === messageId
+    const dependenciesMet = message.causalHistory.every((historyEntry) =>
+      this.localHistory.some(
+        ({ historyEntry: { messageId } }) =>
+          messageId === historyEntry.messageId
       )
     );
     if (!dependenciesMet) {
@@ -189,17 +200,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   // https://rfc.vac.dev/vac/raw/sds/#periodic-incoming-buffer-sweep
-  public sweepIncomingBuffer(): string[] {
+  public sweepIncomingBuffer(): HistoryEntry[] {
     const { buffer, missing } = this.incomingBuffer.reduce<{
       buffer: Message[];
-      missing: string[];
+      missing: HistoryEntry[];
     }>(
       ({ buffer, missing }, message) => {
         // Check each message for missing dependencies
         const missingDependencies = message.causalHistory.filter(
-          (messageId) =>
-            !this.messageIdLog.some(
-              ({ messageId: logMessageId }) => logMessageId === messageId
+          (messageHistoryEntry) =>
+            !this.localHistory.some(
+              ({ historyEntry: { messageId } }) =>
+                messageId === messageHistoryEntry.messageId
             )
         );
         if (missingDependencies.length === 0) {
@@ -227,7 +239,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           missing: missing.concat(missingDependencies)
         };
       },
-      { buffer: new Array<Message>(), missing: new Array<string>() }
+      { buffer: new Array<Message>(), missing: new Array<HistoryEntry>() }
     );
     // Update the incoming buffer to only include messages with no missing dependencies
     this.incomingBuffer = buffer;
@@ -284,9 +296,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       messageId: MessageChannel.getMessageId(emptyMessage),
       channelId: this.channelId,
       lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.messageIdLog
+      causalHistory: this.localHistory
         .slice(-this.causalHistorySize)
-        .map(({ messageId }) => messageId),
+        .map(({ historyEntry }) => historyEntry),
       bloomFilter: this.filter.toBytes(),
       content: emptyMessage
     };
@@ -298,7 +310,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
-  private deliverMessage(message: Message): void {
+  private deliverMessage(message: Message, retrievalHint?: Uint8Array): void {
     this.notifyDeliveredMessage(message.messageId);
 
     const messageLamportTimestamp = message.lamportTimestamp ?? 0;
@@ -321,15 +333,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     // If one or more message IDs with the same Lamport timestamp already exists,
     // the participant MUST follow the Resolve Conflicts procedure.
     // https://rfc.vac.dev/vac/raw/sds/#resolve-conflicts
-    this.messageIdLog.push({
+    this.localHistory.push({
       timestamp: messageLamportTimestamp,
-      messageId: message.messageId
+      historyEntry: {
+        messageId: message.messageId,
+        retrievalHint
+      }
     });
-    this.messageIdLog.sort((a, b) => {
+    this.localHistory.sort((a, b) => {
       if (a.timestamp !== b.timestamp) {
         return a.timestamp - b.timestamp;
       }
-      return a.messageId.localeCompare(b.messageId);
+      return a.historyEntry.messageId.localeCompare(b.historyEntry.messageId);
     });
   }
 
@@ -338,9 +353,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   // See https://rfc.vac.dev/vac/raw/sds/#review-ack-status
   private reviewAckStatus(receivedMessage: Message): void {
     // the participant MUST mark all messages in the received causal_history as acknowledged.
-    receivedMessage.causalHistory.forEach((messageId) => {
+    receivedMessage.causalHistory.forEach(({ messageId }) => {
       this.outgoingBuffer = this.outgoingBuffer.filter(
-        (msg) => msg.messageId !== messageId
+        ({ messageId: outgoingMessageId }) => outgoingMessageId !== messageId
       );
       this.acknowledgements.delete(messageId);
       if (!this.filter.lookup(messageId)) {
