@@ -50,8 +50,9 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@libp2p/interface-compliance-tests": "^6.0.1",
+    "@libp2p/interface-compliance-tests": "^4.0.4",
     "@libp2p/peer-id": "^5.0.1",
+    "@size-limit/preset-big-lib": "11.0.0",
     "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
@@ -60,6 +61,7 @@
     "chai-as-promised": "^7.1.1",
     "debug": "^4.3.4",
     "dockerode": "^4.0.2",
+    "expo": "52.0.46",
     "fast-check": "^3.19.0",
     "p-retry": "^6.1.0",
     "p-timeout": "^6.1.0",
