@@ -4,13 +4,15 @@ import { expect } from "chai";
 import { DefaultBloomFilter } from "./bloom.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
+  HistoryEntry,
   Message,
-  MessageChannel
+  MessageChannel,
+  MessageChannelEvent
 } from "./sds.js";
 
 const channelId = "test-channel";
-const callback = (_message: Message): Promise<boolean> => {
-  return Promise.resolve(true);
+const callback = (_message: Message): Promise<{ success: boolean }> => {
+  return Promise.resolve({ success: true });
 };
 
 const getBloomFilter = (channel: MessageChannel): DefaultBloomFilter => {
@@ -61,15 +63,16 @@ describe("MessageChannel", function () {
       const expectedTimestamp = (channelA as any).lamportTimestamp + 1;
       const messageId = MessageChannel.getMessageId(new Uint8Array());
       await channelA.sendMessage(new Uint8Array(), callback);
-      const messageIdLog = (channelA as any).messageIdLog as {
+      const messageIdLog = (channelA as any).localHistory as {
         timestamp: number;
-        messageId: string;
+        historyEntry: HistoryEntry;
       }[];
       expect(messageIdLog.length).to.equal(1);
       expect(
         messageIdLog.some(
           (log) =>
-            log.timestamp === expectedTimestamp && log.messageId === messageId
+            log.timestamp === expectedTimestamp &&
+            log.historyEntry.messageId === messageId
         )
       ).to.equal(true);
     });
@@ -99,12 +102,15 @@ describe("MessageChannel", function () {
 
       // Causal history should only contain the last N messages as defined by causalHistorySize
       const causalHistory = outgoingBuffer[outgoingBuffer.length - 1]
-        .causalHistory as string[];
+        .causalHistory as HistoryEntry[];
       expect(causalHistory.length).to.equal(causalHistorySize);
 
       const expectedCausalHistory = messages
         .slice(-causalHistorySize - 1, -1)
-        .map((message) => MessageChannel.getMessageId(utf8ToBytes(message)));
+        .map((message) => ({
+          messageId: MessageChannel.getMessageId(utf8ToBytes(message)),
+          retrievalHint: undefined
+        }));
       expect(causalHistory).to.deep.equal(expectedCausalHistory);
     });
   });
@@ -119,7 +125,7 @@ describe("MessageChannel", function () {
       const timestampBefore = (channelA as any).lamportTimestamp;
       await channelB.sendMessage(new Uint8Array(), (message) => {
         channelA.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
       const timestampAfter = (channelA as any).lamportTimestamp;
       expect(timestampAfter).to.equal(timestampBefore + 1);
@@ -132,7 +138,7 @@ describe("MessageChannel", function () {
       for (const m of messagesB) {
         await channelB.sendMessage(utf8ToBytes(m), (message) => {
           channelA.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
       const timestampAfter = (channelA as any).lamportTimestamp;
@@ -146,7 +152,7 @@ describe("MessageChannel", function () {
           timestamp++;
           channelB.receiveMessage(message);
           expect((channelB as any).lamportTimestamp).to.equal(timestamp);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -155,7 +161,7 @@ describe("MessageChannel", function () {
           timestamp++;
           channelA.receiveMessage(message);
           expect((channelA as any).lamportTimestamp).to.equal(timestamp);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -172,7 +178,7 @@ describe("MessageChannel", function () {
           channelB.receiveMessage(message);
           const bloomFilter = getBloomFilter(channelB);
           expect(bloomFilter.lookup(message.messageId)).to.equal(true);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
     });
@@ -188,7 +194,7 @@ describe("MessageChannel", function () {
       await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
         receivedMessage = message;
         channelB.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       const incomingBuffer = (channelB as any).incomingBuffer as Message[];
@@ -200,12 +206,15 @@ describe("MessageChannel", function () {
       expect(timestampAfter).to.equal(timestampBefore);
 
       // Message should not be in local history
-      const localHistory = (channelB as any).messageIdLog as {
+      const localHistory = (channelB as any).localHistory as {
         timestamp: number;
-        messageId: string;
+        historyEntry: HistoryEntry;
       }[];
       expect(
-        localHistory.some((m) => m.messageId === receivedMessage!.messageId)
+        localHistory.some(
+          ({ historyEntry: { messageId } }) =>
+            messageId === receivedMessage!.messageId
+        )
       ).to.equal(false);
     });
   });
@@ -220,14 +229,14 @@ describe("MessageChannel", function () {
       for (const m of messagesA) {
         await channelA.sendMessage(utf8ToBytes(m), (message) => {
           channelB.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
       let notInHistory: Message | null = null;
       await channelA.sendMessage(utf8ToBytes("not-in-history"), (message) => {
         notInHistory = message;
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       expect((channelA as any).outgoingBuffer.length).to.equal(
@@ -236,7 +245,7 @@ describe("MessageChannel", function () {
 
       await channelB.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
         channelA.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       // Since messagesA are in causal history of channel B's message
@@ -261,7 +270,7 @@ describe("MessageChannel", function () {
       for (const m of messages) {
         await channelA.sendMessage(utf8ToBytes(m), (message) => {
           channelB.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -275,7 +284,7 @@ describe("MessageChannel", function () {
         utf8ToBytes(messagesB[messagesB.length - 1]),
         (message) => {
           channelA.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         }
       );
 
@@ -309,7 +318,7 @@ describe("MessageChannel", function () {
         // Send messages until acknowledgement count is reached
         await channelB.sendMessage(utf8ToBytes(`x-${i}`), (message) => {
           channelA.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -343,9 +352,9 @@ describe("MessageChannel", function () {
         await channelA.sendMessage(utf8ToBytes(m), callback);
       }
 
-      await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
+      await channelA.sendMessage(utf8ToBytes(messagesB[0]), async (message) => {
         channelB.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       const incomingBuffer = (channelB as any).incomingBuffer as Message[];
@@ -356,7 +365,7 @@ describe("MessageChannel", function () {
 
       const missingMessages = channelB.sweepIncomingBuffer();
       expect(missingMessages.length).to.equal(causalHistorySize);
-      expect(missingMessages[0]).to.equal(
+      expect(missingMessages[0].messageId).to.equal(
         MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
       );
     });
@@ -367,18 +376,18 @@ describe("MessageChannel", function () {
       for (const m of messagesA) {
         await channelA.sendMessage(utf8ToBytes(m), (message) => {
           sentMessages.push(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
       await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
         channelB.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       const missingMessages = channelB.sweepIncomingBuffer();
       expect(missingMessages.length).to.equal(causalHistorySize);
-      expect(missingMessages[0]).to.equal(
+      expect(missingMessages[0].messageId).to.equal(
         MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
       );
 
@@ -399,12 +408,10 @@ describe("MessageChannel", function () {
     it("should remove messages without delivering if timeout is exceeded", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
-      const channelC: MessageChannel = new MessageChannel(
-        channelId,
-        causalHistorySize,
-        true,
-        10
-      );
+      const channelC: MessageChannel = new MessageChannel(channelId, {
+        receivedMessageTimeoutEnabled: true,
+        receivedMessageTimeout: 10
+      });
 
       for (const m of messagesA) {
         await channelA.sendMessage(utf8ToBytes(m), callback);
@@ -412,7 +419,7 @@ describe("MessageChannel", function () {
 
       await channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
         channelC.receiveMessage(message);
-        return Promise.resolve(true);
+        return Promise.resolve({ success: true });
       });
 
       const missingMessages = channelC.sweepIncomingBuffer();
@@ -440,7 +447,7 @@ describe("MessageChannel", function () {
         await channelA.sendMessage(utf8ToBytes(m), (message) => {
           unacknowledgedMessages.push(message);
           channelB.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -459,7 +466,7 @@ describe("MessageChannel", function () {
         utf8ToBytes(messagesB[causalHistorySize]),
         (message) => {
           channelA.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         }
       );
 
@@ -496,7 +503,7 @@ describe("MessageChannel", function () {
         bloomFilter.lookup(MessageChannel.getMessageId(new Uint8Array()))
       ).to.equal(false);
 
-      const localLog = (channelA as any).messageIdLog as {
+      const localLog = (channelA as any).localHistory as {
         timestamp: number;
         messageId: string;
       }[];
@@ -515,7 +522,7 @@ describe("MessageChannel", function () {
       expect(timestampAfter).to.equal(expectedTimestamp);
       expect(timestampAfter).to.be.greaterThan(timestampBefore);
 
-      const localLog = (channelB as any).messageIdLog as {
+      const localLog = (channelB as any).localHistory as {
         timestamp: number;
         messageId: string;
       }[];
@@ -531,7 +538,7 @@ describe("MessageChannel", function () {
       for (const m of messagesA) {
         await channelA.sendMessage(utf8ToBytes(m), (message) => {
           channelB.receiveMessage(message);
-          return Promise.resolve(true);
+          return Promise.resolve({ success: true });
         });
       }
 
@@ -545,6 +552,58 @@ describe("MessageChannel", function () {
       expect(outgoingBuffer.length).to.equal(
         messagesA.length - causalHistorySize
       );
+    });
+  });
+
+  describe("Ephemeral messages", () => {
+    beforeEach(() => {
+      channelA = new MessageChannel(channelId);
+    });
+
+    it("should be sent without a timestamp, causal history, or bloom filter", () => {
+      const timestampBefore = (channelA as any).lamportTimestamp;
+      channelA.sendEphemeralMessage(new Uint8Array(), (message) => {
+        expect(message.lamportTimestamp).to.equal(undefined);
+        expect(message.causalHistory).to.deep.equal([]);
+        expect(message.bloomFilter).to.equal(undefined);
+        return true;
+      });
+
+      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      expect(outgoingBuffer.length).to.equal(0);
+
+      const timestampAfter = (channelA as any).lamportTimestamp;
+      expect(timestampAfter).to.equal(timestampBefore);
+    });
+
+    it("should be delivered immediately if received", async () => {
+      let deliveredMessageId: string | undefined;
+      let sentMessage: Message | undefined;
+
+      const channelB = new MessageChannel(channelId, {
+        deliveredMessageCallback: (messageId) => {
+          deliveredMessageId = messageId;
+        }
+      });
+
+      const waitForMessageDelivered = new Promise<string>((resolve) => {
+        channelB.addEventListener(
+          MessageChannelEvent.MessageDelivered,
+          (event) => {
+            resolve(event.detail);
+          }
+        );
+
+        channelA.sendEphemeralMessage(utf8ToBytes(messagesA[0]), (message) => {
+          sentMessage = message;
+          channelB.receiveMessage(message);
+          return true;
+        });
+      });
+
+      const eventMessageId = await waitForMessageDelivered;
+      expect(deliveredMessageId).to.equal(sentMessage?.messageId);
+      expect(eventMessageId).to.equal(sentMessage?.messageId);
     });
   });
 });
