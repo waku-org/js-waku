@@ -60,7 +60,9 @@ describe("HealthIndicator", () => {
     sinon.stub(libp2p, "getConnections").returns(connections);
     sinon.stub(libp2p.peerStore, "get").resolves(peer);
 
-    libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "1" }));
+    libp2p.dispatchEvent(
+      new CustomEvent("peer:identify", { detail: { peerId: "1" } })
+    );
 
     const changedStatus = await statusChangePromise;
     expect(changedStatus).to.equal(HealthStatus.MinimallyHealthy);
@@ -84,7 +86,9 @@ describe("HealthIndicator", () => {
     peerStoreStub.withArgs(connections[0].remotePeer).resolves(peer1);
     peerStoreStub.withArgs(connections[1].remotePeer).resolves(peer2);
 
-    libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "2" }));
+    libp2p.dispatchEvent(
+      new CustomEvent("peer:identify", { detail: { peerId: "2" } })
+    );
 
     const changedStatus = await statusChangePromise;
     expect(changedStatus).to.equal(HealthStatus.SufficientlyHealthy);
@@ -99,9 +103,13 @@ describe("HealthIndicator", () => {
 
     healthIndicator.start();
     expect(addEventSpy.calledTwice).to.be.true;
+    expect(addEventSpy.firstCall.args[0]).to.equal("peer:identify");
+    expect(addEventSpy.secondCall.args[0]).to.equal("peer:disconnect");
 
     healthIndicator.stop();
     expect(removeEventSpy.calledTwice).to.be.true;
+    expect(removeEventSpy.firstCall.args[0]).to.equal("peer:identify");
+    expect(removeEventSpy.secondCall.args[0]).to.equal("peer:disconnect");
   });
 });
 

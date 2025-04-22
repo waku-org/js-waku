@@ -67,14 +67,12 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typedoc": "^0.25.9",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wscat": "^6.0.1"
   },
   "lint-staged": {
     "*.{ts,js}": [
       "eslint --fix"
     ]
-  },
-  "dependencies": {
-    "@waku/utils": "^0.0.21"
   }
 }
