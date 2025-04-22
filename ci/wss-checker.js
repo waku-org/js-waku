@@ -107,10 +107,6 @@ class ConnectionChecker {
       defaultBootstrap: false,
       libp2p: {
         hideWebSocketInfo: true
-      },
-      networkConfig: {
-        clusterId: 42,
-        shards: [0]
       }
     });
 
