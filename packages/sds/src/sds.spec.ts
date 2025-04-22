@@ -5,7 +5,8 @@ import { DefaultBloomFilter } from "./bloom.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
   Message,
-  MessageChannel
+  MessageChannel,
+  MessageChannelEvent
 } from "./sds.js";
 
 const channelId = "test-channel";
@@ -399,12 +400,10 @@ describe("MessageChannel", function () {
     it("should remove messages without delivering if timeout is exceeded", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
-      const channelC: MessageChannel = new MessageChannel(
-        channelId,
-        causalHistorySize,
-        true,
-        10
-      );
+      const channelC: MessageChannel = new MessageChannel(channelId, {
+        receivedMessageTimeoutEnabled: true,
+        receivedMessageTimeout: 10
+      });
 
       for (const m of messagesA) {
         await channelA.sendMessage(utf8ToBytes(m), callback);
@@ -545,6 +544,58 @@ describe("MessageChannel", function () {
       expect(outgoingBuffer.length).to.equal(
         messagesA.length - causalHistorySize
       );
+    });
+  });
+
+  describe("Ephemeral messages", () => {
+    beforeEach(() => {
+      channelA = new MessageChannel(channelId);
+    });
+
+    it("should be sent without a timestamp, causal history, or bloom filter", () => {
+      const timestampBefore = (channelA as any).lamportTimestamp;
+      channelA.sendEphemeralMessage(new Uint8Array(), (message) => {
+        expect(message.lamportTimestamp).to.equal(undefined);
+        expect(message.causalHistory).to.deep.equal([]);
+        expect(message.bloomFilter).to.equal(undefined);
+        return true;
+      });
+
+      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      expect(outgoingBuffer.length).to.equal(0);
+
+      const timestampAfter = (channelA as any).lamportTimestamp;
+      expect(timestampAfter).to.equal(timestampBefore);
+    });
+
+    it("should be delivered immediately if received", async () => {
+      let deliveredMessageId: string | undefined;
+      let sentMessage: Message | undefined;
+
+      const channelB = new MessageChannel(channelId, {
+        deliveredMessageCallback: (messageId) => {
+          deliveredMessageId = messageId;
+        }
+      });
+
+      const waitForMessageDelivered = new Promise<string>((resolve) => {
+        channelB.addEventListener(
+          MessageChannelEvent.MessageDelivered,
+          (event) => {
+            resolve(event.detail);
+          }
+        );
+
+        channelA.sendEphemeralMessage(utf8ToBytes(messagesA[0]), (message) => {
+          sentMessage = message;
+          channelB.receiveMessage(message);
+          return true;
+        });
+      });
+
+      const eventMessageId = await waitForMessageDelivered;
+      expect(deliveredMessageId).to.equal(sentMessage?.messageId);
+      expect(eventMessageId).to.equal(sentMessage?.messageId);
     });
   });
 });
