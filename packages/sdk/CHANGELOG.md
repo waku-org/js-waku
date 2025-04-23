@@ -47,6 +47,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.31](https://github.com/waku-org/js-waku/compare/sdk-v0.0.30...sdk-v0.0.31) (2025-04-23)
+
+
+### Features
+
+* Introduce `createDecoder` and `createEncoder` on `IWaku` ([#2352](https://github.com/waku-org/js-waku/issues/2352)) ([3038c48](https://github.com/waku-org/js-waku/commit/3038c4891748cd13cb5c3262c722c4923d2f7079))
+
+
+### Bug Fixes
+
+* Health indicator properly handle peer:identify event ([#2369](https://github.com/waku-org/js-waku/issues/2369)) ([5512380](https://github.com/waku-org/js-waku/commit/551238006c82547394f49fb842c27a91aa1b89d1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.34 to 0.0.35
+    * @waku/discovery bumped from 0.0.7 to 0.0.8
+    * @waku/interfaces bumped from 0.0.29 to 0.0.30
+    * @waku/proto bumped from ^0.0.9 to ^0.0.10
+    * @waku/utils bumped from 0.0.22 to 0.0.23
+    * @waku/message-hash bumped from 0.1.18 to 0.1.19
+
 ## [0.0.30](https://github.com/waku-org/js-waku/compare/sdk-v0.0.29...sdk-v0.0.30) (2025-03-24)
 
 

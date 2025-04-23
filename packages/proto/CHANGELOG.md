@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.10](https://github.com/waku-org/js-waku/compare/proto-v0.0.9...proto-v0.0.10) (2025-04-23)
+
+
+### Features
+
+* **sds:** Add retrieval hint to causal history ([4da382d](https://github.com/waku-org/js-waku/commit/4da382d59489645802d9efeb68e8eb05cdc95ec1))
+* **sds:** Add retrieval hint to causal history ([408be95](https://github.com/waku-org/js-waku/commit/408be95a1317210e43a2caff3ecff40d457d17c4))
+
 ## [0.0.9](https://github.com/waku-org/js-waku/compare/proto-v0.0.8...proto-v0.0.9) (2025-03-24)
 
 
