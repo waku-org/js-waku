@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.0.3](https://github.com/waku-org/js-waku/compare/sds-v0.0.2...sds-v0.0.3) (2025-04-23)
+
+
+### Features
+
+* **sds:** Add retrieval hint to causal history ([4da382d](https://github.com/waku-org/js-waku/commit/4da382d59489645802d9efeb68e8eb05cdc95ec1))
+* **sds:** Add retrieval hint to causal history ([408be95](https://github.com/waku-org/js-waku/commit/408be95a1317210e43a2caff3ecff40d457d17c4))
+* **sds:** Adds ephemeral messages, delivered message callback and event ([18e08f9](https://github.com/waku-org/js-waku/commit/18e08f94dfb20538ebf6575acb7e7e395a08d2c1))
+* **sds:** Adds ephemeral messages, delivered message callback and event ([6b4848c](https://github.com/waku-org/js-waku/commit/6b4848c8536d39914915dba011d4a075bfed0e4a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/message-hash bumped from ^0.1.18 to ^0.1.19
+    * @waku/proto bumped from ^0.0.9 to ^0.0.10
+    * @waku/utils bumped from ^0.0.22 to ^0.0.23
+
 ## [0.0.2](https://github.com/waku-org/js-waku/compare/sds-v0.0.1...sds-v0.0.2) (2025-03-24)
 
 
