@@ -62,7 +62,7 @@
   "dependencies": {
     "@chainsafe/libp2p-noise": "16.0.0",
     "@libp2p/bootstrap": "^11.0.1",
-    "@libp2p/identify": "^3.0.1",
+    "@libp2p/identify": "^3.0.29",
     "@libp2p/mplex": "^11.0.1",
     "@libp2p/ping": "2.0.1",
     "@libp2p/websockets": "^9.0.1",
