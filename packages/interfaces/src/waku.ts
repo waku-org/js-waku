@@ -6,7 +6,7 @@ import type { IFilter } from "./filter.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
-import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
+import { IDecoder, IEncoder } from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
@@ -158,7 +158,7 @@ export interface IWaku {
    * });
    * ```
    */
-  createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage>;
+  createDecoder(params: CreateDecoderParams): IDecoder;
 
   /**
    * Creates an encoder for Waku messages on a specific content topic.

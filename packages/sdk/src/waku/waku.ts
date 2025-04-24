@@ -10,7 +10,6 @@ import type {
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
-  IDecodedMessage,
   IDecoder,
   IEncoder,
   IFilter,
@@ -259,7 +258,7 @@ export class WakuNode implements IWaku {
     return this.connectionManager.isConnected();
   }
 
-  public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
+  public createDecoder(params: CreateDecoderParams): IDecoder {
     const singleShardInfo = decoderParamsToShardInfo(
       params,
       this.networkConfig

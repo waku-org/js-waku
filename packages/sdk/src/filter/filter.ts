@@ -4,7 +4,6 @@ import type {
   CreateSubscriptionResult,
   FilterProtocolOptions,
   IAsyncIterator,
-  IDecodedMessage,
   IDecoder,
   IFilter,
   ILightPush,
@@ -78,8 +77,8 @@ export class Filter implements IFilter {
    * Opens a subscription with the Filter protocol using the provided decoders and callback.
    * This method combines the functionality of creating a subscription and subscribing to it.
    *
-   * @param {IDecoder<T> | IDecoder<T>[]} decoders - A single decoder or an array of decoders to use for decoding messages.
-   * @param {Callback<T>} callback - The callback function to be invoked with decoded messages.
+   * @param {IDecoder | IDecoder[]} decoders - A single decoder or an array of decoders to use for decoding messages.
+   * @param {Callback} callback - The callback function to be invoked with decoded messages.
    *
    * @returns {Promise<SubscribeResult>} A promise that resolves to an object containing:
    *   - subscription: The created subscription object if successful, or null if failed.
@@ -111,9 +110,9 @@ export class Filter implements IFilter {
    *
    * ```
    */
-  public async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public async subscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): Promise<SubscribeResult> {
     const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
 
@@ -216,11 +215,11 @@ export class Filter implements IFilter {
    * This method should not be used directly.
    * Instead, use `createSubscription` to create a new subscription.
    */
-  public async subscribeWithUnsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public async subscribeWithUnsubscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): Promise<Unsubscribe> {
-    const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
+    const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
 
     if (uniquePubsubTopics.length === 0) {
       throw Error(
@@ -255,9 +254,9 @@ export class Filter implements IFilter {
     };
   }
 
-  public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<IAsyncIterator<T>> {
+  public toSubscriptionIterator(
+    decoders: IDecoder | IDecoder[]
+  ): Promise<IAsyncIterator> {
     return toAsyncIterator(this, decoders);
   }
 
@@ -275,9 +274,7 @@ export class Filter implements IFilter {
     return subscription;
   }
 
-  private getUniquePubsubTopics<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): string[] {
+  private getUniquePubsubTopics(decoders: IDecoder | IDecoder[]): string[] {
     if (!Array.isArray(decoders)) {
       return [decoders.pubsubTopic];
     }

@@ -38,11 +38,15 @@ export interface IProtoMessage {
 export interface IMessage {
   payload: Uint8Array;
   timestamp?: Date;
+  meta?: Uint8Array;
   rateLimitProof?: IRateLimitProof;
 }
 
+/**
+ * @deprecated
+ */
 export interface IMetaSetter {
-  (message: IProtoMessage & { meta: undefined }): Uint8Array;
+  (message: IProtoMessage): Uint8Array;
 }
 
 export interface EncoderOptions {
@@ -59,6 +63,7 @@ export interface EncoderOptions {
    */
   ephemeral?: boolean;
   /**
+   * @deprecated: pass meta field directly to IEncoder or ILightPush methods.
    * A function called when encoding messages to set the meta field.
    * @param IProtoMessage The message encoded for wire, without the meta field.
    * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
@@ -82,14 +87,15 @@ export interface IDecodedMessage {
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
   meta: Uint8Array | undefined;
+  version: number | undefined;
 }
 
-export interface IDecoder<T extends IDecodedMessage> {
+export interface IDecoder {
   pubsubTopic: PubsubTopic;
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,
     proto: IProtoMessage
-  ) => Promise<T | undefined>;
+  ) => Promise<IDecodedMessage | undefined>;
 }

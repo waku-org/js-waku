@@ -17,7 +17,7 @@ describe("Waku Message version 0", function () {
         });
         const bytes = await encoder.toWire({ payload });
         const decoder = createDecoder(contentTopic);
-        const protoResult = await decoder.fromWireToProtoObj(bytes);
+        const protoResult = await decoder.fromWireToProtoObj(bytes!);
         const result = (await decoder.fromProtoObj(
           pubsubTopic,
           protoResult!
@@ -42,7 +42,7 @@ describe("Waku Message version 0", function () {
         });
         const bytes = await encoder.toWire({ payload });
         const decoder = createDecoder(contentTopic);
-        const protoResult = await decoder.fromWireToProtoObj(bytes);
+        const protoResult = await decoder.fromWireToProtoObj(bytes!);
         const result = (await decoder.fromProtoObj(
           pubsubTopic,
           protoResult!
@@ -58,9 +58,7 @@ describe("Waku Message version 0", function () {
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
         // Encode the length of the payload
         // Not a relevant real life example
-        const metaSetter = (
-          msg: IProtoMessage & { meta: undefined }
-        ): Uint8Array => {
+        const metaSetter = (msg: IProtoMessage): Uint8Array => {
           const buffer = new ArrayBuffer(4);
           const view = new DataView(buffer);
           view.setUint32(0, msg.payload.length, false);
@@ -74,7 +72,7 @@ describe("Waku Message version 0", function () {
         });
         const bytes = await encoder.toWire({ payload });
         const decoder = createDecoder(contentTopic);
-        const protoResult = await decoder.fromWireToProtoObj(bytes);
+        const protoResult = await decoder.fromWireToProtoObj(bytes!);
         const result = (await decoder.fromProtoObj(
           pubsubTopic,
           protoResult!
@@ -91,6 +89,67 @@ describe("Waku Message version 0", function () {
         });
 
         expect(result.meta).to.deep.eq(expectedMeta);
+      })
+    );
+  });
+
+  it("Meta field can be set directly with toWire", async function () {
+    await fc.assert(
+      fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
+        // Not a relevant real life example
+        const buffer = new ArrayBuffer(4);
+        const view = new DataView(buffer);
+        view.setUint32(0, 4, false);
+        const expectedMeta = new Uint8Array(buffer);
+
+        const encoder = createEncoder({
+          contentTopic,
+          ephemeral: true
+        });
+        const bytes = await encoder.toWire({ payload, meta: expectedMeta });
+        const decoder = createDecoder(contentTopic);
+        const protoResult = await decoder.fromWireToProtoObj(bytes!);
+        const result = (await decoder.fromProtoObj(
+          pubsubTopic,
+          protoResult!
+        )) as DecodedMessage;
+
+        expect(result.meta).to.deep.eq(expectedMeta);
+      })
+    );
+  });
+
+  it("Meta from toWire prioritized over metaSetter", async function () {
+    await fc.assert(
+      fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
+        // Encode the length of the payload
+        // Not a relevant real life example
+        const metaSetter = (msg: IProtoMessage): Uint8Array => {
+          const buffer = new ArrayBuffer(4);
+          const view = new DataView(buffer);
+          view.setUint32(0, msg.payload.length, false);
+          return new Uint8Array(buffer);
+        };
+
+        const buffer = new ArrayBuffer(4);
+        const view = new DataView(buffer);
+        view.setUint32(0, 20, false);
+        const manualMeta = new Uint8Array(buffer);
+
+        const encoder = createEncoder({
+          contentTopic,
+          ephemeral: true,
+          metaSetter
+        });
+        const bytes = await encoder.toWire({ payload });
+        const decoder = createDecoder(contentTopic);
+        const protoResult = await decoder.fromWireToProtoObj(bytes!);
+        const result = (await decoder.fromProtoObj(
+          pubsubTopic,
+          protoResult!
+        )) as DecodedMessage;
+
+        expect(result.meta?.length).to.eq(manualMeta.length);
       })
     );
   });
