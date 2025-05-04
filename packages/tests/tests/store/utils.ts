@@ -17,6 +17,7 @@ import { expect } from "chai";
 import { Context } from "mocha";
 
 import { delay, NOISE_KEY_1, runNodes, ServiceNode } from "../../src/index.js";
+import { MessageRpcQuery } from "../../src/types.js";
 
 export const log = new Logger("test:store");
 
@@ -49,20 +50,20 @@ export async function sendMessages(
   instance: ServiceNode,
   numMessages: number,
   contentTopic: string,
-  pubsubTopic: string
-): Promise<void> {
+  pubsubTopic: string,
+  timestamp: boolean = false
+): Promise<MessageRpcQuery[]> {
+  const messages: MessageRpcQuery[] = new Array<MessageRpcQuery>(numMessages);
   for (let i = 0; i < numMessages; i++) {
-    expect(
-      await instance.sendMessage(
-        ServiceNode.toMessageRpcQuery({
-          payload: new Uint8Array([i]),
-          contentTopic: contentTopic
-        }),
-        pubsubTopic
-      )
-    ).to.eq(true);
+    messages[i] = ServiceNode.toMessageRpcQuery({
+      payload: new Uint8Array([i]),
+      contentTopic: contentTopic,
+      timestamp: timestamp ? new Date() : undefined
+    });
+    expect(await instance.sendMessage(messages[i], pubsubTopic)).to.eq(true);
     await delay(1); // to ensure each timestamp is unique.
   }
+  return messages;
 }
 
 export async function sendMessagesAutosharding(
