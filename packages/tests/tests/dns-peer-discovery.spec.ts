@@ -36,10 +36,7 @@ describe("DNS Discovery: Compliance Test", function () {
       } as unknown as Libp2pComponents;
 
       return new PeerDiscoveryDns(components, {
-        enrUrls: [enrTree["SANDBOX"]],
-        wantedNodeCapabilityCount: {
-          filter: 1
-        }
+        enrUrls: [enrTree["SANDBOX"]]
       });
     },
     async teardown() {
@@ -57,20 +54,11 @@ describe("DNS Node Discovery [live data]", function () {
 
   it(`should use DNS peer discovery with light client`, async function () {
     this.timeout(100000);
-    const maxQuantity = 3;
-
-    const nodeRequirements = {
-      relay: maxQuantity,
-      store: maxQuantity,
-      filter: maxQuantity,
-      lightPush: maxQuantity
-    };
+    const minQuantityExpected = 3; // We have at least 3 nodes in Waku Sandbox ENR tree
 
     const waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [
-          wakuDnsDiscovery([enrTree["SANDBOX"]], nodeRequirements)
-        ]
+        peerDiscovery: [wakuDnsDiscovery([enrTree["SANDBOX"]])]
       }
     });
 
@@ -86,22 +74,22 @@ describe("DNS Node Discovery [live data]", function () {
       }
       expect(hasTag).to.be.eq(true);
     }
-    expect(dnsPeers).to.eq(maxQuantity);
+    expect(dnsPeers).to.gte(minQuantityExpected);
   });
 
-  it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
+  it(`should retrieve ${maxQuantity} multiaddrs for sandbox.waku.nodes.status.im`, async function () {
     if (process.env.CI) this.skip();
 
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
 
-    const peers = await dnsNodeDiscovery.getPeers([enrTree["SANDBOX"]], {
-      relay: maxQuantity,
-      store: maxQuantity,
-      filter: maxQuantity,
-      lightPush: maxQuantity
-    });
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([
+      enrTree["SANDBOX"]
+    ])) {
+      peers.push(peer);
+    }
 
     expect(peers.length).to.eq(maxQuantity);
 
@@ -114,28 +102,52 @@ describe("DNS Node Discovery [live data]", function () {
       seen.push(ma!.toString());
     }
   });
+
+  it(`should retrieve all multiaddrs when several ENR Tree URLs are passed`, async function () {
+    if (process.env.CI) this.skip();
+
+    this.timeout(10000);
+    // Google's dns server address. Needs to be set explicitly to run in CI
+    const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
+
+    const peers = [];
+    for await (const peer of dnsNodeDiscovery.getNextPeer([
+      enrTree["SANDBOX"],
+      enrTree["TEST"]
+    ])) {
+      peers.push(peer);
+    }
+
+    expect(peers.length).to.eq(6);
+
+    const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
+
+    const seen: string[] = [];
+    for (const ma of multiaddrs) {
+      expect(ma).to.not.be.undefined;
+      expect(seen).to.not.include(ma!.toString());
+      seen.push(ma!.toString());
+    }
+  });
+
   it("passes more than one ENR URLs and attempts connection", async function () {
     if (process.env.CI) this.skip();
     this.timeout(30_000);
 
-    const nodesToConnect = 2;
+    const minQuantityExpected = 2;
 
     const waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [
-          wakuDnsDiscovery([enrTree["SANDBOX"], enrTree["TEST"]], {
-            filter: nodesToConnect
-          })
-        ]
+        peerDiscovery: [wakuDnsDiscovery([enrTree["SANDBOX"], enrTree["TEST"]])]
       }
     });
 
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
-    while (allPeers.length < nodesToConnect) {
+    while (allPeers.length < minQuantityExpected) {
       await delay(2000);
     }
-    expect(allPeers.length).to.be.eq(nodesToConnect);
+    expect(allPeers.length).to.be.gte(minQuantityExpected);
   });
 });
