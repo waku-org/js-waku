@@ -78,7 +78,7 @@
     "it-length-prefixed": "^9.0.4",
     "it-pipe": "^3.0.1",
     "uint8arraylist": "^2.4.3",
-    "uuid": "^9.0.0"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@libp2p/peer-id": "^5.0.1",
@@ -90,7 +90,6 @@
     "@types/chai": "^4.3.11",
     "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.6",
-    "@types/uuid": "^9.0.8",
     "@waku/build-utils": "*",
     "chai": "^4.3.10",
     "sinon": "^18.0.0",
