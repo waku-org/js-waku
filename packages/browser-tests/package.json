@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "npm run start:server",
-    "start:serve": "npx serve -p 8080 --no-port-switching ./headless -s",
+    "start:serve": "cd ../headless-tests && npx serve -p 8080 --no-port-switching . -s",
     "test": "npx playwright test",
-    "build:headless": "cd headless && npm run build",
+    "build:headless": "cd ../headless-tests && npm run build",
     "build:server": "tsc -p tsconfig.json",
     "build": "run-s build:*",
     "start:server": "node ./dist/server.js"
@@ -16,6 +16,7 @@
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
+    "@waku/headless-tests": "*",
     "axios": "^1.8.4",
     "dotenv-flow": "^0.4.0",
     "npm-run-all": "^4.1.5",

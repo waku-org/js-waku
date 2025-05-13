@@ -1,8 +1,9 @@
 {
-    "name": "headless",
+    "name": "@waku/headless-tests",
     "version": "0.1.0",
     "private": true,
     "homepage": "/headless",
+    "type": "module",
     "devDependencies": {
         "@babel/core": "^7.24.0",
         "@babel/preset-env": "^7.24.0",
@@ -20,6 +21,7 @@
     "scripts": {
         "start": "serve .",
         "build": "webpack",
-        "deploy": "gh-pages -d ."
+        "deploy": "gh-pages -d .",
+        "format": "eslint --fix webpack.config.js"
     }
 }

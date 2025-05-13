@@ -29,8 +29,8 @@ jobs:
 
     - uses: ./.github/actions/npm
 
-    - name: Install headless dependencies
-      run: cd packages/browser-tests/headless && npm install
+    - name: Install headless-tests dependencies
+      run: cd packages/headless-tests && npm install
 
     - name: Build browser test environment
       run: npm run build --workspace=@waku/browser-tests

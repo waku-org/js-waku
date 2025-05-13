@@ -5,7 +5,15 @@
     "project": ["./tsconfig.json"]
   },
   "env": { "es6": true },
-  "ignorePatterns": ["node_modules", "build", "coverage", "proto"],
+  "ignorePatterns": [
+    "node_modules",
+    "build",
+    "coverage",
+    "proto",
+    "**/webpack.config.js",
+    "packages/headless-tests/**/*.js",
+    "packages/headless-tests/**/*.ts"
+  ],
   "plugins": ["import", "eslint-comments", "functional"],
   "extends": [
     "eslint:recommended",

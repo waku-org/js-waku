@@ -63,11 +63,11 @@ const messageQueue: MessageQueue = {};
 
 // Start the headless app server on port 8080
 async function startHeadlessServer(): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       console.log("Starting headless app server...");
       headlessServerProcess = exec(
-        `serve ${join(__dirname, "../headless")} -p 8080 -s`,
+        `serve ${join(__dirname, "../../headless-tests")} -p 8080 -s`,
         (error, stdout, stderr) => {
           if (error) {
             console.error(`Error starting serve: ${error}`);
@@ -82,8 +82,7 @@ async function startHeadlessServer(): Promise<void> {
       setTimeout(resolve, 2000);
     } catch (error) {
       console.error("Failed to start headless server:", error);
-      // Resolve anyway, we'll handle the missing server gracefully
-      resolve();
+      reject(error);
     }
   });
 }
