@@ -1,9 +1,15 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const path = require("path");
+/* eslint-disable */
+/**
+ * This webpack configuration file uses ES Module syntax.
+ */
+import path from 'path';
+import { fileURLToPath } from 'url';
+import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
 
-const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-module.exports = {
+export default {
   entry: "./index.js",
   output: {
     filename: "bundle.js",

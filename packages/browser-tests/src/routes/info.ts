@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import express, { Request, Response, Router } from "express";
 
 import { getPage } from "../browser/index.js";

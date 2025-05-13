@@ -1,14 +1,31 @@
-/* eslint-disable no-console */
 import express, { Request, Response, Router } from "express";
+import { pubsubTopicsToShardInfo } from "@waku/utils";
 
 import { getPage } from "../browser/index.js";
 
 const router = Router();
 
-// Create Waku node endpoint
+router.head("/admin/v1/create-node", (_req: Request, res: Response) => {
+  res.status(200).end();
+});
+
+router.head("/admin/v1/start-node", (_req: Request, res: Response) => {
+  res.status(200).end();
+});
+
+router.head("/admin/v1/stop-node", (_req: Request, res: Response) => {
+  res.status(200).end();
+});
+
 router.post("/admin/v1/create-node", (async (req: Request, res: Response) => {
   try {
-    const nodeOptions = req.body;
+    const {
+      defaultBootstrap = true,
+      networkConfig,
+      pubsubTopics
+    } = req.body;
+
+
     const page = getPage();
 
     if (!page) {
@@ -18,16 +35,70 @@ router.post("/admin/v1/create-node", (async (req: Request, res: Response) => {
       });
     }
 
-    const result = await page.evaluate((options) => {
-      return window.wakuAPI.createWakuNode(options);
-    }, nodeOptions);
+    const result = await page.evaluate(
+      ({ defaultBootstrap, networkConfig, pubsubTopics }) => {
+        const nodeOptions: any = {
+          defaultBootstrap,
+          relay: {
+            advertise: true,
+            gossipsubOptions: {
+              allowPublishToZeroPeers: true
+            }
+          },
+          filter: true,
+          peers: []
+        };
 
-    res.json(result);
+        if (networkConfig) {
+          if (networkConfig.clusterId !== undefined) {
+            nodeOptions.networkConfig = {
+              clusterId: networkConfig.clusterId,
+              shards: networkConfig.shards || [0]
+            };
+
+          }
+        }
+        else if (pubsubTopics && pubsubTopics.length > 0) {
+          try {
+            // Use pubsubTopicsToShardInfo to create NetworkConfig directly
+            nodeOptions.networkConfig = pubsubTopicsToShardInfo(pubsubTopics);
+
+          } catch (error) {
+            // Default to cluster ID 42, shard 0 as per the tests
+            nodeOptions.networkConfig = {
+              clusterId: 42,
+              shards: [0]
+            };
+          }
+        } else {
+          // Default to cluster ID 42, shard 0 as per the tests
+          nodeOptions.networkConfig = {
+            clusterId: 42,
+            shards: [0]
+          };
+        }
+
+        return window.wakuAPI.createWakuNode(nodeOptions);
+      },
+      { defaultBootstrap, networkConfig, pubsubTopics }
+    );
+
+    if (result && result.success) {
+      res.status(200).json({
+        success: true,
+        message: "Waku node created successfully"
+      });
+    } else {
+      res.status(500).json({
+        code: 500,
+        message: "Failed to create Waku node",
+        details: result?.error || "Unknown error"
+      });
+    }
   } catch (error: any) {
-    console.error("Error creating node:", error);
     res.status(500).json({
-      success: false,
-      error: error.message
+      code: 500,
+      message: `Could not create Waku node: ${error.message}`
     });
   }
 }) as express.RequestHandler);
@@ -50,12 +121,22 @@ router.post("/admin/v1/start-node", (async (_req: Request, res: Response) => {
         : { error: "startNode function not available" };
     });
 
-    res.json(result);
+    if (result && !result.error) {
+      res.status(200).json({
+        success: true,
+        message: "Waku node started successfully"
+      });
+    } else {
+      res.status(500).json({
+        code: 500,
+        message: "Failed to start Waku node",
+        details: result?.error || "Unknown error"
+      });
+    }
   } catch (error: any) {
-    console.error("Error starting node:", error);
     res.status(500).json({
-      success: false,
-      error: error.message
+      code: 500,
+      message: `Could not start Waku node: ${error.message}`
     });
   }
 }) as express.RequestHandler);
@@ -78,12 +159,22 @@ router.post("/admin/v1/stop-node", (async (_req: Request, res: Response) => {
         : { error: "stopNode function not available" };
     });
 
-    res.json(result);
+    if (result && !result.error) {
+      res.status(200).json({
+        success: true,
+        message: "Waku node stopped successfully"
+      });
+    } else {
+      res.status(500).json({
+        code: 500,
+        message: "Failed to stop Waku node",
+        details: result?.error || "Unknown error"
+      });
+    }
   } catch (error: any) {
-    console.error("Error stopping node:", error);
     res.status(500).json({
-      success: false,
-      error: error.message
+      code: 500,
+      message: `Could not stop Waku node: ${error.message}`
     });
   }
 }) as express.RequestHandler);
@@ -120,7 +211,7 @@ router.post("/admin/v1/peers", (async (req: Request, res: Response) => {
       res.status(200).json({
         peersAdded: peerMultiaddrs.length - (result.errors?.length || 0),
         peerErrors:
-          result.errors?.map((error, index) => {
+          result.errors?.map((error: string, index: number) => {
             return {
               peerMultiaddr: peerMultiaddrs[index],
               error
@@ -134,10 +225,9 @@ router.post("/admin/v1/peers", (async (req: Request, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.error("Error dialing peers:", error);
     res.status(500).json({
-      success: false,
-      error: error.message
+      code: 500,
+      message: `Could not dial peers: ${error.message}`
     });
   }
 }) as express.RequestHandler);

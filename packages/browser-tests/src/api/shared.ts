@@ -59,7 +59,7 @@ export async function pushMessage(
   if (!waku) {
     throw new Error("Waku node not found");
   }
-  // await waku.waitForPeers(["lightpush"]);
+
   const encoder = createEncoder({
     contentTopic,
     pubsubTopicShardInfo: {
@@ -152,62 +152,48 @@ export async function subscribe(
     clusterId?: number;
     shard?: number;
   },
+  // eslint-disable-next-line no-unused-vars
   callback?: (message: DecodedMessage) => void
 ): Promise<SubscribeResult> {
   const clusterId = options?.clusterId ?? 42;
   const shard = options?.shard ?? 0;
 
-  // eslint-disable-next-line no-console
   console.log(
     `Creating decoder for content topic ${contentTopic} with clusterId=${clusterId}, shard=${shard}`
   );
 
-  // Construct the pubsub topic
   const pubsubTopic = `/waku/2/rs/${clusterId}/${shard}`;
 
-  // Attempt to detect configured pubsub topics on the node
   let configuredTopics: string[] = [];
 
   try {
-    // Try to determine if the pubsub topic is configured on the node
     const protocols = waku.libp2p.getProtocols();
-    // eslint-disable-next-line no-console
     console.log(`Available protocols: ${Array.from(protocols).join(", ")}`);
 
-    // Check metadata for supported pubsub topics
     const metadataMethod = (waku.libp2p as any)._services?.metadata?.getInfo;
     if (metadataMethod) {
       const metadata = metadataMethod();
-      // eslint-disable-next-line no-console
       console.log(`Node metadata: ${JSON.stringify(metadata)}`);
 
-      // Check if the pubsub topics are in the metadata
       if (metadata?.pubsubTopics && Array.isArray(metadata.pubsubTopics)) {
         configuredTopics = metadata.pubsubTopics;
-        // eslint-disable-next-line no-console
         console.log(
           `Found configured pubsub topics: ${configuredTopics.join(", ")}`
         );
       }
     }
 
-    // Check if the pubsub topic is configured
     if (
       configuredTopics.length > 0 &&
       !configuredTopics.includes(pubsubTopic)
     ) {
-      // If we need a different pubsub topic, try to find one that's configured
-      // eslint-disable-next-line no-console
       console.warn(
         `Pubsub topic ${pubsubTopic} is not configured. Configured topics: ${configuredTopics.join(", ")}`
       );
 
-      // Try to find a matching topic based on common patterns
       for (const topic of configuredTopics) {
-        // Check if the topic is in the format /waku/2/rs/{clusterId}/{shard}
         const parts = topic.split("/");
         if (parts.length === 6 && parts[1] === "waku" && parts[3] === "rs") {
-          // eslint-disable-next-line no-console
           console.log(`Found potential matching pubsub topic: ${topic}`);
 
           // Use the first topic as a fallback if no exact match is found
@@ -216,12 +202,10 @@ export async function subscribe(
           const topicShard = parseInt(parts[5]);
 
           if (!isNaN(topicClusterId) && !isNaN(topicShard)) {
-            // eslint-disable-next-line no-console
             console.log(
               `Using pubsub topic with clusterId=${topicClusterId}, shard=${topicShard} instead`
             );
 
-            // Create decoder with the configured topic's sharding info
             const decoder = createDecoder(contentTopic, {
               clusterId: topicClusterId,
               shard: topicShard
@@ -231,15 +215,12 @@ export async function subscribe(
               const subscription = await waku.filter.subscribe(
                 decoder,
                 callback ??
-                  ((message) => {
-                    // eslint-disable-next-line no-console
-                    console.log(message);
+                  ((_message) => {
+                    console.log(_message);
                   })
               );
               return subscription;
             } catch (innerErr: any) {
-              // Log but continue to try default approach
-              // eslint-disable-next-line no-console
               console.error(
                 `Error with alternative pubsub topic: ${innerErr.message}`
               );
@@ -249,12 +230,9 @@ export async function subscribe(
       }
     }
   } catch (err) {
-    // Just log, don't fail
-    // eslint-disable-next-line no-console
     console.error(`Error checking node protocols: ${String(err)}`);
   }
 
-  // Create decoder with requested parameters (may still fail)
   const decoder = createDecoder(contentTopic, {
     clusterId,
     shard
@@ -264,26 +242,18 @@ export async function subscribe(
     const subscription = await waku.filter.subscribe(
       decoder,
       callback ??
-        ((message) => {
-          // eslint-disable-next-line no-console
-          console.log(message);
+        ((_message) => {
+          console.log(_message);
         })
     );
     return subscription;
   } catch (err: any) {
-    // Type as any to access message property
-    // If the pubsub topic error occurs, provide better error handling
     if (err.message && err.message.includes("Pubsub topic")) {
-      // eslint-disable-next-line no-console
       console.error(`Pubsub topic error: ${err.message}`);
-      // eslint-disable-next-line no-console
       console.log("Subscription failed, but continuing with empty result");
 
-      // Return a minimal SubscribeResult-compatible object
-      // First cast to unknown then to SubscribeResult to avoid type check
       return {
         unsubscribe: async () => {
-          // eslint-disable-next-line no-console
           console.log("No-op unsubscribe from failed subscription");
         }
       } as unknown as SubscribeResult;
@@ -292,7 +262,6 @@ export async function subscribe(
   }
 }
 
-// Export all API functions as a collection for easier importing
 export const API = {
   getPeerInfo,
   getDebugInfo,

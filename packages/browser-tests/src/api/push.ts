@@ -3,10 +3,8 @@ import { createEncoder, LightNode, SDKProtocolResult } from "@waku/sdk";
 export async function pushMessage(
   waku: LightNode,
   contentTopic: string,
-  payload?: Uint8Array<ArrayBuffer>
+  payload?: Uint8Array
 ): Promise<SDKProtocolResult> {
-  // encoder and decoder
-  // lightpush the message
   const enc = createEncoder({
     contentTopic
   });

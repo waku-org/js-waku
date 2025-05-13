@@ -6,7 +6,7 @@ This project provides a system for testing the Waku SDK in a browser environment
 
 The system consists of:
 
-1. **Headless Web App**: A simple web application that loads the Waku SDK and exposes shared API functions.
+1. **Headless Web App**: A simple web application (in the `@waku/headless-tests` package) that loads the Waku SDK and exposes shared API functions.
 2. **Express Server**: A server that communicates with the headless app using Playwright.
 3. **Shared API**: TypeScript functions shared between the server and web app.
 
@@ -19,9 +19,9 @@ The system consists of:
 npm install
 
 # Install headless app dependencies
-cd headless
+cd ../headless-tests
 npm install
-cd ..
+cd ../browser-tests
 ```
 
 2. Build the application:

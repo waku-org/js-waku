@@ -5,12 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "npm run start:server",
-    "start:serve": "npx serve -p 8080 --no-port-switching ./headless -s",
+    "start:server": "node ./dist/server.js",
     "test": "npx playwright test",
-    "build:headless": "cd headless && npm run build",
     "build:server": "tsc -p tsconfig.json",
-    "build": "run-s build:*",
-    "start:server": "node ./dist/server.js"
+    "build": "npm run build:server"
   },
   "devDependencies": {
     "@types/cors": "^2.8.15",

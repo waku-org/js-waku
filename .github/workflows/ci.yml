@@ -29,8 +29,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
-      - name: Install headless dependencies
-        run: cd packages/browser-tests/headless && npm install
       - run: npm run build
       - run: npm run check
       - run: npm run doc
@@ -45,8 +43,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
-      - name: Install headless dependencies
-        run: cd packages/browser-tests/headless && npm install
       - name: Generate protobuf code
         run: |
           npm run proto
@@ -72,8 +68,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
-      - name: Install headless dependencies
-        run: cd packages/browser-tests/headless && npm install
       - run: npm run build:esm
       - run: npm run test:browser
 
