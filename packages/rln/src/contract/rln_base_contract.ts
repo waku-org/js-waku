@@ -433,7 +433,7 @@ export class RLNBaseContract {
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
     if (
-      !(await this.isExpired(idCommitmentBigInt)) &&
+      !(await this.isExpired(idCommitmentBigInt)) ||
       !(await this.isInGracePeriod(idCommitmentBigInt))
     ) {
       throw new Error("Membership is not expired or in grace period");
