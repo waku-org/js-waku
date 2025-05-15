@@ -37,12 +37,14 @@ export class StoreQueryRequest {
       );
     }
 
+    // For message hash queries, only throw if real content filter criteria are present
+    // Allow empty arrays for contentTopics since they're set by the SDK
     if (
       params.messageHashes &&
-      (params.pubsubTopic ||
-        params.contentTopics ||
-        params.timeStart ||
-        params.timeEnd)
+      params.messageHashes.length > 0 &&
+      (params.timeStart ||
+        params.timeEnd ||
+        (params.contentTopics && params.contentTopics.length > 0))
     ) {
       throw new Error(
         "Message hash lookup queries cannot include content filter criteria"

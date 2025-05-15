@@ -58,10 +58,17 @@ export class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: Partial<QueryRequestParams>
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    // Handle message hash queries differently
+    if (options?.messageHashes && options.messageHashes.length > 0) {
+      yield* this.queryByMessageHashes<T>(decoders, options);
+      return;
+    }
+
+    // Regular content topic queries
     const { pubsubTopic, contentTopics, decodersAsMap } =
       this.validateDecodersAndPubsubTopic(decoders);
 
-    const queryOpts = {
+    const queryOpts: QueryRequestParams = {
       pubsubTopic,
       contentTopics,
       includeData: true,
@@ -76,10 +83,77 @@ export class Store implements IStore {
       throw new Error("No peers available to query");
     }
 
-    log.info(`Querying store with options: ${JSON.stringify(options)}`);
+    log.info(`Querying store with content filter options`);
     const responseGenerator = this.protocol.queryPerPage(
       queryOpts,
       decodersAsMap,
+      peer
+    );
+
+    for await (const messages of responseGenerator) {
+      yield messages;
+    }
+  }
+
+  /**
+   * Helper method to query store by message hashes.
+   * This method ensures content filter criteria are not included in the query.
+   */
+  private async *queryByMessageHashes<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
+    options: Partial<QueryRequestParams>
+  ): AsyncGenerator<Promise<T | undefined>[]> {
+    const peer = await this.getPeerToUse();
+    if (!peer) {
+      log.error("No peers available to query");
+      throw new Error("No peers available to query");
+    }
+
+    // Get the content topics from the decoder - for messageHash lookups we need all possible decoders
+    const decodersMap = new Map<string, IDecoder<T>>();
+
+    // Add decoder for each content topic
+    for (const decoder of decoders) {
+      // Add decoder to map using its content topic as key
+      decodersMap.set(decoder.contentTopic, decoder);
+    }
+
+    // If no decoders were added, log a warning
+    if (decodersMap.size === 0) {
+      log.warn(
+        "No decoders provided for message hash lookup, messages will not be decoded"
+      );
+    }
+
+    // Use pubsubTopic from options, or get it from the decoder if available, or use default
+    let pubsubTopic = options.pubsubTopic;
+    if (!pubsubTopic && decoders.length > 0) {
+      pubsubTopic = decoders[0].pubsubTopic;
+    }
+    if (!pubsubTopic) {
+      pubsubTopic =
+        this.protocol.pubsubTopics[0] || "/waku/2/default-waku/proto";
+    }
+
+    log.info(`Using pubsubTopic: ${pubsubTopic} for message hash query`);
+
+    // Create a message hash query with no content filter criteria
+    const queryOpts: QueryRequestParams = {
+      pubsubTopic: pubsubTopic,
+      contentTopics: [], // Empty array for message hash queries
+      includeData: true,
+      paginationForward: true,
+      messageHashes: options.messageHashes,
+      paginationCursor: options.paginationCursor,
+      paginationLimit: options.paginationLimit
+    };
+
+    log.info(
+      `Querying store with message hash lookup (${options.messageHashes?.length || 0} hashes)`
+    );
+    const responseGenerator = this.protocol.queryPerPage(
+      queryOpts,
+      decodersMap,
       peer
     );
 

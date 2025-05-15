@@ -40,9 +40,16 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
     decoders: Map<string, IDecoder<T>>,
     peerId: PeerId
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    // Skip content topic validation for message hash lookups
+    const isMessageHashQuery =
+      queryOpts.messageHashes && queryOpts.messageHashes.length > 0;
+
+    // Only validate content topics for content-based queries, not message hash lookups
     if (
+      !isMessageHashQuery &&
+      queryOpts.contentTopics &&
       queryOpts.contentTopics.toString() !==
-      Array.from(decoders.keys()).toString()
+        Array.from(decoders.keys()).toString()
     ) {
       throw new Error(
         "Internal error, the decoders should match the query's content topics"
