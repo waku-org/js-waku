@@ -1,5 +1,5 @@
 import { Logger } from "@waku/utils";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
@@ -717,6 +717,19 @@ export class RLNBaseContract {
     } catch (error) {
       return undefined;
     }
+  }
+
+  public async getMembershipStatus(
+    idCommitment: bigint
+  ): Promise<"expired" | "grace" | "active"> {
+    const [isExpired, isInGrace] = await Promise.all([
+      this.contract.isExpired(idCommitment),
+      this.contract.isInGracePeriod(idCommitment)
+    ]);
+
+    if (isExpired) return "expired";
+    if (isInGrace) return "grace";
+    return "active";
   }
 
   /**
