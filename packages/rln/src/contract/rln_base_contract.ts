@@ -432,6 +432,13 @@ export class RLNBaseContract {
     idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
+    if (
+      !(await this.isExpired(idCommitmentBigInt)) &&
+      !(await this.isInGracePeriod(idCommitmentBigInt))
+    ) {
+      throw new Error("Membership is not expired or in grace period");
+    }
+
     const estimatedGas = await this.contract.estimateGas[
       "eraseMemberships(uint256[],bool)"
     ]([idCommitmentBigInt], eraseFromMembershipSet);
@@ -709,6 +716,34 @@ export class RLNBaseContract {
       return event.args?.index;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  /**
+   * Checks if a membership is expired for the given idCommitment
+   * @param idCommitmentBigInt The idCommitment as bigint
+   * @returns Promise<boolean> True if expired, false otherwise
+   */
+  public async isExpired(idCommitmentBigInt: bigint): Promise<boolean> {
+    try {
+      return await this.contract.isExpired(idCommitmentBigInt);
+    } catch (error) {
+      log.error("Error in isExpired:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Checks if a membership is in grace period for the given idCommitment
+   * @param idCommitmentBigInt The idCommitment as bigint
+   * @returns Promise<boolean> True if in grace period, false otherwise
+   */
+  public async isInGracePeriod(idCommitmentBigInt: bigint): Promise<boolean> {
+    try {
+      return await this.contract.isInGracePeriod(idCommitmentBigInt);
+    } catch (error) {
+      log.error("Error in isInGracePeriod:", error);
+      return false;
     }
   }
 }
