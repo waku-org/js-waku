@@ -1,4 +1,5 @@
-import { createDecoder, createEncoder, Decoder, Encoder } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
+import { IDecoder, IEncoder } from "@waku/interfaces";
 
 type TestDataOptions = {
   pubsubTopic: string;
@@ -10,8 +11,8 @@ export function generateTestData(
   options?: TestDataOptions
 ): {
   contentTopics: string[];
-  encoders: Encoder[];
-  decoders: Decoder[];
+  encoders: IEncoder[];
+  decoders: IDecoder[];
 } {
   const contentTopics = Array.from(
     { length: topicCount },

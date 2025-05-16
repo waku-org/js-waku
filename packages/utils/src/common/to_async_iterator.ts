@@ -27,19 +27,19 @@ const FRAME_RATE = 60;
  * @param iteratorOptions - optional configuration for iterator;
  * @returns iterator and stop function to terminate it.
  */
-export async function toAsyncIterator<T extends IDecodedMessage>(
+export async function toAsyncIterator(
   receiver: IReceiver,
-  decoder: IDecoder<T> | IDecoder<T>[],
+  decoder: IDecoder | IDecoder[],
   iteratorOptions?: IteratorOptions
-): Promise<IAsyncIterator<T>> {
+): Promise<IAsyncIterator> {
   const iteratorDelay = iteratorOptions?.iteratorDelay ?? FRAME_RATE;
 
-  const messages: T[] = [];
+  const messages: IDecodedMessage[] = [];
 
   let unsubscribe: undefined | Unsubscribe;
   unsubscribe = await receiver.subscribeWithUnsubscribe(
     decoder,
-    (message: T) => {
+    (message: IDecodedMessage) => {
       messages.push(message);
     }
   );
@@ -48,7 +48,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   const timeoutMs = iteratorOptions?.timeoutMs ?? 0;
   const startTime = Date.now();
 
-  async function* iterator(): AsyncIterator<T> {
+  async function* iterator(): AsyncIterator<IDecodedMessage> {
     while (true) {
       if (isWithTimeout && Date.now() - startTime >= timeoutMs) {
         return;
@@ -56,7 +56,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
 
       await wait(iteratorDelay);
 
-      const message = messages.shift() as T;
+      const message = messages.shift() as IDecodedMessage;
 
       if (!unsubscribe && messages.length === 0) {
         return message;

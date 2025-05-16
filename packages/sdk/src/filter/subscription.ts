@@ -4,7 +4,6 @@ import {
   type ContentTopic,
   type CoreProtocolResult,
   FilterProtocolOptions,
-  type IDecodedMessage,
   type IDecoder,
   type ILightPush,
   type IProtoMessage,
@@ -28,10 +27,8 @@ const log = new Logger("sdk:filter:subscription");
 export class Subscription implements ISubscription {
   private readonly monitor: SubscriptionMonitor;
 
-  private subscriptionCallbacks: Map<
-    ContentTopic,
-    SubscriptionCallback<IDecodedMessage>
-  > = new Map();
+  private subscriptionCallbacks: Map<ContentTopic, SubscriptionCallback> =
+    new Map();
 
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
@@ -56,9 +53,9 @@ export class Subscription implements ISubscription {
     });
   }
 
-  public async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public async subscribe(
+    decoders: IDecoder | IDecoder[],
+    callback: Callback
   ): Promise<SDKProtocolResult> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -81,7 +78,7 @@ export class Subscription implements ISubscription {
         createDecoder(
           this.monitor.reservedContentTopic,
           this.pubsubTopic
-        ) as IDecoder<T>
+        ) as IDecoder
       );
     }
 
@@ -106,7 +103,7 @@ export class Subscription implements ISubscription {
       const subscriptionCallback = {
         decoders,
         callback
-      } as unknown as SubscriptionCallback<IDecodedMessage>;
+      } as unknown as SubscriptionCallback;
 
       // don't handle case of internal content topic
       if (contentTopic === this.monitor.reservedContentTopic) {
@@ -231,8 +228,8 @@ export class Subscription implements ISubscription {
   }
 }
 
-async function pushMessage<T extends IDecodedMessage>(
-  subscriptionCallback: SubscriptionCallback<T>,
+async function pushMessage(
+  subscriptionCallback: SubscriptionCallback,
   pubsubTopic: PubsubTopic,
   message: WakuMessage
 ): Promise<void> {

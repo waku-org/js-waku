@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopic,
-  IDecodedMessage,
+  IDecoder,
   EncoderOptions as WakuEncoderOptions
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -11,7 +11,6 @@ import * as zerokitRLN from "@waku/zerokit-rln-wasm";
 import {
   createRLNDecoder,
   createRLNEncoder,
-  type RLNDecoder,
   type RLNEncoder
 } from "./codec.js";
 import { DEFAULT_RATE_LIMIT } from "./contract/constants.js";
@@ -86,9 +85,7 @@ export class RLNInstance extends RLNCredentialsManager {
     });
   }
 
-  public createDecoder(
-    contentTopic: ContentTopic
-  ): RLNDecoder<IDecodedMessage> {
+  public createDecoder(contentTopic: ContentTopic): IDecoder {
     return createRLNDecoder({
       rlnInstance: this,
       decoder: createDecoder(contentTopic)

@@ -13,12 +13,12 @@ export function toRLNSignal(contentTopic: string, msg: IMessage): Uint8Array {
   return new Uint8Array([...(msg.payload ?? []), ...contentTopicBytes]);
 }
 
-export class RlnMessage<T extends IDecodedMessage> implements IDecodedMessage {
+export class RlnMessage implements IDecodedMessage {
   public pubsubTopic = "";
 
   public constructor(
     public rlnInstance: RLNInstance,
-    public msg: T,
+    public msg: IDecodedMessage,
     public rateLimitProof: IRateLimitProof | undefined
   ) {}
 
@@ -59,6 +59,10 @@ export class RlnMessage<T extends IDecodedMessage> implements IDecodedMessage {
 
   public get meta(): Uint8Array | undefined {
     return this.msg.meta;
+  }
+
+  public get version(): number | undefined {
+    return this.msg.version;
   }
 
   public get epoch(): number | undefined {

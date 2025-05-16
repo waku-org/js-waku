@@ -119,9 +119,7 @@ export type CreateNodeOptions = {
   lightPush?: Partial<LightPushProtocolOptions>;
 };
 
-export type Callback<T extends IDecodedMessage> = (
-  msg: T
-) => void | Promise<void>;
+export type Callback = (msg: IDecodedMessage) => void | Promise<void>;
 
 export enum ProtocolError {
   //
