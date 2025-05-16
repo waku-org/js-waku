@@ -1,6 +1,9 @@
 on:
     workflow_dispatch:
 
+env:
+  NODE_JS: "20"
+
 jobs:
     pre-release:
         name: pre-release
