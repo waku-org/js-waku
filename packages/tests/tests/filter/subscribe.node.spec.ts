@@ -1,5 +1,5 @@
-import { createDecoder, createEncoder } from "@waku/core";
-import { LightNode } from "@waku/interfaces";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
+import { IDecoder, LightNode } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -7,7 +7,7 @@ import {
   getPublicKey,
   symmetric
 } from "@waku/message-encryption";
-import { utf8ToBytes } from "@waku/sdk";
+import { Protocols, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -15,16 +15,22 @@ import {
   beforeEachCustom,
   delay,
   generateTestData,
+  makeLogFileName,
+  MessageCollector,
   runMultipleNodes,
+  ServiceNode,
   ServiceNodesFleet,
+  tearDownNodes,
   teardownNodesWithRedundancy,
   TEST_STRING,
   waitForConnections
 } from "../../src/index.js";
 
 import {
+  ClusterId,
   messagePayload,
   messageText,
+  ShardIndex,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -103,7 +109,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedPubsubTopic: TestPubsubTopic
       });
 
-      await serviceNodes.confirmMessageLength(1);
+      await serviceNodes.confirmMessageLength(2);
     });
 
     it("Subscribe and receive symmetrically encrypted messages via lightPush", async function () {
@@ -136,7 +142,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedPubsubTopic: TestPubsubTopic
       });
 
-      await serviceNodes.confirmMessageLength(1);
+      await serviceNodes.confirmMessageLength(2);
     });
 
     it("Subscribe and receive messages via waku relay post", async function () {
@@ -428,14 +434,23 @@ const runTests = (strictCheckNodes: boolean): void => {
     TEST_STRING.forEach((testItem) => {
       it(`Subscribe to topic containing ${testItem.description} and receive message`, async function () {
         const newContentTopic = testItem.value;
-        const newEncoder = createEncoder({
+        const newEncoder = waku.createEncoder({
           contentTopic: newContentTopic,
-          pubsubTopic: TestPubsubTopic
+          shardInfo: {
+            clusterId: ClusterId,
+            shard: ShardIndex
+          }
         });
-        const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+        const newDecoder = waku.createDecoder({
+          contentTopic: newContentTopic,
+          shardInfo: {
+            clusterId: ClusterId,
+            shard: ShardIndex
+          }
+        });
 
         await waku.filter.subscribe(
-          [newDecoder],
+          [newDecoder as IDecoder<DecodedMessage>],
           serviceNodes.messageCollector.callback
         );
         await waku.lightPush.send(newEncoder, messagePayload);
@@ -531,6 +546,98 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: testText,
         expectedContentTopic: TestContentTopic
       });
+    });
+
+    it("Subscribe and receive messages from 2 nwaku nodes each with different pubsubtopics", async function () {
+      await waku.filter.subscribe(
+        [TestDecoder],
+        serviceNodes.messageCollector.callback
+      );
+
+      // Set up and start a new nwaku node with customPubsubTopic1
+      const nwaku2 = new ServiceNode(makeLogFileName(this) + "3");
+
+      try {
+        const customContentTopic = "/test/4/waku-filter/default";
+        const customDecoder = createDecoder(customContentTopic, {
+          clusterId: ClusterId,
+          shard: 4
+        });
+        const customEncoder = createEncoder({
+          contentTopic: customContentTopic,
+          pubsubTopicShardInfo: { clusterId: ClusterId, shard: 4 }
+        });
+
+        await nwaku2.start({
+          filter: true,
+          lightpush: true,
+          relay: true,
+          clusterId: ClusterId,
+          shard: [4]
+        });
+        await waku.dial(await nwaku2.getMultiaddrWithId());
+        await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
+
+        await nwaku2.ensureSubscriptions([customDecoder.pubsubTopic]);
+
+        const messageCollector2 = new MessageCollector();
+
+        await waku.filter.subscribe(
+          [customDecoder],
+          messageCollector2.callback
+        );
+
+        // Making sure that messages are send and reveiced for both subscriptions
+        // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
+        while (
+          !(await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestDecoder.pubsubTopic
+          })) ||
+          !(await messageCollector2.waitForMessages(1, {
+            pubsubTopic: customDecoder.pubsubTopic
+          }))
+        ) {
+          await waku.lightPush.send(TestEncoder, {
+            payload: utf8ToBytes("M1")
+          });
+          await waku.lightPush.send(customEncoder, {
+            payload: utf8ToBytes("M2")
+          });
+        }
+
+        serviceNodes.messageCollector.verifyReceivedMessage(0, {
+          expectedContentTopic: TestDecoder.contentTopic,
+          expectedPubsubTopic: TestDecoder.pubsubTopic,
+          expectedMessageText: "M1"
+        });
+
+        messageCollector2.verifyReceivedMessage(0, {
+          expectedContentTopic: customDecoder.contentTopic,
+          expectedPubsubTopic: customDecoder.pubsubTopic,
+          expectedMessageText: "M2"
+        });
+      } catch (e) {
+        await tearDownNodes([nwaku2], []);
+      }
+    });
+
+    it("Should fail to subscribe with decoder with wrong shard", async function () {
+      const wrongDecoder = createDecoder(TestDecoder.contentTopic, {
+        clusterId: ClusterId,
+        shard: 5
+      });
+
+      // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
+      try {
+        await waku.filter.subscribe(
+          [wrongDecoder],
+          serviceNodes.messageCollector.callback
+        );
+      } catch (error) {
+        expect((error as Error).message).to.include(
+          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance.`
+        );
+      }
     });
   });
 };

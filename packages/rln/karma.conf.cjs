@@ -47,14 +47,15 @@ module.exports = function (config) {
 
     client: {
       mocha: {
-        timeout: 180000 // 3 minutes
+        timeout: 300000 // 5 minutes
       }
     },
 
-    browserDisconnectTimeout: 180000, // 3 minutes
+    browserDisconnectTimeout: 300000, // 5 minutes
     browserDisconnectTolerance: 3, // Number of tries before failing
-    browserNoActivityTimeout: 180000, // 3 minutes
+    browserNoActivityTimeout: 300000, // 5 minutes
     captureTimeout: 300000, // 5 minutes
+    pingTimeout: 300000, // 5 minutes
 
     mime: {
       "application/wasm": ["wasm"],

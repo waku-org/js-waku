@@ -45,7 +45,6 @@ export async function runMultipleNodes(
   };
 
   const waku = await createLightNode(wakuOptions);
-  await waku.start();
 
   if (!waku) {
     throw new Error("Failed to initialize waku");
@@ -68,6 +67,15 @@ export async function runMultipleNodes(
   }
 
   await waitForConnections(numServiceNodes, waku);
+
+  for (let i = 0; i < serviceNodes.nodes.length; i++) {
+    const node = serviceNodes.nodes[i];
+    const peers = await node.peers();
+
+    if (peers.length < 1) {
+      throw new Error(`Expected at least 1 connection for nwaku.`);
+    }
+  }
 
   return [serviceNodes, waku];
 }

@@ -1,82 +1,90 @@
-import { expect } from "chai";
+import { hexToBytes } from "@waku/utils/bytes";
+import { expect, use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import * as ethers from "ethers";
+import sinon, { SinonSandbox } from "sinon";
 
-import { createRLN } from "../create.js";
+import { createTestRLNInstance, initializeRLNContract } from "./test-setup.js";
+import {
+  createMockRegistryContract,
+  createRegisterStub,
+  mockRLNRegisteredEvent,
+  verifyRegistration
+} from "./test-utils.js";
 
-import { SEPOLIA_CONTRACT } from "./constants.js";
-import { RLNContract } from "./rln_contract.js";
+use(chaiAsPromised);
 
-describe("RLN Contract abstraction", () => {
-  it("should be able to fetch members from events and store to rln instance", async () => {
-    const rlnInstance = await createRLN();
-    let insertMemberCalled = false;
+describe("RLN Contract abstraction - RLN", () => {
+  let sandbox: SinonSandbox;
 
-    // Track if insertMember was called
-    const originalInsertMember = rlnInstance.zerokit.insertMember;
-    rlnInstance.zerokit.insertMember = function (
-      this: any,
-      ...args: Parameters<typeof originalInsertMember>
-    ) {
-      insertMemberCalled = true;
-      return originalInsertMember.apply(this, args);
-    };
-
-    const voidSigner = new ethers.VoidSigner(SEPOLIA_CONTRACT.address);
-    const rlnContract = new RLNContract(rlnInstance, {
-      registryAddress: SEPOLIA_CONTRACT.address,
-      signer: voidSigner
-    });
-
-    rlnContract["storageContract"] = {
-      queryFilter: () => Promise.resolve([mockEvent()])
-    } as unknown as ethers.Contract;
-    rlnContract["_membersFilter"] = {
-      address: "",
-      topics: []
-    } as unknown as ethers.EventFilter;
-
-    await rlnContract.fetchMembers(rlnInstance);
-
-    expect(insertMemberCalled).to.be.true;
+  beforeEach(async () => {
+    sandbox = sinon.createSandbox();
   });
 
-  it("should register a member", async () => {
-    const mockSignature =
-      "0xdeb8a6b00a8e404deb1f52d3aa72ed7f60a2ff4484c737eedaef18a0aacb2dfb4d5d74ac39bb71fa358cf2eb390565a35b026cc6272f2010d4351e17670311c21c";
+  afterEach(() => {
+    sandbox.restore();
+  });
 
-    const rlnInstance = await createRLN();
-    const voidSigner = new ethers.VoidSigner(SEPOLIA_CONTRACT.address);
-    const rlnContract = new RLNContract(rlnInstance, {
-      registryAddress: SEPOLIA_CONTRACT.address,
-      signer: voidSigner
+  describe("Member Registration", () => {
+    it("should fetch members from events and store them in the RLN instance", async () => {
+      const { rlnInstance, insertMemberSpy } = await createTestRLNInstance();
+      const membershipRegisteredEvent = mockRLNRegisteredEvent();
+      const queryFilterStub = sinon.stub().returns([membershipRegisteredEvent]);
+
+      const mockedRegistryContract = createMockRegistryContract({
+        queryFilter: queryFilterStub
+      });
+
+      const rlnContract = await initializeRLNContract(
+        rlnInstance,
+        mockedRegistryContract
+      );
+
+      await rlnContract.fetchMembers({
+        fromBlock: 0,
+        fetchRange: 1000,
+        fetchChunks: 2
+      });
+
+      expect(
+        insertMemberSpy.calledWith(
+          ethers.utils.zeroPad(
+            hexToBytes(membershipRegisteredEvent.args!.idCommitment),
+            32
+          )
+        )
+      ).to.be.true;
+      expect(queryFilterStub.called).to.be.true;
     });
 
-    let registerCalled = false;
-    rlnContract["storageIndex"] = 1;
-    rlnContract["_membersFilter"] = {
-      address: "",
-      topics: []
-    } as unknown as ethers.EventFilter;
-    rlnContract["registryContract"] = {
-      "register(uint16,uint256)": () => {
-        registerCalled = true;
-        return Promise.resolve({ wait: () => Promise.resolve(undefined) });
+    it("should register a member", async () => {
+      const { rlnInstance, identity, insertMemberSpy } =
+        await createTestRLNInstance();
+
+      const registerStub = createRegisterStub(identity);
+      const mockedRegistryContract = createMockRegistryContract({
+        register: registerStub,
+        queryFilter: () => []
+      });
+
+      const rlnContract = await initializeRLNContract(
+        rlnInstance,
+        mockedRegistryContract
+      );
+
+      const decryptedCredentials =
+        await rlnContract.registerWithIdentity(identity);
+
+      if (!decryptedCredentials) {
+        throw new Error("Failed to retrieve credentials");
       }
-    } as unknown as ethers.Contract;
 
-    const identity =
-      rlnInstance.zerokit.generateSeededIdentityCredential(mockSignature);
-    await rlnContract.registerWithIdentity(identity);
-
-    expect(registerCalled).to.be.true;
+      verifyRegistration(
+        decryptedCredentials,
+        identity,
+        registerStub,
+        insertMemberSpy
+      );
+    });
   });
 });
-
-function mockEvent(): ethers.Event {
-  return {
-    args: {
-      idCommitment: { _hex: "0xb3df1c4e5600ef2b" },
-      index: ethers.BigNumber.from(1)
-    }
-  } as unknown as ethers.Event;
-}

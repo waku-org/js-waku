@@ -15,7 +15,11 @@ import {
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
 import { createLightNode } from "@waku/sdk";
-import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
+  Logger
+} from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -84,14 +88,15 @@ describe("Waku Message Ephemeral field", function () {
 
   beforeEachCustom(this, async () => {
     nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    const contentTopics = [TestContentTopic, AsymContentTopic, SymContentTopic];
     await nwaku.start({
       filter: true,
       lightpush: true,
       store: true,
       relay: true,
-      pubsubTopic: [PubsubTopic],
-      contentTopic: [TestContentTopic, AsymContentTopic, SymContentTopic],
-      clusterId: ClusterId
+      contentTopic: contentTopics,
+      clusterId: ClusterId,
+      shard: contentTopics.map((t) => contentTopicToShardIndex(t))
     });
     await nwaku.ensureSubscriptionsAutosharding([
       TestContentTopic,

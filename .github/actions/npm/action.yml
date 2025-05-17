@@ -3,18 +3,8 @@ name: npm i
 runs:
   using: "composite"
   steps:
-    - run: echo "$GITHUB_CONTEXT"
+    - if: ${{ github.ref == 'refs/heads/master' || github.head_ref == 'release-please--branches--master' }}
+      run: npm i
       shell: bash
-      env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-    - run: npm i
-      shell: bash
-      if: ${{ contains('
-        refs/heads/master
-        refs/heads/release-please--branches--master
-        ', github.ref) }}
-    - uses: bahmutov/npm-install@v1
-      if: ${{ contains('
-        refs/heads/master
-        refs/heads/release-please--branches--master
-        ', github.ref) == false }}
+    - if: ${{ github.ref != 'refs/heads/master' && github.head_ref != 'release-please--branches--master' }}
+      uses: bahmutov/npm-install@v1
