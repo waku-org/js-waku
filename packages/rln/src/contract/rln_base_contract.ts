@@ -33,7 +33,7 @@ export class RLNBaseContract {
   /**
    * Private constructor for RLNBaseContract. Use static create() instead.
    */
-  private constructor(options: RLNContractInitOptions) {
+  protected constructor(options: RLNContractInitOptions) {
     const {
       address,
       signer,
