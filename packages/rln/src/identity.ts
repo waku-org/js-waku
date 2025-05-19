@@ -18,7 +18,7 @@ export class IdentityCredential {
     const idNullifier = memKeys.subarray(32, 64);
     const idSecretHash = memKeys.subarray(64, 96);
     const idCommitment = memKeys.subarray(96, 128);
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment, 32);
+    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
 
     return new IdentityCredential(
       idTrapdoor,
