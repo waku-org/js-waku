@@ -1,5 +1,5 @@
 import { Logger } from "@waku/utils";
-import { Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
@@ -22,6 +22,8 @@ export class RLNBaseContract {
   public contract: ethers.Contract;
   private deployBlock: undefined | number;
   private rateLimit: number;
+  private minRateLimit?: number;
+  private maxRateLimit?: number;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -29,10 +31,9 @@ export class RLNBaseContract {
   private _membersExpiredFilter: ethers.EventFilter;
 
   /**
-   * Constructor for RLNBaseContract.
-   * Allows injecting a mocked contract for testing purposes.
+   * Private constructor for RLNBaseContract. Use static create() instead.
    */
-  public constructor(options: RLNContractInitOptions) {
+  private constructor(options: RLNContractInitOptions) {
     const {
       address,
       signer,
@@ -67,11 +68,24 @@ export class RLNBaseContract {
       .catch((error) => {
         log.error("Failed to initialize members", { error });
       });
+  }
 
-    // Validate rate limit asynchronously
-    this.validateRateLimit(rateLimit).catch((error) => {
-      log.error("Failed to validate initial rate limit", { error });
-    });
+  /**
+   * Static async factory to create and initialize RLNBaseContract
+   */
+  public static async create(
+    options: RLNContractInitOptions
+  ): Promise<RLNBaseContract> {
+    const instance = new RLNBaseContract(options);
+    const [min, max] = await Promise.all([
+      instance.contract.minMembershipRateLimit(),
+      instance.contract.maxMembershipRateLimit()
+    ]);
+    instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
+    instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
+
+    instance.validateRateLimit(instance.rateLimit);
+    return instance;
   }
 
   /**
@@ -96,21 +110,21 @@ export class RLNBaseContract {
   }
 
   /**
-   * Gets the minimum allowed rate limit from the contract
-   * @returns Promise<number> The minimum rate limit in messages per epoch
+   * Gets the minimum allowed rate limit (cached)
    */
-  public async getMinRateLimit(): Promise<number> {
-    const minRate = await this.contract.minMembershipRateLimit();
-    return ethers.BigNumber.from(minRate).toNumber();
+  public getMinRateLimit(): number {
+    if (this.minRateLimit === undefined)
+      throw new Error("minRateLimit not initialized");
+    return this.minRateLimit;
   }
 
   /**
-   * Gets the maximum allowed rate limit from the contract
-   * @returns Promise<number> The maximum rate limit in messages per epoch
+   * Gets the maximum allowed rate limit (cached)
    */
-  public async getMaxRateLimit(): Promise<number> {
-    const maxRate = await this.contract.maxMembershipRateLimit();
-    return ethers.BigNumber.from(maxRate).toNumber();
+  public getMaxRateLimit(): number {
+    if (this.maxRateLimit === undefined)
+      throw new Error("maxRateLimit not initialized");
+    return this.maxRateLimit;
   }
 
   /**
@@ -147,8 +161,8 @@ export class RLNBaseContract {
    * Updates the rate limit for future registrations
    * @param newRateLimit The new rate limit to use
    */
-  public async setRateLimit(newRateLimit: number): Promise<void> {
-    await this.validateRateLimit(newRateLimit);
+  public setRateLimit(newRateLimit: number): void {
+    this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
 
@@ -662,21 +676,16 @@ export class RLNBaseContract {
   }
 
   /**
-   * Validates that the rate limit is within the allowed range
+   * Validates that the rate limit is within the allowed range (sync)
    * @throws Error if the rate limit is outside the allowed range
    */
-  private async validateRateLimit(rateLimit: number): Promise<void> {
-    const [minRate, maxRate] = await Promise.all([
-      this.contract.minMembershipRateLimit(),
-      this.contract.maxMembershipRateLimit()
-    ]);
-
-    const minRateNum = ethers.BigNumber.from(minRate).toNumber();
-    const maxRateNum = ethers.BigNumber.from(maxRate).toNumber();
-
-    if (rateLimit < minRateNum || rateLimit > maxRateNum) {
+  private validateRateLimit(rateLimit: number): void {
+    if (this.minRateLimit === undefined || this.maxRateLimit === undefined) {
+      throw new Error("Rate limits not initialized");
+    }
+    if (rateLimit < this.minRateLimit || rateLimit > this.maxRateLimit) {
       throw new Error(
-        `Rate limit must be between ${minRateNum} and ${maxRateNum} messages per epoch`
+        `Rate limit must be between ${this.minRateLimit} and ${this.maxRateLimit} messages per epoch`
       );
     }
   }
