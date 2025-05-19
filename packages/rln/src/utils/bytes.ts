@@ -61,12 +61,12 @@ export function writeUIntLE(
  * @param array: Uint8Array
  * @returns BigInt
  */
-export function buildBigIntFromUint8Array(
-  array: Uint8Array,
-  byteOffset: number = 0
-): bigint {
-  const dataView = new DataView(array.buffer);
-  return dataView.getBigUint64(byteOffset, true);
+export function buildBigIntFromUint8Array(array: Uint8Array): bigint {
+  let hex = "";
+  for (let i = array.length - 1; i >= 0; i--) {
+    hex += array[i].toString(16).padStart(2, "0");
+  }
+  return BigInt("0x" + hex);
 }
 
 /**
