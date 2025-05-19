@@ -1,6 +1,10 @@
 import { CreateNodeOptions, NetworkConfig, Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode, WakuNode } from "@waku/sdk";
+import {
+  createLightNode,
+  DEFAULT_DISCOVERIES_ENABLED,
+  WakuNode
+} from "@waku/sdk";
 import {
   derivePubsubTopicsFromNetworkConfig,
   Logger,
@@ -46,7 +50,8 @@ export async function runNodes<T>(
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     networkConfig: shardInfo,
-    lightPush: { numPeersToUse: 2 }
+    lightPush: { numPeersToUse: 2 },
+    discoveriesEnabled: DEFAULT_DISCOVERIES_ENABLED
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));
