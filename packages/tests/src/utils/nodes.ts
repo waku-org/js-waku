@@ -6,7 +6,7 @@ import {
   NetworkConfig,
   Protocols
 } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, DEFAULT_DISCOVERIES_ENABLED } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
@@ -41,7 +41,8 @@ export async function runMultipleNodes(
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
     networkConfig,
-    lightPush: { numPeersToUse: numServiceNodes }
+    lightPush: { numPeersToUse: numServiceNodes },
+    discoveriesEnabled: DEFAULT_DISCOVERIES_ENABLED
   };
 
   const waku = await createLightNode(wakuOptions);
