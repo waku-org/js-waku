@@ -52,17 +52,6 @@ export interface ISubscription {
   unsubscribeAll(): Promise<SDKProtocolResult>;
 }
 
-export type INewFilter = {
-  subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ): void;
-
-  unsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): void;
-};
-
 export type IFilter = IReceiver & { protocol: IBaseProtocolCore } & {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],

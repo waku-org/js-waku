@@ -7,6 +7,7 @@ import {
 import { FilterCore } from "@waku/core";
 import type {
   Callback,
+  NextFilterOptions as FilterOptions,
   IDecodedMessage,
   IDecoder,
   IProtoMessage,
@@ -15,17 +16,22 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager.js";
+import { PeerManager } from "../peer_manager/index.js";
 
-import {
-  FilterOptions,
-  PubsubSubscriptionEvents,
-  PubsubSubscriptionParams
-} from "./types.js";
+import { SubscriptionEvents, SubscriptionParams } from "./types.js";
 
-const log = new Logger("sdk:pubsub-subscription");
+const log = new Logger("sdk:filter-subscription");
 
-export class PubsubSubscription {
+type AttemptSubscribeParams = {
+  useNewContentTopics: boolean;
+  useOnlyNewPeers?: boolean;
+};
+
+type AttemptUnsubscribeParams = {
+  useNewContentTopics: boolean;
+};
+
+export class Subscription {
   private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
   private readonly protocol: FilterCore;
@@ -40,10 +46,10 @@ export class PubsubSubscription {
   private peerFailures = new Map<PeerId, number>();
 
   private callbacks = new Map<
-    IDecoder<T>,
+    IDecoder<IDecodedMessage>,
     EventHandler<CustomEvent<WakuMessage>>
   >();
-  private messageEmitter = new TypedEventEmitter<PubsubSubscriptionEvents>();
+  private messageEmitter = new TypedEventEmitter<SubscriptionEvents>();
 
   private toSubscribeContentTopics = new Set<string>();
   private toUnsubscribeContentTopics = new Set<string>();
@@ -60,7 +66,7 @@ export class PubsubSubscription {
     return Array.from(uniqueTopics);
   }
 
-  public constructor(params: PubsubSubscriptionParams) {
+  public constructor(params: SubscriptionParams) {
     this.config = params.config;
     this.pubsubTopic = params.pubsubTopic;
 
@@ -79,7 +85,9 @@ export class PubsubSubscription {
 
     this.inProgress = true;
 
-    this.attemptSubscribe();
+    this.attemptSubscribe({
+      useNewContentTopics: false
+    });
     this.setupSubscriptionInterval();
     this.setupKeepAliveInterval();
     this.setupEventListeners();
@@ -108,13 +116,14 @@ export class PubsubSubscription {
     return this.callbacks.size === 0;
   }
 
-  public add<T extends IDecodedMessage>(
+  public async add<T extends IDecodedMessage>(
     decoder: IDecoder<T>,
     callback: Callback<T>
-  ): void {
+  ): Promise<boolean> {
     const isNewContentTopic = !this.contentTopics.includes(
       decoder.contentTopic
     );
+
     if (isNewContentTopic) {
       this.toSubscribeContentTopics.add(decoder.contentTopic);
     }
@@ -123,7 +132,10 @@ export class PubsubSubscription {
       log.warn(
         `Replacing callback associated associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
-      this.remove(decoder);
+
+      const callback = this.callbacks.get(decoder);
+      this.callbacks.delete(decoder);
+      this.messageEmitter.removeEventListener(decoder.contentTopic, callback);
     }
 
     const eventHandler = (event: CustomEvent<WakuMessage>): void => {
@@ -142,15 +154,22 @@ export class PubsubSubscription {
 
     this.callbacks.set(decoder, eventHandler);
     this.messageEmitter.addEventListener(decoder.contentTopic, eventHandler);
+
+    return isNewContentTopic
+      ? await this.attemptSubscribe({ useNewContentTopics: true })
+      : true; // if content topic is not new - subscription, most likely exists
   }
 
-  public remove<T extends IDecodedMessage>(decoder: IDecoder<T>): void {
+  public async remove<T extends IDecodedMessage>(
+    decoder: IDecoder<T>
+  ): Promise<boolean> {
     const callback = this.callbacks.get(decoder);
+
     if (!callback) {
       log.warn(
         `No callback associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
-      return;
+      return false;
     }
 
     this.callbacks.delete(decoder);
@@ -159,9 +178,14 @@ export class PubsubSubscription {
     const isCompletelyRemoved = !this.contentTopics.includes(
       decoder.contentTopic
     );
+
     if (isCompletelyRemoved) {
       this.toUnsubscribeContentTopics.add(decoder.contentTopic);
     }
+
+    return isCompletelyRemoved
+      ? await this.attemptUnsubscribe({ useNewContentTopics: true })
+      : true; // no need to unsubscribe if there are other decoders on the contentTopic
   }
 
   public invoke(message: WakuMessage, _peerId: string): void {
@@ -176,25 +200,11 @@ export class PubsubSubscription {
     this.subscribeIntervalId = setInterval(() => {
       const run = async (): Promise<void> => {
         if (this.toSubscribeContentTopics.size > 0) {
-          const contentTopics = Array.from(
-            this.toSubscribeContentTopics.values()
-          );
-          this.toSubscribeContentTopics = new Set();
-          const requests = Array.from(this.peers.values()).map((peer) =>
-            this.requestSubscribe(peer, contentTopics)
-          );
-          await Promise.all(requests);
+          await this.attemptSubscribe({ useNewContentTopics: true });
         }
 
         if (this.toUnsubscribeContentTopics.size > 0) {
-          const contentTopics = Array.from(
-            this.toUnsubscribeContentTopics.values()
-          );
-          this.toUnsubscribeContentTopics = new Set();
-          const requests = Array.from(this.peers.values()).map((peer) =>
-            this.requestUnsubscribe(peer, contentTopics)
-          );
-          await Promise.all(requests);
+          await this.attemptUnsubscribe({ useNewContentTopics: true });
         }
       };
 
@@ -233,11 +243,15 @@ export class PubsubSubscription {
             .filter((p) => !!p)
             .map((p) => {
               this.peers.delete(p as PeerId);
-              return this.requestUnsubscribe(p as PeerId);
+              this.peerFailures.delete(p as PeerId);
+              return this.requestUnsubscribe(p as PeerId, this.contentTopics);
             })
         );
 
-        this.attemptSubscribe();
+        this.attemptSubscribe({
+          useNewContentTopics: false,
+          useOnlyNewPeers: true
+        });
       };
 
       void run();
@@ -273,10 +287,8 @@ export class PubsubSubscription {
   }
 
   private async disposePeers(): Promise<void> {
-    const promises = Array.from(this.peers.values()).map((peer) =>
-      this.requestUnsubscribe(peer)
-    );
-    await Promise.all(promises);
+    await this.attemptUnsubscribe({ useNewContentTopics: false });
+
     this.peers.clear();
     this.peerFailures = new Map();
   }
@@ -292,7 +304,10 @@ export class PubsubSubscription {
       return;
     }
 
-    this.attemptSubscribe();
+    this.attemptSubscribe({
+      useNewContentTopics: false,
+      useOnlyNewPeers: true
+    });
   }
 
   private onPeerDisconnected(event: CustomEvent<PeerId>): void {
@@ -302,16 +317,29 @@ export class PubsubSubscription {
     }
 
     this.peers.delete(event.detail);
-    this.attemptSubscribe();
+    this.attemptSubscribe({
+      useNewContentTopics: false,
+      useOnlyNewPeers: true
+    });
   }
 
-  private attemptSubscribe(): void {
-    if (this.peers.size >= this.config.numPeersToUse) {
-      return;
+  private async attemptSubscribe(
+    params: AttemptSubscribeParams
+  ): Promise<boolean> {
+    const { useNewContentTopics, useOnlyNewPeers = false } = params;
+
+    const contentTopics = useNewContentTopics
+      ? Array.from(this.toSubscribeContentTopics)
+      : this.contentTopics;
+
+    if (!contentTopics.length) {
+      log.warn(
+        "attemptSubscribe: requested content topics is an empty array, skipping"
+      );
+      return false;
     }
 
     const prevPeers = new Set(this.peers);
-
     const peersToAdd = this.peerManager.getPeers();
     for (const peer of peersToAdd) {
       if (this.peers.size >= this.config.numPeersToUse) {
@@ -321,18 +349,42 @@ export class PubsubSubscription {
       this.peers.add(peer);
     }
 
-    Array.from(this.peers.values())
-      .filter((p) => !prevPeers.has(p))
-      .map((p) => this.requestSubscribe(p));
+    const peersToUse = useOnlyNewPeers
+      ? Array.from(this.peers.values()).filter((p) => !prevPeers.has(p))
+      : Array.from(this.peers.values());
+
+    if (useOnlyNewPeers && peersToUse.length === 0) {
+      log.warn(
+        `attemptSubscribe: requested to use only new peers, but no peers found, skipping`
+      );
+      return false;
+    }
+
+    const results = await Promise.all(
+      peersToUse.map((p) => this.requestSubscribe(p, contentTopics))
+    );
+
+    if (useNewContentTopics) {
+      this.toSubscribeContentTopics = new Set();
+    }
+
+    return results.some((v) => v);
   }
 
   private async requestSubscribe(
     peerId: PeerId,
-    _contentTopics?: string[]
-  ): Promise<void> {
-    const contentTopics = _contentTopics?.length
-      ? _contentTopics
-      : this.contentTopics;
+    contentTopics: string[]
+  ): Promise<boolean> {
+    log.info(
+      `requestSubscribe: pubsubTopic:${this.pubsubTopic}\tcontentTopics:${contentTopics.join(",")}`
+    );
+
+    if (!contentTopics.length || !this.pubsubTopic) {
+      log.warn(
+        `requestSubscribe: no contentTopics or pubsubTopic provided, not sending subscribe request`
+      );
+      return false;
+    }
 
     const response = await this.protocol.subscribe(
       this.pubsubTopic,
@@ -342,24 +394,50 @@ export class PubsubSubscription {
 
     if (response.failure) {
       log.warn(
-        `Failed to subscribe ${this.pubsubTopic} to ${peerId.toString()} with error:${response.failure} for contentTopics:${contentTopics}`
+        `requestSubscribe: Failed to subscribe ${this.pubsubTopic} to ${peerId.toString()} with error:${response.failure.error} for contentTopics:${contentTopics}`
       );
-      return;
+      return false;
     }
 
     log.info(
-      `Subscribed ${this.pubsubTopic} to ${peerId.toString()} for contentTopics:${contentTopics}`
+      `requestSubscribe: Subscribed ${this.pubsubTopic} to ${peerId.toString()} for contentTopics:${contentTopics}`
     );
+
+    return true;
+  }
+
+  private async attemptUnsubscribe(
+    params: AttemptUnsubscribeParams
+  ): Promise<boolean> {
+    const { useNewContentTopics } = params;
+
+    const contentTopics = useNewContentTopics
+      ? Array.from(this.toUnsubscribeContentTopics)
+      : this.contentTopics;
+
+    if (!contentTopics.length) {
+      log.warn(
+        "attemptUnsubscribe: requested content topics is an empty array, skipping"
+      );
+      return false;
+    }
+
+    const peersToUse = Array.from(this.peers.values());
+    const result = await Promise.all(
+      peersToUse.map((p) => this.requestUnsubscribe(p, contentTopics))
+    );
+
+    if (useNewContentTopics) {
+      this.toUnsubscribeContentTopics = new Set();
+    }
+
+    return result.some((v) => v);
   }
 
   private async requestUnsubscribe(
     peerId: PeerId,
-    _contentTopics?: string[]
-  ): Promise<void> {
-    const contentTopics = _contentTopics?.length
-      ? _contentTopics
-      : this.contentTopics;
-
+    contentTopics: string[]
+  ): Promise<boolean> {
     const response = await this.protocol.unsubscribe(
       this.pubsubTopic,
       peerId,
@@ -368,13 +446,15 @@ export class PubsubSubscription {
 
     if (response.failure) {
       log.warn(
-        `Failed to unsubscribe for pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} with error:${response.failure} for contentTopics:${contentTopics}`
+        `requestUnsubscribe: Failed to unsubscribe for pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} with error:${response.failure} for contentTopics:${contentTopics}`
       );
-      return;
+      return false;
     }
 
     log.info(
-      `Unsubscribed pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} for contentTopics:${contentTopics}`
+      `requestUnsubscribe: Unsubscribed pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} for contentTopics:${contentTopics}`
     );
+
+    return true;
   }
 }

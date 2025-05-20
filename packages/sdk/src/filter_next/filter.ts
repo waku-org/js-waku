@@ -1,8 +1,10 @@
 import { ConnectionManager, FilterCore } from "@waku/core";
 import type {
   Callback,
+  NextFilterOptions as FilterOptions,
   IDecodedMessage,
   IDecoder,
+  INextFilter as IFilter,
   Libp2p
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -10,15 +12,12 @@ import { Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
-import { PubsubSubscription } from "./pubsub_subscription.js";
-import {
-  FilterConstructorParams,
-  FilterOptions,
-  IFilter,
-  PubsubTopic
-} from "./types.js";
+import { Subscription } from "./subscription.js";
+import { FilterConstructorParams } from "./types.js";
 
 const log = new Logger("sdk:next-filter");
+
+type PubsubTopic = string;
 
 export class Filter implements IFilter {
   private readonly libp2p: Libp2p;
@@ -27,7 +26,7 @@ export class Filter implements IFilter {
   private readonly connectionManager: ConnectionManager;
 
   private readonly config: FilterOptions;
-  private subscriptions = new Map<PubsubTopic, PubsubSubscription>();
+  private subscriptions = new Map<PubsubTopic, Subscription>();
 
   public constructor(params: FilterConstructorParams) {
     this.config = {
@@ -48,20 +47,21 @@ export class Filter implements IFilter {
     );
   }
 
-  public subscribe<T extends IDecodedMessage>(
+  public async subscribe<T extends IDecodedMessage>(
     decoder: IDecoder<T>,
     callback: Callback<T>
-  ): void {
+  ): Promise<boolean> {
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
       decoder.pubsubTopic
     );
+
     if (!supportedPubsubTopic) {
       throw Error("Pubsub topic of the decoder is not supported.");
     }
 
     let subscription = this.subscriptions.get(decoder.pubsubTopic);
     if (!subscription) {
-      subscription = new PubsubSubscription({
+      subscription = new Subscription({
         pubsubTopic: decoder.pubsubTopic,
         libp2p: this.libp2p,
         protocol: this.protocol,
@@ -71,13 +71,15 @@ export class Filter implements IFilter {
       subscription.start();
     }
 
-    subscription.add(decoder, callback);
+    const result = await subscription.add(decoder, callback);
     this.subscriptions.set(decoder.pubsubTopic, subscription);
 
-    return;
+    return result;
   }
 
-  public unsubscribe<T extends IDecodedMessage>(decoder: IDecoder<T>): void {
+  public async unsubscribe<T extends IDecodedMessage>(
+    decoder: IDecoder<T>
+  ): Promise<boolean> {
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
       decoder.pubsubTopic
     );
@@ -88,16 +90,18 @@ export class Filter implements IFilter {
     const subscription = this.subscriptions.get(decoder.pubsubTopic);
     if (!subscription) {
       log.warn("No subscriptions associated with the decoder.");
-      return;
+      return false;
     }
 
-    subscription.remove(decoder);
+    const result = await subscription.remove(decoder);
 
     if (subscription.isEmpty()) {
       log.warn("Subscription has no decoders anymore, terminating it.");
       subscription.stop();
       this.subscriptions.delete(decoder.pubsubTopic);
     }
+
+    return result;
   }
 
   private async onIncomingMessage(

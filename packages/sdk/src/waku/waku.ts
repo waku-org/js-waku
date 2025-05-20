@@ -15,6 +15,7 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
+  INextFilter,
   IRelay,
   IStore,
   IWaku,
@@ -25,8 +26,8 @@ import type {
 import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-// import { Filter } from "../filter/index.js";
-import { INextFilter, NextFilter } from "../filter_next/index.js";
+import { Filter } from "../filter/index.js";
+import { NextFilter } from "../filter_next/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
@@ -130,17 +131,18 @@ export class WakuNode implements IWaku {
     }
 
     if (protocolsEnabled.filter) {
+      this.nextFilter = new NextFilter({
+        libp2p,
+        connectionManager: this.connectionManager,
+        peerManager: this.peerManager,
+        options: options.filter
+      });
+
       this.filter = new Filter({
         libp2p,
         connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         lightPush: this.lightPush,
-        options: options.filter
-      });
-      this.nextFilter = new NextFilter({
-        libp2p,
-        connectionManager: this.connectionManager,
-        peerManager: this.peerManager,
         options: options.filter
       });
     }
