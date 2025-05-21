@@ -79,7 +79,10 @@ export class Subscription {
   }
 
   public start(): void {
+    log.info(`Starting subscription for pubsubTopic: ${this.pubsubTopic}`);
+
     if (this.isStarted || this.inProgress) {
+      log.info("Subscription already started or in progress, skipping start");
       return;
     }
 
@@ -94,10 +97,15 @@ export class Subscription {
 
     this.isStarted = true;
     this.inProgress = false;
+
+    log.info(`Subscription started for pubsubTopic: ${this.pubsubTopic}`);
   }
 
   public stop(): void {
+    log.info(`Stopping subscription for pubsubTopic: ${this.pubsubTopic}`);
+
     if (!this.isStarted || this.inProgress) {
+      log.info("Subscription not started or stop in progress, skipping stop");
       return;
     }
 
@@ -110,6 +118,8 @@ export class Subscription {
 
     this.inProgress = false;
     this.isStarted = false;
+
+    log.info(`Subscription stopped for pubsubTopic: ${this.pubsubTopic}`);
   }
 
   public isEmpty(): boolean {
@@ -120,6 +130,8 @@ export class Subscription {
     decoder: IDecoder<T>,
     callback: Callback<T>
   ): Promise<boolean> {
+    log.info(`Adding subscription for contentTopic: ${decoder.contentTopic}`);
+
     const isNewContentTopic = !this.contentTopics.includes(
       decoder.contentTopic
     );
@@ -155,6 +167,10 @@ export class Subscription {
     this.callbacks.set(decoder, eventHandler);
     this.messageEmitter.addEventListener(decoder.contentTopic, eventHandler);
 
+    log.info(
+      `Subscription added for contentTopic: ${decoder.contentTopic}, isNewContentTopic: ${isNewContentTopic}`
+    );
+
     return isNewContentTopic
       ? await this.attemptSubscribe({ useNewContentTopics: true })
       : true; // if content topic is not new - subscription, most likely exists
@@ -163,6 +179,8 @@ export class Subscription {
   public async remove<T extends IDecodedMessage>(
     decoder: IDecoder<T>
   ): Promise<boolean> {
+    log.info(`Removing subscription for contentTopic: ${decoder.contentTopic}`);
+
     const callback = this.callbacks.get(decoder);
 
     if (!callback) {
@@ -183,12 +201,17 @@ export class Subscription {
       this.toUnsubscribeContentTopics.add(decoder.contentTopic);
     }
 
+    log.info(
+      `Subscription removed for contentTopic: ${decoder.contentTopic}, isCompletelyRemoved: ${isCompletelyRemoved}`
+    );
+
     return isCompletelyRemoved
       ? await this.attemptUnsubscribe({ useNewContentTopics: true })
       : true; // no need to unsubscribe if there are other decoders on the contentTopic
   }
 
   public invoke(message: WakuMessage, _peerId: string): void {
+    log.info(`Invoking message for contentTopic: ${message.contentTopic}`);
     this.messageEmitter.dispatchEvent(
       new CustomEvent<WakuMessage>(message.contentTopic, {
         detail: message
@@ -197,30 +220,49 @@ export class Subscription {
   }
 
   private setupSubscriptionInterval(): void {
+    const subscriptionRefreshIntervalMs = 1000;
+
+    log.info(
+      `Setting up subscription interval with period ${subscriptionRefreshIntervalMs}ms`
+    );
+
     this.subscribeIntervalId = setInterval(() => {
       const run = async (): Promise<void> => {
         if (this.toSubscribeContentTopics.size > 0) {
+          log.info(
+            `Subscription interval: ${this.toSubscribeContentTopics.size} topics to subscribe`
+          );
           await this.attemptSubscribe({ useNewContentTopics: true });
         }
 
         if (this.toUnsubscribeContentTopics.size > 0) {
+          log.info(
+            `Subscription interval: ${this.toUnsubscribeContentTopics.size} topics to unsubscribe`
+          );
           await this.attemptUnsubscribe({ useNewContentTopics: true });
         }
       };
 
       void run();
-    }, 1000) as unknown as number;
+    }, subscriptionRefreshIntervalMs) as unknown as number;
   }
 
   private setupKeepAliveInterval(): void {
+    log.info(
+      `Setting up keep-alive interval with period ${this.config.keepAliveIntervalMs}ms`
+    );
+
     this.keepAliveIntervalId = setInterval(() => {
       const run = async (): Promise<void> => {
-        const peersToReplace = await Promise.all(
+        log.info(`Keep-alive interval running for ${this.peers.size} peers`);
+
+        let peersToReplace = await Promise.all(
           Array.from(this.peers.values()).map(
             async (peer): Promise<PeerId | undefined> => {
               const response = await this.protocol.ping(peer);
 
               if (response.success) {
+                log.info(`Ping successful for peer: ${peer.toString()}`);
                 this.peerFailures.set(peer, 0);
                 return;
               }
@@ -229,29 +271,40 @@ export class Subscription {
               failures += 1;
               this.peerFailures.set(peer, failures);
 
+              log.warn(
+                `Ping failed for peer: ${peer.toString()}, failures: ${failures}/${this.config.pingsBeforePeerRenewed}`
+              );
+
               if (failures < this.config.pingsBeforePeerRenewed) {
                 return;
               }
 
+              log.info(
+                `Peer ${peer.toString()} exceeded max failures (${this.config.pingsBeforePeerRenewed}), will be replaced`
+              );
               return peer;
             }
           )
         );
 
+        peersToReplace = peersToReplace.filter((p) => !!p);
+
         await Promise.all(
-          peersToReplace
-            .filter((p) => !!p)
-            .map((p) => {
-              this.peers.delete(p as PeerId);
-              this.peerFailures.delete(p as PeerId);
-              return this.requestUnsubscribe(p as PeerId, this.contentTopics);
-            })
+          peersToReplace.map((p) => {
+            this.peers.delete(p as PeerId);
+            this.peerFailures.delete(p as PeerId);
+            return this.requestUnsubscribe(p as PeerId, this.contentTopics);
+          })
         );
 
-        this.attemptSubscribe({
-          useNewContentTopics: false,
-          useOnlyNewPeers: true
-        });
+        if (peersToReplace.length > 0) {
+          log.info(`Replacing ${peersToReplace.length} failed peers`);
+
+          this.attemptSubscribe({
+            useNewContentTopics: false,
+            useOnlyNewPeers: true
+          });
+        }
       };
 
       void run();
@@ -299,8 +352,11 @@ export class Subscription {
   }
 
   private onPeerConnected(event: CustomEvent<PeerId>): void {
+    log.info(`Peer connected: ${event.detail.toString()}`);
+
     // skip the peer we already subscribe to
     if (this.peers.has(event.detail)) {
+      log.info(`Peer ${event.detail.toString()} already subscribed, skipping`);
       return;
     }
 
@@ -311,10 +367,19 @@ export class Subscription {
   }
 
   private onPeerDisconnected(event: CustomEvent<PeerId>): void {
+    log.info(`Peer disconnected: ${event.detail.toString()}`);
+
     // ignore as the peer is not the one that is in use
     if (!this.peers.has(event.detail)) {
+      log.info(
+        `Disconnected peer ${event.detail.toString()} not in use, ignoring`
+      );
       return;
     }
+
+    log.info(
+      `Active peer ${event.detail.toString()} disconnected, removing from peers list`
+    );
 
     this.peers.delete(event.detail);
     this.attemptSubscribe({
@@ -332,10 +397,12 @@ export class Subscription {
       ? Array.from(this.toSubscribeContentTopics)
       : this.contentTopics;
 
+    log.info(
+      `Attempting to subscribe: useNewContentTopics=${useNewContentTopics}, useOnlyNewPeers=${useOnlyNewPeers}, contentTopics=${contentTopics.length}`
+    );
+
     if (!contentTopics.length) {
-      log.warn(
-        "attemptSubscribe: requested content topics is an empty array, skipping"
-      );
+      log.warn("Requested content topics is an empty array, skipping");
       return false;
     }
 
@@ -353,15 +420,22 @@ export class Subscription {
       ? Array.from(this.peers.values()).filter((p) => !prevPeers.has(p))
       : Array.from(this.peers.values());
 
+    log.info(
+      `Subscribing with ${peersToUse.length} peers for ${contentTopics.length} content topics`
+    );
+
     if (useOnlyNewPeers && peersToUse.length === 0) {
-      log.warn(
-        `attemptSubscribe: requested to use only new peers, but no peers found, skipping`
-      );
+      log.warn(`Requested to use only new peers, but no peers found, skipping`);
       return false;
     }
 
     const results = await Promise.all(
       peersToUse.map((p) => this.requestSubscribe(p, contentTopics))
+    );
+
+    const successCount = results.filter((r) => r).length;
+    log.info(
+      `Subscribe attempts completed: ${successCount}/${results.length} successful`
     );
 
     if (useNewContentTopics) {
@@ -415,16 +489,23 @@ export class Subscription {
       ? Array.from(this.toUnsubscribeContentTopics)
       : this.contentTopics;
 
+    log.info(
+      `Attempting to unsubscribe: useNewContentTopics=${useNewContentTopics}, contentTopics=${contentTopics.length}`
+    );
+
     if (!contentTopics.length) {
-      log.warn(
-        "attemptUnsubscribe: requested content topics is an empty array, skipping"
-      );
+      log.warn("Requested content topics is an empty array, skipping");
       return false;
     }
 
     const peersToUse = Array.from(this.peers.values());
     const result = await Promise.all(
       peersToUse.map((p) => this.requestUnsubscribe(p, contentTopics))
+    );
+
+    const successCount = result.filter((r) => r).length;
+    log.info(
+      `Unsubscribe attempts completed: ${successCount}/${result.length} successful`
     );
 
     if (useNewContentTopics) {
