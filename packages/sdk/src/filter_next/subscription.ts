@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   type EventHandler,
   type PeerId,
@@ -88,7 +87,7 @@ export class Subscription {
 
     this.inProgress = true;
 
-    this.attemptSubscribe({
+    void this.attemptSubscribe({
       useNewContentTopics: false
     });
     this.setupSubscriptionInterval();
@@ -157,7 +156,7 @@ export class Subscription {
             decoder.pubsubTopic,
             event.detail as IProtoMessage
           );
-          callback(message!);
+          void callback(message!);
         } catch (err) {
           log.error("Error decoding message", err);
         }
@@ -232,14 +231,14 @@ export class Subscription {
           log.info(
             `Subscription interval: ${this.toSubscribeContentTopics.size} topics to subscribe`
           );
-          await this.attemptSubscribe({ useNewContentTopics: true });
+          void (await this.attemptSubscribe({ useNewContentTopics: true }));
         }
 
         if (this.toUnsubscribeContentTopics.size > 0) {
           log.info(
             `Subscription interval: ${this.toUnsubscribeContentTopics.size} topics to unsubscribe`
           );
-          await this.attemptUnsubscribe({ useNewContentTopics: true });
+          void (await this.attemptUnsubscribe({ useNewContentTopics: true }));
         }
       };
 
@@ -300,10 +299,10 @@ export class Subscription {
         if (peersToReplace.length > 0) {
           log.info(`Replacing ${peersToReplace.length} failed peers`);
 
-          this.attemptSubscribe({
+          void (await this.attemptSubscribe({
             useNewContentTopics: false,
             useOnlyNewPeers: true
-          });
+          }));
         }
       };
 
@@ -360,7 +359,7 @@ export class Subscription {
       return;
     }
 
-    this.attemptSubscribe({
+    void this.attemptSubscribe({
       useNewContentTopics: false,
       useOnlyNewPeers: true
     });
@@ -382,7 +381,7 @@ export class Subscription {
     );
 
     this.peers.delete(event.detail);
-    this.attemptSubscribe({
+    void this.attemptSubscribe({
       useNewContentTopics: false,
       useOnlyNewPeers: true
     });
