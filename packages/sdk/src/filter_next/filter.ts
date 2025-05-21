@@ -51,6 +51,10 @@ export class Filter implements IFilter {
     decoder: IDecoder<T>,
     callback: Callback<T>
   ): Promise<boolean> {
+    log.info(
+      `Subscribing to content topic: ${decoder.contentTopic}, pubsub topic: ${decoder.pubsubTopic}`
+    );
+
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
       decoder.pubsubTopic
     );
@@ -74,12 +78,20 @@ export class Filter implements IFilter {
     const result = await subscription.add(decoder, callback);
     this.subscriptions.set(decoder.pubsubTopic, subscription);
 
+    log.info(
+      `Subscription ${result ? "successful" : "failed"} for content topic: ${decoder.contentTopic}`
+    );
+
     return result;
   }
 
   public async unsubscribe<T extends IDecodedMessage>(
     decoder: IDecoder<T>
   ): Promise<boolean> {
+    log.info(
+      `Unsubscribing from content topic: ${decoder.contentTopic}, pubsub topic: ${decoder.pubsubTopic}`
+    );
+
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
       decoder.pubsubTopic
     );
@@ -100,6 +112,10 @@ export class Filter implements IFilter {
       subscription.stop();
       this.subscriptions.delete(decoder.pubsubTopic);
     }
+
+    log.info(
+      `Unsubscribing ${result ? "successful" : "failed"} for content topic: ${decoder.contentTopic}`
+    );
 
     return result;
   }
