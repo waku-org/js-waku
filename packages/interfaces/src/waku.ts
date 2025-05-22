@@ -35,7 +35,12 @@ export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;
+
+  /**
+   * @deprecated use IWaku.nextFilter instead
+   */
   filter?: IFilter;
+
   nextFilter?: INextFilter;
   lightPush?: ILightPush;
   connectionManager: IConnectionManager;

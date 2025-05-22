@@ -131,18 +131,18 @@ export class WakuNode implements IWaku {
     }
 
     if (protocolsEnabled.filter) {
-      this.nextFilter = new NextFilter({
-        libp2p,
-        connectionManager: this.connectionManager,
-        peerManager: this.peerManager,
-        options: options.filter
-      });
-
       this.filter = new Filter({
         libp2p,
         connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         lightPush: this.lightPush,
+        options: options.filter
+      });
+
+      this.nextFilter = new NextFilter({
+        libp2p,
+        connectionManager: this.connectionManager,
+        peerManager: this.peerManager,
         options: options.filter
       });
     }
