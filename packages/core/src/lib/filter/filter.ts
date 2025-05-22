@@ -30,17 +30,44 @@ export const FilterCodecs = {
   PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
+type IncomingMessageHandler = (
+  pubsubTopic: PubsubTopic,
+  wakuMessage: WakuMessage,
+  peerIdStr: string
+) => Promise<void>;
+
 export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
+  private static handleIncomingMessage?: IncomingMessageHandler;
+
   public constructor(
-    private handleIncomingMessage: (
-      pubsubTopic: PubsubTopic,
-      wakuMessage: WakuMessage,
-      peerIdStr: string
-    ) => Promise<void>,
+    handleIncomingMessage: IncomingMessageHandler,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components, pubsubTopics);
+
+    // TODO(weboko): remove when @waku/sdk 0.0.33 is released
+    const prevHandler = FilterCore.handleIncomingMessage;
+    FilterCore.handleIncomingMessage = !prevHandler
+      ? handleIncomingMessage
+      : async (pubsubTopic, message, peerIdStr): Promise<void> => {
+          try {
+            await prevHandler(pubsubTopic, message, peerIdStr);
+          } catch (e) {
+            log.error(
+              "Previous FilterCore incoming message handler failed ",
+              e
+            );
+          }
+
+          try {
+            await handleIncomingMessage(pubsubTopic, message, peerIdStr);
+          } catch (e) {
+            log.error("Present FilterCore incoming message handler failed ", e);
+          }
+
+          return;
+        };
 
     libp2p
       .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
@@ -291,7 +318,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
             return;
           }
 
-          await this.handleIncomingMessage(
+          await FilterCore.handleIncomingMessage?.(
             pubsubTopic,
             wakuMessage,
             connection.remotePeer.toString()
