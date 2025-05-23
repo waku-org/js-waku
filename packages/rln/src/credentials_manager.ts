@@ -80,7 +80,7 @@ export class RLNCredentialsManager {
 
       this.credentials = credentials;
       this.signer = signer!;
-      this.contract = new RLNBaseContract({
+      this.contract = await RLNBaseContract.create({
         address: address!,
         signer: signer!,
         rateLimit: rateLimit ?? this.zerokit?.rateLimit

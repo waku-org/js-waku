@@ -22,6 +22,8 @@ export class RLNBaseContract {
   public contract: ethers.Contract;
   private deployBlock: undefined | number;
   private rateLimit: number;
+  private minRateLimit?: number;
+  private maxRateLimit?: number;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -29,10 +31,35 @@ export class RLNBaseContract {
   private _membersExpiredFilter: ethers.EventFilter;
 
   /**
-   * Constructor for RLNBaseContract.
-   * Allows injecting a mocked contract for testing purposes.
+   * Private constructor for RLNBaseContract. Use static create() instead.
    */
-  public constructor(options: RLNContractInitOptions) {
+  protected constructor(options: RLNContractInitOptions) {
+    const {
+      address,
+      signer,
+      rateLimit = DEFAULT_RATE_LIMIT,
+      contract
+    } = options;
+
+    log.info("Initializing RLNBaseContract", { address, rateLimit });
+
+    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
+    this.rateLimit = rateLimit;
+
+    try {
+      log.info("Setting up event filters");
+      // Initialize event filters
+      this._membersFilter = this.contract.filters.MembershipRegistered();
+      this._membershipErasedFilter = this.contract.filters.MembershipErased();
+      this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+      log.info("Event filters initialized successfully");
+    } catch (error) {
+      log.error("Failed to initialize event filters", { error });
+      throw new Error(
+        "Failed to initialize event filters: " + (error as Error).message
+      );
+    }
+
     // Initialize members and subscriptions
     this.fetchMembers()
       .then(() => {
@@ -41,23 +68,24 @@ export class RLNBaseContract {
       .catch((error) => {
         log.error("Failed to initialize members", { error });
       });
+  }
 
-    const {
-      address,
-      signer,
-      rateLimit = DEFAULT_RATE_LIMIT,
-      contract
-    } = options;
+  /**
+   * Static async factory to create and initialize RLNBaseContract
+   */
+  public static async create(
+    options: RLNContractInitOptions
+  ): Promise<RLNBaseContract> {
+    const instance = new RLNBaseContract(options);
+    const [min, max] = await Promise.all([
+      instance.contract.minMembershipRateLimit(),
+      instance.contract.maxMembershipRateLimit()
+    ]);
+    instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
+    instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
 
-    this.validateRateLimit(rateLimit);
-
-    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
-    this.rateLimit = rateLimit;
-
-    // Initialize event filters
-    this._membersFilter = this.contract.filters.MembershipRegistered();
-    this._membershipErasedFilter = this.contract.filters.MembershipErased();
-    this._membersExpiredFilter = this.contract.filters.MembershipExpired();
+    instance.validateRateLimit(instance.rateLimit);
+    return instance;
   }
 
   /**
@@ -82,21 +110,21 @@ export class RLNBaseContract {
   }
 
   /**
-   * Gets the minimum allowed rate limit from the contract
-   * @returns Promise<number> The minimum rate limit in messages per epoch
+   * Gets the minimum allowed rate limit (cached)
    */
-  public async getMinRateLimit(): Promise<number> {
-    const minRate = await this.contract.minMembershipRateLimit();
-    return ethers.BigNumber.from(minRate).toNumber();
+  public getMinRateLimit(): number {
+    if (this.minRateLimit === undefined)
+      throw new Error("minRateLimit not initialized");
+    return this.minRateLimit;
   }
 
   /**
-   * Gets the maximum allowed rate limit from the contract
-   * @returns Promise<number> The maximum rate limit in messages per epoch
+   * Gets the maximum allowed rate limit (cached)
    */
-  public async getMaxRateLimit(): Promise<number> {
-    const maxRate = await this.contract.maxMembershipRateLimit();
-    return ethers.BigNumber.from(maxRate).toNumber();
+  public getMaxRateLimit(): number {
+    if (this.maxRateLimit === undefined)
+      throw new Error("maxRateLimit not initialized");
+    return this.maxRateLimit;
   }
 
   /**
@@ -133,7 +161,7 @@ export class RLNBaseContract {
    * Updates the rate limit for future registrations
    * @param newRateLimit The new rate limit to use
    */
-  public async setRateLimit(newRateLimit: number): Promise<void> {
+  public setRateLimit(newRateLimit: number): void {
     this.validateRateLimit(newRateLimit);
     this.rateLimit = newRateLimit;
   }
@@ -324,7 +352,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membersFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -336,7 +364,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membershipErasedFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -348,7 +376,7 @@ export class RLNBaseContract {
     this.contract.on(
       this.membersExpiredFilter,
       (
-        _idCommitment: string,
+        _idCommitment: bigint,
         _membershipRateLimit: ethers.BigNumber,
         _index: ethers.BigNumber,
         event: ethers.Event
@@ -358,94 +386,89 @@ export class RLNBaseContract {
     );
   }
 
-  /**
-   * Helper method to get remaining messages in current epoch
-   * @param membershipId The ID of the membership to check
-   * @returns number of remaining messages allowed in current epoch
-   */
-  public async getRemainingMessages(membershipId: number): Promise<number> {
-    try {
-      const [startTime, , rateLimit] =
-        await this.contract.getMembershipInfo(membershipId);
-
-      // Calculate current epoch
-      const currentTime = Math.floor(Date.now() / 1000);
-      const epochsPassed = Math.floor(
-        (currentTime - startTime) / RATE_LIMIT_PARAMS.EPOCH_LENGTH
-      );
-      const currentEpochStart =
-        startTime + epochsPassed * RATE_LIMIT_PARAMS.EPOCH_LENGTH;
-
-      // Get message count in current epoch using contract's function
-      const messageCount = await this.contract.getMessageCount(
-        membershipId,
-        currentEpochStart
-      );
-      return Math.max(
-        0,
-        ethers.BigNumber.from(rateLimit)
-          .sub(ethers.BigNumber.from(messageCount))
-          .toNumber()
-      );
-    } catch (error) {
-      log.error(
-        `Error getting remaining messages: ${(error as Error).message}`
-      );
-      return 0; // Fail safe: assume no messages remaining on error
-    }
-  }
-
   public async getMembershipInfo(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<MembershipInfo | undefined> {
     try {
-      const [startBlock, endBlock, rateLimit] =
-        await this.contract.getMembershipInfo(idCommitment);
+      const membershipData =
+        await this.contract.memberships(idCommitmentBigInt);
       const currentBlock = await this.contract.provider.getBlockNumber();
+      const [
+        depositAmount,
+        activeDuration,
+        gracePeriodStartTimestamp,
+        gracePeriodDuration,
+        rateLimit,
+        index,
+        holder,
+        token
+      ] = membershipData;
+
+      const gracePeriodEnd = gracePeriodStartTimestamp.add(gracePeriodDuration);
 
       let state: MembershipState;
-      if (currentBlock < startBlock) {
+      if (currentBlock < gracePeriodStartTimestamp.toNumber()) {
         state = MembershipState.Active;
-      } else if (currentBlock < endBlock) {
+      } else if (currentBlock < gracePeriodEnd.toNumber()) {
         state = MembershipState.GracePeriod;
       } else {
         state = MembershipState.Expired;
       }
 
-      const index = await this.getMemberIndex(idCommitment);
-      if (!index) return undefined;
-
       return {
         index,
-        idCommitment,
-        rateLimit: rateLimit.toNumber(),
-        startBlock: startBlock.toNumber(),
-        endBlock: endBlock.toNumber(),
-        state
+        idCommitment: idCommitmentBigInt.toString(),
+        rateLimit: Number(rateLimit),
+        startBlock: gracePeriodStartTimestamp.toNumber(),
+        endBlock: gracePeriodEnd.toNumber(),
+        state,
+        depositAmount,
+        activeDuration,
+        gracePeriodDuration,
+        holder,
+        token
       };
     } catch (error) {
+      log.error("Error in getMembershipInfo:", error);
       return undefined;
     }
   }
 
   public async extendMembership(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<ethers.ContractTransaction> {
-    return this.contract.extendMemberships([idCommitment]);
+    const tx = await this.contract.extendMemberships([idCommitmentBigInt]);
+    await tx.wait();
+    return tx;
   }
 
   public async eraseMembership(
-    idCommitment: string,
+    idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
   ): Promise<ethers.ContractTransaction> {
-    return this.contract.eraseMemberships(
-      [idCommitment],
-      eraseFromMembershipSet
+    if (
+      !(await this.isExpired(idCommitmentBigInt)) ||
+      !(await this.isInGracePeriod(idCommitmentBigInt))
+    ) {
+      throw new Error("Membership is not expired or in grace period");
+    }
+
+    const estimatedGas = await this.contract.estimateGas[
+      "eraseMemberships(uint256[],bool)"
+    ]([idCommitmentBigInt], eraseFromMembershipSet);
+    const gasLimit = estimatedGas.add(10000);
+
+    const tx = await this.contract["eraseMemberships(uint256[],bool)"](
+      [idCommitmentBigInt],
+      eraseFromMembershipSet,
+      { gasLimit }
     );
+    await tx.wait();
+    return tx;
   }
 
   public async registerMembership(
-    idCommitment: string,
+    idCommitmentBigInt: bigint,
     rateLimit: number = DEFAULT_RATE_LIMIT
   ): Promise<ethers.ContractTransaction> {
     if (
@@ -456,12 +479,12 @@ export class RLNBaseContract {
         `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
       );
     }
-    return this.contract.register(idCommitment, rateLimit, []);
+    return this.contract.register(idCommitmentBigInt, rateLimit, []);
   }
 
-  public async withdraw(token: string, holder: string): Promise<void> {
+  public async withdraw(token: string, walletAddress: string): Promise<void> {
     try {
-      const tx = await this.contract.withdraw(token, { from: holder });
+      const tx = await this.contract.withdraw(token, walletAddress);
       await tx.wait();
     } catch (error) {
       log.error(`Error in withdraw: ${(error as Error).message}`);
@@ -478,7 +501,7 @@ export class RLNBaseContract {
 
       // Check if the ID commitment is already registered
       const existingIndex = await this.getMemberIndex(
-        identity.IDCommitmentBigInt.toString()
+        identity.IDCommitmentBigInt
       );
       if (existingIndex) {
         throw new Error(
@@ -516,7 +539,7 @@ export class RLNBaseContract {
       }
 
       const memberRegistered = txRegisterReceipt.events?.find(
-        (event) => event.event === "MembershipRegistered"
+        (event: ethers.Event) => event.event === "MembershipRegistered"
       );
 
       if (!memberRegistered || !memberRegistered.args) {
@@ -610,7 +633,7 @@ export class RLNBaseContract {
       const txRegisterReceipt = await txRegisterResponse.wait();
 
       const memberRegistered = txRegisterReceipt.events?.find(
-        (event) => event.event === "MembershipRegistered"
+        (event: ethers.Event) => event.event === "MembershipRegistered"
       );
 
       if (!memberRegistered || !memberRegistered.args) {
@@ -653,16 +676,16 @@ export class RLNBaseContract {
   }
 
   /**
-   * Validates that the rate limit is within the allowed range
+   * Validates that the rate limit is within the allowed range (sync)
    * @throws Error if the rate limit is outside the allowed range
    */
   private validateRateLimit(rateLimit: number): void {
-    if (
-      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
-      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
-    ) {
+    if (this.minRateLimit === undefined || this.maxRateLimit === undefined) {
+      throw new Error("Rate limits not initialized");
+    }
+    if (rateLimit < this.minRateLimit || rateLimit > this.maxRateLimit) {
       throw new Error(
-        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+        `Rate limit must be between ${this.minRateLimit} and ${this.maxRateLimit} messages per epoch`
       );
     }
   }
@@ -689,11 +712,11 @@ export class RLNBaseContract {
   }
 
   private async getMemberIndex(
-    idCommitment: string
+    idCommitmentBigInt: bigint
   ): Promise<ethers.BigNumber | undefined> {
     try {
       const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitment)
+        this.contract.filters.MembershipRegistered(idCommitmentBigInt)
       );
       if (events.length === 0) return undefined;
 
@@ -702,6 +725,47 @@ export class RLNBaseContract {
       return event.args?.index;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  public async getMembershipStatus(
+    idCommitment: bigint
+  ): Promise<"expired" | "grace" | "active"> {
+    const [isExpired, isInGrace] = await Promise.all([
+      this.contract.isExpired(idCommitment),
+      this.contract.isInGracePeriod(idCommitment)
+    ]);
+
+    if (isExpired) return "expired";
+    if (isInGrace) return "grace";
+    return "active";
+  }
+
+  /**
+   * Checks if a membership is expired for the given idCommitment
+   * @param idCommitmentBigInt The idCommitment as bigint
+   * @returns Promise<boolean> True if expired, false otherwise
+   */
+  public async isExpired(idCommitmentBigInt: bigint): Promise<boolean> {
+    try {
+      return await this.contract.isExpired(idCommitmentBigInt);
+    } catch (error) {
+      log.error("Error in isExpired:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Checks if a membership is in grace period for the given idCommitment
+   * @param idCommitmentBigInt The idCommitment as bigint
+   * @returns Promise<boolean> True if in grace period, false otherwise
+   */
+  public async isInGracePeriod(idCommitmentBigInt: bigint): Promise<boolean> {
+    try {
+      return await this.contract.isInGracePeriod(idCommitmentBigInt);
+    } catch (error) {
+      log.error("Error in isInGracePeriod:", error);
+      return false;
     }
   }
 }
