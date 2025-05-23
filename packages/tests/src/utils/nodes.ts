@@ -6,13 +6,14 @@ import {
   NetworkConfig,
   Protocols
 } from "@waku/interfaces";
-import { createLightNode, DEFAULT_DISCOVERIES_ENABLED } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
 import { NOISE_KEY_1 } from "../constants.js";
 import { ServiceNodesFleet } from "../lib/index.js";
+import { DEFAULT_DISCOVERIES_ENABLED } from "../lib/runNodes.js";
 import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";

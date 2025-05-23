@@ -1,10 +1,6 @@
 import { CreateNodeOptions, NetworkConfig, Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import {
-  createLightNode,
-  DEFAULT_DISCOVERIES_ENABLED,
-  WakuNode
-} from "@waku/sdk";
+import { createLightNode, WakuNode } from "@waku/sdk";
 import {
   derivePubsubTopicsFromNetworkConfig,
   Logger,
@@ -18,6 +14,12 @@ import { makeLogFileName } from "../utils/index.js";
 import { ServiceNode } from "./service_node.js";
 
 export const log = new Logger("test:runNodes");
+
+export const DEFAULT_DISCOVERIES_ENABLED = {
+  dns: true,
+  peerExchange: true,
+  localPeerCache: true
+};
 
 type RunNodesOptions = {
   context: Context;
