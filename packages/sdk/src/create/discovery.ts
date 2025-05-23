@@ -11,7 +11,7 @@ import {
   PubsubTopic
 } from "@waku/interfaces";
 
-export const DEFAULT_DISCOVERIES_ENABLED = {
+const DEFAULT_DISCOVERIES_ENABLED = {
   dns: true,
   peerExchange: true,
   localPeerCache: true

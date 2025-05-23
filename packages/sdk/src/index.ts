@@ -9,8 +9,6 @@ export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";
 
 export * from "./waku/index.js";
 
-export { DEFAULT_DISCOVERIES_ENABLED } from "./create/discovery.js";
-
 export {
   createLightNode,
   defaultLibp2p,
