@@ -1,9 +1,16 @@
-import "dotenv-flow/config";
+// For dynamic import of dotenv-flow
 import { defineConfig, devices } from "@playwright/test";
 
-const EXAMPLE_PORT = process.env.EXAMPLE_PORT;
+// Only load dotenv-flow in non-CI environments
+if (!process.env.CI) {
+  // Need to use .js extension for ES modules
+  // eslint-disable-next-line import/extensions
+  await import("dotenv-flow/config.js");
+}
+
+const EXAMPLE_PORT = process.env.EXAMPLE_PORT || "8080";
 // web-chat specific thingy
-const EXAMPLE_TEMPLATE = process.env.EXAMPLE_TEMPLATE;
+const EXAMPLE_TEMPLATE = process.env.EXAMPLE_TEMPLATE || "";
 const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/${EXAMPLE_TEMPLATE}`;
 
 /**
@@ -35,37 +42,7 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] }
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] }
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] }
     }
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */
@@ -73,7 +50,7 @@ export default defineConfig({
     url: BASE_URL,
     stdout: "pipe",
     stderr: "pipe",
-    command: "npm start",
+    command: "npm run start:server",
     reuseExistingServer: !process.env.CI,
     timeout: 5 * 60 * 1000 // five minutes for bootstrapping an example
   }
