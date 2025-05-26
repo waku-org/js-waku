@@ -75,7 +75,7 @@ describe("Filter SDK", () => {
       expect.fail("Should have thrown an error");
     } catch (error) {
       expect((error as Error).message).to.include(
-        "Pubsub topic of the decoder is not supported"
+        "Pubsub topic /unsupported/topic has not been configured on this instance."
       );
     }
   });
