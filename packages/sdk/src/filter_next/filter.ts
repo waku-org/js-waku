@@ -130,7 +130,9 @@ export class Filter implements IFilter {
       pubsubTopics[0]
     );
     if (!supportedPubsubTopic) {
-      throw Error(`Pubsub topic ${pubsubTopics[0]} has not been configured on this instance.`);
+      throw Error(
+        `Pubsub topic ${pubsubTopics[0]} has not been configured on this instance.`
+      );
     }
 
     const subscription = this.subscriptions.get(pubsubTopics[0]);
