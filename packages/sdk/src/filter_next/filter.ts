@@ -125,6 +125,10 @@ export class Filter implements IFilter {
     message: WakuMessage,
     peerId: string
   ): Promise<void> {
+    log.info(
+      `Received message for pubsubTopic:${pubsubTopic}, contentTopic:${message.contentTopic}, peerId:${peerId.toString()}`
+    );
+
     const subscription = this.subscriptions.get(pubsubTopic);
 
     if (!subscription) {

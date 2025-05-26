@@ -107,6 +107,36 @@ describe("Filter Subscription", () => {
 
     expect(callback.called).to.be.true;
     expect(testDecoder.fromProtoObj.called).to.be.true;
+    expect(callback.callCount).to.eq(1);
+  });
+
+  it("should invoke callbacks only when newly receiving message is given", async () => {
+    const testContentTopic = "/custom/content/topic";
+    const testDecoder = {
+      pubsubTopic: PUBSUB_TOPIC,
+      contentTopic: testContentTopic,
+      fromProtoObj: sinon.stub().callsFake(() => {
+        return Promise.resolve({ payload: new Uint8Array([1, 2, 3]) });
+      })
+    };
+
+    const callback = sinon.spy();
+    const message = {
+      contentTopic: testContentTopic
+    } as WakuMessage;
+
+    sinon.stub(subscription as any, "attemptSubscribe").resolves(true);
+    await subscription.add(testDecoder as any, callback);
+
+    subscription.invoke(message, "peer1");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    subscription.invoke(message, "peer2");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(callback.called).to.be.true;
+    expect(testDecoder.fromProtoObj.called).to.be.true;
+    expect(callback.callCount).to.eq(1);
   });
 
   it("should start and setup intervals and event listeners", () => {

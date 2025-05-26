@@ -12,6 +12,7 @@ import type {
   IProtoMessage,
   Libp2p
 } from "@waku/interfaces";
+import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
@@ -43,6 +44,8 @@ export class Subscription {
 
   private peers = new Set<PeerId>();
   private peerFailures = new Map<PeerId, number>();
+
+  private readonly receivedMessages = new Set<string>();
 
   private callbacks = new Map<
     IDecoder<IDecodedMessage>,
@@ -114,6 +117,7 @@ export class Subscription {
     this.disposeIntervals();
     void this.disposePeers();
     this.disposeHandlers();
+    this.receivedMessages.clear();
 
     this.inProgress = false;
     this.isStarted = false;
@@ -210,12 +214,39 @@ export class Subscription {
   }
 
   public invoke(message: WakuMessage, _peerId: string): void {
+    if (this.isMessageReceived(message)) {
+      log.info(
+        `Skipping invoking callbacks for already received message: pubsubTopic:${this.pubsubTopic}, peerId:${_peerId.toString()}, contentTopic:${message.contentTopic}`
+      );
+      return;
+    }
+
     log.info(`Invoking message for contentTopic: ${message.contentTopic}`);
+
     this.messageEmitter.dispatchEvent(
       new CustomEvent<WakuMessage>(message.contentTopic, {
         detail: message
       })
     );
+  }
+
+  private isMessageReceived(message: WakuMessage): boolean {
+    try {
+      const messageHash = messageHashStr(
+        this.pubsubTopic,
+        message as IProtoMessage
+      );
+
+      if (this.receivedMessages.has(messageHash)) {
+        return true;
+      }
+
+      this.receivedMessages.add(messageHash);
+    } catch (e) {
+      // do nothing on throw, message will be handled as not received
+    }
+
+    return false;
   }
 
   private setupSubscriptionInterval(): void {

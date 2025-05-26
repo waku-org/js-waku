@@ -22,7 +22,7 @@ import {
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
-  describe(`Waku Filter V2: Unsubscribe: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
+  describe(`Waku Filter Next: Unsubscribe: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(10000);
     let waku: LightNode;
@@ -54,14 +54,12 @@ const runTests = (strictCheckNodes: boolean): void => {
         true
       );
 
-      // Unsubscribe from the topic and send again
       await waku.nextFilter.unsubscribe(TestDecoder);
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
       expect(await serviceNodes.messageCollector.waitForMessages(2)).to.eq(
         false
       );
 
-      // Check that from 2 messages send only the 1st was received
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic

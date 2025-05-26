@@ -28,8 +28,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
+    let ctx: Mocha.Context;
 
     beforeEachCustom(this, async () => {
+      ctx = this.ctx;
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo, {
         lightpush: true,
         filter: true
@@ -274,10 +276,11 @@ const runTests = (strictCheckNodes: boolean): void => {
       });
     });
 
-    it("Check message received after nwaku node is restarted", async function () {
-      await waku.nextFilter.subscribe(
-        TestDecoder,
-        serviceNodes.messageCollector.callback
+    it("Check message received after old nwaku nodes are not available and new are created", async function () {
+      let callback = serviceNodes.messageCollector.callback;
+
+      await waku.nextFilter.subscribe(TestDecoder, (...args) =>
+        callback(...args)
       );
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -285,12 +288,33 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
 
       await teardownNodesWithRedundancy(serviceNodes, []);
-      await serviceNodes.start();
+      serviceNodes = await ServiceNodesFleet.createAndRun(
+        ctx,
+        2,
+        false,
+        TestShardInfo,
+        {
+          lightpush: true,
+          filter: true
+        },
+        false
+      );
+
+      callback = serviceNodes.messageCollector.callback;
+
+      const peerConnectEvent = new Promise((resolve, reject) => {
+        waku.libp2p.addEventListener("peer:connect", (e) => {
+          resolve(e);
+        });
+        setTimeout(() => reject, 1000);
+      });
 
       for (const node of serviceNodes.nodes) {
         await waku.dial(await node.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
       }
+
+      await peerConnectEvent;
 
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
