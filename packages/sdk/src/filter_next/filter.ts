@@ -76,7 +76,9 @@ export class Filter implements IFilter {
     );
 
     if (!supportedPubsubTopic) {
-      throw Error("Pubsub topic of the decoder is not supported.");
+      throw Error(
+        `Pubsub topic ${pubsubTopics[0]} has not been configured on this instance.`
+      );
     }
 
     let subscription = this.subscriptions.get(pubsubTopics[0]);

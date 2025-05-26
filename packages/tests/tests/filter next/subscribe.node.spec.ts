@@ -360,12 +360,10 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       try {
-        for (let i = 0; i < topicCount; i++) {
-          await waku.nextFilter.subscribe(
-            td.decoders[i],
-            serviceNodes.messageCollector.callback
-          );
-        }
+        await waku.nextFilter.subscribe(
+          td.decoders,
+          serviceNodes.messageCollector.callback
+        );
       } catch (err) {
         if (
           err instanceof Error &&
@@ -386,25 +384,22 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td1 = generateTestData(topicCount1, {
         pubsubTopic: TestPubsubTopic
       });
+
       const topicCount2 = 4;
       const td2 = generateTestData(topicCount2, {
         pubsubTopic: TestPubsubTopic
       });
 
-      for (let i = 0; i < topicCount1; i++) {
-        await waku.nextFilter.subscribe(
-          td1.decoders[i],
-          serviceNodes.messageCollector.callback
-        );
-      }
+      await waku.nextFilter.subscribe(
+        td1.decoders,
+        serviceNodes.messageCollector.callback
+      );
 
       // Subscribe to the second set of topics which has overlapping topics with the first set.
-      for (let i = 0; i < topicCount2; i++) {
-        await waku.nextFilter.subscribe(
-          td2.decoders[i],
-          serviceNodes.messageCollector.callback
-        );
-      }
+      await waku.nextFilter.subscribe(
+        td2.decoders,
+        serviceNodes.messageCollector.callback
+      );
 
       // Send messages to the first set of topics.
       for (let i = 0; i < topicCount1; i++) {
@@ -422,10 +417,9 @@ const runTests = (strictCheckNodes: boolean): void => {
         });
       }
 
-      // Check if all messages were received.
-      // Since there are overlapping topics, there should be 6 messages in total (2 from the first set + 4 from the second set).
+      // Since there are overlapping topics, there should be 10 messages in total because overlaping decoders handle them
       expect(
-        await serviceNodes.messageCollector.waitForMessages(6, { exact: true })
+        await serviceNodes.messageCollector.waitForMessages(10, { exact: true })
       ).to.eq(true);
     });
 

@@ -130,9 +130,11 @@ export class Subscription {
   }
 
   public async add<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+    decoder: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
+
     for (const decoder of decoders) {
       this.addSingle(decoder, callback);
     }
@@ -143,8 +145,10 @@ export class Subscription {
   }
 
   public async remove<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[]
+    decoder: IDecoder<T> | IDecoder<T>[]
   ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
+
     for (const decoder of decoders) {
       this.removeSingle(decoder);
     }
