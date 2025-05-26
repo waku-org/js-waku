@@ -3,12 +3,12 @@ import type { Callback } from "./protocols.js";
 
 export type INextFilter = {
   subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T>,
+    decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<boolean>;
 
   unsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T>
+    decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<boolean>;
 };
 

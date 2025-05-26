@@ -130,9 +130,51 @@ export class Subscription {
   }
 
   public async add<T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
+    decoders: IDecoder<T>[],
     callback: Callback<T>
   ): Promise<boolean> {
+    for (const decoder of decoders) {
+      this.addSingle(decoder, callback);
+    }
+
+    return this.toSubscribeContentTopics.size > 0
+      ? await this.attemptSubscribe({ useNewContentTopics: true })
+      : true; // if content topic is not new - subscription, most likely exists
+  }
+
+  public async remove<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[]
+  ): Promise<boolean> {
+    for (const decoder of decoders) {
+      this.removeSingle(decoder);
+    }
+
+    return this.toUnsubscribeContentTopics.size > 0
+      ? await this.attemptUnsubscribe({ useNewContentTopics: true })
+      : true; // no need to unsubscribe if there are other decoders on the contentTopic
+  }
+
+  public invoke(message: WakuMessage, _peerId: string): void {
+    if (this.isMessageReceived(message)) {
+      log.info(
+        `Skipping invoking callbacks for already received message: pubsubTopic:${this.pubsubTopic}, peerId:${_peerId.toString()}, contentTopic:${message.contentTopic}`
+      );
+      return;
+    }
+
+    log.info(`Invoking message for contentTopic: ${message.contentTopic}`);
+
+    this.messageEmitter.dispatchEvent(
+      new CustomEvent<WakuMessage>(message.contentTopic, {
+        detail: message
+      })
+    );
+  }
+
+  private addSingle<T extends IDecodedMessage>(
+    decoder: IDecoder<T>,
+    callback: Callback<T>
+  ): void {
     log.info(`Adding subscription for contentTopic: ${decoder.contentTopic}`);
 
     const isNewContentTopic = !this.contentTopics.includes(
@@ -173,15 +215,9 @@ export class Subscription {
     log.info(
       `Subscription added for contentTopic: ${decoder.contentTopic}, isNewContentTopic: ${isNewContentTopic}`
     );
-
-    return isNewContentTopic
-      ? await this.attemptSubscribe({ useNewContentTopics: true })
-      : true; // if content topic is not new - subscription, most likely exists
   }
 
-  public async remove<T extends IDecodedMessage>(
-    decoder: IDecoder<T>
-  ): Promise<boolean> {
+  private removeSingle<T extends IDecodedMessage>(decoder: IDecoder<T>): void {
     log.info(`Removing subscription for contentTopic: ${decoder.contentTopic}`);
 
     const callback = this.callbacks.get(decoder);
@@ -190,7 +226,6 @@ export class Subscription {
       log.warn(
         `No callback associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
-      return false;
     }
 
     this.callbacks.delete(decoder);
@@ -206,27 +241,6 @@ export class Subscription {
 
     log.info(
       `Subscription removed for contentTopic: ${decoder.contentTopic}, isCompletelyRemoved: ${isCompletelyRemoved}`
-    );
-
-    return isCompletelyRemoved
-      ? await this.attemptUnsubscribe({ useNewContentTopics: true })
-      : true; // no need to unsubscribe if there are other decoders on the contentTopic
-  }
-
-  public invoke(message: WakuMessage, _peerId: string): void {
-    if (this.isMessageReceived(message)) {
-      log.info(
-        `Skipping invoking callbacks for already received message: pubsubTopic:${this.pubsubTopic}, peerId:${_peerId.toString()}, contentTopic:${message.contentTopic}`
-      );
-      return;
-    }
-
-    log.info(`Invoking message for contentTopic: ${message.contentTopic}`);
-
-    this.messageEmitter.dispatchEvent(
-      new CustomEvent<WakuMessage>(message.contentTopic, {
-        detail: message
-      })
     );
   }
 

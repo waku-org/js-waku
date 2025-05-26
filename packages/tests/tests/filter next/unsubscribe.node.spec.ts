@@ -6,6 +6,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  generateTestData,
   runMultipleNodes,
   ServiceNodesFleet,
   teardownNodesWithRedundancy
@@ -168,6 +169,44 @@ const runTests = (strictCheckNodes: boolean): void => {
       // Check that both messages were received
       expect(serviceNodes.messageCollector.count).to.eq(2);
       await serviceNodes.confirmMessageLength(2);
+    });
+
+    it("Unsubscribe from 100 topics (new limit) at once and receives messages", async function () {
+      this.timeout(100_000);
+      const topicCount = 100;
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+
+      await waku.nextFilter.subscribe(
+        td.decoders,
+        serviceNodes.messageCollector.callback
+      );
+
+      for (let i = 0; i < topicCount; i++) {
+        await waku.lightPush.send(td.encoders[i], {
+          payload: utf8ToBytes(`Message for Topic ${i + 1}`)
+        });
+      }
+
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(topicCount)
+      ).to.eq(true);
+      td.contentTopics.forEach((topic, index) => {
+        serviceNodes.messageCollector.verifyReceivedMessage(index, {
+          expectedContentTopic: topic,
+          expectedMessageText: `Message for Topic ${index + 1}`,
+          expectedPubsubTopic: TestPubsubTopic
+        });
+      });
+
+      await waku.nextFilter.unsubscribe(td.decoders);
+
+      for (let i = 0; i < topicCount; i++) {
+        await waku.lightPush.send(td.encoders[i], {
+          payload: utf8ToBytes(`Message for Topic ${i + 1}`)
+        });
+      }
+
+      expect(serviceNodes.messageCollector.count).to.eq(100);
     });
   });
 };

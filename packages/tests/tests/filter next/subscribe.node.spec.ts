@@ -293,9 +293,9 @@ const runTests = (strictCheckNodes: boolean): void => {
       });
     });
 
-    it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
+    it("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
       this.timeout(100_000);
-      const topicCount = 100;
+      const topicCount = 30;
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       for (let i = 0; i < topicCount; i++) {
@@ -304,6 +304,36 @@ const runTests = (strictCheckNodes: boolean): void => {
           serviceNodes.messageCollector.callback
         );
       }
+
+      // Send a unique message on each topic.
+      for (let i = 0; i < topicCount; i++) {
+        await waku.lightPush.send(td.encoders[i], {
+          payload: utf8ToBytes(`Message for Topic ${i + 1}`)
+        });
+      }
+
+      // Verify that each message was received on the corresponding topic.
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(topicCount)
+      ).to.eq(true);
+      td.contentTopics.forEach((topic, index) => {
+        serviceNodes.messageCollector.verifyReceivedMessage(index, {
+          expectedContentTopic: topic,
+          expectedMessageText: `Message for Topic ${index + 1}`,
+          expectedPubsubTopic: TestPubsubTopic
+        });
+      });
+    });
+
+    it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
+      this.timeout(100_000);
+      const topicCount = 100;
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+
+      await waku.nextFilter.subscribe(
+        td.decoders,
+        serviceNodes.messageCollector.callback
+      );
 
       // Send a unique message on each topic.
       for (let i = 0; i < topicCount; i++) {

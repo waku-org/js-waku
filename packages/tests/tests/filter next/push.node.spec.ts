@@ -282,10 +282,17 @@ const runTests = (strictCheckNodes: boolean): void => {
       await waku.nextFilter.subscribe(TestDecoder, (...args) =>
         callback(...args)
       );
+
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
+
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
       );
+      serviceNodes.messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: "M1",
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
+      });
 
       await teardownNodesWithRedundancy(serviceNodes, []);
       serviceNodes = await ServiceNodesFleet.createAndRun(
@@ -318,14 +325,9 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
-      expect(await serviceNodes.messageCollector.waitForMessages(2)).to.eq(
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
       );
-      serviceNodes.messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: "M1",
-        expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
-      });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
         expectedContentTopic: TestContentTopic,

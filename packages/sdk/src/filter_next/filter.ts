@@ -48,25 +48,41 @@ export class Filter implements IFilter {
   }
 
   public async subscribe<T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
+    decoder: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
+
+    if (decoders.length === 0) {
+      throw Error("Cannot subscribe with 0 decoders.");
+    }
+
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const contentTopics = decoders.map((v) => v.contentTopic);
+
+    // doing this for simplicity, we can enable subscription for more than one PubsubTopic at once later when requested
+    if (!this.isSamePubsubTopic(decoders)) {
+      throw Error(
+        `Cannot subscribe to more than one pubsub topic at the same time, got pubsubTopics:${pubsubTopics}`
+      );
+    }
+
     log.info(
-      `Subscribing to content topic: ${decoder.contentTopic}, pubsub topic: ${decoder.pubsubTopic}`
+      `Subscribing to content topic: ${contentTopics}, pubsub topic: ${pubsubTopics}`
     );
 
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
-      decoder.pubsubTopic
+      pubsubTopics[0]
     );
 
     if (!supportedPubsubTopic) {
       throw Error("Pubsub topic of the decoder is not supported.");
     }
 
-    let subscription = this.subscriptions.get(decoder.pubsubTopic);
+    let subscription = this.subscriptions.get(pubsubTopics[0]);
     if (!subscription) {
       subscription = new Subscription({
-        pubsubTopic: decoder.pubsubTopic,
+        pubsubTopic: pubsubTopics[0],
         libp2p: this.libp2p,
         protocol: this.protocol,
         config: this.config,
@@ -75,46 +91,62 @@ export class Filter implements IFilter {
       subscription.start();
     }
 
-    const result = await subscription.add(decoder, callback);
-    this.subscriptions.set(decoder.pubsubTopic, subscription);
+    const result = await subscription.add(decoders, callback);
+    this.subscriptions.set(pubsubTopics[0], subscription);
 
     log.info(
-      `Subscription ${result ? "successful" : "failed"} for content topic: ${decoder.contentTopic}`
+      `Subscription ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
     );
 
     return result;
   }
 
   public async unsubscribe<T extends IDecodedMessage>(
-    decoder: IDecoder<T>
+    decoder: IDecoder<T> | IDecoder<T>[]
   ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
+
+    if (decoders.length === 0) {
+      throw Error("Cannot unsubscribe with 0 decoders.");
+    }
+
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const contentTopics = decoders.map((v) => v.contentTopic);
+
+    // doing this for simplicity, we can enable unsubscribing with more than one PubsubTopic at once later when requested
+    if (!this.isSamePubsubTopic(decoders)) {
+      throw Error(
+        `Cannot unsubscribe with more than one pubsub topic at the same time, got pubsubTopics:${pubsubTopics}`
+      );
+    }
+
     log.info(
-      `Unsubscribing from content topic: ${decoder.contentTopic}, pubsub topic: ${decoder.pubsubTopic}`
+      `Unsubscribing from content topic: ${contentTopics}, pubsub topic: ${pubsubTopics}`
     );
 
     const supportedPubsubTopic = this.connectionManager.pubsubTopics.includes(
-      decoder.pubsubTopic
+      pubsubTopics[0]
     );
     if (!supportedPubsubTopic) {
       throw Error("Pubsub topic of the decoder is not supported.");
     }
 
-    const subscription = this.subscriptions.get(decoder.pubsubTopic);
+    const subscription = this.subscriptions.get(pubsubTopics[0]);
     if (!subscription) {
       log.warn("No subscriptions associated with the decoder.");
       return false;
     }
 
-    const result = await subscription.remove(decoder);
+    const result = await subscription.remove(decoders);
 
     if (subscription.isEmpty()) {
       log.warn("Subscription has no decoders anymore, terminating it.");
       subscription.stop();
-      this.subscriptions.delete(decoder.pubsubTopic);
+      this.subscriptions.delete(pubsubTopics[0]);
     }
 
     log.info(
-      `Unsubscribing ${result ? "successful" : "failed"} for content topic: ${decoder.contentTopic}`
+      `Unsubscribing ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
     );
 
     return result;
@@ -137,5 +169,17 @@ export class Filter implements IFilter {
     }
 
     subscription.invoke(message, peerId);
+  }
+
+  private isSamePubsubTopic<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[]
+  ): boolean {
+    const topics = new Set<string>();
+
+    for (const decoder of decoders) {
+      topics.add(decoder.pubsubTopic);
+    }
+
+    return topics.size === 1;
   }
 }
