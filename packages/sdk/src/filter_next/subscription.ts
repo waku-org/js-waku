@@ -548,7 +548,12 @@ export class Subscription {
 
     const peersToUse = Array.from(this.peers.values());
     const result = await Promise.all(
-      peersToUse.map((p) => this.requestUnsubscribe(p, contentTopics))
+      peersToUse.map((p) =>
+        this.requestUnsubscribe(
+          p,
+          useNewContentTopics ? contentTopics : undefined
+        )
+      )
     );
 
     const successCount = result.filter((r) => r).length;
@@ -565,17 +570,15 @@ export class Subscription {
 
   private async requestUnsubscribe(
     peerId: PeerId,
-    contentTopics: string[]
+    contentTopics?: string[]
   ): Promise<boolean> {
-    const response = await this.protocol.unsubscribe(
-      this.pubsubTopic,
-      peerId,
-      contentTopics
-    );
+    const response = contentTopics
+      ? await this.protocol.unsubscribe(this.pubsubTopic, peerId, contentTopics)
+      : await this.protocol.unsubscribeAll(this.pubsubTopic, peerId);
 
     if (response.failure) {
       log.warn(
-        `requestUnsubscribe: Failed to unsubscribe for pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} with error:${response.failure} for contentTopics:${contentTopics}`
+        `requestUnsubscribe: Failed to unsubscribe for pubsubTopic:${this.pubsubTopic} from peerId:${peerId.toString()} with error:${response.failure?.error} for contentTopics:${contentTopics}`
       );
       return false;
     }

@@ -10,6 +10,8 @@ export type INextFilter = {
   unsubscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<boolean>;
+
+  unsubscribeAll(): void;
 };
 
 export type NextFilterOptions = {

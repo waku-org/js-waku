@@ -121,6 +121,24 @@ describe("Filter SDK", () => {
     expect(subscriptionInvokeStub.firstCall.args[0]).to.equal(message);
     expect(subscriptionInvokeStub.firstCall.args[1]).to.equal(peerId);
   });
+
+  it("should successfully stop", async () => {
+    const decoder2 = createDecoder("/another-content-topic", PUBSUB_TOPIC);
+    const stopStub = sinon.stub(Subscription.prototype, "stop");
+
+    sinon.stub(Subscription.prototype, "add").resolves(true);
+    sinon.stub(Subscription.prototype, "start");
+
+    await filter.subscribe(decoder, callback);
+    await filter.subscribe(decoder2, callback);
+
+    filter.unsubscribeAll();
+
+    expect(stopStub.calledOnce).to.be.true;
+
+    const result = await filter.unsubscribe(decoder);
+    expect(result).to.be.false;
+  });
 });
 
 function mockLibp2p(): Libp2p {

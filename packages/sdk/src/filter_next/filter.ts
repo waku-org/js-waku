@@ -47,6 +47,14 @@ export class Filter implements IFilter {
     );
   }
 
+  public unsubscribeAll(): void {
+    for (const subscription of this.subscriptions.values()) {
+      subscription.stop();
+    }
+
+    this.subscriptions.clear();
+  }
+
   public async subscribe<T extends IDecodedMessage>(
     decoder: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
