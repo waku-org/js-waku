@@ -19,6 +19,7 @@ import { Logger } from "@waku/utils";
 import { PeerManager } from "../peer_manager/index.js";
 
 import { SubscriptionEvents, SubscriptionParams } from "./types.js";
+import { TTLSet } from "./utils.js";
 
 const log = new Logger("sdk:filter-subscription");
 
@@ -45,7 +46,7 @@ export class Subscription {
   private peers = new Set<PeerId>();
   private peerFailures = new Map<PeerId, number>();
 
-  private readonly receivedMessages = new Set<string>();
+  private readonly receivedMessages = new TTLSet<string>(60_000);
 
   private callbacks = new Map<
     IDecoder<IDecodedMessage>,
@@ -117,7 +118,7 @@ export class Subscription {
     this.disposeIntervals();
     void this.disposePeers();
     this.disposeHandlers();
-    this.receivedMessages.clear();
+    this.receivedMessages.dispose();
 
     this.inProgress = false;
     this.isStarted = false;
