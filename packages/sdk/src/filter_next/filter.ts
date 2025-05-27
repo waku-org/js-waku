@@ -47,6 +47,20 @@ export class Filter implements IFilter {
     );
   }
 
+  /**
+   * Unsubscribes from all active subscriptions across all pubsub topics.
+   *
+   * @example
+   * // Clean up all subscriptions when React component unmounts
+   * useEffect(() => {
+   *   return () => filter.unsubscribeAll();
+   * }, [filter]);
+   *
+   * @example
+   * // Reset subscriptions and start over
+   * filter.unsubscribeAll();
+   * await filter.subscribe(newDecoder, newCallback);
+   */
   public unsubscribeAll(): void {
     for (const subscription of this.subscriptions.values()) {
       subscription.stop();
@@ -55,6 +69,29 @@ export class Filter implements IFilter {
     this.subscriptions.clear();
   }
 
+  /**
+   * Subscribes to messages with specified decoders and executes callback when a message is received.
+   * In case no peers available initially - will delay subscription till connects to any peer.
+   *
+   * @param decoders - Single decoder or array of decoders to subscribe to. All decoders must share the same pubsubTopic.
+   * @param callback - Function called when a message matching the decoder's contentTopic is received.
+   * @returns Promise that resolves to true if subscription was successful, false otherwise.
+   *
+   * @example
+   * // Subscribe to a single content topic
+   * await filter.subscribe(decoder, (msg) => console.log(msg));
+   *
+   * @example
+   * // Subscribe to multiple content topics with the same pubsub topic
+   * await filter.subscribe([decoder1, decoder2], (msg) => console.log(msg));
+   *
+   * @example
+   * // Handle subscription failure
+   * const success = await filter.subscribe(decoder, handleMessage);
+   * if (!success) {
+   *   console.error("Failed to subscribe");
+   * }
+   */
   public async subscribe<T extends IDecodedMessage>(
     decoder: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
@@ -111,6 +148,27 @@ export class Filter implements IFilter {
     return result;
   }
 
+  /**
+   * Unsubscribes from messages with specified decoders.
+   *
+   * @param decoders - Single decoder or array of decoders to unsubscribe from. All decoders must share the same pubsubTopic.
+   * @returns Promise that resolves to true if unsubscription was successful, false otherwise.
+   *
+   * @example
+   * // Unsubscribe from a single decoder
+   * await filter.unsubscribe(decoder);
+   *
+   * @example
+   * // Unsubscribe from multiple decoders at once
+   * await filter.unsubscribe([decoder1, decoder2]);
+   *
+   * @example
+   * // Handle unsubscription failure
+   * const success = await filter.unsubscribe(decoder);
+   * if (!success) {
+   *   console.error("Failed to unsubscribe");
+   * }
+   */
   public async unsubscribe<T extends IDecodedMessage>(
     decoder: IDecoder<T> | IDecoder<T>[]
   ): Promise<boolean> {

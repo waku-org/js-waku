@@ -13,7 +13,7 @@ export type FilterConstructorParams = {
 };
 
 export type SubscriptionEvents = {
-  [key: string]: CustomEvent<WakuMessage>;
+  [contentTopic: string]: CustomEvent<WakuMessage>;
 };
 
 export type SubscriptionParams = {
