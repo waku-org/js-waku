@@ -268,7 +268,14 @@ export class RLNCredentialsManager {
     const idCommitment = sha256(idSecretHash);
 
     // Convert IDCommitment to BigInt
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    let idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    const Q = BigInt(
+      "21888242871839275222246405745257275088548364400416034343698204186575808495617"
+    );
+    if (idCommitmentBigInt >= Q) {
+      log.warn("IDCommitment is greater than Q, truncating");
+      idCommitmentBigInt = idCommitmentBigInt % Q;
+    }
 
     log.info("Successfully generated identity credential");
     return new IdentityCredential(
