@@ -2,10 +2,10 @@ import type { IDecodedMessage, IProtoMessage } from "@waku/interfaces";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { messageHash } from "./index.js";
+import { messageHash, messageHashStr } from "./index.js";
 
 // https://rfc.vac.dev/spec/14/#test-vectors
-describe("RFC Test Vectors", () => {
+describe("Message Hash: RFC Test Vectors", () => {
   it("Waku message hash computation (meta size of 12 bytes)", () => {
     const expectedHash =
       "64cce733fed134e83da02b02c6f689814872b1a0ac97ea56b76095c3c72bfe05";
@@ -108,5 +108,72 @@ describe("RFC Test Vectors", () => {
     };
     const hash = messageHash(pubsubTopic, message);
     expect(bytesToHex(hash)).to.equal(expectedHash);
+  });
+});
+
+describe("messageHash and messageHashStr", () => {
+  const pubsubTopic = "/waku/2/default-waku/proto";
+  const testMessage: IProtoMessage = {
+    payload: hexToBytes("0x010203045445535405060708"),
+    contentTopic: "/waku/2/default-content/proto",
+    meta: hexToBytes("0x73757065722d736563726574"),
+    timestamp: BigInt("0x175789bfa23f8400"),
+    ephemeral: undefined,
+    rateLimitProof: undefined,
+    version: undefined
+  };
+
+  it("messageHash returns a Uint8Array", () => {
+    const hash = messageHash(pubsubTopic, testMessage);
+    expect(hash).to.be.instanceOf(Uint8Array);
+    expect(hash.length).to.equal(32); // SHA-256 hash is 32 bytes
+  });
+
+  it("messageHashStr returns a hex string", () => {
+    const hashStr = messageHashStr(pubsubTopic, testMessage);
+    expect(typeof hashStr).to.equal("string");
+    expect(hashStr.length).to.equal(64); // SHA-256 hash is 32 bytes = 64 hex chars
+    expect(hashStr).to.match(/^[0-9a-f]+$/); // Should be a valid hex string
+  });
+
+  it("messageHashStr returns the same value as bytesToHex(messageHash)", () => {
+    const hash = messageHash(pubsubTopic, testMessage);
+    const hashStrFromBytes = bytesToHex(hash);
+    const hashStr = messageHashStr(pubsubTopic, testMessage);
+    expect(hashStr).to.equal(hashStrFromBytes);
+  });
+
+  it("messageHashStr works with IDecodedMessage", () => {
+    const decodedMessage: IDecodedMessage = {
+      payload: new Uint8Array([1, 2, 3, 4]),
+      pubsubTopic,
+      contentTopic: "/waku/2/default-content/proto",
+      meta: new Uint8Array([5, 6, 7, 8]),
+      timestamp: new Date("2024-04-30T10:54:14.978Z"),
+      ephemeral: undefined,
+      rateLimitProof: undefined
+    };
+
+    const hashStr = messageHashStr(pubsubTopic, decodedMessage);
+    expect(typeof hashStr).to.equal("string");
+    expect(hashStr.length).to.equal(64);
+  });
+
+  it("messageHashStr produces consistent results for the same input", () => {
+    const hashStr1 = messageHashStr(pubsubTopic, testMessage);
+    const hashStr2 = messageHashStr(pubsubTopic, testMessage);
+    expect(hashStr1).to.equal(hashStr2);
+  });
+
+  it("messageHashStr produces different results for different inputs", () => {
+    const hashStr1 = messageHashStr(pubsubTopic, testMessage);
+
+    const differentMessage = {
+      ...testMessage,
+      payload: hexToBytes("0x0102030454455354050607080A") // Different payload
+    };
+
+    const hashStr2 = messageHashStr(pubsubTopic, differentMessage);
+    expect(hashStr1).to.not.equal(hashStr2);
   });
 });
