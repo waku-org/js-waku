@@ -6,7 +6,6 @@
     "packages/proto",
     "packages/interfaces",
     "packages/utils",
-    "packages/message-hash",
     "packages/enr",
     "packages/core",
     "packages/discovery",
