@@ -11,15 +11,9 @@ import {
   PubsubTopic
 } from "@waku/interfaces";
 
-const DEFAULT_DISCOVERIES_ENABLED = {
-  dns: true,
-  peerExchange: true,
-  localPeerCache: true
-};
-
 export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[],
-  enabled: CreateNodeOptions["discovery"] = DEFAULT_DISCOVERIES_ENABLED
+  enabled: CreateNodeOptions["discovery"]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const dnsEnrTrees = [enrTree["SANDBOX"]];
 
