@@ -11,23 +11,23 @@ import {
   PubsubTopic
 } from "@waku/interfaces";
 
-export function defaultPeerDiscoveries(
+export function getPeerDiscoveries(
   pubsubTopics: PubsubTopic[],
-  enabled: CreateNodeOptions["discovery"]
+  enabled?: CreateNodeOptions["discovery"]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const dnsEnrTrees = [enrTree["SANDBOX"]];
 
   const discoveries: ((components: Libp2pComponents) => PeerDiscovery)[] = [];
 
-  if (enabled.dns) {
+  if (enabled?.dns) {
     discoveries.push(wakuDnsDiscovery(dnsEnrTrees));
   }
 
-  if (enabled.localPeerCache) {
+  if (enabled?.localPeerCache) {
     discoveries.push(wakuLocalPeerCacheDiscovery());
   }
 
-  if (enabled.peerExchange) {
+  if (enabled?.peerExchange) {
     discoveries.push(wakuPeerExchangeDiscovery(pubsubTopics));
   }
 

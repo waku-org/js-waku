@@ -94,7 +94,7 @@ export type CreateNodeOptions = {
    *
    * @default { peerExchange: true, dns: true, localPeerCache: true }
    */
-  discovery: {
+  discovery?: {
     peerExchange: boolean;
     dns: boolean;
     localPeerCache: boolean;

@@ -1,18 +1,18 @@
 import { PubsubTopic } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { defaultPeerDiscoveries } from "./discovery.js";
+import { getPeerDiscoveries } from "./discovery.js";
 
 describe("Default Peer Discoveries", () => {
   const pubsubTopics: PubsubTopic[] = [];
 
   it("should enable all discoveries by default", () => {
-    const discoveries = defaultPeerDiscoveries(pubsubTopics);
+    const discoveries = getPeerDiscoveries(pubsubTopics);
     expect(discoveries.length).to.equal(3);
   });
 
   it("should disable DNS discovery when specified", () => {
-    const discoveries = defaultPeerDiscoveries(pubsubTopics, {
+    const discoveries = getPeerDiscoveries(pubsubTopics, {
       dns: false,
       peerExchange: true,
       localPeerCache: true
@@ -21,7 +21,7 @@ describe("Default Peer Discoveries", () => {
   });
 
   it("should disable Peer Exchange discovery when specified", () => {
-    const discoveries = defaultPeerDiscoveries(pubsubTopics, {
+    const discoveries = getPeerDiscoveries(pubsubTopics, {
       dns: true,
       peerExchange: false,
       localPeerCache: true
@@ -30,7 +30,7 @@ describe("Default Peer Discoveries", () => {
   });
 
   it("should disable Local Peer Cache discovery when specified", () => {
-    const discoveries = defaultPeerDiscoveries(pubsubTopics, {
+    const discoveries = getPeerDiscoveries(pubsubTopics, {
       dns: true,
       peerExchange: true,
       localPeerCache: false
@@ -39,7 +39,7 @@ describe("Default Peer Discoveries", () => {
   });
 
   it("should disable multiple discoveries when specified", () => {
-    const discoveries = defaultPeerDiscoveries(pubsubTopics, {
+    const discoveries = getPeerDiscoveries(pubsubTopics, {
       dns: false,
       peerExchange: false,
       localPeerCache: true

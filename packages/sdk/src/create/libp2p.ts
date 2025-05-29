@@ -20,7 +20,7 @@ import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
 
-import { defaultPeerDiscoveries } from "./discovery.js";
+import { getPeerDiscoveries } from "./discovery.js";
 
 type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
@@ -97,15 +97,13 @@ export async function createLibp2pAndUpdateOptions(
 
   if (options?.defaultBootstrap) {
     peerDiscovery.push(
-      ...defaultPeerDiscoveries(pubsubTopics, {
+      ...getPeerDiscoveries(pubsubTopics, {
         ...DEFAULT_DISCOVERIES_ENABLED,
         ...options.discovery
       })
     );
   } else {
-    peerDiscovery.push(
-      ...defaultPeerDiscoveries(pubsubTopics, options.discovery)
-    );
+    peerDiscovery.push(...getPeerDiscoveries(pubsubTopics, options.discovery));
   }
 
   if (options?.bootstrapPeers) {
