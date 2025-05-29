@@ -94,9 +94,9 @@ export async function createLibp2pAndUpdateOptions(
   } else {
     peerDiscovery.push(
       ...defaultPeerDiscoveries(pubsubTopics, {
-        dns: options?.discoveriesEnabled.dns,
-        peerExchange: options?.discoveriesEnabled.peerExchange,
-        localPeerCache: options?.discoveriesEnabled.localPeerCache
+        dns: options?.discovery.dns,
+        peerExchange: options?.discovery.peerExchange,
+        localPeerCache: options?.discovery.localPeerCache
       })
     );
   }

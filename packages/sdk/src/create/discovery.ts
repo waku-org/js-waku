@@ -19,7 +19,7 @@ const DEFAULT_DISCOVERIES_ENABLED = {
 
 export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[],
-  enabled: CreateNodeOptions["discoveriesEnabled"] = DEFAULT_DISCOVERIES_ENABLED
+  enabled: CreateNodeOptions["discovery"] = DEFAULT_DISCOVERIES_ENABLED
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const dnsEnrTrees = [enrTree["SANDBOX"]];
 

@@ -53,7 +53,7 @@ export async function runNodes<T>(
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     networkConfig: shardInfo,
     lightPush: { numPeersToUse: 2 },
-    discoveriesEnabled: DEFAULT_DISCOVERIES_ENABLED
+    discovery: DEFAULT_DISCOVERIES_ENABLED
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));

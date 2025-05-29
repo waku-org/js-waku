@@ -43,7 +43,7 @@ export async function runMultipleNodes(
     },
     networkConfig,
     lightPush: { numPeersToUse: numServiceNodes },
-    discoveriesEnabled: DEFAULT_DISCOVERIES_ENABLED
+    discovery: DEFAULT_DISCOVERIES_ENABLED
   };
 
   const waku = await createLightNode(wakuOptions);
