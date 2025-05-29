@@ -1,0 +1,25 @@
+**/node_modules
+**/.git
+**/.vscode
+**/dist
+**/build
+**/.DS_Store
+**/.env*
+**/*.log
+
+# Exclude all packages except browser-tests and browser-container
+packages/discovery/
+packages/tests/
+packages/utils/
+packages/sds/
+packages/sdk/
+packages/relay/
+packages/rln/
+packages/message-hash/
+packages/proto/
+packages/enr/
+packages/interfaces/
+packages/message-encryption/
+packages/core/
+packages/react-native-polyfills/
+packages/build-utils/

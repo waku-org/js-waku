@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
-          
+
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
@@ -62,7 +62,7 @@ jobs:
       HOME: "/root"
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
@@ -150,7 +150,7 @@ jobs:
           token: ${{ secrets.CI_TOKEN }}
 
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
         if: ${{ steps.release.outputs.releases_created }}
 
