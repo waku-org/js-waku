@@ -4,16 +4,28 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "run-s start:*",
-    "start:setup": "node ./src/setup-example.js",
-    "start:build": "node ./src/build-example.js",
-    "start:serve": "npx serve -p 8080 --no-port-switching ./example",
-    "test": "npx playwright test"
+    "start": "npm run start:server",
+    "start:server": "node ./dist/server.js",
+    "test": "npx playwright test",
+    "build:server": "tsc -p tsconfig.json",
+    "build": "npm run build:server"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
-    "@waku/create-app": "^0.1.1-504bcd4",
-    "dotenv-flow": "^4.1.0",
-    "serve": "^14.2.3"
+    "@types/cors": "^2.8.15",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "axios": "^1.8.4",
+    "dotenv-flow": "^0.4.0",
+    "npm-run-all": "^4.1.5",
+    "serve": "^14.2.3",
+    "typescript": "^5.3.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.51.1",
+    "@waku/sdk": "^0.0.30",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "node-polyfill-webpack-plugin": "^4.1.0"
   }
 }

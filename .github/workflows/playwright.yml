@@ -29,6 +29,12 @@ jobs:
 
     - uses: ./.github/actions/npm
 
+    - name: Build browser container
+      run: npm run build --workspace=@waku/headless-tests
+
+    - name: Build browser test environment
+      run: npm run build --workspace=@waku/browser-tests
+
     - name: Run Playwright tests
       run: npm run test --workspace=@waku/browser-tests
 
