@@ -276,6 +276,9 @@ export class RLNCredentialsManager {
 
     const Q = await this.contract.getQ();
     if (idCommitmentBigInt >= Q) {
+      log.warn(
+        `ID commitment is greater than Q, reducing it by Q: ${idCommitmentBigInt} % ${Q}`
+      );
       idCommitmentBigInt = idCommitmentBigInt % Q;
     }
 
