@@ -25,6 +25,12 @@ export class RLNBaseContract {
   private minRateLimit?: number;
   private maxRateLimit?: number;
 
+  /**
+   * Default Q value for the RLN contract.
+   * @see https://github.com/waku-org/waku-rlnv2-contract/blob/b7e9a9b1bc69256a2a3076c1f099b50ce84e7eff/src/WakuRlnV2.sol#L25
+   */
+  private Q: undefined | bigint;
+
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
   private _membershipErasedFilter: ethers.EventFilter;
@@ -86,6 +92,17 @@ export class RLNBaseContract {
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
+  }
+
+  /**
+   * Fetches and caches the Q value from the contract.
+   * @returns Promise<bigint> The Q value from the contract
+   */
+  public async getQ(): Promise<bigint> {
+    if (this.Q !== undefined) return this.Q;
+    const q = await this.contract.Q();
+    this.Q = BigInt(q.toString());
+    return this.Q;
   }
 
   /**
