@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { DEFAULT_Q, LINEA_CONTRACT } from "./contract/constants.js";
+import { LINEA_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -116,7 +116,9 @@ export class RLNCredentialsManager {
         );
       } else {
         log.info("Using local implementation to generate identity");
-        identity = this.generateSeededIdentityCredential(options.signature);
+        identity = await this.generateSeededIdentityCredential(
+          options.signature
+        );
       }
     }
 
