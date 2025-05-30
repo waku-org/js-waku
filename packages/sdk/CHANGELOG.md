@@ -47,6 +47,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.32](https://github.com/waku-org/js-waku/compare/sdk-v0.0.31...sdk-v0.0.32) (2025-05-30)
+
+
+### Features
+
+* Enable/disable discoveries without `defaultBootstrap: true` ([#2363](https://github.com/waku-org/js-waku/issues/2363)) ([16328a3](https://github.com/waku-org/js-waku/commit/16328a3f11efa91d16d59ab958f1fc90f45d9ee0))
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/discovery bumped from 0.0.8 to 0.0.9
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+    * @waku/message-hash bumped from 0.1.19 to 0.1.20
+
 ## [0.0.31](https://github.com/waku-org/js-waku/compare/sdk-v0.0.30...sdk-v0.0.31) (2025-04-23)
 
 

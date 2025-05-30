@@ -25,6 +25,18 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/relay-v0.0.18...relay-v0.0.19) (2025-05-30)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/sdk bumped from 0.0.31 to 0.0.32
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/relay-v0.0.17...relay-v0.0.18) (2025-04-23)
 
 

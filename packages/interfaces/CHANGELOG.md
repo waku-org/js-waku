@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.31](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.30...interfaces-v0.0.31) (2025-05-30)
+
+
+### Features
+
+* Enable/disable discoveries without `defaultBootstrap: true` ([#2363](https://github.com/waku-org/js-waku/issues/2363)) ([16328a3](https://github.com/waku-org/js-waku/commit/16328a3f11efa91d16d59ab958f1fc90f45d9ee0))
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+
 ## [0.0.30](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.29...interfaces-v0.0.30) (2025-04-23)
 
 
