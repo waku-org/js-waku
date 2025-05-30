@@ -90,6 +90,17 @@ export type CreateNodeOptions = {
   defaultBootstrap?: boolean;
 
   /**
+   * Enable or disable specific discovery methods.
+   *
+   * @default { peerExchange: true, dns: true, localPeerCache: true }
+   */
+  discovery?: {
+    peerExchange: boolean;
+    dns: boolean;
+    localPeerCache: boolean;
+  };
+
+  /**
    * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
    */
   bootstrapPeers?: string[];

@@ -15,6 +15,12 @@ import { ServiceNode } from "./service_node.js";
 
 export const log = new Logger("test:runNodes");
 
+export const DEFAULT_DISCOVERIES_ENABLED = {
+  dns: true,
+  peerExchange: true,
+  localPeerCache: true
+};
+
 type RunNodesOptions = {
   context: Context;
   networkConfig: NetworkConfig;
@@ -46,7 +52,8 @@ export async function runNodes<T>(
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     networkConfig: shardInfo,
-    lightPush: { numPeersToUse: 2 }
+    lightPush: { numPeersToUse: 2 },
+    discovery: DEFAULT_DISCOVERIES_ENABLED
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));
