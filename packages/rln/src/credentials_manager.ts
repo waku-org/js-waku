@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { LINEA_CONTRACT } from "./contract/constants.js";
+import { DEFAULT_Q, LINEA_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -249,7 +249,9 @@ export class RLNCredentialsManager {
    * @param seed A string seed to generate the identity from
    * @returns IdentityCredential
    */
-  private generateSeededIdentityCredential(seed: string): IdentityCredential {
+  private async generateSeededIdentityCredential(
+    seed: string
+  ): Promise<IdentityCredential> {
     log.info("Generating seeded identity credential");
     // Convert the seed to bytes
     const encoder = new TextEncoder();
@@ -260,15 +262,20 @@ export class RLNCredentialsManager {
     const idTrapdoor = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
     const idNullifier = hmac(sha256, seedBytes, encoder.encode("IDNullifier"));
 
-    // Generate IDSecretHash as a hash of IDTrapdoor and IDNullifier
     const combinedBytes = new Uint8Array([...idTrapdoor, ...idNullifier]);
     const idSecretHash = sha256(combinedBytes);
 
-    // Generate IDCommitment as a hash of IDSecretHash
     const idCommitment = sha256(idSecretHash);
 
-    // Convert IDCommitment to BigInt
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    let idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    if (!this.contract) {
+      throw Error("RLN contract is not initialized");
+    }
+
+    const Q = await this.contract.getQ();
+    if (idCommitmentBigInt >= Q) {
+      idCommitmentBigInt = idCommitmentBigInt % Q;
+    }
 
     log.info("Successfully generated identity credential");
     return new IdentityCredential(
