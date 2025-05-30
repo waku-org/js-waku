@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.36](https://github.com/waku-org/js-waku/compare/core-v0.0.35...core-v0.0.36) (2025-05-30)
+
+
+### Features
+
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.29 to ^0.0.30
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.35](https://github.com/waku-org/js-waku/compare/core-v0.0.34...core-v0.0.35) (2025-04-23)
 
 
