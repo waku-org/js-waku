@@ -116,7 +116,9 @@ export class RLNCredentialsManager {
         );
       } else {
         log.info("Using local implementation to generate identity");
-        identity = this.generateSeededIdentityCredential(options.signature);
+        identity = await this.generateSeededIdentityCredential(
+          options.signature
+        );
       }
     }
 
@@ -249,7 +251,9 @@ export class RLNCredentialsManager {
    * @param seed A string seed to generate the identity from
    * @returns IdentityCredential
    */
-  private generateSeededIdentityCredential(seed: string): IdentityCredential {
+  private async generateSeededIdentityCredential(
+    seed: string
+  ): Promise<IdentityCredential> {
     log.info("Generating seeded identity credential");
     // Convert the seed to bytes
     const encoder = new TextEncoder();
@@ -260,15 +264,23 @@ export class RLNCredentialsManager {
     const idTrapdoor = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
     const idNullifier = hmac(sha256, seedBytes, encoder.encode("IDNullifier"));
 
-    // Generate IDSecretHash as a hash of IDTrapdoor and IDNullifier
     const combinedBytes = new Uint8Array([...idTrapdoor, ...idNullifier]);
     const idSecretHash = sha256(combinedBytes);
 
-    // Generate IDCommitment as a hash of IDSecretHash
     const idCommitment = sha256(idSecretHash);
 
-    // Convert IDCommitment to BigInt
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    let idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    if (!this.contract) {
+      throw Error("RLN contract is not initialized");
+    }
+
+    const Q = await this.contract.getQ();
+    if (idCommitmentBigInt >= Q) {
+      log.warn(
+        `ID commitment is greater than Q, reducing it by Q: ${idCommitmentBigInt} % ${Q}`
+      );
+      idCommitmentBigInt = idCommitmentBigInt % Q;
+    }
 
     log.info("Successfully generated identity credential");
     return new IdentityCredential(
