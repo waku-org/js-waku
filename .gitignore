@@ -16,3 +16,5 @@ packages/discovery/mock_local_storage
 .cursorrules
 .giga
 .cursor
+.DS_Store
+CLAUDE.md

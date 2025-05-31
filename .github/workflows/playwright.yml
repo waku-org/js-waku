@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.51.1-jammy
+      image: mcr.microsoft.com/playwright:v1.52.0-jammy
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -28,6 +28,12 @@ jobs:
         node-version: ${{ env.NODE_JS }}
 
     - uses: ./.github/actions/npm
+
+    - name: Build browser container
+      run: npm run build --workspace=@waku/headless-tests
+
+    - name: Build browser test environment
+      run: npm run build --workspace=@waku/browser-tests
 
     - name: Run Playwright tests
       run: npm run test --workspace=@waku/browser-tests

@@ -13,6 +13,7 @@ import pRetry from "p-retry";
 
 import { NOISE_KEY_1 } from "../constants.js";
 import { ServiceNodesFleet } from "../lib/index.js";
+import { DEFAULT_DISCOVERIES_ENABLED } from "../lib/runNodes.js";
 import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";
@@ -41,7 +42,8 @@ export async function runMultipleNodes(
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
     networkConfig,
-    lightPush: { numPeersToUse: numServiceNodes }
+    lightPush: { numPeersToUse: numServiceNodes },
+    discovery: DEFAULT_DISCOVERIES_ENABLED
   };
 
   const waku = await createLightNode(wakuOptions);
