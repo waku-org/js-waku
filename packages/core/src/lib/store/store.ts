@@ -40,9 +40,14 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
     decoders: Map<string, IDecoder<T>>,
     peerId: PeerId
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    // Only validate decoder content topics for content-filtered queries
+    const isHashQuery =
+      queryOpts.messageHashes && queryOpts.messageHashes.length > 0;
     if (
+      !isHashQuery &&
+      queryOpts.contentTopics &&
       queryOpts.contentTopics.toString() !==
-      Array.from(decoders.keys()).toString()
+        Array.from(decoders.keys()).toString()
     ) {
       throw new Error(
         "Internal error, the decoders should match the query's content topics"
@@ -54,6 +59,13 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
       const storeQueryRequest = StoreQueryRequest.create({
         ...queryOpts,
         paginationCursor: currentCursor
+      });
+
+      log.info("Sending store query request:", {
+        hasMessageHashes: !!queryOpts.messageHashes?.length,
+        messageHashCount: queryOpts.messageHashes?.length,
+        pubsubTopic: queryOpts.pubsubTopic,
+        contentTopics: queryOpts.contentTopics
       });
 
       let stream;
