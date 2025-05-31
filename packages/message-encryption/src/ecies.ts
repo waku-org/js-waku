@@ -3,6 +3,7 @@ import {
   type EncoderOptions as BaseEncoderOptions,
   type IDecoder,
   type IEncoder,
+  type IEncryptedMessage,
   type IMessage,
   type IMetaSetter,
   type IProtoMessage,
@@ -122,7 +123,7 @@ export function createEncoder({
   );
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
     pubsubTopic: PubsubTopic,
     contentTopic: string,
@@ -134,7 +135,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     protoMessage: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IEncryptedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {

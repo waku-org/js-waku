@@ -37,10 +37,6 @@ export class DecodedMessage implements IDecodedMessage {
     return this.proto.contentTopic;
   }
 
-  public get _rawTimestamp(): bigint | undefined {
-    return this.proto.timestamp;
-  }
-
   public get timestamp(): Date | undefined {
     // In the case we receive a value that is bigger than JS's max number,
     // we catch the error and return undefined.
@@ -160,7 +156,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {
