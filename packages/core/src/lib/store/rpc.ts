@@ -14,6 +14,7 @@ export class StoreQueryRequest {
   public static create(params: QueryRequestParams): StoreQueryRequest {
     const request = new StoreQueryRequest({
       ...params,
+      contentTopics: params.contentTopics || [],
       requestId: uuid(),
       timeStart: params.timeStart
         ? BigInt(params.timeStart.getTime() * ONE_MILLION)
@@ -28,26 +29,26 @@ export class StoreQueryRequest {
     });
 
     // Validate request parameters based on RFC
-    if (
-      (params.pubsubTopic && !params.contentTopics) ||
-      (!params.pubsubTopic && params.contentTopics)
-    ) {
-      throw new Error(
-        "Both pubsubTopic and contentTopics must be set or unset"
-      );
-    }
+    // if (
+    //   (params.pubsubTopic && !params.contentTopics) ||
+    //   (!params.pubsubTopic && params.contentTopics)
+    // ) {
+    //   throw new Error(
+    //     "Both pubsubTopic and contentTopics must be set or unset"
+    //   );
+    // }
 
-    if (
-      params.messageHashes &&
-      (params.pubsubTopic ||
-        params.contentTopics ||
-        params.timeStart ||
-        params.timeEnd)
-    ) {
-      throw new Error(
-        "Message hash lookup queries cannot include content filter criteria"
-      );
-    }
+    // if (
+    //   params.messageHashes &&
+    //   (params.pubsubTopic ||
+    //     (params.contentTopics && params.contentTopics.length > 0) ||
+    //     params.timeStart ||
+    //     params.timeEnd)
+    // ) {
+    //   throw new Error(
+    //     "Message hash lookup queries cannot include content filter criteria"
+    //   );
+    // }
 
     return request;
   }
