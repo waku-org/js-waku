@@ -1,13 +1,14 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
-import {
-  type EncoderOptions as BaseEncoderOptions,
-  type IDecoder,
-  type IEncoder,
-  type IMessage,
-  type IMetaSetter,
-  type IProtoMessage,
-  type PubsubTopic,
-  type SingleShardInfo
+import type {
+  EncoderOptions as BaseEncoderOptions,
+  IDecoder,
+  IEncoder,
+  IEncryptedMessage,
+  IMessage,
+  IMetaSetter,
+  IProtoMessage,
+  PubsubTopic,
+  SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { determinePubsubTopic, Logger } from "@waku/utils";
@@ -118,7 +119,7 @@ export function createEncoder({
   );
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
     pubsubTopic: PubsubTopic,
     contentTopic: string,
@@ -130,7 +131,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     protoMessage: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IEncryptedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {

@@ -22,7 +22,7 @@ export { proto };
 export class DecodedMessage implements IDecodedMessage {
   public constructor(
     public pubsubTopic: string,
-    protected proto: proto.WakuMessage
+    private proto: proto.WakuMessage
   ) {}
 
   public get ephemeral(): boolean {
@@ -35,10 +35,6 @@ export class DecodedMessage implements IDecodedMessage {
 
   public get contentTopic(): string {
     return this.proto.contentTopic;
-  }
-
-  public get _rawTimestamp(): bigint | undefined {
-    return this.proto.timestamp;
   }
 
   public get timestamp(): Date | undefined {
@@ -63,7 +59,7 @@ export class DecodedMessage implements IDecodedMessage {
   public get version(): number {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
-    return this.proto.version ?? 0;
+    return this.proto.version ?? Version;
   }
 
   public get rateLimitProof(): IRateLimitProof | undefined {
@@ -160,7 +156,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<DecodedMessage | undefined> {
+  ): Promise<IDecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {

@@ -1,6 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { DecodedMessage } from "@waku/core";
-import { Protocols, RelayNode } from "@waku/interfaces";
+import { IDecodedMessage, Protocols, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -74,9 +73,9 @@ describe("Waku Relay, Interop", function () {
 
     const messageText = "Here is another message.";
 
-    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const receivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve) => {
-        void waku.relay.subscribeWithUnsubscribe<DecodedMessage>(
+        void waku.relay.subscribeWithUnsubscribe<IDecodedMessage>(
           TestDecoder,
           (msg) => resolve(msg)
         );
@@ -118,7 +117,7 @@ describe("Waku Relay, Interop", function () {
     const msgStr = "Hello there!";
     const message = { payload: utf8ToBytes(msgStr) };
 
-    const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const waku2ReceivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve) => {
         void waku2.relay.subscribeWithUnsubscribe(TestDecoder, resolve);
       }

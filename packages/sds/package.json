@@ -61,7 +61,6 @@
     "dependencies": {
         "@libp2p/interface": "2.7.0",
         "@noble/hashes": "^1.7.1",
-        "@waku/message-hash": "^0.1.19",
         "@waku/proto": "^0.0.10",
         "@waku/utils": "^0.0.23",
         "chai": "^5.1.2"

@@ -2,12 +2,12 @@ import {
   DecodedMessage as DecodedMessageV0,
   proto
 } from "@waku/core/lib/message/version_0";
-import type { IDecodedMessage } from "@waku/interfaces";
+import type { IEncryptedMessage } from "@waku/interfaces";
 import { equals } from "uint8arrays/equals";
 
 export class DecodedMessage
   extends DecodedMessageV0
-  implements IDecodedMessage
+  implements IEncryptedMessage
 {
   private readonly _decodedPayload: Uint8Array;
 

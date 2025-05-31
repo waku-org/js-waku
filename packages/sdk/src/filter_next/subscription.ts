@@ -3,7 +3,7 @@ import {
   type PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { FilterCore } from "@waku/core";
+import { FilterCore, messageHashStr } from "@waku/core";
 import type {
   Callback,
   NextFilterOptions as FilterOptions,
@@ -12,7 +12,6 @@ import type {
   IProtoMessage,
   Libp2p
 } from "@waku/interfaces";
-import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 

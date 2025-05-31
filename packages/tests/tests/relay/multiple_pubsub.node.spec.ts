@@ -1,11 +1,12 @@
-import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import {
   ContentTopicInfo,
+  IDecodedMessage,
+  Protocols,
   RelayNode,
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import {
   contentTopicToPubsubTopic,
@@ -295,7 +296,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
     const messageText = "Communicating using a custom pubsub topic";
 
-    const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const waku2ReceivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve) => {
         void waku2.relay.subscribeWithUnsubscribe([customDecoder1], resolve);
       }
@@ -636,7 +637,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
 
     const messageText = "Communicating using a custom pubsub topic";
 
-    const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const waku2ReceivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve) => {
         void waku2.relay.subscribeWithUnsubscribe([customDecoder1], resolve);
       }
@@ -644,7 +645,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
 
     // The promise **fails** if we receive a message on the default
     // pubsub topic.
-    const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
+    const waku3NoMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve, reject) => {
         void waku3.relay.subscribeWithUnsubscribe([TestDecoder], reject);
         setTimeout(resolve, 1000);

@@ -1,7 +1,9 @@
+import { message } from "@waku/core";
 import type {
   IDecodedMessage,
   IMessage,
-  IRateLimitProof
+  IRateLimitProof,
+  IRlnMessage
 } from "@waku/interfaces";
 import * as utils from "@waku/utils/bytes";
 
@@ -13,12 +15,13 @@ export function toRLNSignal(contentTopic: string, msg: IMessage): Uint8Array {
   return new Uint8Array([...(msg.payload ?? []), ...contentTopicBytes]);
 }
 
-export class RlnMessage<T extends IDecodedMessage> implements IDecodedMessage {
+export class RlnMessage<T extends IDecodedMessage> implements IRlnMessage {
   public pubsubTopic = "";
+  public version = message.version_0.Version;
 
   public constructor(
-    public rlnInstance: RLNInstance,
-    public msg: T,
+    private rlnInstance: RLNInstance,
+    private msg: T,
     public rateLimitProof: IRateLimitProof | undefined
   ) {}
 

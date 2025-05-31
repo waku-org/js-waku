@@ -2,7 +2,6 @@
   "packages/utils": "0.0.23",
   "packages/proto": "0.0.10",
   "packages/interfaces": "0.0.30",
-  "packages/message-hash": "0.1.19",
   "packages/enr": "0.0.29",
   "packages/core": "0.0.35",
   "packages/message-encryption": "0.0.33",

@@ -1,6 +1,6 @@
-import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import { Protocols } from "@waku/interfaces";
-import type { LightNode } from "@waku/interfaces";
+import type { IDecodedMessage, LightNode } from "@waku/interfaces";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -173,7 +173,7 @@ describe("Waku Message Ephemeral field", function () {
 
     await waku2.waitForPeers([Protocols.Store]);
 
-    const messages: DecodedMessage[] = [];
+    const messages: IDecodedMessage[] = [];
 
     log.info("Retrieving messages from store");
     for await (const msgPromises of waku2.store.queryGenerator([
@@ -203,8 +203,8 @@ describe("Waku Message Ephemeral field", function () {
       pubsubTopic: PubsubTopic
     });
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
+    const messages: IDecodedMessage[] = [];
+    const callback = (msg: IDecodedMessage): void => {
       messages.push(msg);
     };
     await waku.filter.subscribe([TestDecoder], callback);
@@ -250,8 +250,8 @@ describe("Waku Message Ephemeral field", function () {
     });
     const decoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
+    const messages: IDecodedMessage[] = [];
+    const callback = (msg: IDecodedMessage): void => {
       messages.push(msg);
     };
     await waku.filter.subscribe([decoder], callback);
@@ -301,8 +301,8 @@ describe("Waku Message Ephemeral field", function () {
       PubsubTopic
     );
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
+    const messages: IDecodedMessage[] = [];
+    const callback = (msg: IDecodedMessage): void => {
       messages.push(msg);
     };
     await waku.filter.subscribe([decoder], callback);

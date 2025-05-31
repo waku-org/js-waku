@@ -1,5 +1,5 @@
-import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
-import { RelayNode } from "@waku/interfaces";
+import { createDecoder, createEncoder } from "@waku/core";
+import { IDecodedMessage, RelayNode } from "@waku/interfaces";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -66,7 +66,7 @@ describe("Waku Relay", function () {
     );
     const symDecoder = createSymDecoder(symTopic, symKey, TestPubsubTopic);
 
-    const msgs: DecodedMessage[] = [];
+    const msgs: IDecodedMessage[] = [];
     void waku2.relay.subscribeWithUnsubscribe([eciesDecoder], (wakuMsg) => {
       msgs.push(wakuMsg);
     });
@@ -95,7 +95,7 @@ describe("Waku Relay", function () {
     const contentTopic = "/test/1/observer/proto";
 
     // The promise **fails** if we receive a message on this observer.
-    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const receivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve, reject) => {
         const deleteObserver = waku2.relay.subscribeWithUnsubscribe(
           [createDecoder(contentTopic)],

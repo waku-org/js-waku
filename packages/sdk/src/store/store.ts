@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, StoreCore } from "@waku/core";
+import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -9,7 +9,6 @@ import {
   StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
-import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
