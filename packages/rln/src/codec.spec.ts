@@ -145,10 +145,10 @@ describe("RLN codec with version 1", () => {
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
-    const msg = (await rlnDecoder.fromProtoObj(
+    const msg = await rlnDecoder.fromProtoObj(
       TEST_CONSTANTS.emptyPubsubTopic,
       proto!
-    )) as RlnMessage<DecodedMessage>;
+    );
 
     verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
   });
@@ -209,10 +209,10 @@ describe("RLN codec with version 1", () => {
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
-    const msg = (await rlnDecoder.fromProtoObj(
+    const msg = await rlnDecoder.fromProtoObj(
       TEST_CONSTANTS.emptyPubsubTopic,
       proto!
-    )) as RlnMessage<DecodedMessage>;
+    );
 
     verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
   });

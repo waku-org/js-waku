@@ -98,6 +98,7 @@ describe("Message Hash: RFC Test Vectors", () => {
       "3f11bc950dce0e3ffdcf205ae6414c01130bb5d9f20644869bff80407fa52c8f";
     const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IDecodedMessage = {
+      version: 0,
       payload: new Uint8Array(),
       pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",
@@ -145,6 +146,7 @@ describe("messageHash and messageHashStr", () => {
 
   it("messageHashStr works with IDecodedMessage", () => {
     const decodedMessage: IDecodedMessage = {
+      version: 0,
       payload: new Uint8Array([1, 2, 3, 4]),
       pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",

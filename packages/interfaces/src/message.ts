@@ -19,6 +19,7 @@ export interface IRateLimitProof {
 }
 
 export interface IDecodedMessage {
+  version: number;
   payload: Uint8Array;
   contentTopic: ContentTopic;
   pubsubTopic: PubsubTopic;

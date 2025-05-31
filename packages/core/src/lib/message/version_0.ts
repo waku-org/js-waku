@@ -22,7 +22,7 @@ export { proto };
 export class DecodedMessage implements IDecodedMessage {
   public constructor(
     public pubsubTopic: string,
-    protected proto: proto.WakuMessage
+    private proto: proto.WakuMessage
   ) {}
 
   public get ephemeral(): boolean {
@@ -59,7 +59,7 @@ export class DecodedMessage implements IDecodedMessage {
   public get version(): number {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
-    return this.proto.version ?? 0;
+    return this.proto.version ?? Version;
   }
 
   public get rateLimitProof(): IRateLimitProof | undefined {

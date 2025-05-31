@@ -1,3 +1,4 @@
+import { message } from "@waku/core";
 import type {
   IDecoder,
   IProtoMessage,
@@ -7,6 +8,7 @@ import type {
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
 
 export class TopicOnlyMessage implements ITopicOnlyMessage {
+  public version = message.version_0.Version;
   public payload: Uint8Array = new Uint8Array();
   public rateLimitProof: undefined;
   public timestamp: undefined;
