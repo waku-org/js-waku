@@ -1,7 +1,7 @@
 import { DecodedMessage } from "@waku/core";
-import type { LightNode } from "@waku/interfaces";
+import type { IDecodedMessage, LightNode } from "@waku/interfaces";
 import { messageHash } from "@waku/message-hash";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 
 import {
   afterEachCustom,
@@ -40,14 +40,14 @@ describe("Waku Store, message hash query", function () {
       true
     );
 
-    const messages: DecodedMessage[] = [];
+    const messages: IDecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
       for await (const msg of page) {
-        messages.push(msg as DecodedMessage);
+        messages.push(msg as IDecodedMessage);
       }
     }
 
-    assert.equal(messages.length, totalMsgs);
+    expect(messages.length).to.equal(totalMsgs);
   });
 
   it("can query messages by message hash", async function () {
@@ -72,12 +72,7 @@ describe("Waku Store, message hash query", function () {
       })
     );
 
-    console.log("Sent messages:", sentMessages.length);
-    console.log("First message:", sentMessages[0]);
-    console.log("Message hashes:", messageHashes.length);
-    console.log("First hash:", messageHashes[0]);
-
-    const messages: DecodedMessage[] = [];
+    const messages: IDecodedMessage[] = [];
     let pageCount = 0;
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
@@ -85,20 +80,16 @@ describe("Waku Store, message hash query", function () {
         pubsubTopic: TestDecoder.pubsubTopic
       })) {
         pageCount++;
-        console.log(`Page ${pageCount} received`);
         for await (const msg of page) {
-          messages.push(msg as DecodedMessage);
+          messages.push(msg as IDecodedMessage);
         }
       }
     } catch (error) {
-      console.error("Error during query:", error);
       throw error;
     }
-    console.log("Total pages:", pageCount);
-    console.log("Total messages received:", messages.length);
-    assert.equal(messages.length, messageHashes.length);
+    expect(messages.length).to.equal(messageHashes.length);
     for (const msg of messages) {
-      assert.equal(msg.contentTopic, TestDecoder.contentTopic);
+      expect(msg.contentTopic).to.equal(TestDecoder.contentTopic);
     }
   });
 });
