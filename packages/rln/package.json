@@ -54,6 +54,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chai": "^5.0.1",
     "@types/chai-spies": "^1.0.6",
+    "@waku/interfaces": "0.0.30",
     "@types/deep-equal-in-any-order": "^1.0.4",
     "@types/lodash": "^4.17.15",
     "@types/sinon": "^17.0.3",

@@ -1,8 +1,5 @@
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage
-} from "@waku/core/lib/message/version_0";
+import { createDecoder, createEncoder } from "@waku/core/lib/message/version_0";
+import { IDecodedMessage } from "@waku/interfaces";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -84,7 +81,7 @@ describe("RLN codec with version 0", () => {
     const msg = (await rlnDecoder.fromProtoObj(
       TEST_CONSTANTS.emptyPubsubTopic,
       proto!
-    )) as RlnMessage<DecodedMessage>;
+    )) as RlnMessage<IDecodedMessage>;
 
     verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
   });
@@ -240,7 +237,7 @@ describe("RLN Codec - epoch", () => {
     const msg = (await rlnDecoder.fromProtoObj(
       TEST_CONSTANTS.emptyPubsubTopic,
       proto!
-    )) as RlnMessage<DecodedMessage>;
+    )) as RlnMessage<IDecodedMessage>;
 
     const epochBytes = proto!.rateLimitProof!.epoch;
     const epoch = epochBytesToInt(epochBytes);
@@ -313,7 +310,7 @@ describe("RLN codec with version 0 and meta setter", () => {
     const msg = (await rlnDecoder.fromProtoObj(
       TEST_CONSTANTS.emptyPubsubTopic,
       proto!
-    )) as RlnMessage<DecodedMessage>;
+    )) as RlnMessage<IDecodedMessage>;
 
     const expectedMeta = metaSetter({
       ...EMPTY_PROTO_MESSAGE,

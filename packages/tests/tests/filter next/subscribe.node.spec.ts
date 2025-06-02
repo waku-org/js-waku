@@ -1,5 +1,5 @@
-import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
-import { IDecoder, LightNode } from "@waku/interfaces";
+import { createDecoder, createEncoder } from "@waku/core";
+import { IDecodedMessage, IDecoder, LightNode } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -473,7 +473,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         });
 
         await waku.nextFilter.subscribe(
-          newDecoder as IDecoder<DecodedMessage>,
+          newDecoder as IDecoder<IDecodedMessage>,
           serviceNodes.messageCollector.callback
         );
         await waku.lightPush.send(newEncoder, messagePayload);

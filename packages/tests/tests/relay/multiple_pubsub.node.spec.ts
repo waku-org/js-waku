@@ -304,7 +304,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
     // The promise **fails** if we receive a message on the default
     // pubsub topic.
-    const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
+    const waku3NoMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve, reject) => {
         void waku3.relay.subscribeWithUnsubscribe([TestDecoder], reject);
         setTimeout(resolve, 1000);
