@@ -9,17 +9,9 @@ describe("Use static and several ENR trees for bootstrap", function () {
   it("", async function () {
     this.timeout(10_000);
 
-    const NODE_REQUIREMENTS = {
-      store: 3,
-      lightPush: 3,
-      filter: 3
-    };
-
     waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [
-          wakuDnsDiscovery([enrTree["SANDBOX"]], NODE_REQUIREMENTS)
-        ]
+        peerDiscovery: [wakuDnsDiscovery([enrTree["SANDBOX"]])]
       }
     });
     await waku.start();
