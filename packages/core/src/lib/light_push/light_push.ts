@@ -1,6 +1,6 @@
 import type { PeerId, Stream } from "@libp2p/interface";
 import {
-  type CoreProtocolResult,
+  type CoreProtocolResultWithMeta,
   type IEncoder,
   type IMessage,
   type Libp2p,
@@ -8,7 +8,7 @@ import {
   PubsubTopic,
   type ThisOrThat
 } from "@waku/interfaces";
-import { PushResponse } from "@waku/proto";
+import { proto_lightpush_v2, PushResponse } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
@@ -18,19 +18,17 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { StreamManager } from "../stream_manager/index.js";
 
-import { PushRpc } from "./push_rpc.js";
-import { isRLNResponseError } from "./utils.js";
+import { PushRpcV2 } from "./push_rpc_v2.js";
+import { mapInfoToProtocolError } from "./utils.js";
 
 const log = new Logger("light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
-export { PushResponse };
 
-type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
+export const LightPushCodecV2 = LightPushCodec;
 
-/**
- * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
- */
+type PreparePushMessageResult = ThisOrThat<"query", PushRpcV2>;
+
 export class LightPushCore {
   private readonly streamManager: StreamManager;
 
@@ -67,7 +65,7 @@ export class LightPushCore {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+      const query = PushRpcV2.createRequest(protoMessage, encoder.pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);
@@ -83,7 +81,7 @@ export class LightPushCore {
     encoder: IEncoder,
     message: IMessage,
     peerId: PeerId
-  ): Promise<CoreProtocolResult> {
+  ): Promise<CoreProtocolResultWithMeta> {
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message
@@ -95,7 +93,8 @@ export class LightPushCore {
         failure: {
           error: preparationError,
           peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
@@ -109,7 +108,8 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
@@ -123,14 +123,14 @@ export class LightPushCore {
         async (source) => await all(source)
       );
     } catch (err) {
-      // can fail only because of `stream` abortion
       log.error("Failed to send waku light push request", err);
       return {
         success: null,
         failure: {
           error: ProtocolError.STREAM_ABORTED,
           peerId: peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
@@ -139,9 +139,9 @@ export class LightPushCore {
       bytes.append(chunk);
     });
 
-    let response: PushResponse | undefined;
+    let response: proto_lightpush_v2.PushResponse | undefined;
     try {
-      response = PushRpc.decode(bytes).response;
+      response = PushRpcV2.decode(bytes).response;
     } catch (err) {
       log.error("Failed to decode push reply", err);
       return {
@@ -149,7 +149,8 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.DECODE_FAILED,
           peerId: peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
@@ -160,32 +161,35 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.NO_RESPONSE,
           peerId: peerId
-        }
-      };
-    }
-
-    if (isRLNResponseError(response.info)) {
-      log.error("Remote peer fault: RLN generation");
-      return {
-        success: null,
-        failure: {
-          error: ProtocolError.RLN_PROOF_GENERATION,
-          peerId: peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
     if (!response.isSuccess) {
-      log.error("Remote peer rejected the message: ", response.info);
+      const errorMessage = response.info || "Message rejected";
+      log.error("Remote peer rejected the message: ", errorMessage);
+
+      // Use pattern matching to determine the appropriate error type
+      const error = mapInfoToProtocolError(response.info);
+
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_REJECTED,
+          error: error,
           peerId: peerId
-        }
+        },
+        protocolUsed: LightPushCodec
       };
     }
 
-    return { success: peerId, failure: null };
+    return {
+      success: peerId,
+      failure: null,
+      protocolUsed: LightPushCodec
+    };
   }
 }
+
+export const LightPushCoreV2 = LightPushCore;
+export { PushResponse };

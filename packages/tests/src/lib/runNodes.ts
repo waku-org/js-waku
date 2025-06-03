@@ -18,7 +18,7 @@ export const log = new Logger("test:runNodes");
 export const DEFAULT_DISCOVERIES_ENABLED = {
   dns: true,
   peerExchange: true,
-  localPeerCache: true
+  localPeerCache: false // Disabled to avoid localStorage issues in Node.js tests
 };
 
 type RunNodesOptions = {

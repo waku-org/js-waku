@@ -1,3 +1,5 @@
+import { ProtocolError } from "@waku/interfaces";
+
 // should match nwaku
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/rln_relay.nim#L309
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/tests/waku_rln_relay/rln/waku_rln_relay_utils.nim#L20
@@ -21,3 +23,47 @@ export const isRLNResponseError = (info?: string): boolean => {
     info.includes(RLN_REMOTE_VALIDATION)
   );
 };
+
+export function mapInfoToProtocolError(info?: string): ProtocolError {
+  if (!info) {
+    return ProtocolError.REMOTE_PEER_REJECTED;
+  }
+
+  const lowerInfo = info.toLowerCase();
+
+  if (isRLNResponseError(info)) {
+    return ProtocolError.RLN_PROOF_GENERATION;
+  }
+
+  if (
+    lowerInfo.includes("rate limit") ||
+    lowerInfo.includes("too many requests")
+  ) {
+    return ProtocolError.REMOTE_PEER_REJECTED;
+  }
+
+  if (
+    lowerInfo.includes("topic") &&
+    (lowerInfo.includes("not found") || lowerInfo.includes("not configured"))
+  ) {
+    return ProtocolError.TOPIC_NOT_CONFIGURED;
+  }
+
+  if (lowerInfo.includes("too large") || lowerInfo.includes("size")) {
+    return ProtocolError.SIZE_TOO_BIG;
+  }
+
+  if (
+    lowerInfo.includes("decode") ||
+    lowerInfo.includes("invalid") ||
+    lowerInfo.includes("malformed")
+  ) {
+    return ProtocolError.DECODE_FAILED;
+  }
+
+  if (lowerInfo.includes("empty") && lowerInfo.includes("payload")) {
+    return ProtocolError.EMPTY_PAYLOAD;
+  }
+
+  return ProtocolError.REMOTE_PEER_REJECTED;
+}

@@ -266,7 +266,7 @@ export class ConnectionManager
    * // Dial using multiaddr with specific protocols
    * await connectionManager.dialPeer(multiaddr, [
    *   "/vac/waku/relay/2.0.0",
-   *   "/vac/waku/lightpush/2.0.0-beta1"
+   *   "/vac/waku/lightpush/3.0.0"
    * ]);
    * ```
    *
