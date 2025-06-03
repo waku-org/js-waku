@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "message.proto";
+
+message LightpushRequest {
+  string request_id = 1;
+  optional string pubsub_topic = 20;
+  WakuMessage message = 21;
+}
+
+message LightpushResponse {
+  string request_id = 1;
+  uint32 status_code = 10;
+  optional string status_desc = 11;
+  optional uint32 relay_peer_count = 12;
+}
