@@ -8,19 +8,25 @@ import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, message }
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
-export interface PushRequest {
+export interface LightpushRequest {
+  requestId: string
   pubsubTopic?: string
   message?: WakuMessage
 }
 
-export namespace PushRequest {
-  let _codec: Codec<PushRequest>
+export namespace LightpushRequest {
+  let _codec: Codec<LightpushRequest>
 
-  export const codec = (): Codec<PushRequest> => {
+  export const codec = (): Codec<LightpushRequest> => {
     if (_codec == null) {
-      _codec = message<PushRequest>((obj, w, opts = {}) => {
+      _codec = message<LightpushRequest>((obj, w, opts = {}) => {
         if (opts.lengthDelimited !== false) {
           w.fork()
+        }
+
+        if ((obj.requestId != null && obj.requestId !== '')) {
+          w.uint32(10)
+          w.string(obj.requestId)
         }
 
         if (obj.pubsubTopic != null) {
@@ -37,7 +43,9 @@ export namespace PushRequest {
           w.ldelim()
         }
       }, (reader, length, opts = {}) => {
-        const obj: any = {}
+        const obj: any = {
+          requestId: ''
+        }
 
         const end = length == null ? reader.len : reader.pos + length
 
@@ -45,6 +53,10 @@ export namespace PushRequest {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
+            case 1: {
+              obj.requestId = reader.string()
+              break
+            }
             case 20: {
               obj.pubsubTopic = reader.string()
               break
@@ -69,43 +81,49 @@ export namespace PushRequest {
     return _codec
   }
 
-  export const encode = (obj: Partial<PushRequest>): Uint8Array => {
-    return encodeMessage(obj, PushRequest.codec())
+  export const encode = (obj: Partial<LightpushRequest>): Uint8Array => {
+    return encodeMessage(obj, LightpushRequest.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PushRequest>): PushRequest => {
-    return decodeMessage(buf, PushRequest.codec(), opts)
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<LightpushRequest>): LightpushRequest => {
+    return decodeMessage(buf, LightpushRequest.codec(), opts)
   }
 }
 
-export interface PushResponse {
+export interface LightpushResponse {
+  requestId: string
   statusCode: number
   statusDesc?: string
   relayPeerCount?: number
 }
 
-export namespace PushResponse {
-  let _codec: Codec<PushResponse>
+export namespace LightpushResponse {
+  let _codec: Codec<LightpushResponse>
 
-  export const codec = (): Codec<PushResponse> => {
+  export const codec = (): Codec<LightpushResponse> => {
     if (_codec == null) {
-      _codec = message<PushResponse>((obj, w, opts = {}) => {
+      _codec = message<LightpushResponse>((obj, w, opts = {}) => {
         if (opts.lengthDelimited !== false) {
           w.fork()
         }
 
+        if ((obj.requestId != null && obj.requestId !== '')) {
+          w.uint32(10)
+          w.string(obj.requestId)
+        }
+
         if ((obj.statusCode != null && obj.statusCode !== 0)) {
-          w.uint32(160)
+          w.uint32(80)
           w.uint32(obj.statusCode)
         }
 
         if (obj.statusDesc != null) {
-          w.uint32(242)
+          w.uint32(90)
           w.string(obj.statusDesc)
         }
 
         if (obj.relayPeerCount != null) {
-          w.uint32(320)
+          w.uint32(96)
           w.uint32(obj.relayPeerCount)
         }
 
@@ -114,6 +132,7 @@ export namespace PushResponse {
         }
       }, (reader, length, opts = {}) => {
         const obj: any = {
+          requestId: '',
           statusCode: 0
         }
 
@@ -123,15 +142,19 @@ export namespace PushResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 20: {
+            case 1: {
+              obj.requestId = reader.string()
+              break
+            }
+            case 10: {
               obj.statusCode = reader.uint32()
               break
             }
-            case 30: {
+            case 11: {
               obj.statusDesc = reader.string()
               break
             }
-            case 40: {
+            case 12: {
               obj.relayPeerCount = reader.uint32()
               break
             }
@@ -149,96 +172,12 @@ export namespace PushResponse {
     return _codec
   }
 
-  export const encode = (obj: Partial<PushResponse>): Uint8Array => {
-    return encodeMessage(obj, PushResponse.codec())
+  export const encode = (obj: Partial<LightpushResponse>): Uint8Array => {
+    return encodeMessage(obj, LightpushResponse.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PushResponse>): PushResponse => {
-    return decodeMessage(buf, PushResponse.codec(), opts)
-  }
-}
-
-export interface PushRpc {
-  requestId: string
-  request?: PushRequest
-  response?: PushResponse
-}
-
-export namespace PushRpc {
-  let _codec: Codec<PushRpc>
-
-  export const codec = (): Codec<PushRpc> => {
-    if (_codec == null) {
-      _codec = message<PushRpc>((obj, w, opts = {}) => {
-        if (opts.lengthDelimited !== false) {
-          w.fork()
-        }
-
-        if ((obj.requestId != null && obj.requestId !== '')) {
-          w.uint32(10)
-          w.string(obj.requestId)
-        }
-
-        if (obj.request != null) {
-          w.uint32(18)
-          PushRequest.codec().encode(obj.request, w)
-        }
-
-        if (obj.response != null) {
-          w.uint32(26)
-          PushResponse.codec().encode(obj.response, w)
-        }
-
-        if (opts.lengthDelimited !== false) {
-          w.ldelim()
-        }
-      }, (reader, length, opts = {}) => {
-        const obj: any = {
-          requestId: ''
-        }
-
-        const end = length == null ? reader.len : reader.pos + length
-
-        while (reader.pos < end) {
-          const tag = reader.uint32()
-
-          switch (tag >>> 3) {
-            case 1: {
-              obj.requestId = reader.string()
-              break
-            }
-            case 2: {
-              obj.request = PushRequest.codec().decode(reader, reader.uint32(), {
-                limits: opts.limits?.request
-              })
-              break
-            }
-            case 3: {
-              obj.response = PushResponse.codec().decode(reader, reader.uint32(), {
-                limits: opts.limits?.response
-              })
-              break
-            }
-            default: {
-              reader.skipType(tag & 7)
-              break
-            }
-          }
-        }
-
-        return obj
-      })
-    }
-
-    return _codec
-  }
-
-  export const encode = (obj: Partial<PushRpc>): Uint8Array => {
-    return encodeMessage(obj, PushRpc.codec())
-  }
-
-  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PushRpc>): PushRpc => {
-    return decodeMessage(buf, PushRpc.codec(), opts)
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<LightpushResponse>): LightpushResponse => {
+    return decodeMessage(buf, LightpushResponse.codec(), opts)
   }
 }
 

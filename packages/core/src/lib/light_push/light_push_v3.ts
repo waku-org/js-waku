@@ -4,12 +4,15 @@ import {
   type IBaseProtocolCore,
   type IEncoder,
   type IMessage,
+  isSuccessStatusCodeV3,
   type Libp2p,
+  LightPushCodecV3,
+  LightPushStatusCodeV3,
   ProtocolError,
   PubsubTopic,
   type ThisOrThat
 } from "@waku/interfaces";
-import { proto_lightpush_v2, PushResponse } from "@waku/proto";
+import { proto_lightpush_v3, WakuMessage } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
@@ -19,23 +22,23 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
 
-import { PushRpcV2 } from "./push_rpc_v2.js";
-import { mapInfoToProtocolError } from "./utils.js";
+import { PushRpcV3 } from "./push_rpc_v3.js";
+import {
+  getLightPushStatusDescriptionV3,
+  lightPushStatusCodeToProtocolErrorV3
+} from "./status_codes_v3.js";
+import { isRLNResponseError } from "./utils.js";
 
-const log = new Logger("light-push");
+const log = new Logger("light-push-v3");
 
-export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
+type PreparePushMessageResult = ThisOrThat<"query", PushRpcV3>;
 
-export const LightPushCodecV2 = LightPushCodec;
-
-type PreparePushMessageResult = ThisOrThat<"query", PushRpcV2>;
-
-export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
+export class LightPushCoreV3 extends BaseProtocol implements IBaseProtocolCore {
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
-    super(LightPushCodec, libp2p.components, pubsubTopics);
+    super(LightPushCodecV3, libp2p.components, pubsubTopics);
   }
 
   private async preparePushMessage(
@@ -62,7 +65,10 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         };
       }
 
-      const query = PushRpcV2.createRequest(protoMessage, encoder.pubsubTopic);
+      const query = PushRpcV3.createRequest(
+        protoMessage as WakuMessage,
+        encoder.pubsubTopic
+      );
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);
@@ -133,11 +139,11 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       bytes.append(chunk);
     });
 
-    let response: proto_lightpush_v2.PushResponse | undefined;
+    let response: proto_lightpush_v3.LightpushResponse | undefined;
     try {
-      response = PushRpcV2.decode(bytes).response;
+      response = proto_lightpush_v3.LightpushResponse.decode(bytes);
     } catch (err) {
-      log.error("Failed to decode push reply", err);
+      log.error("Failed to decode push response", err);
       return {
         success: null,
         failure: {
@@ -148,7 +154,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     }
 
     if (!response) {
-      log.error("Remote peer fault: No response in PushRPC");
+      log.error("Remote peer fault: No response received");
       return {
         success: null,
         failure: {
@@ -158,17 +164,64 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       };
     }
 
-    if (!response.isSuccess) {
-      const errorMessage = response.info || "Message rejected";
-      log.error("Remote peer rejected the message: ", errorMessage);
+    // Validate request ID matches (except for rate limiting responses)
+    if (response.requestId !== query.query?.requestId) {
+      // nwaku sends "N/A" for rate limiting responses
+      if (response.statusCode !== LightPushStatusCodeV3.TOO_MANY_REQUESTS) {
+        log.error("Request ID mismatch", {
+          sent: query.query?.requestId,
+          received: response.requestId
+        });
+        return {
+          success: null,
+          failure: {
+            error: ProtocolError.GENERIC_FAIL,
+            peerId: peerId
+          }
+        };
+      }
+    }
 
-      // Use pattern matching to determine the appropriate error type
-      const error = mapInfoToProtocolError(response.info);
+    const statusCode = response.statusCode;
+    const isSuccess = isSuccessStatusCodeV3(statusCode);
 
+    // Special handling for nwaku rate limiting
+    if (statusCode === LightPushStatusCodeV3.TOO_MANY_REQUESTS) {
+      if (response.requestId === "N/A") {
+        log.warn("Rate limited by nwaku node", {
+          statusDesc:
+            response.statusDesc || "Request rejected due to too many requests"
+        });
+      }
+    }
+
+    if (response.relayPeerCount !== undefined) {
+      log.info(`Message relayed to ${response.relayPeerCount} peers`);
+    }
+
+    if (response.statusDesc && isRLNResponseError(response.statusDesc)) {
+      log.error("Remote peer fault: RLN generation");
       return {
         success: null,
         failure: {
-          error: error,
+          error: ProtocolError.RLN_PROOF_GENERATION,
+          peerId: peerId
+        }
+      };
+    }
+
+    if (!isSuccess) {
+      const errorMessage = getLightPushStatusDescriptionV3(
+        statusCode,
+        response.statusDesc
+      );
+      log.error("Remote peer rejected the message: ", errorMessage);
+
+      const protocolError = lightPushStatusCodeToProtocolErrorV3(statusCode);
+      return {
+        success: null,
+        failure: {
+          error: protocolError,
           peerId: peerId
         }
       };
@@ -177,6 +230,3 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     return { success: peerId, failure: null };
   }
 }
-
-export const LightPushCoreV2 = LightPushCore;
-export { PushResponse };
