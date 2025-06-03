@@ -1,4 +1,4 @@
-import { DecodedMessage } from "@waku/core";
+import type { IDecodedMessage } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
@@ -19,12 +19,12 @@ const log = new Logger("test:message-collector");
  * and offers a way to wait for incoming messages.
  */
 export class MessageCollector {
-  public list: Array<MessageRpcResponse | DecodedMessage> = [];
-  public callback: (msg: DecodedMessage) => void = () => {};
+  public list: Array<MessageRpcResponse | IDecodedMessage> = [];
+  public callback: (msg: IDecodedMessage) => void = () => {};
 
   public constructor(private nwaku?: ServiceNode) {
     if (!this.nwaku) {
-      this.callback = (msg: DecodedMessage): void => {
+      this.callback = (msg: IDecodedMessage): void => {
         log.info("Got a message");
         this.list.push(msg);
       };
@@ -35,7 +35,7 @@ export class MessageCollector {
     return this.list.length;
   }
 
-  public getMessage(index: number): MessageRpcResponse | DecodedMessage {
+  public getMessage(index: number): MessageRpcResponse | IDecodedMessage {
     return this.list[index];
   }
 
@@ -56,7 +56,7 @@ export class MessageCollector {
 
   // Type guard to determine if a message is of type MessageRpcResponse
   public isMessageRpcResponse(
-    message: MessageRpcResponse | DecodedMessage
+    message: MessageRpcResponse | IDecodedMessage
   ): message is MessageRpcResponse {
     return (
       ("payload" in message && typeof message.payload === "string") ||

@@ -1,4 +1,4 @@
-import type { PubsubTopic } from "./misc.js";
+import type { ContentTopic, PubsubTopic } from "./misc.js";
 
 export interface SingleShardInfo {
   clusterId: number;
@@ -16,6 +16,39 @@ export interface IRateLimitProof {
   shareY: Uint8Array;
   nullifier: Uint8Array;
   rlnIdentifier: Uint8Array;
+}
+
+export interface IDecodedMessage {
+  version: number;
+  payload: Uint8Array;
+  contentTopic: ContentTopic;
+  pubsubTopic: PubsubTopic;
+  timestamp: Date | undefined;
+  rateLimitProof: IRateLimitProof | undefined;
+  ephemeral: boolean | undefined;
+  meta: Uint8Array | undefined;
+}
+
+export interface IRlnMessage extends IDecodedMessage {
+  epoch: number | undefined;
+  verify(roots: Uint8Array[]): boolean | undefined;
+  verifyNoRoot(): boolean | undefined;
+}
+
+export interface IEncryptedMessage extends IDecodedMessage {
+  signature?: Uint8Array;
+  signaturePublicKey?: Uint8Array;
+  verifySignature(publicKey: Uint8Array): boolean;
+}
+
+export interface ITopicOnlyMessage extends IDecodedMessage {
+  payload: Uint8Array;
+  contentTopic: ContentTopic;
+  pubsubTopic: PubsubTopic;
+  timestamp: undefined;
+  rateLimitProof: undefined;
+  ephemeral: undefined;
+  meta: undefined;
 }
 
 /**
@@ -72,16 +105,6 @@ export interface IEncoder {
   ephemeral: boolean;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
-}
-
-export interface IDecodedMessage {
-  payload: Uint8Array;
-  contentTopic: string;
-  pubsubTopic: PubsubTopic;
-  timestamp: Date | undefined;
-  rateLimitProof: IRateLimitProof | undefined;
-  ephemeral: boolean | undefined;
-  meta: Uint8Array | undefined;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {

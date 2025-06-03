@@ -1,5 +1,9 @@
-import { DecodedMessage } from "@waku/core";
-import { AutoSharding, NetworkConfig, StaticSharding } from "@waku/interfaces";
+import {
+  AutoSharding,
+  IDecodedMessage,
+  NetworkConfig,
+  StaticSharding
+} from "@waku/interfaces";
 import { contentTopicToShardIndex, Logger } from "@waku/utils";
 import { expect } from "chai";
 
@@ -122,14 +126,14 @@ export class ServiceNodesFleet {
 }
 
 class MultipleNodesMessageCollector {
-  public callback: (msg: DecodedMessage) => void = () => {};
-  protected messageList: Array<DecodedMessage> = [];
+  public callback: (msg: IDecodedMessage) => void = () => {};
+  protected messageList: Array<IDecodedMessage> = [];
   public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
     private strictChecking: boolean = false
   ) {
-    this.callback = (msg: DecodedMessage): void => {
+    this.callback = (msg: IDecodedMessage): void => {
       log.info("Got a message");
       this.messageList.push(msg);
     };
@@ -151,7 +155,7 @@ class MultipleNodesMessageCollector {
     }
   }
 
-  public getMessage(index: number): MessageRpcResponse | DecodedMessage {
+  public getMessage(index: number): MessageRpcResponse | IDecodedMessage {
     return this.messageList[index];
   }
 

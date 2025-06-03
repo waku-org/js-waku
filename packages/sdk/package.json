@@ -72,7 +72,6 @@
     "@waku/interfaces": "0.0.30",
     "@waku/proto": "^0.0.10",
     "@waku/utils": "0.0.23",
-    "@waku/message-hash": "0.1.19",
     "libp2p": "2.1.8"
   },
   "devDependencies": {
