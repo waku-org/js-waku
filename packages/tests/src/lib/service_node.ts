@@ -141,6 +141,8 @@ export class ServiceNode {
             args
           );
 
+          mergedArgs.logLevel = LogLevel.Trace;
+
           process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
           if (this.docker.container) {

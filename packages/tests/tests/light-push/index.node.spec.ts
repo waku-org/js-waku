@@ -69,6 +69,8 @@ const runTests = (strictNodeCheck: boolean): void => {
 
     for (let i = 0; i < 10; i++) {
       it.only("Push 30 different messages" + " #" + i, async function () {
+        console.log("DEBUG: js-waku peerID", waku.peerId.toString());
+
         const generateMessageText = (index: number): string => `M${index}`;
 
         for (let i = 0; i < 30; i++) {
@@ -81,7 +83,7 @@ const runTests = (strictNodeCheck: boolean): void => {
           console.log(
             "DEBUG(test-case): pushed to ",
             "failures:",
-            pushResponse.failures.toString(),
+            pushResponse.failures.map((f) => f.toString()),
             " successes: ",
             pushResponse.successes.toString(),
             " expected successes:",
