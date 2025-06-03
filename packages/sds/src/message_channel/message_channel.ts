@@ -1,20 +1,18 @@
 import { TypedEventEmitter } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex } from "@noble/hashes/utils";
-import { proto_sds_message } from "@waku/proto";
+import { Logger } from "@waku/utils";
 
-import { DefaultBloomFilter } from "./bloom.js";
+import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
-export enum MessageChannelEvent {
-  MessageDelivered = "messageDelivered"
-}
-type MessageChannelEvents = {
-  [MessageChannelEvent.MessageDelivered]: CustomEvent<string>;
-};
-
-export type Message = proto_sds_message.SdsMessage;
-export type HistoryEntry = proto_sds_message.HistoryEntry;
-export type ChannelId = string;
+import { Command, Handlers, ParamsByAction, Task } from "./command_queue.js";
+import {
+  ChannelId,
+  HistoryEntry,
+  Message,
+  MessageChannelEvent,
+  MessageChannelEvents
+} from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   capacity: 10000,
@@ -24,11 +22,12 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
 const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 
+const log = new Logger("sds:message-channel");
+
 interface MessageChannelOptions {
   causalHistorySize?: number;
   receivedMessageTimeoutEnabled?: boolean;
   receivedMessageTimeout?: number;
-  deliveredMessageCallback?: (messageId: string) => void;
 }
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
@@ -38,13 +37,31 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private acknowledgements: Map<string, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private channelId: ChannelId;
+  public readonly channelId: ChannelId;
   private causalHistorySize: number;
   private acknowledgementCount: number;
   private timeReceived: Map<string, number>;
   private receivedMessageTimeoutEnabled: boolean;
   private receivedMessageTimeout: number;
-  private deliveredMessageCallback?: (messageId: string) => void;
+
+  private tasks: Task[] = [];
+  private handlers: Handlers = {
+    [Command.Send]: async (
+      params: ParamsByAction[Command.Send]
+    ): Promise<void> => {
+      await this._sendMessage(params.payload, params.callback);
+    },
+    [Command.Receive]: async (
+      params: ParamsByAction[Command.Receive]
+    ): Promise<void> => {
+      this._receiveMessage(params.message);
+    },
+    [Command.SendEphemeral]: async (
+      params: ParamsByAction[Command.SendEphemeral]
+    ): Promise<void> => {
+      await this._sendEphemeralMessage(params.payload, params.callback);
+    }
+  };
 
   public constructor(
     channelId: ChannelId,
@@ -66,7 +83,51 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.receivedMessageTimeoutEnabled ?? false;
     this.receivedMessageTimeout =
       options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
-    this.deliveredMessageCallback = options.deliveredMessageCallback;
+  }
+
+  /**
+   * Processes all queued tasks sequentially to ensure proper message ordering.
+   *
+   * This method should be called periodically by the library consumer to execute
+   * queued send/receive operations in the correct sequence.
+   *
+   * @example
+   * ```typescript
+   * const channel = new MessageChannel("my-channel");
+   *
+   * // Queue some operations
+   * await channel.sendMessage(payload, callback);
+   * channel.receiveMessage(incomingMessage);
+   *
+   * // Process all queued operations
+   * await channel.processTasks();
+   * ```
+   *
+   * @throws Will emit a 'taskError' event if any task fails, but continues processing remaining tasks
+   */
+  public async processTasks(): Promise<void> {
+    while (this.tasks.length > 0) {
+      const item = this.tasks.shift();
+      if (!item) {
+        continue;
+      }
+
+      await this.executeTask(item);
+    }
+  }
+
+  private async executeTask<A extends Command>(item: Task<A>): Promise<void> {
+    try {
+      const handler = this.handlers[item.command];
+      await handler(item.params as ParamsByAction[A]);
+    } catch (error) {
+      log.error(`Task execution failed for command ${item.command}:`, error);
+      this.dispatchEvent(
+        new CustomEvent("taskError", {
+          detail: { command: item.command, error, params: item.params }
+        })
+      );
+    }
   }
 
   public static getMessageId(payload: Uint8Array): string {
@@ -74,22 +135,46 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   /**
-   * Send a message to the SDS channel.
+   * Queues a message to be sent on this channel.
    *
-   * Increments the lamport timestamp, constructs a `Message` object
-   * with the given payload, and adds it to the outgoing buffer.
+   * The message will be processed sequentially when processTasks() is called.
+   * This ensures proper lamport timestamp ordering and causal history tracking.
    *
-   * If the callback is successful, the message is also added to
-   * the bloom filter and message history. In the context of
-   * Waku, this likely means the message was published via
-   * light push or relay.
+   * @param payload - The message content as a byte array
+   * @param callback - Optional callback function called after the message is processed
+   * @returns Promise that resolves when the message is queued (not sent)
    *
-   * See https://rfc.vac.dev/vac/raw/sds/#send-message
+   * @example
+   * ```typescript
+   * const channel = new MessageChannel("chat-room");
+   * const message = new TextEncoder().encode("Hello, world!");
    *
-   * @param payload - The payload to send.
-   * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
+   * await channel.sendMessage(message, async (processedMessage) => {
+   *   console.log("Message processed:", processedMessage.messageId);
+   *   return { success: true };
+   * });
+   *
+   * // Actually send the message
+   * await channel.processTasks();
+   * ```
    */
   public async sendMessage(
+    payload: Uint8Array,
+    callback?: (message: Message) => Promise<{
+      success: boolean;
+      retrievalHint?: Uint8Array;
+    }>
+  ): Promise<void> {
+    this.tasks.push({
+      command: Command.Send,
+      params: {
+        payload,
+        callback
+      }
+    });
+  }
+
+  private async _sendMessage(
     payload: Uint8Array,
     callback?: (message: Message) => Promise<{
       success: boolean;
@@ -114,16 +199,25 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.outgoingBuffer.push(message);
 
     if (callback) {
-      const { success, retrievalHint } = await callback(message);
-      if (success) {
-        this.filter.insert(messageId);
-        this.localHistory.push({
-          timestamp: this.lamportTimestamp,
-          historyEntry: {
-            messageId,
-            retrievalHint
-          }
-        });
+      try {
+        const { success, retrievalHint } = await callback(message);
+        if (success) {
+          this.filter.insert(messageId);
+          this.localHistory.push({
+            timestamp: this.lamportTimestamp,
+            historyEntry: {
+              messageId,
+              retrievalHint
+            }
+          });
+          this.timeReceived.set(messageId, Date.now());
+          this.safeDispatchEvent(MessageChannelEvent.MessageSent, {
+            detail: message
+          });
+        }
+      } catch (error) {
+        log.error("Callback execution failed in _sendMessage:", error);
+        throw error;
       }
     }
   }
@@ -141,10 +235,23 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param payload - The payload to send.
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public sendEphemeralMessage(
+  public async sendEphemeralMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => boolean
-  ): void {
+    callback?: (message: Message) => Promise<boolean>
+  ): Promise<void> {
+    this.tasks.push({
+      command: Command.SendEphemeral,
+      params: {
+        payload,
+        callback
+      }
+    });
+  }
+
+  private async _sendEphemeralMessage(
+    payload: Uint8Array,
+    callback?: (message: Message) => Promise<boolean>
+  ): Promise<void> {
     const message: Message = {
       messageId: MessageChannel.getMessageId(payload),
       channelId: this.channelId,
@@ -155,36 +262,69 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     };
 
     if (callback) {
-      callback(message);
+      try {
+        await callback(message);
+      } catch (error) {
+        log.error("Callback execution failed in _sendEphemeralMessage:", error);
+        throw error;
+      }
     }
   }
+
   /**
-   * Process a received SDS message for this channel.
+   * Queues a received message for processing.
    *
-   * Review the acknowledgement status of messages in the outgoing buffer
-   * by inspecting the received message's bloom filter and causal history.
-   * Add the received message to the bloom filter.
-   * If the local history contains every message in the received message's
-   * causal history, deliver the message. Otherwise, add the message to the
-   * incoming buffer.
+   * The message will be processed when processTasks() is called, ensuring
+   * proper dependency resolution and causal ordering.
    *
-   * See https://rfc.vac.dev/vac/raw/sds/#receive-message
+   * @param message - The message to receive and process
    *
-   * @param message - The received SDS message.
+   * @example
+   * ```typescript
+   * const channel = new MessageChannel("chat-room");
+   *
+   * // Receive a message from the network
+   * channel.receiveMessage(incomingMessage);
+   *
+   * // Process the received message
+   * await channel.processTasks();
+   * ```
    */
   public receiveMessage(message: Message): void {
+    this.tasks.push({
+      command: Command.Receive,
+      params: {
+        message
+      }
+    });
+  }
+
+  public _receiveMessage(message: Message): void {
+    if (
+      message.content &&
+      message.content.length > 0 &&
+      this.timeReceived.has(message.messageId)
+    ) {
+      return;
+    }
+
     if (!message.lamportTimestamp) {
-      // Messages with no timestamp are ephemeral messages and should be delivered immediately
       this.deliverMessage(message);
       return;
     }
-    // review ack status
+    if (message.content?.length === 0) {
+      this.safeDispatchEvent(MessageChannelEvent.SyncReceived, {
+        detail: message
+      });
+    } else {
+      this.safeDispatchEvent(MessageChannelEvent.MessageReceived, {
+        detail: message
+      });
+    }
     this.reviewAckStatus(message);
-    // add to bloom filter (skip for messages with empty content)
     if (message.content?.length && message.content.length > 0) {
       this.filter.insert(message.messageId);
     }
-    // verify causal history
     const dependenciesMet = message.causalHistory.every((historyEntry) =>
       this.localHistory.some(
         ({ historyEntry: { messageId } }) =>
@@ -196,17 +336,24 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.timeReceived.set(message.messageId, Date.now());
     } else {
       this.deliverMessage(message);
+      this.safeDispatchEvent(MessageChannelEvent.MessageDelivered, {
+        detail: {
+          messageId: message.messageId,
+          sentOrReceived: "received"
+        }
+      });
     }
   }
 
   // https://rfc.vac.dev/vac/raw/sds/#periodic-incoming-buffer-sweep
+  // Note that even though this function has side effects, it is not async
+  // and does not need to be called through the queue.
   public sweepIncomingBuffer(): HistoryEntry[] {
     const { buffer, missing } = this.incomingBuffer.reduce<{
       buffer: Message[];
-      missing: HistoryEntry[];
+      missing: Set<HistoryEntry>;
     }>(
       ({ buffer, missing }, message) => {
-        // Check each message for missing dependencies
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
             !this.localHistory.some(
@@ -215,9 +362,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             )
         );
         if (missingDependencies.length === 0) {
-          // Any message with no missing dependencies is delivered
-          // and removed from the buffer (implicitly by not adding it to the new incoming buffer)
           this.deliverMessage(message);
+          this.safeDispatchEvent(MessageChannelEvent.MessageDelivered, {
+            detail: {
+              messageId: message.messageId,
+              sentOrReceived: "received"
+            }
+          });
           return { buffer, missing };
         }
 
@@ -232,18 +383,23 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             return { buffer, missing };
           }
         }
-        // Any message with missing dependencies stays in the buffer
-        // and the missing message IDs are returned for processing.
+        missingDependencies.forEach((dependency) => {
+          missing.add(dependency);
+        });
         return {
           buffer: buffer.concat(message),
-          missing: missing.concat(missingDependencies)
+          missing
         };
       },
-      { buffer: new Array<Message>(), missing: new Array<HistoryEntry>() }
+      { buffer: new Array<Message>(), missing: new Set<HistoryEntry>() }
     );
-    // Update the incoming buffer to only include messages with no missing dependencies
     this.incomingBuffer = buffer;
-    return missing;
+
+    this.safeDispatchEvent(MessageChannelEvent.MissedMessages, {
+      detail: Array.from(missing)
+    });
+
+    return Array.from(missing);
   }
 
   // https://rfc.vac.dev/vac/raw/sds/#periodic-outgoing-buffer-sweep
@@ -251,7 +407,6 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     unacknowledged: Message[];
     possiblyAcknowledged: Message[];
   } {
-    // Partition all messages in the outgoing buffer into unacknowledged and possibly acknowledged messages
     return this.outgoingBuffer.reduce<{
       unacknowledged: Message[];
       possiblyAcknowledged: Message[];
@@ -285,7 +440,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public sendSyncMessage(
+  public async sendSyncMessage(
     callback?: (message: Message) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp++;
@@ -304,15 +459,22 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     };
 
     if (callback) {
-      return callback(message);
+      try {
+        await callback(message);
+        this.safeDispatchEvent(MessageChannelEvent.SyncSent, {
+          detail: message
+        });
+        return true;
+      } catch (error) {
+        log.error("Callback execution failed in sendSyncMessage:", error);
+        throw error;
+      }
     }
-    return Promise.resolve(false);
+    return false;
   }
 
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
   private deliverMessage(message: Message, retrievalHint?: Uint8Array): void {
-    this.notifyDeliveredMessage(message.messageId);
-
     const messageLamportTimestamp = message.lamportTimestamp ?? 0;
     if (messageLamportTimestamp > this.lamportTimestamp) {
       this.lamportTimestamp = messageLamportTimestamp;
@@ -352,17 +514,23 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   // to determine the acknowledgement status of messages in the outgoing buffer.
   // See https://rfc.vac.dev/vac/raw/sds/#review-ack-status
   private reviewAckStatus(receivedMessage: Message): void {
-    // the participant MUST mark all messages in the received causal_history as acknowledged.
     receivedMessage.causalHistory.forEach(({ messageId }) => {
       this.outgoingBuffer = this.outgoingBuffer.filter(
-        ({ messageId: outgoingMessageId }) => outgoingMessageId !== messageId
+        ({ messageId: outgoingMessageId }) => {
+          if (outgoingMessageId !== messageId) {
+            return true;
+          }
+          this.safeDispatchEvent(MessageChannelEvent.MessageAcknowledged, {
+            detail: messageId
+          });
+          return false;
+        }
       );
       this.acknowledgements.delete(messageId);
       if (!this.filter.lookup(messageId)) {
         this.filter.insert(messageId);
       }
     });
-    // the participant MUST mark all messages included in the bloom_filter as possibly acknowledged
     if (!receivedMessage.bloomFilter) {
       return;
     }
@@ -380,6 +548,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       const count = (this.acknowledgements.get(message.messageId) ?? 0) + 1;
       if (count < this.acknowledgementCount) {
         this.acknowledgements.set(message.messageId, count);
+        this.safeDispatchEvent(MessageChannelEvent.PartialAcknowledgement, {
+          detail: {
+            messageId: message.messageId,
+            count
+          }
+        });
         return true;
       }
       this.acknowledgements.delete(message.messageId);
@@ -390,16 +564,5 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   // TODO: this should be determined based on the bloom filter parameters and number of hashes
   private getAcknowledgementCount(): number {
     return 2;
-  }
-
-  private notifyDeliveredMessage(messageId: string): void {
-    if (this.deliveredMessageCallback) {
-      this.deliveredMessageCallback(messageId);
-    }
-    this.dispatchEvent(
-      new CustomEvent(MessageChannelEvent.MessageDelivered, {
-        detail: messageId
-      })
-    );
   }
 }
