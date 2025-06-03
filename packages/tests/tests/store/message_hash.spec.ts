@@ -1,5 +1,5 @@
+import { messageHash } from "@waku/core";
 import type { IDecodedMessage, LightNode } from "@waku/interfaces";
-import { messageHash } from "@waku/message-hash";
 import { expect } from "chai";
 
 import {
@@ -59,15 +59,13 @@ describe("Waku Store, message hash query", function () {
     );
     const messageHashes = sentMessages.map((msg) =>
       messageHash(TestDecoder.pubsubTopic, {
-        pubsubTopic: TestDecoder.pubsubTopic,
         payload: Buffer.from(msg.payload, "base64"),
         contentTopic: msg.contentTopic || TestDecoder.contentTopic,
-        timestamp: msg.timestamp
-          ? new Date(Number(msg.timestamp / 1000000n))
-          : undefined,
+        timestamp: msg.timestamp || undefined,
         meta: undefined,
         rateLimitProof: undefined,
-        ephemeral: undefined
+        ephemeral: undefined,
+        version: undefined
       })
     );
 

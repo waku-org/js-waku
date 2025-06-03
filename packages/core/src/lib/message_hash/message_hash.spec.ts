@@ -1,4 +1,4 @@
-import type { IDecodedMessage, IProtoMessage } from "@waku/interfaces";
+import type { IProtoMessage } from "@waku/interfaces";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -93,19 +93,20 @@ describe("Message Hash: RFC Test Vectors", () => {
     expect(bytesToHex(hash)).to.equal(expectedHash);
   });
 
-  it("Waku message hash computation (message is IDecodedMessage)", () => {
+  it("Waku message hash computation (message is IProtoMessage with version)", () => {
     const expectedHash =
       "3f11bc950dce0e3ffdcf205ae6414c01130bb5d9f20644869bff80407fa52c8f";
     const pubsubTopic = "/waku/2/default-waku/proto";
-    const message: IDecodedMessage = {
-      version: 0,
+    const message: IProtoMessage = {
       payload: new Uint8Array(),
-      pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",
       meta: hexToBytes("0x73757065722d736563726574"),
-      timestamp: new Date("2024-04-30T10:54:14.978Z"),
+      timestamp:
+        BigInt(new Date("2024-04-30T10:54:14.978Z").getTime()) *
+        BigInt(1000000),
       ephemeral: undefined,
-      rateLimitProof: undefined
+      rateLimitProof: undefined,
+      version: 0
     };
     const hash = messageHash(pubsubTopic, message);
     expect(bytesToHex(hash)).to.equal(expectedHash);
@@ -144,16 +145,17 @@ describe("messageHash and messageHashStr", () => {
     expect(hashStr).to.equal(hashStrFromBytes);
   });
 
-  it("messageHashStr works with IDecodedMessage", () => {
-    const decodedMessage: IDecodedMessage = {
-      version: 0,
+  it("messageHashStr works with IProtoMessage", () => {
+    const decodedMessage: IProtoMessage = {
       payload: new Uint8Array([1, 2, 3, 4]),
-      pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",
       meta: new Uint8Array([5, 6, 7, 8]),
-      timestamp: new Date("2024-04-30T10:54:14.978Z"),
+      timestamp:
+        BigInt(new Date("2024-04-30T10:54:14.978Z").getTime()) *
+        BigInt(1000000),
       ephemeral: undefined,
-      rateLimitProof: undefined
+      rateLimitProof: undefined,
+      version: 0
     };
 
     const hashStr = messageHashStr(pubsubTopic, decodedMessage);
