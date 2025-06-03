@@ -1,7 +1,6 @@
-import { DecodedMessage } from "@waku/core";
 import type { IDecodedMessage, LightNode } from "@waku/interfaces";
 import { messageHash } from "@waku/message-hash";
-import { assert, expect } from "chai";
+import { expect } from "chai";
 
 import {
   afterEachCustom,
@@ -73,19 +72,13 @@ describe("Waku Store, message hash query", function () {
     );
 
     const messages: IDecodedMessage[] = [];
-    let pageCount = 0;
-    try {
-      for await (const page of waku.store.queryGenerator([TestDecoder], {
-        messageHashes,
-        pubsubTopic: TestDecoder.pubsubTopic
-      })) {
-        pageCount++;
-        for await (const msg of page) {
-          messages.push(msg as IDecodedMessage);
-        }
+    for await (const page of waku.store.queryGenerator([TestDecoder], {
+      messageHashes,
+      pubsubTopic: TestDecoder.pubsubTopic
+    })) {
+      for await (const msg of page) {
+        messages.push(msg as IDecodedMessage);
       }
-    } catch (error) {
-      throw error;
     }
     expect(messages.length).to.equal(messageHashes.length);
     for (const msg of messages) {

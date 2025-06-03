@@ -17,7 +17,7 @@ describe("StoreQueryRequest validation", () => {
     expect(() =>
       StoreQueryRequest.create({
         pubsubTopic: "/waku/2/default-waku/proto",
-        contentTopics: [], // Empty array
+        contentTopics: [],
         includeData: true,
         paginationForward: true
       })
@@ -29,7 +29,7 @@ describe("StoreQueryRequest validation", () => {
   it("rejects content-filtered query with only contentTopics", () => {
     expect(() =>
       StoreQueryRequest.create({
-        pubsubTopic: "", // Empty string
+        pubsubTopic: "",
         contentTopics: ["/test/1/content/proto"],
         includeData: true,
         paginationForward: true
@@ -41,8 +41,8 @@ describe("StoreQueryRequest validation", () => {
 
   it("accepts valid message hash query", () => {
     const request = StoreQueryRequest.create({
-      pubsubTopic: "", // Required but ignored for hash queries
-      contentTopics: [], // Required but ignored for hash queries
+      pubsubTopic: "",
+      contentTopics: [],
       messageHashes: [new Uint8Array([1, 2, 3, 4])],
       includeData: true,
       paginationForward: true

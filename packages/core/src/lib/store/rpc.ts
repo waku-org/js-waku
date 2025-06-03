@@ -28,22 +28,18 @@ export class StoreQueryRequest {
         : undefined
     });
 
-    // Validate request parameters based on RFC
     const isHashQuery = params.messageHashes && params.messageHashes.length > 0;
     const hasContentTopics =
       params.contentTopics && params.contentTopics.length > 0;
     const hasTimeFilter = params.timeStart || params.timeEnd;
 
     if (isHashQuery) {
-      // Message hash lookup queries cannot include content topics or time filters
-      // but pubsubTopic is allowed/required
       if (hasContentTopics || hasTimeFilter) {
         throw new Error(
           "Message hash lookup queries cannot include content filter criteria (contentTopics, timeStart, or timeEnd)"
         );
       }
     } else {
-      // Content-filtered queries require both pubsubTopic and contentTopics to be set together
       if (
         (params.pubsubTopic &&
           (!params.contentTopics || params.contentTopics.length === 0)) ||
