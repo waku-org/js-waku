@@ -47,6 +47,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.32](https://github.com/waku-org/js-waku/compare/sdk-v0.0.31...sdk-v0.0.32) (2025-06-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Enable/disable discoveries without `defaultBootstrap: true` ([#2363](https://github.com/waku-org/js-waku/issues/2363)) ([16328a3](https://github.com/waku-org/js-waku/commit/16328a3f11efa91d16d59ab958f1fc90f45d9ee0))
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+
+
+### Bug Fixes
+
+* **store:** Update store query validation logic to support msg hash q… ([49f26d8](https://github.com/waku-org/js-waku/commit/49f26d89a8032386ee5b3ba629713b4f84891d5d))
+* **store:** Update store query validation logic to support msg hash queries ([9f7a15d](https://github.com/waku-org/js-waku/commit/9f7a15dfb19e765c4cbfa43f5d4f9323d2804f50))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/discovery bumped from 0.0.8 to 0.0.9
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.31](https://github.com/waku-org/js-waku/compare/sdk-v0.0.30...sdk-v0.0.31) (2025-04-23)
 
 
