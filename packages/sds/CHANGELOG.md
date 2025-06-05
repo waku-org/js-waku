@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.4](https://github.com/waku-org/js-waku/compare/sds-v0.0.3...sds-v0.0.4) (2025-06-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from ^0.0.23 to ^0.0.24
+
 ## [0.0.3](https://github.com/waku-org/js-waku/compare/sds-v0.0.2...sds-v0.0.3) (2025-04-23)
 
 
