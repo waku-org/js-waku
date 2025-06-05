@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.35](https://github.com/waku-org/js-waku/compare/core-v0.0.34...core-v0.0.35) (2025-04-23)
+
+
+### Features
+
+* Introduce `createDecoder` and `createEncoder` on `IWaku` ([#2352](https://github.com/waku-org/js-waku/issues/2352)) ([3038c48](https://github.com/waku-org/js-waku/commit/3038c4891748cd13cb5c3262c722c4923d2f7079))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.28 to ^0.0.29
+    * @waku/interfaces bumped from 0.0.29 to 0.0.30
+    * @waku/proto bumped from 0.0.9 to 0.0.10
+    * @waku/utils bumped from 0.0.22 to 0.0.23
+
 ## [0.0.34](https://github.com/waku-org/js-waku/compare/core-v0.0.33...core-v0.0.34) (2025-03-24)
 
 

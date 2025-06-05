@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.8](https://github.com/waku-org/js-waku/compare/discovery-v0.0.7...discovery-v0.0.8) (2025-04-23)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.34 to 0.0.35
+    * @waku/enr bumped from 0.0.28 to 0.0.29
+    * @waku/interfaces bumped from 0.0.29 to 0.0.30
+    * @waku/proto bumped from ^0.0.9 to ^0.0.10
+    * @waku/utils bumped from 0.0.22 to 0.0.23
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/discovery-v0.0.6...discovery-v0.0.7) (2025-03-24)
 
 

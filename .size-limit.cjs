@@ -59,7 +59,7 @@ module.exports = [
   },
   {
     name: "Deterministic Message Hashing",
-    path: "packages/message-hash/bundle/index.js",
+    path: ["packages/core/bundle/index.js"],
     import: "{ messageHash }",
   },
 ];

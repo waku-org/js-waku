@@ -38,6 +38,11 @@ export interface MembershipInfo {
   startBlock: number;
   endBlock: number;
   state: MembershipState;
+  depositAmount: ethers.BigNumber;
+  activeDuration: number;
+  gracePeriodDuration: number;
+  holder: string;
+  token: string;
 }
 
 export enum MembershipState {

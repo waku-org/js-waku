@@ -1,5 +1,5 @@
 import type { EventHandler, PeerId } from "@libp2p/interface";
-import { FilterCore } from "@waku/core";
+import { FilterCore, messageHashStr } from "@waku/core";
 import type {
   FilterProtocolOptions,
   IConnectionManager,
@@ -8,7 +8,6 @@ import type {
   Libp2p
 } from "@waku/interfaces";
 import { EConnectionStateEvents } from "@waku/interfaces";
-import { messageHashStr } from "@waku/message-hash";
 
 import { PeerManager } from "../peer_manager/index.js";
 

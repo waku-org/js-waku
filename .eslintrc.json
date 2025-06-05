@@ -5,7 +5,12 @@
     "project": ["./tsconfig.json"]
   },
   "env": { "es6": true },
-  "ignorePatterns": ["node_modules", "build", "coverage", "proto"],
+  "ignorePatterns": [
+    "node_modules",
+    "build",
+    "coverage",
+    "proto"
+  ],
   "plugins": ["import", "eslint-comments", "functional"],
   "extends": [
     "eslint:recommended",
@@ -116,7 +121,10 @@
     {
       "files": ["**/ci/*.js"],
       "rules": {
-        "no-undef": "off"
+        "no-undef": "off",
+        "@typescript-eslint/explicit-member-accessibility": "off",
+        "@typescript-eslint/no-floating-promises": "off",
+        "import/no-extraneous-dependencies": "off"
       }
     }
   ]

@@ -1,12 +1,14 @@
+import { message } from "@waku/core";
 import type {
-  IDecodedMessage,
   IDecoder,
   IProtoMessage,
+  ITopicOnlyMessage,
   PubsubTopic
 } from "@waku/interfaces";
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
 
-export class TopicOnlyMessage implements IDecodedMessage {
+export class TopicOnlyMessage implements ITopicOnlyMessage {
+  public version = message.version_0.Version;
   public payload: Uint8Array = new Uint8Array();
   public rateLimitProof: undefined;
   public timestamp: undefined;
@@ -24,7 +26,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 }
 
 // This decoder is used only for reading `contentTopic` from the WakuMessage
-export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
+export class TopicOnlyDecoder implements IDecoder<ITopicOnlyMessage> {
   public contentTopic = "";
 
   // pubsubTopic is ignored
@@ -48,7 +50,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
-  ): Promise<TopicOnlyMessage | undefined> {
+  ): Promise<ITopicOnlyMessage | undefined> {
     return new TopicOnlyMessage(pubsubTopic, proto);
   }
 }

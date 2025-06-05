@@ -3,6 +3,7 @@ import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
+import type { INextFilter } from "./filter_next.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
@@ -34,7 +35,13 @@ export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;
+
+  /**
+   * @deprecated use IWaku.nextFilter instead
+   */
   filter?: IFilter;
+
+  nextFilter?: INextFilter;
   lightPush?: ILightPush;
   connectionManager: IConnectionManager;
   health: IHealthIndicator;
@@ -210,6 +217,7 @@ export interface LightNode extends IWaku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
+  nextFilter: INextFilter;
   lightPush: ILightPush;
 }
 

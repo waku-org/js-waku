@@ -20,7 +20,7 @@ import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
 
-import { defaultPeerDiscoveries } from "./discovery.js";
+import { getPeerDiscoveries } from "./discovery.js";
 
 type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
@@ -77,6 +77,12 @@ export async function defaultLibp2p(
   }) as any as Libp2p; // TODO: make libp2p include it;
 }
 
+const DEFAULT_DISCOVERIES_ENABLED = {
+  dns: true,
+  peerExchange: true,
+  localPeerCache: true
+};
+
 export async function createLibp2pAndUpdateOptions(
   options: CreateNodeOptions
 ): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
@@ -90,7 +96,14 @@ export async function createLibp2pAndUpdateOptions(
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
 
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(pubsubTopics));
+    peerDiscovery.push(
+      ...getPeerDiscoveries(pubsubTopics, {
+        ...DEFAULT_DISCOVERIES_ENABLED,
+        ...options.discovery
+      })
+    );
+  } else {
+    peerDiscovery.push(...getPeerDiscoveries(pubsubTopics, options.discovery));
   }
 
   if (options?.bootstrapPeers) {
