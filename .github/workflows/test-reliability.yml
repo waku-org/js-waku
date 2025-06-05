@@ -1,0 +1,37 @@
+name: Run Reliability Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "chore/longevity-tests"
+
+env:
+  NODE_JS: "20"
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+
+      - name: Remove unwanted software
+        uses: ./.github/actions/prune-vm
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+
+      - run: npm run build:esm
+
+      - name: Run tests
+        timeout-minutes: 150
+        run: npm run test:longevity
