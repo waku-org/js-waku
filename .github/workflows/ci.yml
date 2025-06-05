@@ -138,6 +138,89 @@ jobs:
       nim_wakunode_image: harbor.status.im/wakuorg/nwaku:latest
       test_type: nwaku-master
 
+  dogfooding:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout js-waku
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+
+      - name: Build js-waku
+        run: npm run build
+
+      - name: Pack js-waku packages
+        run: |
+          # Create directory for packed packages
+          mkdir -p packed-packages
+          
+          # Pack each workspace package
+          for package in packages/*; do
+            if [ -d "$package" ] && [ -f "$package/package.json" ]; then
+              echo "Packing $package"
+              (cd "$package" && npm pack --pack-destination ../../packed-packages)
+            fi
+          done
+          
+          # List packed packages
+          ls -la packed-packages/
+
+      - name: Checkout dogfooding app
+        run: |
+          git clone --depth 1 https://github.com/waku-org/lab.waku.org.git lab-waku-org
+
+      - name: Update dogfooding app dependencies
+        working-directory: lab-waku-org/examples/dogfooding
+        run: |
+          # Save original package.json
+          cp package.json package.json.bak
+          
+          # Update @waku/* dependencies to use local packed versions
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          
+          const packedDir = path.resolve('../../../packed-packages');
+          const packedFiles = fs.readdirSync(packedDir);
+          
+          // Update dependencies
+          for (const dep in packageJson.dependencies) {
+            if (dep.startsWith('@waku/')) {
+              const packageNameWithoutScope = dep.replace('@', '').replace('/', '-');
+              const tarball = packedFiles.find(f => 
+                f.startsWith(packageNameWithoutScope + '-') && f.endsWith('.tgz')
+              );
+              if (tarball) {
+                packageJson.dependencies[dep] = 'file:' + path.join(packedDir, tarball);
+                console.log(\`Updated \${dep} to use \${tarball}\`);
+              }
+            }
+          }
+          
+          fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+          "
+          
+          # Show the diff
+          echo "=== Package.json changes ==="
+          diff -u package.json.bak package.json || true
+
+      - name: Install dogfooding app dependencies
+        working-directory: lab-waku-org/examples/dogfooding
+        run: |
+          # Clean install to ensure we use the packed versions
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Build dogfooding app
+        working-directory: lab-waku-org/examples/dogfooding
+        run: npm run build
+
   maybe-release:
     name: release
     runs-on: ubuntu-latest
