@@ -274,12 +274,13 @@ export class RLNCredentialsManager {
       throw Error("RLN contract is not initialized");
     }
 
-    const Q = await this.contract.getQ();
-    if (idCommitmentBigInt >= Q) {
+    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimitValue;
+
+    if (idCommitmentBigInt >= idCommitmentBigIntLimit) {
       log.warn(
-        `ID commitment is greater than Q, reducing it by Q: ${idCommitmentBigInt} % ${Q}`
+        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigInt} % ${idCommitmentBigIntLimit}`
       );
-      idCommitmentBigInt = idCommitmentBigInt % Q;
+      idCommitmentBigInt = idCommitmentBigInt % idCommitmentBigIntLimit;
     }
 
     log.info("Successfully generated identity credential");
