@@ -100,8 +100,8 @@ describe("RLN Contract abstraction - RLN", () => {
         rlnInstance,
         mockedRegistryContract
       );
-      const q = await rlnContract.getQ();
-      expect(q).to.equal(BigInt(QValue.toString()));
+      const idCommitmentBigIntLimit = rlnContract.idCommitmentBigIntLimitValue;
+      expect(idCommitmentBigIntLimit).to.equal(QValue);
       expect(QStub.calledOnce).to.be.true;
     });
   });
