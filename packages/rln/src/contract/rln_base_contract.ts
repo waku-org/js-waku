@@ -29,7 +29,7 @@ export class RLNBaseContract {
    * Default Q value for the RLN contract.
    * @see https://github.com/waku-org/waku-rlnv2-contract/blob/b7e9a9b1bc69256a2a3076c1f099b50ce84e7eff/src/WakuRlnV2.sol#L25
    */
-  private Q: undefined | bigint;
+  private idCommitmentBigIntLimit: undefined | bigint;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -83,26 +83,31 @@ export class RLNBaseContract {
     options: RLNContractInitOptions
   ): Promise<RLNBaseContract> {
     const instance = new RLNBaseContract(options);
-    const [min, max] = await Promise.all([
+    const [min, max, idCommitmentBigIntLimit] = await Promise.all([
       instance.contract.minMembershipRateLimit(),
-      instance.contract.maxMembershipRateLimit()
+      instance.contract.maxMembershipRateLimit(),
+      instance.contract.Q()
     ]);
     instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
     instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
+    instance.idCommitmentBigIntLimit = BigInt(
+      idCommitmentBigIntLimit.toString()
+    );
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
   }
 
   /**
-   * Fetches and caches the Q value from the contract.
-   * @returns Promise<bigint> The Q value from the contract
+   * Gets the Q value (idCommitmentBigIntLimit) for the RLN contract
    */
-  public async getQ(): Promise<bigint> {
-    if (this.Q !== undefined) return this.Q;
-    const q = await this.contract.Q();
-    this.Q = BigInt(q.toString());
-    return this.Q;
+  public get idCommitmentBigIntLimitValue(): bigint {
+    if (this.idCommitmentBigIntLimit === undefined) {
+      throw new Error(
+        "idCommitmentBigIntLimit not initialized. Call create() and await it before using this value."
+      );
+    }
+    return this.idCommitmentBigIntLimit;
   }
 
   /**
