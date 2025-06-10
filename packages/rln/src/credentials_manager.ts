@@ -274,7 +274,7 @@ export class RLNCredentialsManager {
       throw Error("RLN contract is not initialized");
     }
 
-    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimitValue;
+    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimit;
 
     if (idCommitmentBigInt >= idCommitmentBigIntLimit) {
       log.warn(

@@ -25,4 +25,13 @@ export const RATE_LIMIT_PARAMS = {
   EPOCH_LENGTH: 600 // Epoch length in seconds (10 minutes)
 } as const;
 
+/**
+ * Default Q value for the RLN contract
+ * This is the upper bound for the ID commitment
+ * @see https://github.com/waku-org/specs/blob/master/standards/core/rln-contract.md#implementation-suggestions
+ */
+export const DEFAULT_Q = BigInt(
+  "21888242871839275222246405745257275088548364400416034343698204186575808495617"
+);
+
 export const DEFAULT_RATE_LIMIT = RATE_LIMIT_PARAMS.MAX_RATE;
