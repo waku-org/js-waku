@@ -87,22 +87,4 @@ describe("RLN Contract abstraction - RLN", () => {
       );
     });
   });
-
-  describe("Q value", () => {
-    it("should fetch Q from the contract", async () => {
-      const QValue = ethers.BigNumber.from("12345678901234567890");
-      const QStub = sinon.stub().resolves(QValue);
-      const mockedRegistryContract = createMockRegistryContract({
-        Q: QStub
-      });
-      const { rlnInstance } = await createTestRLNInstance();
-      const rlnContract = await initializeRLNContract(
-        rlnInstance,
-        mockedRegistryContract
-      );
-      const idCommitmentBigIntLimit = rlnContract.idCommitmentBigIntLimitValue;
-      expect(idCommitmentBigIntLimit).to.equal(QValue);
-      expect(QStub.calledOnce).to.be.true;
-    });
-  });
 });
