@@ -5,7 +5,11 @@ import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
 
 import { RLN_ABI } from "./abi.js";
-import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
+import {
+  DEFAULT_Q,
+  DEFAULT_RATE_LIMIT,
+  RATE_LIMIT_PARAMS
+} from "./constants.js";
 import {
   CustomQueryOptions,
   FetchMembersOptions,
@@ -29,7 +33,7 @@ export class RLNBaseContract {
    * Default Q value for the RLN contract.
    * @see https://github.com/waku-org/waku-rlnv2-contract/blob/b7e9a9b1bc69256a2a3076c1f099b50ce84e7eff/src/WakuRlnV2.sol#L25
    */
-  private idCommitmentBigIntLimit: undefined | bigint;
+  public idCommitmentBigIntLimit = DEFAULT_Q;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -96,18 +100,6 @@ export class RLNBaseContract {
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
-  }
-
-  /**
-   * Gets the Q value (idCommitmentBigIntLimit) for the RLN contract
-   */
-  public get idCommitmentBigIntLimitValue(): bigint {
-    if (this.idCommitmentBigIntLimit === undefined) {
-      throw new Error(
-        "idCommitmentBigIntLimit not initialized. Call create() and await it before using this value."
-      );
-    }
-    return this.idCommitmentBigIntLimit;
   }
 
   /**
