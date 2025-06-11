@@ -14,7 +14,7 @@ import type {
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
 import {
-  buildBigIntFromUint8Array,
+  buildBigIntFromUint8ArrayLE,
   extractMetaMaskSigner
 } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
@@ -269,7 +269,7 @@ export class RLNCredentialsManager {
 
     const idCommitment = sha256(idSecretHash);
 
-    let idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    let idCommitmentBigInt = buildBigIntFromUint8ArrayLE(idCommitment);
     if (!this.contract) {
       throw Error("RLN contract is not initialized");
     }

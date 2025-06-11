@@ -14,7 +14,7 @@ import {
 import _ from "lodash";
 import { v4 as uuidV4 } from "uuid";
 
-import { buildBigIntFromUint8Array } from "../utils/bytes.js";
+import { buildBigIntFromUint8ArrayLE } from "../utils/bytes.js";
 
 import { decryptEipKeystore, keccak256Checksum } from "./cipher.js";
 import { isCredentialValid, isKeystoreValid } from "./schema_validator.js";
@@ -262,7 +262,7 @@ export class Keystore {
           IDNullifier: Keystore.fromArraylikeToBytes(
             _.get(obj, "identityCredential.idNullifier", [])
           ),
-          IDCommitmentBigInt: buildBigIntFromUint8Array(
+          IDCommitmentBigInt: buildBigIntFromUint8ArrayLE(
             Keystore.fromArraylikeToBytes(
               _.get(obj, "identityCredential.idCommitment", [])
             )
