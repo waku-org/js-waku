@@ -56,17 +56,11 @@ export function writeUIntLE(
   return buf;
 }
 
-/**
- * Transforms Uint8Array into BigInt
- * @param array: Uint8Array
- * @returns BigInt
- */
-export function buildBigIntFromUint8Array(
-  array: Uint8Array,
-  byteOffset: number = 0
-): bigint {
-  const dataView = new DataView(array.buffer);
-  return dataView.getBigUint64(byteOffset, true);
+export function buildBigIntFromUint8ArrayLE(bytes: Uint8Array): bigint {
+  return bytes.reduce(
+    (acc, byte, i) => acc + BigInt(byte) * (1n << (8n * BigInt(i))),
+    0n
+  );
 }
 
 /**

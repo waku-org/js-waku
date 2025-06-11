@@ -1,5 +1,5 @@
 import { hmac } from "@noble/hashes/hmac";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
@@ -14,7 +14,7 @@ import type {
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
 import {
-  buildBigIntFromUint8Array,
+  buildBigIntFromUint8ArrayLE,
   extractMetaMaskSigner
 } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
@@ -116,7 +116,9 @@ export class RLNCredentialsManager {
         );
       } else {
         log.info("Using local implementation to generate identity");
-        identity = this.generateSeededIdentityCredential(options.signature);
+        identity = await this.generateSeededIdentityCredential(
+          options.signature
+        );
       }
     }
 
@@ -249,7 +251,9 @@ export class RLNCredentialsManager {
    * @param seed A string seed to generate the identity from
    * @returns IdentityCredential
    */
-  private generateSeededIdentityCredential(seed: string): IdentityCredential {
+  private async generateSeededIdentityCredential(
+    seed: string
+  ): Promise<IdentityCredential> {
     log.info("Generating seeded identity credential");
     // Convert the seed to bytes
     const encoder = new TextEncoder();
@@ -260,15 +264,24 @@ export class RLNCredentialsManager {
     const idTrapdoor = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
     const idNullifier = hmac(sha256, seedBytes, encoder.encode("IDNullifier"));
 
-    // Generate IDSecretHash as a hash of IDTrapdoor and IDNullifier
     const combinedBytes = new Uint8Array([...idTrapdoor, ...idNullifier]);
     const idSecretHash = sha256(combinedBytes);
 
-    // Generate IDCommitment as a hash of IDSecretHash
     const idCommitment = sha256(idSecretHash);
 
-    // Convert IDCommitment to BigInt
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
+    let idCommitmentBigInt = buildBigIntFromUint8ArrayLE(idCommitment);
+    if (!this.contract) {
+      throw Error("RLN contract is not initialized");
+    }
+
+    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimit;
+
+    if (idCommitmentBigInt >= idCommitmentBigIntLimit) {
+      log.warn(
+        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigInt} % ${idCommitmentBigIntLimit}`
+      );
+      idCommitmentBigInt = idCommitmentBigInt % idCommitmentBigIntLimit;
+    }
 
     log.info("Successfully generated identity credential");
     return new IdentityCredential(

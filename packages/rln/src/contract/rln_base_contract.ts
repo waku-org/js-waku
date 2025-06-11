@@ -5,7 +5,11 @@ import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
 
 import { RLN_ABI } from "./abi.js";
-import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
+import {
+  DEFAULT_Q,
+  DEFAULT_RATE_LIMIT,
+  RATE_LIMIT_PARAMS
+} from "./constants.js";
 import {
   CustomQueryOptions,
   FetchMembersOptions,
@@ -24,6 +28,12 @@ export class RLNBaseContract {
   private rateLimit: number;
   private minRateLimit?: number;
   private maxRateLimit?: number;
+
+  /**
+   * Default Q value for the RLN contract.
+   * @see https://github.com/waku-org/waku-rlnv2-contract/blob/b7e9a9b1bc69256a2a3076c1f099b50ce84e7eff/src/WakuRlnV2.sol#L25
+   */
+  public idCommitmentBigIntLimit = DEFAULT_Q;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -77,12 +87,16 @@ export class RLNBaseContract {
     options: RLNContractInitOptions
   ): Promise<RLNBaseContract> {
     const instance = new RLNBaseContract(options);
-    const [min, max] = await Promise.all([
+    const [min, max, idCommitmentBigIntLimit] = await Promise.all([
       instance.contract.minMembershipRateLimit(),
-      instance.contract.maxMembershipRateLimit()
+      instance.contract.maxMembershipRateLimit(),
+      instance.contract.Q()
     ]);
     instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
     instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
+    instance.idCommitmentBigIntLimit = BigInt(
+      idCommitmentBigIntLimit.toString()
+    );
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
