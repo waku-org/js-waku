@@ -1,0 +1,20 @@
+# Ignore all test and example files in Effect directory
+src/effect/**/*.spec.ts
+src/effect/**/*.test.ts
+src/effect/**/test-*.ts
+src/effect/**/*-test.ts
+src/effect/**/*-example.ts
+src/effect/test-utils.ts
+src/effect/discovery-test.ts
+src/effect/minimal-test.ts
+src/effect/simple-test.ts
+src/effect/standalone-test.ts
+src/effect/working-example.ts
+src/effect/basic.spec.ts
+src/effect/cache.spec.ts
+src/effect/dns-discovery.spec.ts
+src/effect/integration.spec.ts
+src/effect/peer-exchange.spec.ts
+
+# Ignore examples directory
+examples/
