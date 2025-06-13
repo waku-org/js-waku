@@ -1,0 +1,306 @@
+/**
+ * Performance comparison of Effect patterns vs traditional approaches
+ */
+
+import { performance } from "perf_hooks"
+import { Effect, Stream, Ref, Layer, Context, Runtime } from "effect"
+
+interface BenchmarkResult {
+  name: string
+  traditional: number
+  effect: number
+  ratio: number
+}
+
+function formatTime(ms: number): string {
+  return `${ms.toFixed(2)}ms`
+}
+
+async function runBenchmark(
+  name: string,
+  traditional: () => Promise<void>,
+  effectBased: () => Promise<void>,
+  iterations: number = 1
+): Promise<BenchmarkResult> {
+  // Warm up
+  await traditional()
+  await effectBased()
+  
+  // Benchmark traditional
+  const traditionalStart = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    await traditional()
+  }
+  const traditionalTime = performance.now() - traditionalStart
+  
+  // Benchmark Effect
+  const effectStart = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    await effectBased()
+  }
+  const effectTime = performance.now() - effectStart
+  
+  return {
+    name,
+    traditional: traditionalTime / iterations,
+    effect: effectTime / iterations,
+    ratio: effectTime / traditionalTime
+  }
+}
+
+// Benchmark 1: Error Handling
+async function benchmarkErrorHandling(): Promise<BenchmarkResult> {
+  const iterations = 10000
+  
+  async function traditionalApproach() {
+    const results: number[] = []
+    for (let i = 0; i < 100; i++) {
+      try {
+        if (i % 2 === 0) throw new Error("even number")
+        results.push(i)
+      } catch (e) {
+        results.push(-1)
+      }
+    }
+    return results
+  }
+  
+  async function effectApproach() {
+    return Effect.runPromise(
+      Effect.forEach(
+        Array.from({ length: 100 }, (_, i) => i),
+        (i) => 
+          Effect.if(i % 2 === 0, {
+            onTrue: () => Effect.fail("even number"),
+            onFalse: () => Effect.succeed(i)
+          }).pipe(
+            Effect.catchAll(() => Effect.succeed(-1))
+          ),
+        { concurrency: 1 }
+      )
+    )
+  }
+  
+  return runBenchmark("Error Handling", traditionalApproach, effectApproach, iterations)
+}
+
+// Benchmark 2: Stream Processing
+async function benchmarkStreamProcessing(): Promise<BenchmarkResult> {
+  const items = 1000
+  const iterations = 100
+  
+  async function traditionalApproach() {
+    const data = Array.from({ length: items }, (_, i) => i)
+    const result = data
+      .filter(n => n % 2 === 0)
+      .map(n => n * 2)
+      .reduce((sum, n) => sum + n, 0)
+    return result
+  }
+  
+  async function effectApproach() {
+    return Effect.runPromise(
+      Stream.range(0, items - 1).pipe(
+        Stream.filter(n => n % 2 === 0),
+        Stream.map(n => n * 2),
+        Stream.runFold(0, (sum, n) => sum + n)
+      )
+    )
+  }
+  
+  return runBenchmark("Stream Processing", traditionalApproach, effectApproach, iterations)
+}
+
+// Benchmark 3: Concurrent State Updates
+async function benchmarkConcurrentState(): Promise<BenchmarkResult> {
+  const updates = 100
+  const iterations = 100
+  
+  async function traditionalApproach() {
+    let counter = 0
+    const promises = Array.from({ length: updates }, async () => {
+      // Simulate async work
+      await new Promise(r => setImmediate(r))
+      counter++
+    })
+    await Promise.all(promises)
+    return counter
+  }
+  
+  async function effectApproach() {
+    return Effect.runPromise(
+      Effect.gen(function* () {
+        const counter = yield* Ref.make(0)
+        yield* Effect.forEach(
+          Array.from({ length: updates }),
+          () => Effect.gen(function* () {
+            yield* Effect.yieldNow()
+            yield* Ref.update(counter, n => n + 1)
+          }),
+          { concurrency: "unbounded" }
+        )
+        return yield* Ref.get(counter)
+      })
+    )
+  }
+  
+  return runBenchmark("Concurrent State", traditionalApproach, effectApproach, iterations)
+}
+
+// Benchmark 4: Service Pattern
+async function benchmarkServicePattern(): Promise<BenchmarkResult> {
+  const iterations = 1000
+  
+  // Traditional DI
+  interface Logger {
+    log(msg: string): void
+  }
+  
+  class Service {
+    constructor(private logger: Logger) {}
+    
+    process(value: number): number {
+      this.logger.log(`Processing ${value}`)
+      return value * 2
+    }
+  }
+  
+  async function traditionalApproach() {
+    const logger = { log: () => {} }
+    const service = new Service(logger)
+    let sum = 0
+    for (let i = 0; i < 100; i++) {
+      sum += service.process(i)
+    }
+    return sum
+  }
+  
+  // Effect Service Pattern
+  interface EffectLogger {
+    readonly log: (msg: string) => Effect.Effect<void>
+  }
+  
+  const EffectLogger = Context.GenericTag<EffectLogger>("Logger")
+  
+  const processValue = (value: number) => Effect.gen(function* () {
+    const logger = yield* EffectLogger
+    yield* logger.log(`Processing ${value}`)
+    return value * 2
+  })
+  
+  async function effectApproach() {
+    const LoggerLive = Layer.succeed(EffectLogger, {
+      log: () => Effect.succeed(void 0)
+    })
+    
+    return Effect.runPromise(
+      Effect.gen(function* () {
+        let sum = 0
+        for (let i = 0; i < 100; i++) {
+          sum += yield* processValue(i)
+        }
+        return sum
+      }).pipe(
+        Effect.provide(LoggerLive)
+      )
+    )
+  }
+  
+  return runBenchmark("Service Pattern", traditionalApproach, effectApproach, iterations)
+}
+
+// Benchmark 5: Resource Management
+async function benchmarkResourceManagement(): Promise<BenchmarkResult> {
+  const iterations = 1000
+  
+  async function traditionalApproach() {
+    const results: number[] = []
+    for (let i = 0; i < 10; i++) {
+      let resource: any = null
+      try {
+        // Acquire resource
+        resource = { id: i, close: () => {} }
+        // Use resource
+        results.push(resource.id * 2)
+      } finally {
+        // Release resource
+        if (resource) resource.close()
+      }
+    }
+    return results
+  }
+  
+  async function effectApproach() {
+    const acquireResource = (id: number) => Effect.succeed({ id, close: () => {} })
+    const releaseResource = (resource: any) => Effect.succeed(resource.close())
+    
+    return Effect.runPromise(
+      Effect.forEach(
+        Array.from({ length: 10 }, (_, i) => i),
+        (i) => Effect.acquireUseRelease(
+          acquireResource(i),
+          (resource) => Effect.succeed(resource.id * 2),
+          releaseResource
+        ),
+        { concurrency: 1 }
+      )
+    )
+  }
+  
+  return runBenchmark("Resource Management", traditionalApproach, effectApproach, iterations)
+}
+
+async function main() {
+  console.log("=== Effect vs Traditional Performance Comparison ===\n")
+  console.log("Running benchmarks...\n")
+  
+  const results: BenchmarkResult[] = []
+  
+  results.push(await benchmarkErrorHandling())
+  console.log("✓ Error Handling benchmark complete")
+  
+  results.push(await benchmarkStreamProcessing())
+  console.log("✓ Stream Processing benchmark complete")
+  
+  results.push(await benchmarkConcurrentState())
+  console.log("✓ Concurrent State benchmark complete")
+  
+  results.push(await benchmarkServicePattern())
+  console.log("✓ Service Pattern benchmark complete")
+  
+  results.push(await benchmarkResourceManagement())
+  console.log("✓ Resource Management benchmark complete")
+  
+  console.log("\n=== Results ===\n")
+  console.log("| Benchmark               | Traditional | Effect     | Ratio |")
+  console.log("|-------------------------|-------------|------------|-------|")
+  
+  for (const result of results) {
+    const ratio = result.ratio
+    const indicator = ratio < 1.5 ? "✅" : ratio < 3 ? "⚠️ " : "❌"
+    console.log(
+      `| ${result.name.padEnd(23)} | ${formatTime(result.traditional).padStart(11)} | ${formatTime(result.effect).padStart(10)} | ${ratio.toFixed(2)}x ${indicator} |`
+    )
+  }
+  
+  const avgRatio = results.reduce((sum, r) => sum + r.ratio, 0) / results.length
+  
+  console.log("\n=== Analysis ===\n")
+  console.log(`Average Performance Ratio: ${avgRatio.toFixed(2)}x`)
+  
+  if (avgRatio < 2) {
+    console.log("✅ Effect overhead is acceptable for most use cases")
+  } else if (avgRatio < 4) {
+    console.log("⚠️  Effect has moderate overhead, but benefits may outweigh costs")
+  } else {
+    console.log("❌ Effect has significant overhead for these patterns")
+  }
+  
+  console.log("\n=== Key Insights ===\n")
+  console.log("- Effect provides better error handling and composability")
+  console.log("- Overhead is typically 1.5-3x for simple operations")
+  console.log("- Benefits include type safety, error tracking, and resource safety")
+  console.log("- Performance impact is usually negligible in I/O-bound applications")
+}
+
+main().catch(console.error)
