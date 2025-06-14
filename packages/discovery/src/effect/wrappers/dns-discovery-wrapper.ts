@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { FetchHttpClient } from "@effect/platform";
 import {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -17,7 +18,7 @@ import type {
 } from "@waku/interfaces";
 import { DNS_DISCOVERY_TAG } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { Effect, Fiber, Ref, Runtime, Stream } from "effect";
+import { Effect, Fiber, Layer, Ref, Stream } from "effect";
 
 import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
@@ -29,7 +30,13 @@ import type {
   DnsDiscoveryConfig
 } from "../services/common/types.js";
 import { createPeerTags, encodeShardInfo } from "../services/common/utils.js";
-import { DnsDiscoveryService } from "../services/dns/dns-service.js";
+import { DnsClientLive } from "../services/dns/dns-client.js";
+import {
+  DnsDiscoveryConfig as DnsDiscoveryConfigTag,
+  DnsDiscoveryService,
+  DnsDiscoveryServiceRaw
+} from "../services/dns/dns-service.js";
+import { EnrParserLive } from "../services/dns/enr-parser.js";
 
 const log = new Logger("effect:peer-discovery-dns");
 
@@ -41,7 +48,7 @@ export class PeerDiscoveryDnsEffect
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, DiscoveryTrigger
 {
-  private runtime: any;
+  private layer: any;
   private fiber: Fiber.RuntimeFiber<any, any> | null = null;
   private _started = false;
   private isRunning: Ref.Ref<boolean>;
@@ -63,9 +70,16 @@ export class PeerDiscoveryDnsEffect
       tagTTL: options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
     };
 
-    // For now, use a default runtime
-    // TODO: Create proper runtime with layers when build issues are resolved
-    this.runtime = Runtime.defaultRuntime;
+    // Create layer stack for DNS discovery
+    // Build layer from bottom up: HttpClient -> DnsClient/EnrParser -> DnsDiscoveryService
+    this.layer = Layer.mergeAll(
+      FetchHttpClient.layer,
+      Layer.succeed(DnsDiscoveryConfigTag, config)
+    ).pipe(
+      Layer.provideMerge(DnsClientLive),
+      Layer.provideMerge(EnrParserLive),
+      Layer.provideMerge(DnsDiscoveryServiceRaw)
+    );
 
     // Initialize running state
     this.isRunning = Effect.runSync(Ref.make(false));
@@ -91,9 +105,7 @@ export class PeerDiscoveryDnsEffect
       // Start discovery stream
       yield* service.discover().pipe(
         Stream.tap((peer) => self.handleDiscoveredPeer(peer)),
-        Stream.takeWhile(() =>
-          Ref.get(self.isRunning).pipe(Runtime.runSync(self.runtime))
-        ),
+        Stream.takeWhile(() => Effect.runSync(Ref.get(self.isRunning))),
         Stream.runDrain
       );
     }).pipe(
@@ -101,8 +113,10 @@ export class PeerDiscoveryDnsEffect
       Effect.fork
     );
 
-    // Run effect
-    this.fiber = await Runtime.runPromise(this.runtime)(discoveryEffect);
+    // Run effect with layer
+    this.fiber = await Effect.runPromise(
+      discoveryEffect.pipe(Effect.provide(this.layer as any)) as any
+    );
   }
 
   /**
@@ -113,15 +127,13 @@ export class PeerDiscoveryDnsEffect
     this._started = false;
 
     // Signal stop
-    Runtime.runSync(this.runtime)(Ref.set(this.isRunning, false));
+    Effect.runSync(Ref.set(this.isRunning, false));
 
     // Interrupt fiber if running
     if (this.fiber) {
-      Runtime.runPromise(this.runtime)(Fiber.interrupt(this.fiber)).catch(
-        (error) => {
-          log.error("Error interrupting discovery fiber", error);
-        }
-      );
+      Effect.runPromise(Fiber.interrupt(this.fiber)).catch((error) => {
+        log.error("Error interrupting discovery fiber", error);
+      });
       this.fiber = null;
     }
   }
@@ -156,7 +168,9 @@ export class PeerDiscoveryDnsEffect
       log.info(`Immediate discovery found ${peers.length} peers`);
     });
 
-    await Runtime.runPromise(this.runtime)(effect);
+    await Effect.runPromise(
+      effect.pipe(Effect.provide(this.layer as any)) as any
+    );
   }
 
   /**

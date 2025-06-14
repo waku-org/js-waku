@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { TypedEventEmitter } from "@libp2p/interface";
@@ -20,7 +20,7 @@ import type {
 } from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import { decodeRelayShard, Logger } from "@waku/utils";
-import { Effect, Fiber, Layer, Ref, Runtime, Stream } from "effect";
+import { Effect, Fiber, Layer, Ref, Stream } from "effect";
 
 import { PeerExchangeCodec } from "../../peer-exchange/waku_peer_exchange.js";
 import type {
@@ -62,8 +62,7 @@ export class PeerExchangeDiscoveryEffect
   extends TypedEventEmitter<CustomDiscoveryEvent>
   implements PeerDiscovery
 {
-  private runtime: Runtime.Runtime<any>;
-  private _layer: Layer.Layer<any, any, any>;
+  private layer: any;
   private fiber: Fiber.RuntimeFiber<void, any> | null = null;
   private isStarted = false;
   private isRunning: Ref.Ref<boolean>;
@@ -86,23 +85,14 @@ export class PeerExchangeDiscoveryEffect
       tagTTL: options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
     };
 
-    // Create runtime with services
-    const layer = Layer.mergeAll(
+    // Create layer with services
+    this.layer = Layer.mergeAll(
       createPeerExchangeLayer(pubsubTopics, config),
       Layer.succeed(LibP2pComponentsTag, components)
     );
 
-    // Create runtime from layer
-    // For now, we'll use the default runtime and provide the layer when running effects
-    this.runtime = Runtime.defaultRuntime as Runtime.Runtime<any>;
-    this._layer = layer;
-
     // Initialize running state
-    this.isRunning = Runtime.runSync(this.runtime)(Ref.make(false));
-
-    // Store layer for later use when running effects
-    // @ts-ignore - used in effect execution
-    this._layer;
+    this.isRunning = Effect.runSync(Ref.make(false));
 
     log.info("Created Effect-based peer exchange discovery");
   }
@@ -135,9 +125,7 @@ export class PeerExchangeDiscoveryEffect
       // Start discovery stream
       yield* service.discover().pipe(
         Stream.tap((peer) => self.handleDiscoveredPeerFromExchange(peer)),
-        Stream.takeWhile(() =>
-          Ref.get(self.isRunning).pipe(Runtime.runSync(self.runtime))
-        ),
+        Stream.takeWhile(() => Effect.runSync(Ref.get(self.isRunning))),
         Stream.runDrain
       );
     }).pipe(
@@ -147,8 +135,10 @@ export class PeerExchangeDiscoveryEffect
       Effect.fork
     );
 
-    // Run effect
-    Runtime.runPromise(this.runtime)(discoveryEffect).then((fiber) => {
+    // Run effect with layer
+    Effect.runPromise(
+      discoveryEffect.pipe(Effect.provide(this.layer as any)) as any
+    ).then((fiber: any) => {
       this.fiber = fiber;
     });
   }
@@ -169,17 +159,17 @@ export class PeerExchangeDiscoveryEffect
     );
 
     // Signal stop
-    Runtime.runSync(this.runtime)(Ref.set(this.isRunning, false));
+    Effect.runSync(Ref.set(this.isRunning, false));
 
     // Stop service and interrupt fiber
     if (this.fiber) {
       const self = this;
-      Runtime.runPromise(this.runtime)(
+      Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* PeerExchangeService;
           yield* service.stop();
           yield* Fiber.interrupt(self.fiber!);
-        })
+        }).pipe(Effect.provide(this.layer as any)) as any
       ).catch((error) => {
         log.error("Error stopping peer exchange discovery", error);
       });
@@ -203,7 +193,9 @@ export class PeerExchangeDiscoveryEffect
       yield* (service as any).handlePeerExchangePeer(peerId);
     });
 
-    Runtime.runPromise(this.runtime)(effect).catch((error) => {
+    Effect.runPromise(
+      effect.pipe(Effect.provide(this.layer as any)) as any
+    ).catch((error) => {
       log.error(`Failed to handle peer exchange peer ${peerId}`, error);
     });
   };

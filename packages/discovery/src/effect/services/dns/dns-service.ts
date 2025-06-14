@@ -28,9 +28,9 @@ export const DnsDiscoveryConfig =
   Context.GenericTag<IDnsDiscoveryConfig>("DnsDiscoveryConfig");
 
 /**
- * DNS Discovery Service implementation
+ * DNS Discovery Service implementation (raw version without composed dependencies)
  */
-export const DnsDiscoveryServiceLive = Layer.effect(
+export const DnsDiscoveryServiceRaw = Layer.effect(
   DnsDiscoveryService,
   Effect.gen(function* () {
     const config = yield* DnsDiscoveryConfig;
@@ -143,6 +143,12 @@ export const DnsDiscoveryServiceLive = Layer.effect(
       ) => filterByCapabilities(peers, requirements)
     } satisfies IDnsDiscoveryService;
   })
-).pipe(Layer.provide(DnsClientLive), Layer.provide(EnrParserLive));
+);
 
-// Export Live layer separately
+/**
+ * DNS Discovery Service implementation (with pre-composed dependencies for convenience)
+ */
+export const DnsDiscoveryServiceLive = DnsDiscoveryServiceRaw.pipe(
+  Layer.provide(DnsClientLive),
+  Layer.provide(EnrParserLive)
+);

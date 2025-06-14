@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { TypedEventEmitter } from "@libp2p/interface";
 import {
@@ -14,7 +13,7 @@ import {
 import type { Libp2pComponents } from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
-import { Effect, Layer, Ref, Runtime } from "effect";
+import { Effect, Layer, Ref } from "effect";
 
 import {
   CacheService,
@@ -48,8 +47,7 @@ export class LocalPeerCacheDiscoveryEffect
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
-  private runtime: Runtime.Runtime<any>;
-  private _layer: Layer.Layer<any, any, any>;
+  private layer: any;
   private isStarted = false;
   private isRunning: Ref.Ref<boolean>;
 
@@ -73,23 +71,14 @@ export class LocalPeerCacheDiscoveryEffect
         ? LocalStorageBackend
         : InMemoryStorageBackend;
 
-    const layer = Layer.mergeAll(
+    this.layer = Layer.mergeAll(
       CacheServiceLive,
       Layer.succeed(LocalCacheConfigTag, config),
       storageLayer
     );
 
-    // Create runtime from layer
-    // For now, we'll use the default runtime and provide the layer when running effects
-    this.runtime = Runtime.defaultRuntime as Runtime.Runtime<any>;
-    this._layer = layer;
-
     // Initialize running state
-    this.isRunning = Runtime.runSync(this.runtime)(Ref.make(false));
-
-    // Store layer for later use when running effects
-    // @ts-ignore - used in effect execution
-    this._layer;
+    this.isRunning = Effect.runSync(Ref.make(false));
 
     log.info("Created Effect-based local peer cache discovery");
   }
@@ -108,7 +97,7 @@ export class LocalPeerCacheDiscoveryEffect
     this.isStarted = true;
 
     // Set running state
-    await Runtime.runPromise(this.runtime)(Ref.set(this.isRunning, true));
+    await Effect.runPromise(Ref.set(this.isRunning, true));
 
     // Listen for new peers
     this.components.events.addEventListener(
@@ -167,7 +156,9 @@ export class LocalPeerCacheDiscoveryEffect
       Effect.orElseSucceed(() => void 0)
     );
 
-    await Runtime.runPromise(this.runtime)(effect);
+    await Effect.runPromise(
+      effect.pipe(Effect.provide(this.layer as any)) as any
+    );
   }
 
   /**
@@ -186,7 +177,7 @@ export class LocalPeerCacheDiscoveryEffect
     );
 
     // Set running state
-    Runtime.runSync(this.runtime)(Ref.set(this.isRunning, false));
+    Effect.runSync(Ref.set(this.isRunning, false));
   }
 
   /**
@@ -227,7 +218,9 @@ export class LocalPeerCacheDiscoveryEffect
       Effect.orElseSucceed(() => void 0)
     );
 
-    Runtime.runPromise(this.runtime)(effect).catch((error) => {
+    Effect.runPromise(
+      effect.pipe(Effect.provide(this.layer as any)) as any
+    ).catch((error) => {
       log.error("Error handling new peer", error);
     });
   };
