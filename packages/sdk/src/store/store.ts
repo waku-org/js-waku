@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
+import { multiaddr } from "@multiformats/multiaddr";
 import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
@@ -264,7 +265,7 @@ export class Store implements IStore {
       const connectedPeers = await this.connectionManager.getConnectedPeers();
 
       const peer = connectedPeers.find(
-        (p) => p.id.toString() === this.options?.peer // treat as ID
+        (p) => p.id.toString() === multiaddr(this.options?.peer).getPeerId()
       );
       peerId = peer?.id;
 

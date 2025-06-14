@@ -1,5 +1,5 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
-import { multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
+import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManager,
   createDecoder,
@@ -117,8 +117,6 @@ export class WakuNode implements IWaku {
         peerManager: this.peerManager,
         options: {
           peer: options.store?.peer
-            ? multiaddr(options.store.peer).getPeerId() || undefined
-            : undefined
         }
       });
     }
