@@ -3,14 +3,14 @@ import {
   type PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { FilterCore, messageHashStr } from "@waku/core";
-import type {
-  Callback,
-  NextFilterOptions as FilterOptions,
-  IDecodedMessage,
-  IDecoder,
-  IProtoMessage,
-  Libp2p
+import { FilterCodecs, FilterCore, messageHashStr } from "@waku/core";
+import {
+  type Callback,
+  type NextFilterOptions as FilterOptions,
+  type IDecodedMessage,
+  type IDecoder,
+  type IProtoMessage,
+  type Libp2p
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -455,8 +455,17 @@ export class Subscription {
     }
 
     const prevPeers = new Set(this.peers);
-    const peersToAdd = this.peerManager.getPeers();
+    const peersToAdd = await Promise.all(
+      this.peerManager.getPeers().map(async (p) => {
+        const peer = await this.libp2p.peerStore.get(p);
+        return peer.protocols.includes(FilterCodecs.SUBSCRIBE) ? p : null;
+      })
+    );
     for (const peer of peersToAdd) {
+      if (!peer) {
+        continue;
+      }
+
       if (this.peers.size >= this.config.numPeersToUse) {
         break;
       }
