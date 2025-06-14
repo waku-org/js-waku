@@ -264,7 +264,7 @@ export class Store implements IStore {
       const connectedPeers = await this.connectionManager.getConnectedPeers();
 
       const peer = connectedPeers.find(
-        (p) => p.id.toString() === this.options?.peer
+        (p) => p.id.toString() === this.options?.peer // treat as ID
       );
       peerId = peer?.id;
 

@@ -101,5 +101,8 @@ export type IStore = {
 };
 
 export type StoreProtocolOptions = {
+  /**
+   * Peer multiaddr
+   */
   peer: string;
 };
