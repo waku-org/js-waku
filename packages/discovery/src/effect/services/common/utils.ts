@@ -63,17 +63,34 @@ export function meetsCapabilityRequirements(
   enr: IEnr,
   requirements: Partial<Record<string, number>>
 ): boolean {
+  // console.log(`[Utils] Checking capabilities for ENR. waku2:`, enr.waku2);
+  // console.log(`[Utils] Requirements:`, requirements);
+
   if (!enr.waku2 || Object.keys(requirements).length === 0) {
     return true;
   }
 
   for (const [capability, minCount] of Object.entries(requirements)) {
-    const peerCount = (enr.waku2 as any)[capability] || 0;
-    if (peerCount < (minCount ?? 0)) {
-      return false;
+    const peerCapability = (enr.waku2 as any)[capability];
+    // console.log(`[Utils] Capability '${capability}': peer has ${peerCapability}, requires ${minCount}`);
+
+    // For boolean capabilities, just check if the capability exists and is true
+    if (typeof peerCapability === "boolean") {
+      if (!peerCapability && (minCount ?? 0) > 0) {
+        // console.log(`[Utils] Failed: peer doesn't have ${capability} capability`);
+        return false;
+      }
+    } else {
+      // For numeric capabilities, use the original logic
+      const peerCount = peerCapability || 0;
+      if (peerCount < (minCount ?? 0)) {
+        // console.log(`[Utils] Failed: peer has ${peerCount} ${capability}, needs ${minCount}`);
+        return false;
+      }
     }
   }
 
+  // console.log(`[Utils] ENR meets all capability requirements!`);
   return true;
 }
 

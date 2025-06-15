@@ -96,6 +96,8 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
       visited: { [key: string]: boolean }
     ): Effect.Effect<readonly IEnr[], NetworkTimeoutError> =>
       Effect.gen(function* () {
+        // console.log(`[DNS Service] searchTree called with subdomain='${subdomain}', baseDomain='${baseDomain}`);
+
         const entry = yield* getTXTRecord(subdomain, baseDomain).pipe(
           Effect.catchAll(() => Effect.succeed(""))
         );
@@ -103,6 +105,8 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
         if (!entry) {
           return [];
         }
+
+        // console.log(`[DNS Service] Got DNS entry: ${entry.substring(0, 80)}...`);
 
         visited[subdomain] = true;
 
@@ -142,9 +146,17 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
               return [];
             }
             case ENRTree.RECORD_PREFIX: {
-              const enr = yield* enrParser
-                .parseEnr(entry)
-                .pipe(Effect.orElseSucceed(() => null));
+              // console.log(`[DNS Service] Found ENR record: ${entry.substring(0, 50)}...`);
+
+              const enr = yield* enrParser.parseEnr(entry).pipe(
+                // Effect.tap((enr) => Effect.sync(() => {
+                //   console.log(`[DNS Service] Successfully parsed ENR, peer ID: ${enr.peerId}`);
+                // })),
+                // Effect.tapError((error) => Effect.sync(() => {
+                //   console.log(`[DNS Service] Failed to parse ENR:`, error);
+                // })),
+                Effect.orElseSucceed(() => null)
+              );
               return enr ? [enr] : [];
             }
             default:
@@ -161,8 +173,13 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
 
     const discoverFromUrl = (enrUrl: string) =>
       Effect.gen(function* () {
+        // console.log(`[DNS Service] discoverFromUrl called with: ${enrUrl}`);
+
         // Parse ENR tree URL
         const treeUrl = yield* enrParser.parseTreeUrl(enrUrl);
+
+        // console.log(`[DNS Service] Parsed tree URL - domain: ${treeUrl.domain}, publicKey: ${treeUrl.publicKey}`);
+
         // Search the DNS tree starting from the root
         const enrs = yield* searchTree(
           treeUrl.domain,
@@ -171,11 +188,15 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
           {}
         );
 
+        // console.log(`[DNS Service] Found ${enrs.length} ENR records before filtering`);
+
         // Filter by requirements
         const filtered = yield* filterByCapabilities(
           enrs,
           config.wantedNodeCapabilityCount || {}
         );
+
+        // console.log(`[DNS Service] After filtering: ${filtered.length} ENRs match requirements`);
 
         // Convert to DiscoveredPeer
         const peers = yield* Effect.forEach(
@@ -184,7 +205,15 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
             enrToDiscoveredPeer(enr, {
               _tag: "dns",
               domain: treeUrl.domain
-            }).pipe(Effect.orElseSucceed(() => null)),
+            }).pipe(
+              // Effect.tap(() => Effect.sync(() => {
+              //   console.log(`[DNS Service] Successfully converted ENR to peer`);
+              // })),
+              // Effect.tapError((error) => Effect.sync(() => {
+              //   console.log(`[DNS Service] Failed to convert ENR to peer:`, error);
+              // })),
+              Effect.orElseSucceed(() => null)
+            ),
           {
             concurrency: "unbounded"
           }
@@ -193,6 +222,8 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
             results.filter((peer): peer is DiscoveredPeer => peer !== null)
           )
         );
+
+        // console.log(`[DNS Service] Final result: ${peers.length} discovered peers`);
 
         return peers;
       }).pipe(
