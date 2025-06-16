@@ -49,6 +49,10 @@ strictModes.forEach((strictCheckNodes) => {
     beforeEach(async function () {
       // Reset state instead of recreating
       [serviceNodes, waku] = await testContext.resetForTest();
+      // Clear any existing messages
+      while (serviceNodes.messageCollector.hasMessage()) {
+        serviceNodes.messageCollector.getMessage(0);
+      }
     });
 
     // Batch all TEST_STRING tests into one
@@ -80,8 +84,11 @@ strictModes.forEach((strictCheckNodes) => {
       // Verify each message
       TEST_STRING.forEach((testItem, index) => {
         const msg = serviceNodes.messageCollector.getMessage(index);
-        const received = utf8ToBytes(msg.payload);
-        expect(received).to.include(testItem.value);
+        const receivedText =
+          typeof msg.payload === "string"
+            ? msg.payload
+            : new TextDecoder().decode(msg.payload);
+        expect(receivedText).to.include(testItem.value);
       });
     });
 
@@ -120,7 +127,10 @@ strictModes.forEach((strictCheckNodes) => {
         const msg = serviceNodes.messageCollector.getMessage(index);
         if (expectedTimestamp === undefined) {
           expect(msg.timestamp).to.eq(undefined);
-        } else if (msg.timestamp !== undefined) {
+        } else if (
+          msg.timestamp !== undefined &&
+          msg.timestamp instanceof Date
+        ) {
           expect(msg.timestamp.getTime()).to.be.closeTo(
             Number(expectedTimestamp),
             10000

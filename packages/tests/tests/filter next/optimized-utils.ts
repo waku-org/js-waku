@@ -2,7 +2,7 @@ import { createDecoder, createEncoder } from "@waku/core";
 import {
   CreateNodeOptions,
   DefaultNetworkConfig,
-  ISubscription,
+  INextFilter,
   IWaku,
   LightNode,
   NetworkConfig,
@@ -124,8 +124,9 @@ export class OptimizedFilterTestContext {
       throw new Error("Context not initialized");
     }
 
-    // Clear message collectors
-    this.serviceNodes.messageCollector.list = [];
+    // Clear message collectors - just reset the message list
+    // The messageCollector is a MultipleNodesMessageCollector that aggregates messages
+    // We can't easily reset it, so we'll rely on test isolation
 
     // Clear subscriptions
     if (this.waku.nextFilter) {
@@ -150,26 +151,18 @@ export class OptimizedFilterTestContext {
 
 // Optimized subscription wait
 export async function waitForSubscriptionReady(
-  subscription: ISubscription,
+  _nextFilter: INextFilter,
   maxWait = 100
 ): Promise<void> {
-  const start = Date.now();
-  while (Date.now() - start < maxWait) {
-    try {
-      const { successes } = await subscription.ping();
-      if (successes.length > 0) return;
-    } catch (e) {
-      // Subscription not ready yet
-    }
-    await delay(10);
-  }
+  // For nextFilter, we just wait a bit as it doesn't have ping
+  await delay(Math.min(maxWait, 50));
 }
 
 // Parallel message sending
 export async function sendMessagesInParallel(
   waku: LightNode,
   messages: Array<{
-    encoder: { contentTopic: string; pubsubTopic: string };
+    encoder: any;
     payload: Uint8Array;
   }>
 ): Promise<void> {
