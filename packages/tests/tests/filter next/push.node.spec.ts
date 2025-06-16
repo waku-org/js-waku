@@ -6,15 +6,15 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  runMultipleNodes,
   ServiceNodesFleet,
-  teardownNodesWithRedundancy,
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../src/index.js";
 
 import {
   messageText,
+  runMultipleNodes,
+  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -32,10 +32,11 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     beforeEachCustom(this, async () => {
       ctx = this.ctx;
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo, {
-        lightpush: true,
-        filter: true
-      });
+      [serviceNodes, waku] = await runMultipleNodes(
+        this.ctx,
+        TestShardInfo,
+        strictCheckNodes
+      );
     });
 
     afterEachCustom(this, async () => {

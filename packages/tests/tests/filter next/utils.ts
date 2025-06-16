@@ -91,7 +91,8 @@ export async function runMultipleNodes(
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
-    }
+    },
+    networkConfig
   };
 
   log.info("Starting js waku node with :", JSON.stringify(wakuOptions));
