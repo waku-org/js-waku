@@ -17,11 +17,9 @@ import {
   generateTestData,
   makeLogFileName,
   MessageCollector,
-  runMultipleNodes,
   ServiceNode,
   ServiceNodesFleet,
   tearDownNodes,
-  teardownNodesWithRedundancy,
   TEST_STRING,
   waitForConnections
 } from "../../src/index.js";
@@ -30,7 +28,9 @@ import {
   ClusterId,
   messagePayload,
   messageText,
+  runMultipleNodes,
   ShardIndex,
+  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -48,7 +48,6 @@ const runTests = (strictCheckNodes: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
-        undefined,
         strictCheckNodes
       );
     });
