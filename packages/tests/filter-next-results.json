@@ -1,0 +1,6 @@
+Using local image wakuorg/nwaku:v0.35.1
+Running tests serially. To enable parallel execution update mocha config
+(node:59913) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("ts-node/esm", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:59913) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
