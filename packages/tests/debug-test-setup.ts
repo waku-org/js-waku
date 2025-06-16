@@ -33,7 +33,9 @@ async function debugTestSetup(): Promise<void> {
 
     // Cleanup
     await waku?.stop();
-    await serviceNodes?.stop();
+    for (const node of serviceNodes?.nodes || []) {
+      await node.stop();
+    }
   } catch (error) {
     console.error("Failed to set up test:", error);
   }
