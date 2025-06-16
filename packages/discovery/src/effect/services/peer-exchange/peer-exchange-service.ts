@@ -252,9 +252,7 @@ export const PeerExchangeServiceLive = Layer.effect(
       stop,
       queryPeer,
       handlePeerExchangePeer
-    } satisfies IPeerExchangeService & {
-      handlePeerExchangePeer: (peerId: PeerId) => Effect.Effect<void>;
-    };
+    } satisfies IPeerExchangeService;
   })
 );
 

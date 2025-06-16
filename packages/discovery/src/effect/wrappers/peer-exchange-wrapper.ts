@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-/* eslint-disable @typescript-eslint/explicit-member-accessibility */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 import { TypedEventEmitter } from "@libp2p/interface";
 import { peerDiscoverySymbol as symbol } from "@libp2p/interface";
 import type {
@@ -63,12 +56,12 @@ export class PeerExchangeDiscoveryEffect
   extends TypedEventEmitter<CustomDiscoveryEvent>
   implements PeerDiscovery
 {
-  private layer: any;
-  private fiber: Fiber.RuntimeFiber<void, any> | null = null;
+  private layer: Layer.Layer<PeerExchangeService, never, never>;
+  private fiber: Fiber.RuntimeFiber<void, never> | null = null;
   private isStarted = false;
   private isRunning: Ref.Ref<boolean>;
 
-  constructor(
+  public constructor(
     private components: Libp2pComponents,
     pubsubTopics: PubsubTopic[],
     private options: Options = {}
@@ -119,15 +112,17 @@ export class PeerExchangeDiscoveryEffect
     );
 
     // Start discovery effect
-    const self = this;
+    const isRunningRef = this.isRunning;
+    const peerFromExchangeHandler =
+      this.handleDiscoveredPeerFromExchange.bind(this);
     const discoveryEffect = Effect.gen(function* () {
       const service = yield* PeerExchangeService;
-      yield* Ref.set(self.isRunning, true);
+      yield* Ref.set(isRunningRef, true);
 
       // Start discovery stream
       yield* service.discover().pipe(
-        Stream.tap((peer) => self.handleDiscoveredPeerFromExchange(peer)),
-        Stream.takeWhile(() => Effect.runSync(Ref.get(self.isRunning))),
+        Stream.tap((peer) => peerFromExchangeHandler(peer)),
+        Stream.takeWhile(() => Effect.runSync(Ref.get(isRunningRef))),
         Stream.runDrain
       );
     }).pipe(
@@ -138,11 +133,13 @@ export class PeerExchangeDiscoveryEffect
     );
 
     // Run effect with layer
-    Effect.runPromise(
-      discoveryEffect.pipe(Effect.provide(this.layer as any)) as any
-    ).then((fiber: any) => {
-      this.fiber = fiber;
-    });
+    void Effect.runPromise(discoveryEffect.pipe(Effect.provide(this.layer)))
+      .then((fiber) => {
+        this.fiber = fiber;
+      })
+      .catch((error) => {
+        log.error("Failed to start peer exchange discovery", error);
+      });
   }
 
   /**
@@ -165,13 +162,13 @@ export class PeerExchangeDiscoveryEffect
 
     // Stop service and interrupt fiber
     if (this.fiber) {
-      const self = this;
+      const fiber = this.fiber;
       Effect.runPromise(
         Effect.gen(function* () {
           const service = yield* PeerExchangeService;
           yield* service.stop();
-          yield* Fiber.interrupt(self.fiber!);
-        }).pipe(Effect.provide(this.layer as any)) as any
+          yield* Fiber.interrupt(fiber);
+        }).pipe(Effect.provide(this.layer))
       ).catch((error) => {
         log.error("Error stopping peer exchange discovery", error);
       });
@@ -192,14 +189,14 @@ export class PeerExchangeDiscoveryEffect
     // Start querying this peer
     const effect = Effect.gen(function* () {
       const service = yield* PeerExchangeService;
-      yield* (service as any).handlePeerExchangePeer(peerId);
+      yield* service.handlePeerExchangePeer(peerId);
     });
 
-    Effect.runPromise(
-      effect.pipe(Effect.provide(this.layer as any)) as any
-    ).catch((error) => {
-      log.error(`Failed to handle peer exchange peer ${peerId}`, error);
-    });
+    Effect.runPromise(effect.pipe(Effect.provide(this.layer))).catch(
+      (error) => {
+        log.error(`Failed to handle peer exchange peer ${peerId}`, error);
+      }
+    );
   };
 
   /**
@@ -208,27 +205,37 @@ export class PeerExchangeDiscoveryEffect
   private handleDiscoveredPeerFromExchange(
     peer: DiscoveredPeer
   ): Effect.Effect<void> {
-    const self = this;
+    const components = this.components;
+    const options = this.options;
+    const checkPeerInfoDiff = this.checkPeerInfoDiff.bind(this);
+    const emitEvent = (peerInfo: PeerInfo): void => {
+      this.dispatchEvent(
+        new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+      );
+    };
+
     return Effect.gen(function* () {
       const { peerInfo, shardInfo } = peer;
       const { id: peerId } = peerInfo;
 
       // Check if peer already exists
       const hasPeer = yield* Effect.tryPromise(() =>
-        self.components.peerStore.has(peerId)
+        components.peerStore.has(peerId)
       );
 
       if (hasPeer) {
         // Check for differences
-        const { hasMultiaddrDiff, hasShardDiff } =
-          yield* self.checkPeerInfoDiff(peerInfo, shardInfo);
+        const { hasMultiaddrDiff, hasShardDiff } = yield* checkPeerInfoDiff(
+          peerInfo,
+          shardInfo
+        );
 
         if (hasMultiaddrDiff || hasShardDiff) {
           log.info(`Peer ${peerId} has updates, updating store`);
 
           if (hasMultiaddrDiff) {
             yield* Effect.tryPromise(() =>
-              self.components.peerStore.patch(peerId, {
+              components.peerStore.patch(peerId, {
                 multiaddrs: peerInfo.multiaddrs
               })
             );
@@ -236,29 +243,25 @@ export class PeerExchangeDiscoveryEffect
 
           if (hasShardDiff && shardInfo) {
             yield* Effect.tryPromise(() =>
-              self.components.peerStore.merge(peerId, {
+              components.peerStore.merge(peerId, {
                 metadata: encodeShardInfo(shardInfo)
               })
             );
           }
 
           // Emit peer event
-          yield* Effect.sync(() => {
-            self.dispatchEvent(
-              new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
-            );
-          });
+          yield* Effect.sync(() => emitEvent(peerInfo));
         }
       } else {
         // Save new peer
         const tags = createPeerTags(
-          self.options.tagName || DEFAULT_PEER_EXCHANGE_TAG_NAME,
-          self.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-          self.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
+          options.tagName || DEFAULT_PEER_EXCHANGE_TAG_NAME,
+          options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+          options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
         );
 
         yield* Effect.tryPromise(() =>
-          self.components.peerStore.save(peerId, {
+          components.peerStore.save(peerId, {
             tags,
             ...(shardInfo && {
               metadata: encodeShardInfo(shardInfo)
@@ -272,11 +275,7 @@ export class PeerExchangeDiscoveryEffect
         log.info(`Discovered new peer: ${peerId}`);
 
         // Emit peer event
-        yield* Effect.sync(() => {
-          self.dispatchEvent(
-            new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
-          );
-        });
+        yield* Effect.sync(() => emitEvent(peerInfo));
       }
     }).pipe(
       Effect.tapError((error) =>
@@ -292,12 +291,19 @@ export class PeerExchangeDiscoveryEffect
   /**
    * Check for differences in peer info
    */
-  private checkPeerInfoDiff(peerInfo: PeerInfo, shardInfo?: ShardInfo) {
-    const self = this;
+  private checkPeerInfoDiff(
+    peerInfo: PeerInfo,
+    shardInfo?: ShardInfo
+  ): Effect.Effect<
+    { hasMultiaddrDiff: boolean; hasShardDiff: boolean },
+    never,
+    never
+  > {
+    const components = this.components;
     return Effect.tryPromise({
       try: async () => {
         const { id: peerId } = peerInfo;
-        const peer = await self.components.peerStore.get(peerId);
+        const peer = await components.peerStore.get(peerId);
 
         const existingMultiaddrs = peer.addresses.map((a) =>
           a.multiaddr.toString()

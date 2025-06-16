@@ -86,6 +86,7 @@ export interface PeerExchangeService extends DiscoveryService {
     peerId: PeerId,
     numPeers: number
   ) => Effect.Effect<readonly DiscoveredPeer[], DiscoveryError>;
+  readonly handlePeerExchangePeer: (peerId: PeerId) => Effect.Effect<void>;
 }
 
 /**

@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-/* eslint-disable @typescript-eslint/explicit-member-accessibility */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { TypedEventEmitter } from "@libp2p/interface";
 import {
   IdentifyResult,
@@ -48,11 +44,11 @@ export class LocalPeerCacheDiscoveryEffect
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
-  private layer: any;
+  private layer: Layer.Layer<CacheService, never, never>;
   private isStarted = false;
   private isRunning: Ref.Ref<boolean>;
 
-  constructor(
+  public constructor(
     private readonly components: Libp2pComponents,
     private readonly options?: LocalPeerCacheDiscoveryOptions
   ) {
@@ -108,7 +104,15 @@ export class LocalPeerCacheDiscoveryEffect
     );
 
     // Load and emit cached peers
-    const self = this;
+    const components = this.components;
+    const options = this.options;
+    const emitEvent = (peerInfo: PeerInfo): void => {
+      this.dispatchEvent(
+        new CustomEvent<PeerInfo>("peer", {
+          detail: peerInfo
+        })
+      );
+    };
     const effect = Effect.gen(function* () {
       const cache = yield* CacheService;
       const peers = yield* cache.getAll();
@@ -121,32 +125,26 @@ export class LocalPeerCacheDiscoveryEffect
 
         // Check if peer already exists
         const hasPeer = yield* Effect.tryPromise(() =>
-          self.components.peerStore.has(peerInfo.id)
+          components.peerStore.has(peerInfo.id)
         );
 
         if (!hasPeer) {
           // Save to peer store
           const tags = createPeerTags(
-            self.options?.tagName ?? DEFAULT_LOCAL_TAG_NAME,
-            self.options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
-            self.options?.tagTTL ?? DEFAULT_LOCAL_TAG_TTL
+            options?.tagName ?? DEFAULT_LOCAL_TAG_NAME,
+            options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
+            options?.tagTTL ?? DEFAULT_LOCAL_TAG_TTL
           );
 
           yield* Effect.tryPromise(() =>
-            self.components.peerStore.save(peerInfo.id, {
+            components.peerStore.save(peerInfo.id, {
               multiaddrs: peerInfo.multiaddrs,
               tags
             })
           );
 
           // Emit peer event
-          yield* Effect.sync(() => {
-            self.dispatchEvent(
-              new CustomEvent<PeerInfo>("peer", {
-                detail: peerInfo
-              })
-            );
-          });
+          yield* Effect.sync(() => emitEvent(peerInfo));
         }
       }
 
@@ -158,9 +156,7 @@ export class LocalPeerCacheDiscoveryEffect
       Effect.orElseSucceed(() => void 0)
     );
 
-    await Effect.runPromise(
-      effect.pipe(Effect.provide(this.layer as any)) as any
-    );
+    await Effect.runPromise(effect.pipe(Effect.provide(this.layer)));
   }
 
   /**
@@ -192,10 +188,10 @@ export class LocalPeerCacheDiscoveryEffect
     const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(listenAddrs);
 
     // Store peer in cache
-    const self = this;
+    const isRunningRef = this.isRunning;
     const effect = Effect.gen(function* () {
       const cache = yield* CacheService;
-      const running = yield* Ref.get(self.isRunning);
+      const running = yield* Ref.get(isRunningRef);
 
       if (!running) return;
 
@@ -220,11 +216,11 @@ export class LocalPeerCacheDiscoveryEffect
       Effect.orElseSucceed(() => void 0)
     );
 
-    Effect.runPromise(
-      effect.pipe(Effect.provide(this.layer as any)) as any
-    ).catch((error) => {
-      log.error("Error handling new peer", error);
-    });
+    Effect.runPromise(effect.pipe(Effect.provide(this.layer))).catch(
+      (error) => {
+        log.error("Error handling new peer", error);
+      }
+    );
   };
 }
 
