@@ -48,7 +48,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
-        strictCheckNodes
+        strictCheckNodes,
+        2
       );
     });
 

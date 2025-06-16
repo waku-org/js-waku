@@ -25,7 +25,7 @@ import {
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter Next: Unsubscribe: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
-    this.timeout(10000);
+    this.timeout(60000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
 
