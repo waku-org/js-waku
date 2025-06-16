@@ -22,6 +22,7 @@ import {
   LocalCacheConfig as LocalCacheConfigTag,
   LocalStorageBackend
 } from "../services/cache/cache-service.js";
+import { createEnvironmentLoggerLayer } from "../services/common/logger.js";
 import type {
   DiscoveredPeer,
   LocalCacheConfig
@@ -74,7 +75,8 @@ export class LocalPeerCacheDiscoveryEffect
     this.layer = Layer.mergeAll(
       CacheServiceLive,
       Layer.succeed(LocalCacheConfigTag, config),
-      storageLayer
+      storageLayer,
+      createEnvironmentLoggerLayer("local-cache")
     );
 
     // Initialize running state

@@ -25,6 +25,7 @@ import {
   DEFAULT_BOOTSTRAP_TAG_TTL,
   DEFAULT_BOOTSTRAP_TAG_VALUE
 } from "../../dns/constants.js";
+import { createEnvironmentLoggerLayer } from "../services/common/logger.js";
 import type {
   DiscoveredPeer,
   DnsDiscoveryConfig
@@ -81,6 +82,7 @@ export class PeerDiscoveryDnsEffect
       Layer.provide(dnsClientLayer),
       Layer.provide(EnrParserLive),
       Layer.provide(FetchHttpClient.layer),
+      Layer.provide(createEnvironmentLoggerLayer("dns-discovery")),
       Layer.provide(Layer.succeed(DnsDiscoveryConfigTag, config))
     );
 

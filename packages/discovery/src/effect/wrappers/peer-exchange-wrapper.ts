@@ -23,6 +23,7 @@ import { decodeRelayShard, Logger } from "@waku/utils";
 import { Effect, Fiber, Layer, Ref, Stream } from "effect";
 
 import { PeerExchangeCodec } from "../../peer-exchange/waku_peer_exchange.js";
+import { createEnvironmentLoggerLayer } from "../services/common/logger.js";
 import type {
   DiscoveredPeer,
   PeerExchangeConfig
@@ -88,7 +89,8 @@ export class PeerExchangeDiscoveryEffect
     // Create layer with services
     this.layer = Layer.mergeAll(
       createPeerExchangeLayer(pubsubTopics, config),
-      Layer.succeed(LibP2pComponentsTag, components)
+      Layer.succeed(LibP2pComponentsTag, components),
+      createEnvironmentLoggerLayer("peer-exchange")
     );
 
     // Initialize running state

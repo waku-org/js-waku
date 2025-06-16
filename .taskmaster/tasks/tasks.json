@@ -1,9 +1,21 @@
 {
   "dns-debug": {
-    "tasks": [],
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Debug Filter test failures",
+        "description": "Investigate why Filter Next tests are failing after DNS capability filtering changes",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": []
+      }
+    ],
     "metadata": {
       "created": "2025-06-15T19:43:01.250Z",
-      "updated": "2025-06-15T19:43:01.251Z",
+      "updated": "2025-06-15T23:29:40.630Z",
       "description": "DNS integration debugging tasks"
     }
   }

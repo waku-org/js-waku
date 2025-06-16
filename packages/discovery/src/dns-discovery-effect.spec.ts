@@ -95,7 +95,7 @@ describe("DNS Discovery Wrapper", () => {
       // Wait for discovery to happen
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      discovery.stop();
+      await discovery.stop();
 
       // Should have discovered at least one peer
       expect(discoveredPeers).to.have.length.greaterThan(0);
@@ -134,7 +134,7 @@ describe("DNS Discovery Wrapper", () => {
       // Wait for discovery to happen
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      discovery.stop();
+      await discovery.stop();
 
       // Should have discovered peers with relay capability
       expect(discoveredPeers).to.have.length.greaterThan(0);

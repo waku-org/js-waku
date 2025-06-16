@@ -163,22 +163,15 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
               return [];
           }
         } catch (error) {
-          yield* Effect.logWarning(
-            `Failed to search DNS tree ${entryType} at subdomain ${subdomain}`,
-            error
-          );
+          // Log the error but continue processing
           return [];
         }
       });
 
     const discoverFromUrl = (enrUrl: string) =>
       Effect.gen(function* () {
-        // console.log(`[DNS Service] discoverFromUrl called with: ${enrUrl}`);
-
         // Parse ENR tree URL
         const treeUrl = yield* enrParser.parseTreeUrl(enrUrl);
-
-        // console.log(`[DNS Service] Parsed tree URL - domain: ${treeUrl.domain}, publicKey: ${treeUrl.publicKey}`);
 
         // Search the DNS tree starting from the root
         const enrs = yield* searchTree(
@@ -188,15 +181,11 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
           {}
         );
 
-        // console.log(`[DNS Service] Found ${enrs.length} ENR records before filtering`);
-
         // Filter by requirements
         const filtered = yield* filterByCapabilities(
           enrs,
           config.wantedNodeCapabilityCount || {}
         );
-
-        // console.log(`[DNS Service] After filtering: ${filtered.length} ENRs match requirements`);
 
         // Convert to DiscoveredPeer
         const peers = yield* Effect.forEach(
@@ -205,15 +194,7 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
             enrToDiscoveredPeer(enr, {
               _tag: "dns",
               domain: treeUrl.domain
-            }).pipe(
-              // Effect.tap(() => Effect.sync(() => {
-              //   console.log(`[DNS Service] Successfully converted ENR to peer`);
-              // })),
-              // Effect.tapError((error) => Effect.sync(() => {
-              //   console.log(`[DNS Service] Failed to convert ENR to peer:`, error);
-              // })),
-              Effect.orElseSucceed(() => null)
-            ),
+            }).pipe(Effect.orElseSucceed(() => null)),
           {
             concurrency: "unbounded"
           }
@@ -223,15 +204,8 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
           )
         );
 
-        // console.log(`[DNS Service] Final result: ${peers.length} discovered peers`);
-
         return peers;
-      }).pipe(
-        Effect.tapError((error) =>
-          Effect.logWarning(`Failed to discover from ${enrUrl}`, error)
-        ),
-        Effect.orElseSucceed(() => [] as readonly DiscoveredPeer[])
-      );
+      }).pipe(Effect.orElseSucceed(() => [] as readonly DiscoveredPeer[]));
 
     const discoverAll = () =>
       Effect.gen(function* () {
@@ -245,13 +219,10 @@ export const DnsDiscoveryServiceRaw = Layer.effect(
     const discover = () =>
       Stream.repeatEffect(discoverAll()).pipe(
         Stream.schedule(Schedule.spaced("5 minutes")),
-        Stream.mapConcat((peers) => peers),
-        Stream.tap((peer) =>
-          Effect.logDebug(`Discovered peer ${peer.peerInfo.id}`)
-        )
+        Stream.mapConcat((peers) => peers)
       );
 
-    const stop = () => Effect.logInfo("Stopping DNS discovery service");
+    const stop = () => Effect.void;
 
     return {
       discover,

@@ -62,33 +62,15 @@ describe("DNS Node Discovery [live data]", function () {
     }
   });
 
-  it(`should debug DNS responses`, async function () {
+  it(`should retrieve peers through Effect DNS discovery`, async function () {
     this.timeout(100000);
 
-    console.log("=== Testing what we imported ===");
-    console.log("wakuDnsDiscovery type:", typeof wakuDnsDiscovery);
-    console.log("DnsNodeDiscovery type:", typeof DnsNodeDiscovery);
-    console.log("enrTree TEST:", enrTree["TEST"]);
-
-    console.log("=== Testing original DnsNodeDiscovery ===");
-    const originalDns = await DnsNodeDiscovery.dnsOverHttp();
-    const originalPeers = await originalDns.getPeers([enrTree["TEST"]], {
-      relay: 3,
-      store: 3,
-      filter: 3,
-      lightPush: 3
-    });
-    console.log(`[Original] Found ${originalPeers.length} peers total`);
-
-    console.log("\n=== Testing Effect DNS through SDK ===");
-    console.log("About to call wakuDnsDiscovery factory...");
     const discoveryFactory = wakuDnsDiscovery([enrTree["TEST"]], {
       relay: 3,
       store: 3,
       filter: 3,
       lightPush: 3
     });
-    console.log("Factory created, about to create light node...");
 
     const waku = await createLightNode({
       libp2p: {
@@ -100,7 +82,7 @@ describe("DNS Node Discovery [live data]", function () {
     await delay(3000);
 
     const allPeers = await waku.libp2p.peerStore.all();
-    console.log(`[Effect] Found ${allPeers.length} peers in peer store`);
+    expect(allPeers.length).to.be.greaterThan(0);
 
     await waku.stop();
   });

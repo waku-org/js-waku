@@ -70,5 +70,21 @@ export {
   ProtocolError
 } from "./effect/index.js";
 
+// Export logging integration (for advanced users who want to customize logging)
+export type { EffectLogger, LoggerConfig, LogLevel } from "./effect/index.js";
+
+export {
+  EffectLoggerService,
+  createLoggerLayer,
+  createServiceLogger,
+  createEnvironmentLoggerLayer,
+  logWithContext,
+  logError,
+  logPeerDiscovered,
+  logDiscoveryOperation,
+  isEffectConsoleEnabled,
+  isWakuLoggerEnabled
+} from "./effect/index.js";
+
 // Export test helpers (only for testing)
 export { createImmediatePeerDnsClient } from "./effect/test-helpers/mock-dns-client.js";

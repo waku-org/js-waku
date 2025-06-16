@@ -43,3 +43,27 @@ export {
   ProtocolError,
   type DiscoveryError
 } from "./services/common/errors.js";
+
+// Logging integration
+export type {
+  EffectLogger,
+  LoggerConfig,
+  LogLevel
+} from "./services/common/logger.js";
+
+export {
+  EffectLoggerService,
+  EffectLoggerLive,
+  createLoggerLayer,
+  createServiceLogger,
+  DnsLoggerLive,
+  PeerExchangeLoggerLive,
+  LocalCacheLoggerLive,
+  createEnvironmentLoggerLayer,
+  logWithContext,
+  logError,
+  logPeerDiscovered,
+  logDiscoveryOperation,
+  isEffectConsoleEnabled,
+  isWakuLoggerEnabled
+} from "./services/common/logger.js";
