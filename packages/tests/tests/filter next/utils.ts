@@ -133,35 +133,37 @@ export async function teardownNodesWithRedundancy(
 ): Promise<void> {
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
 
-  const stopNwakuNodes = serviceNodes.nodes.map(async (node) => {
-    await pRetry(
-      async () => {
-        try {
-          await node.stop();
-        } catch (error) {
-          log.error("Service Node failed to stop:", error);
-          throw error;
-        }
-      },
-      { retries: 3 }
-    );
-  });
-
-  const stopWakuNodes = wNodes.map(async (waku) => {
-    if (waku) {
-      await pRetry(
+  // Run all stops in parallel for better performance
+  const stopPromises = [
+    ...serviceNodes.nodes.map((node) =>
+      pRetry(
         async () => {
           try {
-            await waku.stop();
+            await node.stop();
           } catch (error) {
-            log.error("Waku failed to stop:", error);
+            log.error("Service Node failed to stop:", error);
             throw error;
           }
         },
         { retries: 3 }
-      );
-    }
-  });
+      )
+    ),
+    ...wNodes.map((waku) =>
+      waku
+        ? pRetry(
+            async () => {
+              try {
+                await waku.stop();
+              } catch (error) {
+                log.error("Waku failed to stop:", error);
+                throw error;
+              }
+            },
+            { retries: 3 }
+          )
+        : Promise.resolve()
+    )
+  ];
 
-  await Promise.all([...stopNwakuNodes, ...stopWakuNodes]);
+  await Promise.all(stopPromises);
 }
