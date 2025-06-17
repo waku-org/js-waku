@@ -1,11 +1,6 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { MultiaddrInput } from "@multiformats/multiaddr";
-import {
-  ConnectionManager,
-  createDecoder,
-  createEncoder,
-  StoreCodec
-} from "@waku/core";
+import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
   CreateDecoderParams,
   CreateEncoderParams,
@@ -103,21 +98,11 @@ export class WakuNode implements IWaku {
     this.health = new HealthIndicator({ libp2p });
 
     if (protocolsEnabled.store) {
-      if (options.store?.peer) {
-        this.connectionManager
-          .rawDialPeerWithProtocols(options.store.peer, [StoreCodec])
-          .catch((e) => {
-            log.error("Failed to dial store peer", e);
-          });
-      }
-
       this.store = new Store({
         libp2p,
         connectionManager: this.connectionManager,
         peerManager: this.peerManager,
-        options: {
-          peer: options.store?.peer
-        }
+        options: options?.store
       });
     }
 

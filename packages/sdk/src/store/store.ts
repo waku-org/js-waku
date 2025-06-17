@@ -1,5 +1,12 @@
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
+import { peerIdFromString } from "@libp2p/peer-id";
+import { multiaddr } from "@multiformats/multiaddr";
+import {
+  ConnectionManager,
+  messageHash,
+  StoreCodec,
+  StoreCore
+} from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -28,15 +35,15 @@ type StoreConstructorParams = {
  */
 export class Store implements IStore {
   private options: Partial<StoreProtocolOptions>;
-  private peerManager: PeerManager;
   private connectionManager: ConnectionManager;
+  private libp2p: Libp2p;
 
   public readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
-    this.peerManager = params.peerManager;
     this.connectionManager = params.connectionManager;
+    this.libp2p = params.libp2p;
 
     this.protocol = new StoreCore(
       params.connectionManager.pubsubTopics,
@@ -258,31 +265,74 @@ export class Store implements IStore {
   }
 
   private async getPeerToUse(): Promise<PeerId | undefined> {
-    let peerId: PeerId | undefined;
-
-    if (this.options?.peer) {
-      const connectedPeers = await this.connectionManager.getConnectedPeers();
-
-      const peer = connectedPeers.find(
-        (p) => p.id.toString() === this.options?.peer
+    if (this.options?.peers) {
+      const firstConnected = await this.dialOrReturnConnected(
+        this.options.peers
       );
-      peerId = peer?.id;
 
-      if (!peerId) {
+      if (firstConnected) {
+        return firstConnected;
+      }
+
+      log.warn(
+        `Passed node to use for Store not found: ${this.options.peers.toString()}. Attempting to use random peers.`
+      );
+    }
+
+    const connectedPeers = await this.connectionManager.getConnectedPeers();
+
+    const peers = connectedPeers
+      .filter((p) => this.connectionManager.isPeerTopicConfigured(p.id))
+      .filter((p) => p.protocols.includes(StoreCodec));
+
+    if (peers.length > 0) {
+      return peers[0].id;
+    }
+
+    log.error("No peers available to use.");
+    return;
+  }
+
+  private async dialOrReturnConnected(
+    peers: string[]
+  ): Promise<PeerId | undefined> {
+    const connectedPeers = await this.connectionManager.getConnectedPeers();
+    const storePeers = peers.map(multiaddr);
+
+    const missing = [];
+
+    for (const peer of storePeers) {
+      const matchedPeer = connectedPeers.find(
+        (p) => p.id.toString() === peer.getPeerId()?.toString()
+      );
+
+      if (matchedPeer) {
+        return matchedPeer.id;
+      }
+
+      missing.push(peer);
+    }
+
+    while (missing.length) {
+      const toDial = missing.pop();
+
+      if (!toDial) {
+        return;
+      }
+
+      try {
+        const c = await this.libp2p.dial(toDial);
+
+        if (c) {
+          return peerIdFromString(toDial.getPeerId() as string);
+        }
+      } catch (e) {
         log.warn(
-          `Passed node to use for Store not found: ${this.options.peer}. Attempting to use random peers.`
+          `Failed to dial peer from options.peers list for Store protocol. Peer:${toDial.getPeerId()}, error:${e}`
         );
       }
     }
 
-    const peerIds = this.peerManager.getPeers();
-
-    if (peerIds.length > 0) {
-      // TODO(weboko): implement smart way of getting a peer https://github.com/waku-org/js-waku/issues/2243
-      return peerIds[Math.floor(Math.random() * peerIds.length)];
-    }
-
-    log.error("No peers available to use.");
     return;
   }
 }

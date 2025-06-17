@@ -4,7 +4,6 @@ import {
   type Peer,
   type PeerId,
   type PeerInfo,
-  type PeerStore,
   type Stream,
   TypedEventEmitter
 } from "@libp2p/interface";
@@ -576,10 +575,7 @@ export class ConnectionManager
 
     const isSameShard = await this.isPeerTopicConfigured(peerId);
     if (!isSameShard) {
-      const shardInfo = await this.getPeerShardInfo(
-        peerId,
-        this.libp2p.peerStore
-      );
+      const shardInfo = await this.getPeerShardInfo(peerId);
 
       log.warn(
         `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
@@ -666,11 +662,8 @@ export class ConnectionManager
     }
   }
 
-  private async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
-    const shardInfo = await this.getPeerShardInfo(
-      peerId,
-      this.libp2p.peerStore
-    );
+  public async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
+    const shardInfo = await this.getPeerShardInfo(peerId);
 
     // If there's no shard information, simply return true
     if (!shardInfo) return true;
@@ -684,10 +677,9 @@ export class ConnectionManager
   }
 
   private async getPeerShardInfo(
-    peerId: PeerId,
-    peerStore: PeerStore
+    peerId: PeerId
   ): Promise<ShardInfo | undefined> {
-    const peer = await peerStore.get(peerId);
+    const peer = await this.libp2p.peerStore.get(peerId);
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;
     return decodeRelayShard(shardInfoBytes);
