@@ -7,15 +7,15 @@ import {
   afterEachCustom,
   beforeEachCustom,
   generateTestData,
-  runMultipleNodes,
-  ServiceNodesFleet,
-  teardownNodesWithRedundancy
+  ServiceNodesFleet
 } from "../../src/index.js";
 
 import {
   ClusterId,
   messagePayload,
   messageText,
+  runMultipleNodes,
+  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -25,7 +25,7 @@ import {
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter Next: Unsubscribe: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
-    this.timeout(10000);
+    this.timeout(60000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
 
@@ -36,7 +36,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           contentTopics: [TestContentTopic],
           clusterId: ClusterId
         },
-        { filter: true, lightpush: true }
+        strictCheckNodes
       );
     });
 

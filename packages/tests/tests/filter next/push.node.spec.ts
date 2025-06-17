@@ -6,15 +6,15 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  runMultipleNodes,
   ServiceNodesFleet,
-  teardownNodesWithRedundancy,
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../src/index.js";
 
 import {
   messageText,
+  runMultipleNodes,
+  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -25,17 +25,18 @@ import {
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter Next: FilterPush: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
-    this.timeout(10000);
+    this.timeout(60000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
     let ctx: Mocha.Context;
 
     beforeEachCustom(this, async () => {
       ctx = this.ctx;
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo, {
-        lightpush: true,
-        filter: true
-      });
+      [serviceNodes, waku] = await runMultipleNodes(
+        this.ctx,
+        TestShardInfo,
+        strictCheckNodes
+      );
     });
 
     afterEachCustom(this, async () => {

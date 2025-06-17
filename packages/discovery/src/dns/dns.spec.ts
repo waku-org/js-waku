@@ -1,10 +1,9 @@
 import type { DnsClient } from "@waku/interfaces";
 import { expect } from "chai";
 
+import { enrTree } from "./constants.js";
 import { DnsNodeDiscovery } from "./dns.js";
 import testData from "./testdata.json" assert { type: "json" };
-
-import { enrTree } from "./index.js";
 
 const mockData = testData.dns;
 
