@@ -2,7 +2,7 @@ export { extractMetaMaskSigner } from "./metamask.js";
 export {
   concatenate,
   writeUIntLE,
-  buildBigIntFromUint8Array,
+  switchEndianness,
   zeroPadLE
 } from "./bytes.js";
 export { sha256, poseidonHash } from "./hash.js";
