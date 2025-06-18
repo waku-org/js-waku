@@ -88,16 +88,13 @@ export class RLNBaseContract {
     options: RLNContractInitOptions
   ): Promise<RLNBaseContract> {
     const instance = new RLNBaseContract(options);
-    const [min, max, idCommitmentBigIntLimit] = await Promise.all([
+    const [min, max] = await Promise.all([
       instance.contract.minMembershipRateLimit(),
       instance.contract.maxMembershipRateLimit(),
       instance.contract.Q()
     ]);
     instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
     instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
-    instance.idCommitmentBigIntLimit = BigInt(
-      idCommitmentBigIntLimit.toString()
-    );
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
@@ -508,16 +505,17 @@ export class RLNBaseContract {
 
   private getIdCommitmentBigInt(bytes: Uint8Array): bigint {
     let idCommitmentBigIntBE = buildBigIntFromUint8ArrayBE(bytes);
+
     if (!this.contract) {
       throw Error("RLN contract is not initialized");
     }
-    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimit;
 
-    if (idCommitmentBigIntBE >= idCommitmentBigIntLimit) {
+    if (idCommitmentBigIntBE >= this.idCommitmentBigIntLimit) {
       log.warn(
-        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigIntBE} % ${idCommitmentBigIntLimit}`
+        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigIntBE} % ${this.idCommitmentBigIntLimit}`
       );
-      idCommitmentBigIntBE = idCommitmentBigIntBE % idCommitmentBigIntLimit;
+      idCommitmentBigIntBE =
+        idCommitmentBigIntBE % this.idCommitmentBigIntLimit;
     }
     return idCommitmentBigIntBE;
   }
