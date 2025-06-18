@@ -14,8 +14,6 @@ import {
 import _ from "lodash";
 import { v4 as uuidV4 } from "uuid";
 
-import { buildBigIntFromUint8Array } from "../utils/bytes.js";
-
 import { decryptEipKeystore, keccak256Checksum } from "./cipher.js";
 import { isCredentialValid, isKeystoreValid } from "./schema_validator.js";
 import type {
@@ -250,26 +248,25 @@ export class Keystore {
       const str = bytesToUtf8(bytes);
       const obj = JSON.parse(str);
 
-      // TODO: add runtime validation of nwaku credentials
+      const idCommitmentLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idCommitment", [])
+      );
+      const idTrapdoorLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idTrapdoor", [])
+      );
+      const idNullifierLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idNullifier", [])
+      );
+      const idSecretHashLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idSecretHash", [])
+      );
+
       return {
         identity: {
-          IDCommitment: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idCommitment", [])
-          ),
-          IDTrapdoor: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idTrapdoor", [])
-          ),
-          IDNullifier: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idNullifier", [])
-          ),
-          IDCommitmentBigInt: buildBigIntFromUint8Array(
-            Keystore.fromArraylikeToBytes(
-              _.get(obj, "identityCredential.idCommitment", [])
-            )
-          ),
-          IDSecretHash: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idSecretHash", [])
-          )
+          IDCommitment: idCommitmentLE,
+          IDTrapdoor: idTrapdoorLE,
+          IDNullifier: idNullifierLE,
+          IDSecretHash: idSecretHashLE
         },
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
@@ -321,14 +318,21 @@ export class Keystore {
   // follows nwaku implementation
   // https://github.com/waku-org/nwaku/blob/f05528d4be3d3c876a8b07f9bb7dfaae8aa8ec6e/waku/waku_keystore/protocol_types.nim#L98
   private static fromIdentityToBytes(options: KeystoreEntity): Uint8Array {
+    function toLittleEndian(bytes: Uint8Array): Uint8Array {
+      return new Uint8Array(bytes).reverse();
+    }
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
         identityCredential: {
-          idCommitment: Array.from(options.identity.IDCommitment),
-          idNullifier: Array.from(options.identity.IDNullifier),
-          idSecretHash: Array.from(options.identity.IDSecretHash),
-          idTrapdoor: Array.from(options.identity.IDTrapdoor)
+          idCommitment: Array.from(
+            toLittleEndian(options.identity.IDCommitment)
+          ),
+          idNullifier: Array.from(toLittleEndian(options.identity.IDNullifier)),
+          idSecretHash: Array.from(
+            toLittleEndian(options.identity.IDSecretHash)
+          ),
+          idTrapdoor: Array.from(toLittleEndian(options.identity.IDTrapdoor))
         },
         membershipContract: {
           chainId: options.membership.chainId,

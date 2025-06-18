@@ -17,18 +17,13 @@ export function concatenate(...input: Uint8Array[]): Uint8Array {
   return result;
 }
 
-// Adapted from https://github.com/feross/buffer
-function checkInt(
-  buf: Uint8Array,
-  value: number,
-  offset: number,
-  ext: number,
-  max: number,
-  min: number
-): void {
-  if (value > max || value < min)
-    throw new RangeError('"value" argument is out of bounds');
-  if (offset + ext > buf.length) throw new RangeError("Index out of range");
+export function switchEndianness(bytes: Uint8Array): Uint8Array {
+  return new Uint8Array(bytes.reverse());
+}
+
+export function buildBigIntFromUint8ArrayBE(bytes: Uint8Array): bigint {
+  // Interpret bytes as big-endian
+  return bytes.reduce((acc, byte) => (acc << 8n) + BigInt(byte), 0n);
 }
 
 export function writeUIntLE(
@@ -56,13 +51,6 @@ export function writeUIntLE(
   return buf;
 }
 
-export function buildBigIntFromUint8ArrayLE(bytes: Uint8Array): bigint {
-  return bytes.reduce(
-    (acc, byte, i) => acc + BigInt(byte) * (1n << (8n * BigInt(i))),
-    0n
-  );
-}
-
 /**
  * Fills with zeros to set length
  * @param array little endian Uint8Array
@@ -75,4 +63,18 @@ export function zeroPadLE(array: Uint8Array, length: number): Uint8Array {
     result[i] = array[i] || 0;
   }
   return result;
+}
+
+// Adapted from https://github.com/feross/buffer
+function checkInt(
+  buf: Uint8Array,
+  value: number,
+  offset: number,
+  ext: number,
+  max: number,
+  min: number
+): void {
+  if (value > max || value < min)
+    throw new RangeError('"value" argument is out of bounds');
+  if (offset + ext > buf.length) throw new RangeError("Index out of range");
 }

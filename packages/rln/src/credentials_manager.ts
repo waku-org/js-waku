@@ -13,10 +13,7 @@ import type {
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
-import {
-  buildBigIntFromUint8Array,
-  extractMetaMaskSigner
-} from "./utils/index.js";
+import { extractMetaMaskSigner, switchEndianness } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:credentials");
@@ -261,35 +258,31 @@ export class RLNCredentialsManager {
 
     // Generate deterministic values using HMAC-SHA256
     // We use different context strings for each component to ensure they're different
-    const idTrapdoor = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
-    const idNullifier = hmac(sha256, seedBytes, encoder.encode("IDNullifier"));
+    const idTrapdoorBE = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
+    const idNullifierBE = hmac(
+      sha256,
+      seedBytes,
+      encoder.encode("IDNullifier")
+    );
 
-    const combinedBytes = new Uint8Array([...idTrapdoor, ...idNullifier]);
-    const idSecretHash = sha256(combinedBytes);
+    const combinedBytes = new Uint8Array([...idTrapdoorBE, ...idNullifierBE]);
+    const idSecretHashBE = sha256(combinedBytes);
 
-    const idCommitment = sha256(idSecretHash);
+    const idCommitmentBE = sha256(idSecretHashBE);
 
-    let idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
-    if (!this.contract) {
-      throw Error("RLN contract is not initialized");
-    }
-
-    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimit;
-
-    if (idCommitmentBigInt >= idCommitmentBigIntLimit) {
-      log.warn(
-        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigInt} % ${idCommitmentBigIntLimit}`
-      );
-      idCommitmentBigInt = idCommitmentBigInt % idCommitmentBigIntLimit;
-    }
+    // All hashing functions return big-endian bytes
+    // We need to switch to little-endian for the identity credential
+    const idTrapdoorLE = switchEndianness(idTrapdoorBE);
+    const idNullifierLE = switchEndianness(idNullifierBE);
+    const idSecretHashLE = switchEndianness(idSecretHashBE);
+    const idCommitmentLE = switchEndianness(idCommitmentBE);
 
     log.info("Successfully generated identity credential");
     return new IdentityCredential(
-      idTrapdoor,
-      idNullifier,
-      idSecretHash,
-      idCommitment,
-      idCommitmentBigInt
+      idTrapdoorLE,
+      idNullifierLE,
+      idSecretHashLE,
+      idCommitmentLE
     );
   }
 }

@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
+import { buildBigIntFromUint8ArrayBE } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi.js";
 import {
@@ -505,6 +506,22 @@ export class RLNBaseContract {
     }
   }
 
+  private getIdCommitmentBigInt(bytes: Uint8Array): bigint {
+    let idCommitmentBigIntBE = buildBigIntFromUint8ArrayBE(bytes);
+    if (!this.contract) {
+      throw Error("RLN contract is not initialized");
+    }
+    const idCommitmentBigIntLimit = this.contract.idCommitmentBigIntLimit;
+
+    if (idCommitmentBigIntBE >= idCommitmentBigIntLimit) {
+      log.warn(
+        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigIntBE} % ${idCommitmentBigIntLimit}`
+      );
+      idCommitmentBigIntBE = idCommitmentBigIntBE % idCommitmentBigIntLimit;
+    }
+    return idCommitmentBigIntBE;
+  }
+
   public async registerWithIdentity(
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
@@ -513,10 +530,12 @@ export class RLNBaseContract {
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
 
-      // Check if the ID commitment is already registered
-      const existingIndex = await this.getMemberIndex(
-        identity.IDCommitmentBigInt
+      const idCommitmentBigInt = this.getIdCommitmentBigInt(
+        identity.IDCommitment
       );
+
+      // Check if the ID commitment is already registered
+      const existingIndex = await this.getMemberIndex(idCommitmentBigInt);
       if (existingIndex) {
         throw new Error(
           `ID commitment is already registered with index ${existingIndex}`
@@ -532,19 +551,16 @@ export class RLNBaseContract {
       }
 
       const estimatedGas = await this.contract.estimateGas.register(
-        identity.IDCommitmentBigInt,
+        idCommitmentBigInt,
         this.rateLimit,
         []
       );
       const gasLimit = estimatedGas.add(10000);
 
       const txRegisterResponse: ethers.ContractTransaction =
-        await this.contract.register(
-          identity.IDCommitmentBigInt,
-          this.rateLimit,
-          [],
-          { gasLimit }
-        );
+        await this.contract.register(idCommitmentBigInt, this.rateLimit, [], {
+          gasLimit
+        });
 
       const txRegisterReceipt = await txRegisterResponse.wait();
 
@@ -640,7 +656,7 @@ export class RLNBaseContract {
           permit.v,
           permit.r,
           permit.s,
-          identity.IDCommitmentBigInt,
+          this.getIdCommitmentBigInt(identity.IDCommitment),
           this.rateLimit,
           idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
         );
