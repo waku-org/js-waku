@@ -1,4 +1,7 @@
+import { BytesUtils } from "./utils/bytes.js";
+
 export class IdentityCredential {
+  public IDCommitmentBigInt: bigint;
   /**
    * All variables are in little-endian format
    */
@@ -7,7 +10,10 @@ export class IdentityCredential {
     public readonly IDNullifier: Uint8Array,
     public readonly IDSecretHash: Uint8Array,
     public readonly IDCommitment: Uint8Array
-  ) {}
+  ) {
+    this.IDCommitmentBigInt =
+      BytesUtils.buildBigIntFromUint8ArrayBE(IDCommitment);
+  }
 
   public static fromBytes(memKeys: Uint8Array): IdentityCredential {
     if (memKeys.length < 128) {
