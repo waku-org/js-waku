@@ -377,6 +377,17 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
   it("Generator, 2 nwaku nodes each with different pubsubtopics", async function () {
     this.timeout(10000);
 
+    await tearDownNodes([nwaku], []);
+
+    // make sure each nwaku node operates on dedicated shard only
+    nwaku = new ServiceNode(makeLogFileName(this) + "1");
+    await nwaku.start({
+      store: true,
+      clusterId: TestShardInfo.clusterId,
+      shard: [TestShardInfo.shards[0]],
+      relay: true
+    });
+
     // Set up and start a new nwaku node with Default Pubsubtopic
     nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
@@ -401,6 +412,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
       TestDecoder2.pubsubTopic
     );
 
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Store]);
 
