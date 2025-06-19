@@ -44,7 +44,7 @@ import {
   totalMsgs
 } from "./utils.js";
 
-describe.only("Waku Store, general", function () {
+describe("Waku Store, general", function () {
   this.timeout(15000);
   let waku: LightNode;
   let waku2: LightNode;
