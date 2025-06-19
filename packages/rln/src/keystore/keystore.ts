@@ -268,7 +268,9 @@ export class Keystore {
           IDCommitment: idCommitmentLE,
           IDTrapdoor: idTrapdoorLE,
           IDNullifier: idNullifierLE,
-          IDSecretHash: idSecretHashLE
+          IDSecretHash: idSecretHashLE,
+          IDCommitmentBigInt:
+            BytesUtils.buildBigIntFromUint8ArrayBE(idCommitmentLE)
         },
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
