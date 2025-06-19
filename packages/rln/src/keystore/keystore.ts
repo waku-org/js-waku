@@ -14,6 +14,8 @@ import {
 import _ from "lodash";
 import { v4 as uuidV4 } from "uuid";
 
+import { BytesUtils } from "../utils/bytes.js";
+
 import { decryptEipKeystore, keccak256Checksum } from "./cipher.js";
 import { isCredentialValid, isKeystoreValid } from "./schema_validator.js";
 import type {
@@ -317,22 +319,22 @@ export class Keystore {
 
   // follows nwaku implementation
   // https://github.com/waku-org/nwaku/blob/f05528d4be3d3c876a8b07f9bb7dfaae8aa8ec6e/waku/waku_keystore/protocol_types.nim#L98
+  // IdentityCredential is stored in Big Endian format => switch to Little Endian
   private static fromIdentityToBytes(options: KeystoreEntity): Uint8Array {
-    function toLittleEndian(bytes: Uint8Array): Uint8Array {
-      return new Uint8Array(bytes).reverse();
-    }
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
         identityCredential: {
           idCommitment: Array.from(
-            toLittleEndian(options.identity.IDCommitment)
+            BytesUtils.switchEndianness(options.identity.IDCommitment)
           ),
-          idNullifier: Array.from(toLittleEndian(options.identity.IDNullifier)),
+          idNullifier: Array.from(
+            BytesUtils.switchEndianness(options.identity.IDNullifier)
+          ),
           idSecretHash: Array.from(
-            toLittleEndian(options.identity.IDSecretHash)
+            BytesUtils.switchEndianness(options.identity.IDSecretHash)
           ),
-          idTrapdoor: Array.from(toLittleEndian(options.identity.IDTrapdoor))
+          idTrapdoor: Array.from(options.identity.IDTrapdoor)
         },
         membershipContract: {
           chainId: options.membership.chainId,

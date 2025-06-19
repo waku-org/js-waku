@@ -3,14 +3,10 @@ import { ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
-import { buildBigIntFromUint8ArrayBE } from "../utils/bytes.js";
+import { BytesUtils } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi.js";
-import {
-  DEFAULT_Q,
-  DEFAULT_RATE_LIMIT,
-  RATE_LIMIT_PARAMS
-} from "./constants.js";
+import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 import {
   CustomQueryOptions,
   FetchMembersOptions,
@@ -29,12 +25,6 @@ export class RLNBaseContract {
   private rateLimit: number;
   private minRateLimit?: number;
   private maxRateLimit?: number;
-
-  /**
-   * Default Q value for the RLN contract.
-   * @see https://github.com/waku-org/waku-rlnv2-contract/blob/b7e9a9b1bc69256a2a3076c1f099b50ce84e7eff/src/WakuRlnV2.sol#L25
-   */
-  public idCommitmentBigIntLimit = DEFAULT_Q;
 
   protected _members: Map<number, Member> = new Map();
   private _membersFilter: ethers.EventFilter;
@@ -502,24 +492,6 @@ export class RLNBaseContract {
       log.error(`Error in withdraw: ${(error as Error).message}`);
     }
   }
-
-  private getIdCommitmentBigInt(bytes: Uint8Array): bigint {
-    let idCommitmentBigIntBE = buildBigIntFromUint8ArrayBE(bytes);
-
-    if (!this.contract) {
-      throw Error("RLN contract is not initialized");
-    }
-
-    if (idCommitmentBigIntBE >= this.idCommitmentBigIntLimit) {
-      log.warn(
-        `ID commitment is greater than Q, reducing it by Q(idCommitmentBigIntLimit): ${idCommitmentBigIntBE} % ${this.idCommitmentBigIntLimit}`
-      );
-      idCommitmentBigIntBE =
-        idCommitmentBigIntBE % this.idCommitmentBigIntLimit;
-    }
-    return idCommitmentBigIntBE;
-  }
-
   public async registerWithIdentity(
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
@@ -528,12 +500,12 @@ export class RLNBaseContract {
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
 
-      const idCommitmentBigInt = this.getIdCommitmentBigInt(
+      const idCommitmentBigIntBE = BytesUtils.buildBigIntFromUint8ArrayBE(
         identity.IDCommitment
       );
 
       // Check if the ID commitment is already registered
-      const existingIndex = await this.getMemberIndex(idCommitmentBigInt);
+      const existingIndex = await this.getMemberIndex(idCommitmentBigIntBE);
       if (existingIndex) {
         throw new Error(
           `ID commitment is already registered with index ${existingIndex}`
@@ -549,14 +521,14 @@ export class RLNBaseContract {
       }
 
       const estimatedGas = await this.contract.estimateGas.register(
-        idCommitmentBigInt,
+        idCommitmentBigIntBE,
         this.rateLimit,
         []
       );
       const gasLimit = estimatedGas.add(10000);
 
       const txRegisterResponse: ethers.ContractTransaction =
-        await this.contract.register(idCommitmentBigInt, this.rateLimit, [], {
+        await this.contract.register(idCommitmentBigIntBE, this.rateLimit, [], {
           gasLimit
         });
 
@@ -654,7 +626,7 @@ export class RLNBaseContract {
           permit.v,
           permit.r,
           permit.s,
-          this.getIdCommitmentBigInt(identity.IDCommitment),
+          BytesUtils.buildBigIntFromUint8ArrayBE(identity.IDCommitment),
           this.rateLimit,
           idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
         );
