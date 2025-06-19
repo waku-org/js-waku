@@ -36,7 +36,7 @@ describe("PeerManager", () => {
     ];
     sinon.stub(libp2p, "getConnections").returns(connections);
 
-    const peers = peerManager.getPeers();
+    const peers = peerManager.getPeers("codec");
     expect(peers.length).to.equal(2);
   });
 
@@ -48,7 +48,7 @@ describe("PeerManager", () => {
     ];
     sinon.stub(libp2p, "getConnections").returns(connections);
 
-    const peerId = peerManager.requestRenew("1");
+    const peerId = peerManager.requestRenew("1", "codec");
     expect(peerId).to.not.be.undefined;
     expect(peerId).to.not.equal("1");
   });
@@ -113,6 +113,6 @@ function mockConnection(id: string, locked: boolean): Connection {
         (typeof other === "string" ? other.toString() : other) === id
     },
     status: "open",
-    tags: locked ? ["peer-manager-lock"] : []
+    tags: locked ? ["peer-manager-lock", "codec"] : []
   } as unknown as Connection;
 }

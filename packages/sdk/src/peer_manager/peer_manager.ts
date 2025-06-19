@@ -39,22 +39,29 @@ export class PeerManager {
     this.stopConnectionListener();
   }
 
-  public getPeers(): PeerId[] {
-    return this.getLockedConnections().map((c) => c.remotePeer);
+  public getPeers(codec: string): PeerId[] {
+    return this.getLockedConnections(codec).map((c) => c.remotePeer);
   }
 
-  public requestRenew(peerId: PeerId | string): PeerId | undefined {
-    const lockedConnections = this.getLockedConnections();
+  public requestRenew(
+    peerId: PeerId | string,
+    codec?: string
+  ): PeerId | undefined {
+    const lockedConnections = this.getLockedConnections(codec);
     const neededPeers = this.numPeersToUse - lockedConnections.length;
 
     if (neededPeers === 0) {
       return;
     }
 
+    this.getLockedConnections(codec)
+      .filter((c) => c.remotePeer.equals(peerId))
+      .forEach((c) => this.unlockConnection(c, codec));
+
     const connections = this.getUnlockedConnections()
       .filter((c) => !c.remotePeer.equals(peerId))
       .slice(0, neededPeers)
-      .map((c) => this.lockConnection(c))
+      .map((c) => this.lockConnection(c, codec))
       .map((c) => c.remotePeer);
 
     const newPeerId = connections[0];
@@ -106,10 +113,10 @@ export class PeerManager {
       .map((c) => this.lockConnection(c));
   }
 
-  private getLockedConnections(): Connection[] {
+  private getLockedConnections(codec?: string): Connection[] {
     return this.libp2p
       .getConnections()
-      .filter((c) => c.status === "open" && this.isConnectionLocked(c));
+      .filter((c) => c.status === "open" && this.isConnectionLocked(c, codec));
   }
 
   private getUnlockedConnections(): Connection[] {
@@ -118,15 +125,27 @@ export class PeerManager {
       .filter((c) => c.status === "open" && !this.isConnectionLocked(c));
   }
 
-  private lockConnection(c: Connection): Connection {
+  private lockConnection(c: Connection, codec?: string): Connection {
     log.info(
-      `requestRenew: Locking connection for peerId=${c.remotePeer.toString()}`
+      `lockConnection: Locking connection for peerId=${c.remotePeer.toString()}`
     );
     c.tags.push(CONNECTION_LOCK_TAG);
+    codec && c.tags.push(codec);
     return c;
   }
 
-  private isConnectionLocked(c: Connection): boolean {
-    return c.tags.includes(CONNECTION_LOCK_TAG);
+  private unlockConnection(c: Connection, codec?: string): Connection {
+    log.info(
+      `unlockConnection: Unlocking connection for peerId=${c.remotePeer.toString()}`
+    );
+    c.tags = c.tags.filter((t) => t === CONNECTION_LOCK_TAG || t === codec);
+    return c;
+  }
+
+  private isConnectionLocked(c: Connection, codec?: string): boolean {
+    return (
+      c.tags.includes(CONNECTION_LOCK_TAG) &&
+      (codec ? c.tags.includes(codec) : true)
+    );
   }
 }

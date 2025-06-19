@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
+import { LightPushCodec } from "@waku/core";
 import { type CoreProtocolResult, ProtocolError } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -96,8 +97,12 @@ describe("RetryManager", () => {
     });
 
     expect((peerManager.requestRenew as sinon.SinonSpy).calledOnce).to.be.true;
-    expect((peerManager.requestRenew as sinon.SinonSpy).calledWith(mockPeerId))
-      .to.be.true;
+    expect(
+      (peerManager.requestRenew as sinon.SinonSpy).calledWith(
+        mockPeerId,
+        LightPushCodec
+      )
+    ).to.be.true;
   });
 
   it("should handle task timeouts", async () => {
