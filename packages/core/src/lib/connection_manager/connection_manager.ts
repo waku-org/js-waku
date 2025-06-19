@@ -573,7 +573,7 @@ export class ConnectionManager
       return false;
     }
 
-    const isSameShard = await this.isPeerTopicConfigured(peerId);
+    const isSameShard = await this.isPeerOnSameShard(peerId);
     if (!isSameShard) {
       const shardInfo = await this.getPeerShardInfo(peerId);
 
@@ -662,18 +662,34 @@ export class ConnectionManager
     }
   }
 
-  public async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
+  public async isPeerOnSameShard(peerId: PeerId): Promise<boolean> {
     const shardInfo = await this.getPeerShardInfo(peerId);
 
-    // If there's no shard information, simply return true
-    if (!shardInfo) return true;
+    if (!shardInfo) {
+      return true;
+    }
 
     const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
 
     const isTopicConfigured = pubsubTopics.some((topic) =>
       this.pubsubTopics.includes(topic)
     );
+
     return isTopicConfigured;
+  }
+
+  public async isPeerOnPubsubTopic(
+    peerId: PeerId,
+    pubsubTopic: string
+  ): Promise<boolean> {
+    const shardInfo = await this.getPeerShardInfo(peerId);
+
+    if (!shardInfo) {
+      return true;
+    }
+
+    const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
+    return pubsubTopics.some((t) => t === pubsubTopic);
   }
 
   private async getPeerShardInfo(

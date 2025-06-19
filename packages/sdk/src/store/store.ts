@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface";
+import type { Peer, PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import {
@@ -97,7 +97,7 @@ export class Store implements IStore {
       ...options
     };
 
-    const peer = await this.getPeerToUse();
+    const peer = await this.getPeerToUse(pubsubTopic);
 
     if (!peer) {
       log.error("No peers available to query");
@@ -264,45 +264,25 @@ export class Store implements IStore {
     };
   }
 
-  private async getPeerToUse(): Promise<PeerId | undefined> {
-    if (this.options?.peers) {
-      const firstConnected = await this.dialOrReturnConnected(
-        this.options.peers
-      );
+  private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
+    const peers = await this.filterConnectedPeers(pubsubTopic);
 
-      if (firstConnected) {
-        return firstConnected;
-      }
+    const peer = this.options.peers
+      ? await this.getPeerFromConfigurationOrFirst(peers, this.options.peers)
+      : peers[0]?.id;
 
-      log.warn(
-        `Passed node to use for Store not found: ${this.options.peers.toString()}. Attempting to use random peers.`
-      );
-    }
-
-    const connectedPeers = await this.connectionManager.getConnectedPeers();
-
-    const peers = connectedPeers
-      .filter((p) => this.connectionManager.isPeerTopicConfigured(p.id))
-      .filter((p) => p.protocols.includes(StoreCodec));
-
-    if (peers.length > 0) {
-      return peers[0].id;
-    }
-
-    log.error("No peers available to use.");
-    return;
+    return peer;
   }
 
-  private async dialOrReturnConnected(
-    peers: string[]
+  private async getPeerFromConfigurationOrFirst(
+    peers: Peer[],
+    configPeers: string[]
   ): Promise<PeerId | undefined> {
-    const connectedPeers = await this.connectionManager.getConnectedPeers();
-    const storePeers = peers.map(multiaddr);
-
+    const storePeers = configPeers.map(multiaddr);
     const missing = [];
 
     for (const peer of storePeers) {
-      const matchedPeer = connectedPeers.find(
+      const matchedPeer = peers.find(
         (p) => p.id.toString() === peer.getPeerId()?.toString()
       );
 
@@ -333,6 +313,32 @@ export class Store implements IStore {
       }
     }
 
-    return;
+    log.warn(
+      `Passed node to use for Store not found: ${configPeers.toString()}. Attempting to use first available peers.`
+    );
+
+    return peers[0]?.id;
+  }
+
+  private async filterConnectedPeers(pubsubTopic: string): Promise<Peer[]> {
+    const peers = await this.connectionManager.getConnectedPeers();
+    const result: Peer[] = [];
+
+    for (const peer of peers) {
+      const isStoreCodec = peer.protocols.includes(StoreCodec);
+      const isSameShard = await this.connectionManager.isPeerOnSameShard(
+        peer.id
+      );
+      const isSamePubsub = await this.connectionManager.isPeerOnPubsubTopic(
+        peer.id,
+        pubsubTopic
+      );
+
+      if (isStoreCodec && isSameShard && isSamePubsub) {
+        result.push(peer);
+      }
+    }
+
+    return result;
   }
 }
