@@ -49,7 +49,7 @@ export class StreamManager {
   }
 
   private async createStream(peerId: PeerId, retries = 0): Promise<Stream> {
-    const connections = this.libp2p.getConnections(peerId);
+    const connections = this.libp2p.connectionManager.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {
@@ -137,7 +137,7 @@ export class StreamManager {
   }
 
   private getOpenStreamForCodec(peerId: PeerId): Stream | undefined {
-    const connections = this.libp2p.getConnections(peerId);
+    const connections = this.libp2p.connectionManager.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {

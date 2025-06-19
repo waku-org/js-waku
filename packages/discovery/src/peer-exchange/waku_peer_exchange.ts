@@ -1,12 +1,11 @@
-import { BaseProtocol } from "@waku/core/lib/base_protocol";
+import { StreamManager } from "@waku/core";
 import { EnrDecoder } from "@waku/enr";
 import {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
   PeerExchangeQueryResult,
-  ProtocolError,
-  PubsubTopic
+  ProtocolError
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -24,15 +23,14 @@ const log = new Logger("peer-exchange");
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
-export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
+export class WakuPeerExchange implements IPeerExchange {
+  private readonly streamManager: StreamManager;
+
   /**
    * @param components - libp2p components
    */
-  public constructor(
-    components: Libp2pComponents,
-    pubsubTopics: PubsubTopic[]
-  ) {
-    super(PeerExchangeCodec, components, pubsubTopics);
+  public constructor(private readonly components: Libp2pComponents) {
+    this.streamManager = new StreamManager(PeerExchangeCodec, components);
   }
 
   /**
@@ -57,7 +55,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
 
     let stream;
     try {
-      stream = await this.getStream(peerId);
+      stream = await this.streamManager.getStream(peerId);
     } catch (err) {
       log.error("Failed to get stream", err);
       return {
@@ -118,9 +116,8 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
  *
  * @returns A function that creates a new peer exchange protocol
  */
-export function wakuPeerExchange(
-  pubsubTopics: PubsubTopic[]
-): (components: Libp2pComponents) => WakuPeerExchange {
-  return (components: Libp2pComponents) =>
-    new WakuPeerExchange(components, pubsubTopics);
+export function wakuPeerExchange(): (
+  components: Libp2pComponents
+) => WakuPeerExchange {
+  return (components: Libp2pComponents) => new WakuPeerExchange(components);
 }

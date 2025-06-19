@@ -5,7 +5,6 @@ import { createLightNode } from "@waku/sdk";
 
 import {
   beforeEachCustom,
-  DefaultTestPubsubTopic,
   DefaultTestShardInfo,
   makeLogFileName,
   ServiceNode,
@@ -46,9 +45,7 @@ describe("Peer Exchange", function () {
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
-        const peerExchange = new PeerExchangeDiscovery(waku.libp2p.components, [
-          DefaultTestPubsubTopic
-        ]);
+        const peerExchange = new PeerExchangeDiscovery(waku.libp2p.components);
 
         peerExchange.addEventListener("waku:peer-exchange:started", (event) => {
           if (event.detail === true) {
