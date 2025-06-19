@@ -12,10 +12,6 @@
     "./lib/message/version_0": {
       "types": "./dist/lib/message/version_0.d.ts",
       "import": "./dist/lib/message/version_0.js"
-    },
-    "./lib/base_protocol": {
-      "types": "./dist/lib/base_protocol.d.ts",
-      "import": "./dist/lib/base_protocol.js"
     }
   },
   "typesVersions": {
