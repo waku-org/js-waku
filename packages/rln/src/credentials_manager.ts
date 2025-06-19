@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { LINEA_CONTRACT } from "./contract/constants.js";
+import { DEFAULT_Q, LINEA_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -13,7 +13,8 @@ import type {
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
-import { extractMetaMaskSigner, switchEndianness } from "./utils/index.js";
+import { BytesUtils } from "./utils/bytes.js";
+import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:credentials");
@@ -268,21 +269,36 @@ export class RLNCredentialsManager {
     const combinedBytes = new Uint8Array([...idTrapdoorBE, ...idNullifierBE]);
     const idSecretHashBE = sha256(combinedBytes);
 
-    const idCommitmentBE = sha256(idSecretHashBE);
+    const idCommitmentRawBE = sha256(idSecretHashBE);
+    const idCommitmentBE = this.reduceIdCommitment(idCommitmentRawBE);
 
-    // All hashing functions return big-endian bytes
-    // We need to switch to little-endian for the identity credential
-    const idTrapdoorLE = switchEndianness(idTrapdoorBE);
-    const idNullifierLE = switchEndianness(idNullifierBE);
-    const idSecretHashLE = switchEndianness(idSecretHashBE);
-    const idCommitmentLE = switchEndianness(idCommitmentBE);
-
-    log.info("Successfully generated identity credential");
-    return new IdentityCredential(
-      idTrapdoorLE,
-      idNullifierLE,
-      idSecretHashLE,
-      idCommitmentLE
+    log.info(
+      "Successfully generated identity credential, storing in Big Endian format"
     );
+    return new IdentityCredential(
+      idTrapdoorBE,
+      idNullifierBE,
+      idSecretHashBE,
+      idCommitmentBE
+    );
+  }
+
+  /**
+   * Helper: take 32-byte BE, reduce mod Q, return 32-byte BE
+   */
+  private reduceIdCommitment(
+    bytesBE: Uint8Array,
+    limit: bigint = DEFAULT_Q
+  ): Uint8Array {
+    const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
+
+    if (nBE >= limit) {
+      log.warn(
+        `ID commitment is greater than Q, reducing it by Q: ${nBE} % ${limit}`
+      );
+      return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
+    }
+
+    return bytesBE;
   }
 }
