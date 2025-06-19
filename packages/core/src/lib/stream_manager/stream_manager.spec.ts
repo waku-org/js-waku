@@ -34,7 +34,7 @@ describe("StreamManager", () => {
         createMockStream({ id: "1", protocol: MULTICODEC, writeStatus })
       ];
 
-      streamManager["libp2p"]["getConnections"] = (
+      streamManager["libp2p"]["connectionManager"]["getConnections"] = (
         _peerId: PeerId | undefined
       ) => [con1];
 
@@ -46,7 +46,7 @@ describe("StreamManager", () => {
   });
 
   it("should throw if no connection provided", async () => {
-    streamManager["libp2p"]["getConnections"] = (
+    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _peerId: PeerId | undefined
     ) => [];
 
@@ -78,7 +78,7 @@ describe("StreamManager", () => {
       );
 
       con1.newStream = newStreamSpy;
-      streamManager["libp2p"]["getConnections"] = (
+      streamManager["libp2p"]["connectionManager"]["getConnections"] = (
         _peerId: PeerId | undefined
       ) => [con1];
 
@@ -105,7 +105,7 @@ describe("StreamManager", () => {
     );
 
     con1.newStream = newStreamSpy;
-    streamManager["libp2p"]["getConnections"] = (
+    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _peerId: PeerId | undefined
     ) => [con1];
 
@@ -151,7 +151,9 @@ describe("StreamManager", () => {
         writeStatus: "writable"
       })
     ];
-    streamManager["libp2p"]["getConnections"] = (_id: string) => [con1];
+    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+      _id: PeerId | undefined
+    ) => [con1];
 
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
