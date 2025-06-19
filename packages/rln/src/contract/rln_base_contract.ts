@@ -80,8 +80,7 @@ export class RLNBaseContract {
     const instance = new RLNBaseContract(options);
     const [min, max] = await Promise.all([
       instance.contract.minMembershipRateLimit(),
-      instance.contract.maxMembershipRateLimit(),
-      instance.contract.Q()
+      instance.contract.maxMembershipRateLimit()
     ]);
     instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
     instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
@@ -500,12 +499,10 @@ export class RLNBaseContract {
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
 
-      const idCommitmentBigIntBE = BytesUtils.buildBigIntFromUint8ArrayBE(
-        identity.IDCommitment
-      );
-
       // Check if the ID commitment is already registered
-      const existingIndex = await this.getMemberIndex(idCommitmentBigIntBE);
+      const existingIndex = await this.getMemberIndex(
+        identity.IDCommitmentBigInt
+      );
       if (existingIndex) {
         throw new Error(
           `ID commitment is already registered with index ${existingIndex}`
@@ -521,16 +518,21 @@ export class RLNBaseContract {
       }
 
       const estimatedGas = await this.contract.estimateGas.register(
-        idCommitmentBigIntBE,
+        identity.IDCommitmentBigInt,
         this.rateLimit,
         []
       );
       const gasLimit = estimatedGas.add(10000);
 
       const txRegisterResponse: ethers.ContractTransaction =
-        await this.contract.register(idCommitmentBigIntBE, this.rateLimit, [], {
-          gasLimit
-        });
+        await this.contract.register(
+          identity.IDCommitmentBigInt,
+          this.rateLimit,
+          [],
+          {
+            gasLimit
+          }
+        );
 
       const txRegisterReceipt = await txRegisterResponse.wait();
 

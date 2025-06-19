@@ -250,6 +250,7 @@ export class Keystore {
       const str = bytesToUtf8(bytes);
       const obj = JSON.parse(str);
 
+      // Little Endian
       const idCommitmentLE = Keystore.fromArraylikeToBytes(
         _.get(obj, "identityCredential.idCommitment", [])
       );
@@ -263,14 +264,21 @@ export class Keystore {
         _.get(obj, "identityCredential.idSecretHash", [])
       );
 
+      // Big Endian
+      const idCommitmentBE = BytesUtils.switchEndianness(idCommitmentLE);
+      const idTrapdoorBE = BytesUtils.switchEndianness(idTrapdoorLE);
+      const idNullifierBE = BytesUtils.switchEndianness(idNullifierLE);
+      const idSecretHashBE = BytesUtils.switchEndianness(idSecretHashLE);
+      const idCommitmentBigInt =
+        BytesUtils.buildBigIntFromUint8ArrayBE(idCommitmentBE);
+
       return {
         identity: {
-          IDCommitment: idCommitmentLE,
-          IDTrapdoor: idTrapdoorLE,
-          IDNullifier: idNullifierLE,
-          IDSecretHash: idSecretHashLE,
-          IDCommitmentBigInt:
-            BytesUtils.buildBigIntFromUint8ArrayBE(idCommitmentLE)
+          IDCommitment: idCommitmentBE,
+          IDTrapdoor: idTrapdoorBE,
+          IDNullifier: idNullifierBE,
+          IDSecretHash: idSecretHashBE,
+          IDCommitmentBigInt: idCommitmentBigInt
         },
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
