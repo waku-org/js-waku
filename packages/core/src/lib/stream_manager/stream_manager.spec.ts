@@ -22,7 +22,7 @@ describe("StreamManager", () => {
   beforeEach(() => {
     eventTarget = new EventTarget();
     streamManager = new StreamManager(MULTICODEC, {
-      getConnections: () => [],
+      connectionManager: { getConnections: () => [] },
       events: eventTarget
     } as any as Libp2pComponents);
   });
