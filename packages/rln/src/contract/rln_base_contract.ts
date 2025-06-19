@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
+import { BytesUtils } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
@@ -490,7 +491,6 @@ export class RLNBaseContract {
       log.error(`Error in withdraw: ${(error as Error).message}`);
     }
   }
-
   public async registerWithIdentity(
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
@@ -529,7 +529,9 @@ export class RLNBaseContract {
           identity.IDCommitmentBigInt,
           this.rateLimit,
           [],
-          { gasLimit }
+          {
+            gasLimit
+          }
         );
 
       const txRegisterReceipt = await txRegisterResponse.wait();
@@ -626,7 +628,7 @@ export class RLNBaseContract {
           permit.v,
           permit.r,
           permit.s,
-          identity.IDCommitmentBigInt,
+          BytesUtils.buildBigIntFromUint8ArrayBE(identity.IDCommitment),
           this.rateLimit,
           idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
         );
