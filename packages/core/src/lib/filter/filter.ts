@@ -3,7 +3,6 @@ import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
   type CoreProtocolResult,
-  type IBaseProtocolCore,
   type Libp2p,
   ProtocolError,
   type PubsubTopic
@@ -15,7 +14,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
+import { StreamManager } from "../stream_manager/index.js";
 
 import {
   FilterPushRpc,
@@ -36,15 +35,21 @@ type IncomingMessageHandler = (
   peerIdStr: string
 ) => Promise<void>;
 
-export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
+export class FilterCore {
+  private streamManager: StreamManager;
   private static handleIncomingMessage?: IncomingMessageHandler;
+
+  public readonly multicodec = FilterCodecs.SUBSCRIBE;
 
   public constructor(
     handleIncomingMessage: IncomingMessageHandler,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
-    super(FilterCodecs.SUBSCRIBE, libp2p.components, pubsubTopics);
+    this.streamManager = new StreamManager(
+      FilterCodecs.SUBSCRIBE,
+      libp2p.components
+    );
 
     // TODO(weboko): remove when @waku/sdk 0.0.33 is released
     const prevHandler = FilterCore.handleIncomingMessage;
@@ -83,7 +88,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     peerId: PeerId,
     contentTopics: ContentTopic[]
   ): Promise<CoreProtocolResult> {
-    const stream = await this.getStream(peerId);
+    const stream = await this.streamManager.getStream(peerId);
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
       pubsubTopic,
@@ -139,7 +144,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
   ): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
-      stream = await this.getStream(peerId);
+      stream = await this.streamManager.getStream(peerId);
     } catch (error) {
       log.error(
         `Failed to get a stream for remote peer${peerId.toString()}`,
@@ -182,7 +187,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     pubsubTopic: PubsubTopic,
     peerId: PeerId
   ): Promise<CoreProtocolResult> {
-    const stream = await this.getStream(peerId);
+    const stream = await this.streamManager.getStream(peerId);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
 
@@ -229,7 +234,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
   public async ping(peerId: PeerId): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
-      stream = await this.getStream(peerId);
+      stream = await this.streamManager.getStream(peerId);
     } catch (error) {
       log.error(
         `Failed to get a stream for remote peer${peerId.toString()}`,

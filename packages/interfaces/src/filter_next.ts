@@ -2,6 +2,8 @@ import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback } from "./protocols.js";
 
 export type INextFilter = {
+  readonly multicodec: string;
+
   /**
    * Subscribes to messages with specified decoders and executes callback when a message is received.
    * In case no peers available initially - will delay subscription till connects to any peer.

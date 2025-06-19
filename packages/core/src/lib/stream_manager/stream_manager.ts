@@ -1,5 +1,5 @@
 import type { Peer, PeerId, PeerUpdate, Stream } from "@libp2p/interface";
-import type { Libp2p } from "@waku/interfaces";
+import type { Libp2pComponents } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { selectOpenConnection } from "./utils.js";
@@ -14,11 +14,13 @@ export class StreamManager {
 
   public constructor(
     private multicodec: string,
-    private getConnections: Libp2p["getConnections"],
-    private addEventListener: Libp2p["addEventListener"]
+    private readonly libp2p: Libp2pComponents
   ) {
     this.log = new Logger(`stream-manager:${multicodec}`);
-    this.addEventListener("peer:update", this.handlePeerUpdateStreamPool);
+    this.libp2p.events.addEventListener(
+      "peer:update",
+      this.handlePeerUpdateStreamPool
+    );
   }
 
   public async getStream(peerId: PeerId): Promise<Stream> {
@@ -47,7 +49,7 @@ export class StreamManager {
   }
 
   private async createStream(peerId: PeerId, retries = 0): Promise<Stream> {
-    const connections = this.getConnections(peerId);
+    const connections = this.libp2p.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {
@@ -135,7 +137,7 @@ export class StreamManager {
   }
 
   private getOpenStreamForCodec(peerId: PeerId): Stream | undefined {
-    const connections = this.getConnections(peerId);
+    const connections = this.libp2p.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {

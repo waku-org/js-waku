@@ -1,4 +1,5 @@
 import { Connection, Peer, PeerId, Stream } from "@libp2p/interface";
+import { Libp2pComponents } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -20,11 +21,10 @@ describe("StreamManager", () => {
 
   beforeEach(() => {
     eventTarget = new EventTarget();
-    streamManager = new StreamManager(
-      MULTICODEC,
-      () => [],
-      eventTarget.addEventListener.bind(eventTarget)
-    );
+    streamManager = new StreamManager(MULTICODEC, {
+      getConnections: () => [],
+      events: eventTarget
+    } as any as Libp2pComponents);
   });
 
   it("should return usable stream attached to connection", async () => {
@@ -34,7 +34,9 @@ describe("StreamManager", () => {
         createMockStream({ id: "1", protocol: MULTICODEC, writeStatus })
       ];
 
-      streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
+      streamManager["libp2p"]["getConnections"] = (
+        _peerId: PeerId | undefined
+      ) => [con1];
 
       const stream = await streamManager.getStream(mockPeer.id);
 
@@ -44,7 +46,9 @@ describe("StreamManager", () => {
   });
 
   it("should throw if no connection provided", async () => {
-    streamManager["getConnections"] = (_peerId: PeerId | undefined) => [];
+    streamManager["libp2p"]["getConnections"] = (
+      _peerId: PeerId | undefined
+    ) => [];
 
     let error: Error | undefined;
     try {
@@ -74,7 +78,9 @@ describe("StreamManager", () => {
       );
 
       con1.newStream = newStreamSpy;
-      streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
+      streamManager["libp2p"]["getConnections"] = (
+        _peerId: PeerId | undefined
+      ) => [con1];
 
       const stream = await streamManager.getStream(mockPeer.id);
 
@@ -99,7 +105,9 @@ describe("StreamManager", () => {
     );
 
     con1.newStream = newStreamSpy;
-    streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
+    streamManager["libp2p"]["getConnections"] = (
+      _peerId: PeerId | undefined
+    ) => [con1];
 
     const [stream1, stream2] = await Promise.all([
       streamManager.getStream(mockPeer.id),
@@ -143,7 +151,7 @@ describe("StreamManager", () => {
         writeStatus: "writable"
       })
     ];
-    streamManager["getConnections"] = (_id) => [con1];
+    streamManager["libp2p"]["getConnections"] = (_id: string) => [con1];
 
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;

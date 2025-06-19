@@ -38,9 +38,8 @@ type LightPushConstructorParams = {
 export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
-  private peerManager: PeerManager;
-
-  public readonly protocol: LightPushCore;
+  private readonly peerManager: PeerManager;
+  private readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {
     this.config = {
@@ -57,6 +56,10 @@ export class LightPush implements ILightPush {
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
     });
+  }
+
+  public get multicodec(): string {
+    return this.protocol.multicodec;
   }
 
   public start(): void {
