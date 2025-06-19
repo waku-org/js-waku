@@ -5,12 +5,7 @@ import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./contract/constants.js";
 import { IdentityCredential } from "./identity.js";
 import { Proof, proofToBytes } from "./proof.js";
 import { WitnessCalculator } from "./resources/witness_calculator";
-import {
-  concatenate,
-  dateToEpoch,
-  epochIntToBytes,
-  writeUIntLE
-} from "./utils/index.js";
+import { BytesUtils, dateToEpoch, epochIntToBytes } from "./utils/index.js";
 
 export class Zerokit {
   public constructor(
@@ -57,13 +52,16 @@ export class Zerokit {
   ): void {
     // serializes a seq of IDCommitments to a byte seq
     // the order of serialization is |id_commitment_len<8>|id_commitment<var>|
-    const idCommitmentLen = writeUIntLE(
+    const idCommitmentLen = BytesUtils.writeUIntLE(
       new Uint8Array(8),
       idCommitments.length,
       0,
       8
     );
-    const idCommitmentBytes = concatenate(idCommitmentLen, ...idCommitments);
+    const idCommitmentBytes = BytesUtils.concatenate(
+      idCommitmentLen,
+      ...idCommitments
+    );
     zerokitRLN.setLeavesFrom(this.zkRLN, index, idCommitmentBytes);
   }
 
@@ -83,9 +81,19 @@ export class Zerokit {
     rateLimit?: number
   ): Uint8Array {
     // calculate message length
-    const msgLen = writeUIntLE(new Uint8Array(8), uint8Msg.length, 0, 8);
-    const memIndexBytes = writeUIntLE(new Uint8Array(8), memIndex, 0, 8);
-    const rateLimitBytes = writeUIntLE(
+    const msgLen = BytesUtils.writeUIntLE(
+      new Uint8Array(8),
+      uint8Msg.length,
+      0,
+      8
+    );
+    const memIndexBytes = BytesUtils.writeUIntLE(
+      new Uint8Array(8),
+      memIndex,
+      0,
+      8
+    );
+    const rateLimitBytes = BytesUtils.writeUIntLE(
       new Uint8Array(8),
       rateLimit ?? this.rateLimit,
       0,
@@ -93,7 +101,7 @@ export class Zerokit {
     );
 
     // [ id_key<32> | id_index<8> | epoch<32> | signal_len<8> | signal<var> | rate_limit<8> ]
-    return concatenate(
+    return BytesUtils.concatenate(
       idKey,
       memIndexBytes,
       epoch,
@@ -169,8 +177,8 @@ export class Zerokit {
     }
 
     // calculate message length
-    const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = writeUIntLE(
+    const msgLen = BytesUtils.writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
+    const rateLimitBytes = BytesUtils.writeUIntLE(
       new Uint8Array(8),
       rateLimit ?? this.rateLimit,
       0,
@@ -179,7 +187,7 @@ export class Zerokit {
 
     return zerokitRLN.verifyRLNProof(
       this.zkRLN,
-      concatenate(pBytes, msgLen, msg, rateLimitBytes)
+      BytesUtils.concatenate(pBytes, msgLen, msg, rateLimitBytes)
     );
   }
 
@@ -196,19 +204,19 @@ export class Zerokit {
       pBytes = proofToBytes(proof);
     }
     // calculate message length
-    const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = writeUIntLE(
+    const msgLen = BytesUtils.writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
+    const rateLimitBytes = BytesUtils.writeUIntLE(
       new Uint8Array(8),
       rateLimit ?? this.rateLimit,
       0,
       8
     );
 
-    const rootsBytes = concatenate(...roots);
+    const rootsBytes = BytesUtils.concatenate(...roots);
 
     return zerokitRLN.verifyWithRoots(
       this.zkRLN,
-      concatenate(pBytes, msgLen, msg, rateLimitBytes),
+      BytesUtils.concatenate(pBytes, msgLen, msg, rateLimitBytes),
       rootsBytes
     );
   }
@@ -226,8 +234,8 @@ export class Zerokit {
     }
 
     // calculate message length
-    const msgLen = writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
-    const rateLimitBytes = writeUIntLE(
+    const msgLen = BytesUtils.writeUIntLE(new Uint8Array(8), msg.length, 0, 8);
+    const rateLimitBytes = BytesUtils.writeUIntLE(
       new Uint8Array(8),
       rateLimit ?? this.rateLimit,
       0,
@@ -236,7 +244,7 @@ export class Zerokit {
 
     return zerokitRLN.verifyWithRoots(
       this.zkRLN,
-      concatenate(pBytes, msgLen, msg, rateLimitBytes),
+      BytesUtils.concatenate(pBytes, msgLen, msg, rateLimitBytes),
       new Uint8Array()
     );
   }
