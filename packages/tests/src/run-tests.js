@@ -29,7 +29,8 @@ async function main() {
     stdio: "inherit",
     env: {
       ...process.env,
-      NODE_ENV: "test"
+      NODE_ENV: "test",
+      WAKUNODE_IMAGE: WAKUNODE_IMAGE
     }
   });
 

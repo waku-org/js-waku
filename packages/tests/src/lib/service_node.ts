@@ -39,6 +39,12 @@ BigInt.prototype.toJSON = function toJSON() {
   return Number(this);
 };
 
+type NwakuVersion = {
+  major: number;
+  minor: number;
+  patch: number;
+};
+
 export class ServiceNode {
   private docker?: Dockerode;
   private peerId?: PeerId;
@@ -47,6 +53,8 @@ export class ServiceNode {
   private readonly logPath: string;
   private restPort?: number;
   private args?: Args;
+
+  public readonly version: NwakuVersion | undefined;
 
   /**
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
@@ -75,6 +83,19 @@ export class ServiceNode {
 
   public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
+    const nwakuImage = process.env.WAKUNODE_IMAGE;
+    const nwakuVersion = nwakuImage?.split(":")[1];
+
+    if (nwakuVersion && nwakuVersion.startsWith("v")) {
+      const versionParts = nwakuVersion.substring(1).split(".");
+      if (versionParts.length === 3) {
+        this.version = {
+          major: Number(versionParts[0]),
+          minor: Number(versionParts[1]),
+          patch: Number(versionParts[2])
+        };
+      }
+    }
   }
 
   public get containerName(): string | undefined {
