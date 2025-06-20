@@ -1,5 +1,5 @@
 import type { IEncoder, IMessage } from "./message.js";
-import { SDKProtocolResult } from "./protocols.js";
+import { SDKProtocolResult, SDKProtocolResultWithMeta } from "./protocols.js";
 
 export type ISendOptions = {
   /**
@@ -16,6 +16,15 @@ export type ISendOptions = {
 };
 
 export interface ISender {
+  send: (
+    encoder: IEncoder,
+    message: IMessage,
+    sendOptions?: ISendOptions
+  ) => Promise<SDKProtocolResultWithMeta>;
+}
+
+// Legacy interface for backward compatibility
+export interface ISenderLegacy {
   send: (
     encoder: IEncoder,
     message: IMessage,

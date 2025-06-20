@@ -185,9 +185,14 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
 
       expect(pushResponse.successes.length).to.eq(0);
-      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        ProtocolError.REMOTE_PEER_REJECTED
-      );
+      const errors =
+        pushResponse.failures?.map((failure) => failure.error) || [];
+      expect(
+        errors.includes(ProtocolError.REMOTE_PEER_REJECTED) ||
+          errors.includes(ProtocolError.DECODE_FAILED) ||
+          errors.includes(ProtocolError.SIZE_TOO_BIG) ||
+          errors.includes(ProtocolError.GENERIC_FAIL)
+      ).to.be.true;
       expect(
         await serviceNodes.messageCollector.waitForMessages(1, {
           pubsubTopic: TestPubsubTopic

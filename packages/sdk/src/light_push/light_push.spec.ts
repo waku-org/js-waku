@@ -5,6 +5,7 @@ import {
   Encoder,
   LightPushCodec
 } from "@waku/core";
+import { LightPushCodecV3 } from "@waku/interfaces";
 import { Libp2p, ProtocolError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -62,7 +63,10 @@ describe("LightPush SDK", () => {
       (_encoder: any, _message: any, peerId: PeerId) =>
         Promise.resolve({ success: peerId }) as any
     );
-    lightPush["protocol"].send = sendSpy;
+
+    // Mock selectProtocol to return the main protocol with our spy
+    const mockProtocol = { send: sendSpy };
+    sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
 
     let result = await lightPush.send(encoder, {
       payload: utf8ToBytes("test")
@@ -77,7 +81,10 @@ describe("LightPush SDK", () => {
       (_encoder: any, _message: any, peerId: PeerId) =>
         Promise.resolve({ success: peerId }) as any
     );
-    lightPush["protocol"].send = sendSpy;
+
+    // Mock selectProtocol to return the main protocol with our spy
+    const mockProtocol2 = { send: sendSpy };
+    sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol2);
 
     result = await lightPush.send(encoder, { payload: utf8ToBytes("test") });
 
@@ -94,7 +101,10 @@ describe("LightPush SDK", () => {
     const sendSpy = sinon.spy((_encoder: any, _message: any, _peerId: PeerId) =>
       Promise.resolve({ failure: { error: "problem" } })
     );
-    lightPush["protocol"].send = sendSpy as any;
+
+    // Mock selectProtocol to return the main protocol with our spy
+    const mockProtocol = { send: sendSpy };
+    sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
 
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
     const result = await lightPush.send(
@@ -122,7 +132,10 @@ describe("LightPush SDK", () => {
         return Promise.resolve({ failure: { error: "problem" } });
       }
     );
-    lightPush["protocol"].send = sendSpy as any;
+
+    // Mock selectProtocol to return the main protocol with our spy
+    const mockProtocol = { send: sendSpy };
+    sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
 
     const result = await lightPush.send(
@@ -190,9 +203,22 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   return lightPush;
 }
 
-function mockPeer(id: string): Peer {
+function mockPeer(id: string, includeV3 = false): Peer {
+  const protocols = includeV3
+    ? [LightPushCodec, LightPushCodecV3]
+    : [LightPushCodec];
   return {
     id,
-    protocols: [LightPushCodec]
+    protocols
   } as unknown as Peer;
 }
+
+describe("Protocol Selection", () => {
+  it("should expose v3 protocol through getter", () => {
+    const lightPush = mockLightPush({ libp2p: mockLibp2p() });
+
+    // The protocol getter returns the v3 instance
+    expect(lightPush.protocol).to.exist;
+    expect(lightPush.protocol.multicodec).to.equal(LightPushCodecV3);
+  });
+});
