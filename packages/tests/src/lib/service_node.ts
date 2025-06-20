@@ -83,15 +83,19 @@ export class ServiceNode {
 
   public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
-    const nwakuVersion = process.env.WAKUNODE_IMAGE?.split(":")[1] ?? undefined;
+    const nwakuImage = process.env.WAKUNODE_IMAGE;
+    const nwakuVersion = nwakuImage?.split(":")[1];
 
-    this.version = nwakuVersion
-      ? {
-          major: Number(nwakuVersion.split("v")[1].split(".")[0]),
-          minor: Number(nwakuVersion.split("v")[1].split(".")[1]),
-          patch: Number(nwakuVersion.split("v")[1].split(".")[2])
-        }
-      : undefined;
+    if (nwakuVersion && nwakuVersion.startsWith("v")) {
+      const versionParts = nwakuVersion.substring(1).split(".");
+      if (versionParts.length === 3) {
+        this.version = {
+          major: Number(versionParts[0]),
+          minor: Number(versionParts[1]),
+          patch: Number(versionParts[2])
+        };
+      }
+    }
   }
 
   public get containerName(): string | undefined {
