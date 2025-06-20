@@ -25,6 +25,27 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/relay-v0.0.18...relay-v0.0.19) (2025-06-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/sdk bumped from 0.0.31 to 0.0.32
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/relay-v0.0.17...relay-v0.0.18) (2025-04-23)
 
 
