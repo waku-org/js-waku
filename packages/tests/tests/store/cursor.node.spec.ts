@@ -132,8 +132,11 @@ describe("Waku Store, cursor", function () {
     ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
-  it("Passing invalid cursor", async function () {
-    const testType = process.env.TEST_TYPE;
+  it("Passing invalid cursor for nwaku > 0.35.1", async function () {
+    if (nwaku.version && nwaku.version.minor < 36) {
+      this.skip();
+    }
+
     await sendMessages(
       nwaku,
       totalMsgs,
@@ -167,9 +170,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          testType === "node" && nwaku.version && nwaku.version.minor < 36
-            ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
-            : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
+          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
         )
       ) {
         throw err;
@@ -177,8 +178,10 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  it("Passing cursor with wrong pubsubTopic", async function () {
-    const testType = process.env.TEST_TYPE;
+  it("Passing cursor with wrong pubsubTopic for nwaku > 0.35.1", async function () {
+    if (nwaku.version && nwaku.version.minor < 36) {
+      this.skip();
+    }
 
     await sendMessages(
       nwaku,
@@ -207,9 +210,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          testType === "node" && nwaku.version && nwaku.version.minor < 36
-            ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
-            : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
+          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
         )
       ) {
         throw err;

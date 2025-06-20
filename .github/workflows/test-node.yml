@@ -35,7 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
-      TEST_TYPE: ${{ inputs.test_type }}
       ALLURE_REPORTS: ${{ inputs.allure_reports }}
     permissions:
       contents: read
