@@ -150,7 +150,7 @@ export const pubsubTopicsToShardInfo = (
     );
   }
 
-  const clusterId = clusterIds.values().next().value;
+  const clusterId = clusterIds.values().next().value!;
   const shards = Array.from(shardInfoSet).map((info) =>
     parseInt(info.split(":")[1])
   );
