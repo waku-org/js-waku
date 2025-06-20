@@ -8,7 +8,6 @@
   "packages/relay": "0.0.18",
   "packages/sdk": "0.0.31",
   "packages/discovery": "0.0.8",
-  "packages/react-native-polyfills": "0.0.1",
   "packages/sds": "0.0.3",
   "packages/rln": "0.1.5"
 }

@@ -44,14 +44,14 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
-    "@chainsafe/libp2p-gossipsub": "^14.1.0",
+    "@chainsafe/libp2p-gossipsub": "14.1.1",
     "@multiformats/multiaddr": "^12.0.0",
     "cspell": "^8.6.1",
     "npm-run-all": "^4.1.5",
-    "libp2p": "2.1.8"
+    "libp2p": "2.8.11"
   },
   "files": [
     "dist",

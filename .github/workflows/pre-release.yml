@@ -2,7 +2,7 @@ on:
     workflow_dispatch:
 
 env:
-  NODE_JS: "20"
+  NODE_JS: "22"
 
 jobs:
     pre-release:

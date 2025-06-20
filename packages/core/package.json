@@ -61,12 +61,12 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "@waku/enr": "^0.0.29",
     "@waku/interfaces": "0.0.30",
-    "@libp2p/ping": "2.0.1",
+    "@libp2p/ping": "2.0.35",
     "@waku/proto": "0.0.10",
     "@waku/utils": "0.0.23",
     "debug": "^4.3.4",
@@ -78,8 +78,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@libp2p/peer-id": "^5.0.1",
-    "@libp2p/interface": "^2.1.3",
+    "@libp2p/peer-id": "5.1.7",
+    "@libp2p/interface": "2.10.4",
     "@multiformats/multiaddr": "^12.0.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
@@ -102,7 +102,7 @@
   },
   "peerDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
-    "libp2p": "2.1.8"
+    "libp2p": "2.8.11"
   },
   "peerDependenciesMeta": {
     "@multiformats/multiaddr": {

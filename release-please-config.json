@@ -22,7 +22,6 @@
     "packages/sdk": {},
     "packages/relay": {},
     "packages/discovery": {},
-    "packages/react-native-polyfills": {},
     "packages/sds": {},
     "packages/rln": {}
   }
