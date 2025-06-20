@@ -56,7 +56,7 @@
         "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
     },
     "engines": {
-        "node": ">=20"
+        "node": ">=22"
     },
     "dependencies": {
         "@libp2p/interface": "2.7.0",
