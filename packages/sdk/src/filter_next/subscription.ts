@@ -455,7 +455,7 @@ export class Subscription {
     }
 
     const prevPeers = new Set(this.peers);
-    const peersToAdd = this.peerManager.getPeers();
+    const peersToAdd = this.peerManager.getPeers(this.protocol.multicodec);
     for (const peer of peersToAdd) {
       if (this.peers.size >= this.config.numPeersToUse) {
         break;

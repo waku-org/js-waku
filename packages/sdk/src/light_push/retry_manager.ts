@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
+import { LightPushCodec } from "@waku/core";
 import type { CoreProtocolResult } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -83,7 +84,7 @@ export class RetryManager {
   }
 
   private async taskExecutor(task: ScheduledTask): Promise<void> {
-    const peerId = this.peerManager.getPeers()[0];
+    const peerId = this.peerManager.getPeers(LightPushCodec)[0];
 
     if (!peerId) {
       log.warn("scheduleTask: no peers, skipping");
@@ -119,7 +120,7 @@ export class RetryManager {
       log.error("scheduleTask: task execution failed with error:", error);
 
       if (shouldPeerBeChanged(error.message)) {
-        this.peerManager.requestRenew(peerId);
+        this.peerManager.requestRenew(peerId, LightPushCodec);
       }
 
       if (task.maxAttempts === 0) {

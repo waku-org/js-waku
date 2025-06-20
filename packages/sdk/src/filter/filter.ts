@@ -167,7 +167,7 @@ export class Filter implements IFilter {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const peerIds = this.peerManager.getPeers();
+    const peerIds = this.peerManager.getPeers(this.protocol.multicodec);
     if (peerIds.length === 0) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,

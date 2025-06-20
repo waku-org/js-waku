@@ -93,7 +93,7 @@ export class LightPush implements ILightPush {
     }
 
     const peerIds = this.peerManager
-      .getPeers()
+      .getPeers(this.protocol.multicodec)
       .slice(0, this.config.numPeersToUse);
 
     if (peerIds.length === 0) {
