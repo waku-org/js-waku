@@ -167,7 +167,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          testType === "node" && nwaku.version.minor < 36
+          testType === "node" && nwaku.version && nwaku.version.minor < 36
             ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
             : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
         )
@@ -207,7 +207,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          testType === "node" && nwaku.version.minor < 36
+          testType === "node" && nwaku.version && nwaku.version.minor < 36
             ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
             : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
         )

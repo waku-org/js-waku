@@ -54,7 +54,7 @@ export class ServiceNode {
   private restPort?: number;
   private args?: Args;
 
-  public readonly version: NwakuVersion;
+  public readonly version: NwakuVersion | undefined;
 
   /**
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
@@ -84,14 +84,14 @@ export class ServiceNode {
   public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
     const nwakuVersion = process.env.WAKUNODE_IMAGE?.split(":")[1] ?? undefined;
-    if (!nwakuVersion) {
-      throw new Error("WAKUNODE_IMAGE is not set");
-    }
-    const [major, minor, patch] = nwakuVersion
-      .split("v")[1]
-      .split(".")
-      .map(Number);
-    this.version = { major, minor, patch };
+
+    this.version = nwakuVersion
+      ? {
+          major: Number(nwakuVersion.split("v")[1].split(".")[0]),
+          minor: Number(nwakuVersion.split("v")[1].split(".")[1]),
+          patch: Number(nwakuVersion.split("v")[1].split(".")[2])
+        }
+      : undefined;
   }
 
   public get containerName(): string | undefined {
