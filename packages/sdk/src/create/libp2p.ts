@@ -97,13 +97,13 @@ export async function createLibp2pAndUpdateOptions(
 
   if (options?.defaultBootstrap) {
     peerDiscovery.push(
-      ...getPeerDiscoveries(pubsubTopics, {
+      ...getPeerDiscoveries({
         ...DEFAULT_DISCOVERIES_ENABLED,
         ...options.discovery
       })
     );
   } else {
-    peerDiscovery.push(...getPeerDiscoveries(pubsubTopics, options.discovery));
+    peerDiscovery.push(...getPeerDiscoveries(options.discovery));
   }
 
   if (options?.bootstrapPeers) {

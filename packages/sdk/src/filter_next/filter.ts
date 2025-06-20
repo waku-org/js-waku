@@ -47,6 +47,10 @@ export class Filter implements IFilter {
     );
   }
 
+  public get multicodec(): string {
+    return this.protocol.multicodec;
+  }
+
   /**
    * Unsubscribes from all active subscriptions across all pubsub topics.
    *

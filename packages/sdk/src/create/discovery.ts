@@ -5,14 +5,9 @@ import {
   wakuLocalPeerCacheDiscovery,
   wakuPeerExchangeDiscovery
 } from "@waku/discovery";
-import {
-  CreateNodeOptions,
-  type Libp2pComponents,
-  PubsubTopic
-} from "@waku/interfaces";
+import { CreateNodeOptions, type Libp2pComponents } from "@waku/interfaces";
 
 export function getPeerDiscoveries(
-  pubsubTopics: PubsubTopic[],
   enabled?: CreateNodeOptions["discovery"]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const dnsEnrTrees = [enrTree["SANDBOX"]];
@@ -28,7 +23,7 @@ export function getPeerDiscoveries(
   }
 
   if (enabled?.peerExchange) {
-    discoveries.push(wakuPeerExchangeDiscovery(pubsubTopics));
+    discoveries.push(wakuPeerExchangeDiscovery());
   }
 
   return discoveries;

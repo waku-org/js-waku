@@ -9,7 +9,7 @@ import {
 } from "@waku/discovery";
 import type { LightNode, PeerExchangeQueryResult } from "@waku/interfaces";
 import { createLightNode, Libp2pComponents, ProtocolError } from "@waku/sdk";
-import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -25,12 +25,6 @@ import {
 export const log = new Logger("test:pe");
 
 const ShardInfo = { clusterId: 0, shards: [2] };
-const pubsubTopic = [
-  singleShardInfoToPubsubTopic({
-    clusterId: ShardInfo.clusterId,
-    shard: ShardInfo.shards[0]
-  })
-];
 
 describe("Peer Exchange Query", function () {
   this.timeout(30_000);
@@ -82,7 +76,7 @@ describe("Peer Exchange Query", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3MA.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopic)
+            wakuPeerExchangeDiscovery()
           ]
         }
       });
@@ -91,7 +85,7 @@ describe("Peer Exchange Query", function () {
       await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, nwaku3PeerId);
 
       components = waku.libp2p.components as unknown as Libp2pComponents;
-      peerExchange = new WakuPeerExchange(components, pubsubTopic);
+      peerExchange = new WakuPeerExchange(components);
       numPeersToRequest = 2;
 
       const startTime = Date.now();

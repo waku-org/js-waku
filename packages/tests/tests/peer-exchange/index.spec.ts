@@ -10,7 +10,6 @@ import Sinon, { SinonSpy } from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
-  DefaultTestPubsubTopic,
   DefaultTestShardInfo,
   makeLogFileName,
   ServiceNode,
@@ -59,7 +58,7 @@ describe("Peer Exchange", function () {
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
-          wakuPeerExchangeDiscovery([DefaultTestPubsubTopic])
+          wakuPeerExchangeDiscovery()
         ]
       }
     });
@@ -106,7 +105,7 @@ describe("Peer Exchange", function () {
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
-          wakuPeerExchangeDiscovery([DefaultTestPubsubTopic])
+          wakuPeerExchangeDiscovery()
         ]
       }
     });
@@ -165,7 +164,7 @@ describe("Peer Exchange", function () {
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
-          wakuPeerExchangeDiscovery(["wrong"])
+          wakuPeerExchangeDiscovery()
         ]
       }
     });

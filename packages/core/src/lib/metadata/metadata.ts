@@ -16,21 +16,24 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
+import { StreamManager } from "../stream_manager/index.js";
 
 const log = new Logger("metadata");
 
 export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
-class Metadata extends BaseProtocol implements IMetadata {
-  private libp2pComponents: Libp2pComponents;
+class Metadata implements IMetadata {
+  private readonly streamManager: StreamManager;
+  private readonly libp2pComponents: Libp2pComponents;
   protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
+
+  public readonly multicodec = MetadataCodec;
 
   public constructor(
     public pubsubTopics: PubsubTopic[],
     libp2p: Libp2pComponents
   ) {
-    super(MetadataCodec, libp2p.components, pubsubTopics);
+    this.streamManager = new StreamManager(MetadataCodec, libp2p);
     this.libp2pComponents = libp2p;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
@@ -55,7 +58,7 @@ class Metadata extends BaseProtocol implements IMetadata {
 
     let stream;
     try {
-      stream = await this.getStream(peerId);
+      stream = await this.streamManager.getStream(peerId);
     } catch (error) {
       log.error("Failed to get stream", error);
       return {

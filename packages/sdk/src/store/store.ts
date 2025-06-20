@@ -27,11 +27,10 @@ type StoreConstructorParams = {
  * It provides methods to interact with the Waku Store protocol.
  */
 export class Store implements IStore {
-  private options: Partial<StoreProtocolOptions>;
-  private peerManager: PeerManager;
-  private connectionManager: ConnectionManager;
-
-  public readonly protocol: StoreCore;
+  private readonly options: Partial<StoreProtocolOptions>;
+  private readonly peerManager: PeerManager;
+  private readonly connectionManager: ConnectionManager;
+  private readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
@@ -42,6 +41,10 @@ export class Store implements IStore {
       params.connectionManager.pubsubTopics,
       params.libp2p
     );
+  }
+
+  public get multicodec(): string {
+    return this.protocol.multicodec;
   }
 
   /**

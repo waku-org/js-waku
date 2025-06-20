@@ -10,7 +10,6 @@ import type {
 import {
   type Libp2pComponents,
   type PeerExchangeQueryResult,
-  PubsubTopic,
   ShardInfo,
   Tags
 } from "@waku/interfaces";
@@ -87,14 +86,10 @@ export class PeerExchangeDiscovery
     );
   };
 
-  public constructor(
-    components: Libp2pComponents,
-    pubsubTopics: PubsubTopic[],
-    options: Options = {}
-  ) {
+  public constructor(components: Libp2pComponents, options: Options = {}) {
     super();
     this.components = components;
-    this.peerExchange = new WakuPeerExchange(components, pubsubTopics);
+    this.peerExchange = new WakuPeerExchange(components);
     this.options = options;
     this.isStarted = false;
   }
@@ -314,9 +309,9 @@ export class PeerExchangeDiscovery
   }
 }
 
-export function wakuPeerExchangeDiscovery(
-  pubsubTopics: PubsubTopic[]
-): (components: Libp2pComponents) => PeerExchangeDiscovery {
+export function wakuPeerExchangeDiscovery(): (
+  components: Libp2pComponents
+) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) =>
-    new PeerExchangeDiscovery(components, pubsubTopics);
+    new PeerExchangeDiscovery(components);
 }
