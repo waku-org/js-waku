@@ -133,6 +133,7 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing invalid cursor", async function () {
+    const testType = process.env.TEST_TYPE;
     await sendMessages(
       nwaku,
       totalMsgs,
@@ -166,7 +167,9 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
+          testType === "node" && nwaku.version.minor < 36
+            ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
+            : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
         )
       ) {
         throw err;
@@ -175,6 +178,8 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing cursor with wrong pubsubTopic", async function () {
+    const testType = process.env.TEST_TYPE;
+
     await sendMessages(
       nwaku,
       totalMsgs,
@@ -202,7 +207,9 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
+          testType === "node" && nwaku.version.minor < 36
+            ? `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
+            : `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found`
         )
       ) {
         throw err;
