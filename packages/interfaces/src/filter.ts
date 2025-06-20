@@ -4,7 +4,6 @@ import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { ContentTopic, ThisOrThat } from "./misc.js";
 import type {
   Callback,
-  IBaseProtocolCore,
   ProtocolError,
   SDKProtocolResult
 } from "./protocols.js";
@@ -52,7 +51,8 @@ export interface ISubscription {
   unsubscribeAll(): Promise<SDKProtocolResult>;
 }
 
-export type IFilter = IReceiver & { protocol: IBaseProtocolCore } & {
+export type IFilter = IReceiver & {
+  readonly multicodec: string;
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>

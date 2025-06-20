@@ -2,7 +2,6 @@ import type { PeerId } from "@libp2p/interface";
 import {
   IDecodedMessage,
   IDecoder,
-  IStoreCore,
   Libp2p,
   PubsubTopic,
   QueryRequestParams
@@ -13,7 +12,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
+import { StreamManager } from "../stream_manager/index.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import {
@@ -27,12 +26,16 @@ const log = new Logger("store");
 
 export const StoreCodec = "/vac/waku/store-query/3.0.0";
 
-export class StoreCore extends BaseProtocol implements IStoreCore {
+export class StoreCore {
+  private readonly streamManager: StreamManager;
+
+  public readonly multicodec = StoreCodec;
+
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
-    super(StoreCodec, libp2p.components, pubsubTopics);
+    this.streamManager = new StreamManager(StoreCodec, libp2p.components);
   }
 
   public async *queryPerPage<T extends IDecodedMessage>(
@@ -70,7 +73,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
 
       let stream;
       try {
-        stream = await this.getStream(peerId);
+        stream = await this.streamManager.getStream(peerId);
       } catch (e) {
         log.error("Failed to get stream", e);
         break;

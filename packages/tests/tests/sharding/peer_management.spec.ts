@@ -8,11 +8,7 @@ import {
   ShardInfo,
   Tags
 } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  contentTopicToShardIndex,
-  singleShardInfoToPubsubTopic
-} from "@waku/utils";
+import { contentTopicToShardIndex } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
@@ -52,9 +48,6 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = [
-        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 2 })
-      ];
       const shardInfo: ShardInfo = { clusterId: clusterId, shards: [2] };
 
       await nwaku1.start({
@@ -93,7 +86,7 @@ describe("Static Sharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopics)
+            wakuPeerExchangeDiscovery()
           ]
         }
       });
@@ -127,9 +120,6 @@ describe("Static Sharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = [
-        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 2 })
-      ];
       const shardInfoToDial: ShardInfo = { clusterId: clusterId, shards: [2] };
 
       // this service node is not subscribed to the shard
@@ -169,7 +159,7 @@ describe("Static Sharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopicsToDial)
+            wakuPeerExchangeDiscovery()
           ]
         }
       });
@@ -229,7 +219,6 @@ describe("Autosharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, clusterId)];
       const contentTopicInfo: ContentTopicInfo = {
         clusterId: clusterId,
         contentTopics: [ContentTopic]
@@ -274,7 +263,7 @@ describe("Autosharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopics)
+            wakuPeerExchangeDiscovery()
           ]
         }
       });
@@ -308,9 +297,6 @@ describe("Autosharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = [
-        contentTopicToPubsubTopic(ContentTopic, clusterId)
-      ];
       const contentTopicInfoToDial: ContentTopicInfo = {
         clusterId: clusterId,
         contentTopics: [ContentTopic]
@@ -355,7 +341,7 @@ describe("Autosharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopicsToDial)
+            wakuPeerExchangeDiscovery()
           ]
         }
       });

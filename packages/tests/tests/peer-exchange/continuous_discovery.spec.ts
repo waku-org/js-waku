@@ -5,7 +5,7 @@ import { multiaddr } from "@multiformats/multiaddr";
 import { PeerExchangeDiscovery } from "@waku/discovery";
 import { IEnr, LightNode } from "@waku/interfaces";
 import { createLightNode, ShardInfo } from "@waku/sdk";
-import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
+import { decodeRelayShard } from "@waku/utils";
 import { expect } from "chai";
 import Sinon from "sinon";
 
@@ -24,10 +24,7 @@ describe("Peer Exchange Continuous Discovery", () => {
   beforeEach(async () => {
     waku = await createLightNode();
 
-    peerExchangeDiscovery = new PeerExchangeDiscovery(
-      waku.libp2p.components,
-      shardInfoToPubsubTopics(shardInfo)
-    );
+    peerExchangeDiscovery = new PeerExchangeDiscovery(waku.libp2p.components);
     queryStub = Sinon.stub(
       (peerExchangeDiscovery as any).peerExchange,
       "query" as any

@@ -1,7 +1,6 @@
 import type { PeerId, Stream } from "@libp2p/interface";
 import {
   type CoreProtocolResult,
-  type IBaseProtocolCore,
   type IEncoder,
   type IMessage,
   type Libp2p,
@@ -17,7 +16,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
+import { StreamManager } from "../stream_manager/index.js";
 
 import { PushRpc } from "./push_rpc.js";
 import { isRLNResponseError } from "./utils.js";
@@ -32,12 +31,16 @@ type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
+export class LightPushCore {
+  private readonly streamManager: StreamManager;
+
+  public readonly multicodec = LightPushCodec;
+
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
-    super(LightPushCodec, libp2p.components, pubsubTopics);
+    this.streamManager = new StreamManager(LightPushCodec, libp2p.components);
   }
 
   private async preparePushMessage(
@@ -98,7 +101,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
 
     let stream: Stream;
     try {
-      stream = await this.getStream(peerId);
+      stream = await this.streamManager.getStream(peerId);
     } catch (error) {
       log.error("Failed to get stream", error);
       return {

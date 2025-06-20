@@ -74,6 +74,10 @@ export class Filter implements IFilter {
     this.activeSubscriptions = new Map();
   }
 
+  public get multicodec(): string {
+    return this.protocol.multicodec;
+  }
+
   /**
    * Opens a subscription with the Filter protocol using the provided decoders and callback.
    * This method combines the functionality of creating a subscription and subscribing to it.

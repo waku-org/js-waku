@@ -62,7 +62,7 @@ describe("LightPush SDK", () => {
       (_encoder: any, _message: any, peerId: PeerId) =>
         Promise.resolve({ success: peerId }) as any
     );
-    lightPush.protocol.send = sendSpy;
+    lightPush["protocol"].send = sendSpy;
 
     let result = await lightPush.send(encoder, {
       payload: utf8ToBytes("test")
@@ -77,7 +77,7 @@ describe("LightPush SDK", () => {
       (_encoder: any, _message: any, peerId: PeerId) =>
         Promise.resolve({ success: peerId }) as any
     );
-    lightPush.protocol.send = sendSpy;
+    lightPush["protocol"].send = sendSpy;
 
     result = await lightPush.send(encoder, { payload: utf8ToBytes("test") });
 
@@ -94,7 +94,7 @@ describe("LightPush SDK", () => {
     const sendSpy = sinon.spy((_encoder: any, _message: any, _peerId: PeerId) =>
       Promise.resolve({ failure: { error: "problem" } })
     );
-    lightPush.protocol.send = sendSpy as any;
+    lightPush["protocol"].send = sendSpy as any;
 
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
     const result = await lightPush.send(
@@ -122,7 +122,7 @@ describe("LightPush SDK", () => {
         return Promise.resolve({ failure: { error: "problem" } });
       }
     );
-    lightPush.protocol.send = sendSpy as any;
+    lightPush["protocol"].send = sendSpy as any;
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
 
     const result = await lightPush.send(
