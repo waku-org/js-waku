@@ -48,12 +48,12 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "@ethersproject/rlp": "^5.7.0",
-    "@libp2p/crypto": "^5.0.1",
-    "@libp2p/peer-id": "^5.0.1",
+    "@libp2p/crypto": "5.1.6",
+    "@libp2p/peer-id": "5.1.7",
     "@multiformats/multiaddr": "^12.0.0",
     "@noble/secp256k1": "^1.7.1",
     "@waku/utils": "0.0.23",

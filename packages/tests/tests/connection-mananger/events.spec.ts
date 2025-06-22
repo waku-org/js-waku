@@ -158,10 +158,19 @@ describe("Events", function () {
 
   describe(EConnectionStateEvents.CONNECTION_STATUS, function () {
     let navigatorMock: any;
+    let originalNavigator: any;
+
+    before(() => {
+      originalNavigator = global.navigator;
+    });
 
     this.beforeEach(() => {
       navigatorMock = { onLine: true };
-      globalThis.navigator = navigatorMock;
+      Object.defineProperty(globalThis, "navigator", {
+        value: navigatorMock,
+        configurable: true,
+        writable: false
+      });
 
       const eventEmmitter = new TypedEventEmitter();
       globalThis.addEventListener =
@@ -173,8 +182,11 @@ describe("Events", function () {
     });
 
     this.afterEach(() => {
-      // @ts-expect-error: resetting set value
-      globalThis.navigator = undefined;
+      Object.defineProperty(globalThis, "navigator", {
+        value: originalNavigator,
+        configurable: true,
+        writable: false
+      });
       // @ts-expect-error: resetting set value
       globalThis.addEventListener = undefined;
       // @ts-expect-error: resetting set value

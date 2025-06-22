@@ -28,22 +28,33 @@ describe("Connection state", function () {
   let nwaku1PeerId: Multiaddr;
   let nwaku2PeerId: Multiaddr;
 
+  let navigatorMock: any;
+  let originalNavigator: any;
+
   beforeEachCustom(this, async () => {
-    try {
-      waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
-    } catch (error) {
-      console.error(error);
-    }
+    waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({ filter: true });
     await nwaku2.start({ filter: true });
     nwaku1PeerId = await nwaku1.getMultiaddrWithId();
     nwaku2PeerId = await nwaku2.getMultiaddrWithId();
+
+    navigatorMock = { onLine: true };
+    Object.defineProperty(globalThis, "navigator", {
+      value: navigatorMock,
+      configurable: true,
+      writable: false
+    });
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1, nwaku2], waku);
+    Object.defineProperty(globalThis, "navigator", {
+      value: originalNavigator,
+      configurable: true,
+      writable: false
+    });
   });
 
   it("should emit `waku:online` event only when first peer is connected", async function () {
