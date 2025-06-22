@@ -281,10 +281,10 @@ export class Store implements IStore {
     peers: Peer[],
     configPeers: string[]
   ): Promise<PeerId | undefined> {
-    const storePeers = configPeers.map(multiaddr);
+    const storeConfigPeers = configPeers.map(multiaddr);
     const missing = [];
 
-    for (const peer of storePeers) {
+    for (const peer of storeConfigPeers) {
       const matchedPeer = peers.find(
         (p) => p.id.toString() === peer.getPeerId()?.toString()
       );
@@ -304,9 +304,9 @@ export class Store implements IStore {
       }
 
       try {
-        const c = await this.libp2p.dial(toDial);
+        const conn = await this.libp2p.dial(toDial);
 
-        if (c) {
+        if (conn) {
           return peerIdFromString(toDial.getPeerId() as string);
         }
       } catch (e) {
