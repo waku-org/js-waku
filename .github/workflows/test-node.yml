@@ -24,7 +24,7 @@ on:
         default: false
 
 env:
-  NODE_JS: "20"
+  NODE_JS: "22"
   # Ensure test type conditions remain consistent.
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
   DEBUG: ${{ inputs.debug }}

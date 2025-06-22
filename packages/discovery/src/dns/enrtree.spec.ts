@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { ENRTree } from "./enrtree.js";
-import testData from "./testdata.json" assert { type: "json" };
+import testData from "./testdata.json" with { type: "json" };
 
 const dns = testData.dns;
 

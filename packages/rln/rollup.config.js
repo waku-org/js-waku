@@ -4,7 +4,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import { extractExports } from "@waku/build-utils";
 import copy from "rollup-plugin-copy";
 
-import * as packageJson from "./package.json" assert { type: "json" };
+import * as packageJson from "./package.json" with { type: "json" };
 
 const input = extractExports(packageJson);
 

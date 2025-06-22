@@ -2,7 +2,7 @@ import type { DnsClient } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { DnsNodeDiscovery } from "./dns.js";
-import testData from "./testdata.json" assert { type: "json" };
+import testData from "./testdata.json" with { type: "json" };
 
 import { enrTree } from "./index.js";
 

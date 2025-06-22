@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  NODE_JS: "20"
+  NODE_JS: "22"
   EXAMPLE_TEMPLATE: "web-chat"
   EXAMPLE_NAME: "example"
   EXAMPLE_PORT: "8080"
@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.52.0-jammy
+      image: mcr.microsoft.com/playwright:v1.53.1-jammy
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3

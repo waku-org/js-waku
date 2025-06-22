@@ -18,8 +18,7 @@
     "packages/reliability-tests",
     "packages/headless-tests",
     "packages/browser-tests",
-    "packages/build-utils",
-    "packages/react-native-polyfills"
+    "packages/build-utils"
   ],
   "scripts": {
     "prepare": "husky",
@@ -64,10 +63,10 @@
     "lint-staged": "^15.4.3",
     "playwright": "^1.40.1",
     "size-limit": "^11.0.1",
-    "ts-loader": "^9.5.1",
-    "ts-node": "^10.9.2",
-    "typedoc": "^0.25.9",
-    "typescript": "^5.3.3",
+    "ts-loader": "9.5.2",
+    "ts-node": "10.9.2",
+    "typedoc": "0.28.5",
+    "typescript": "5.8.3",
     "wscat": "^6.0.1"
   },
   "lint-staged": {
