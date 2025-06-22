@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import testVectors from "./nim_hash_test_vectors.json" assert { type: "json" };
+import testVectors from "./nim_hash_test_vectors.json" with { type: "json" };
 import { hashN } from "./nim_hashn.mjs";
 
 describe("hashN", () => {
