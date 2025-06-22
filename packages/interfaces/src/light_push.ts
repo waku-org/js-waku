@@ -1,4 +1,3 @@
-import { IBaseProtocolCore } from "./protocols.js";
 import type { ISender, ISendOptions } from "./sender.js";
 
 export type LightPushProtocolOptions = ISendOptions & {
@@ -17,7 +16,7 @@ export type LightPushProtocolOptions = ISendOptions & {
 };
 
 export type ILightPush = ISender & {
+  readonly multicodec: string;
   start: () => void;
   stop: () => void;
-  protocol: IBaseProtocolCore;
 };

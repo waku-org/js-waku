@@ -4,9 +4,8 @@ import type { ConnectionManager } from "@libp2p/interface-internal";
 
 import { IEnr } from "./enr.js";
 import { ThisOrThat } from "./misc.js";
-import { IBaseProtocolCore } from "./protocols.js";
 
-export interface IPeerExchange extends IBaseProtocolCore {
+export interface IPeerExchange {
   query(params: PeerExchangeQueryParams): Promise<PeerExchangeQueryResult>;
 }
 

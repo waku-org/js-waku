@@ -17,11 +17,23 @@ import { LocalPeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
-// dynamically importing the local storage polyfill for node
 if (typeof window === "undefined") {
   try {
-    const { LocalStorage } = await import("node-localstorage");
-    global.localStorage = new LocalStorage("./scratch");
+    global.localStorage = {
+      store: {} as Record<string, string>,
+      getItem(key: string) {
+        return this.store[key] || null;
+      },
+      setItem(key: string, value: string) {
+        this.store[key] = value;
+      },
+      removeItem(key: string) {
+        delete this.store[key];
+      },
+      clear() {
+        this.store = {};
+      }
+    } as any;
   } catch (error) {
     console.error("Failed to load localStorage polyfill:", error);
   }

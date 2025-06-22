@@ -1,4 +1,3 @@
-import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 
 import type { ConnectionManagerOptions } from "./connection_manager.js";
@@ -16,12 +15,6 @@ export enum Protocols {
   LightPush = "lightpush",
   Filter = "filter"
 }
-
-export type IBaseProtocolCore = {
-  multicodec: string;
-  addLibp2pEventListener: Libp2p["addEventListener"];
-  removeLibp2pEventListener: Libp2p["removeEventListener"];
-};
 
 export type NetworkConfig = StaticSharding | AutoSharding;
 
