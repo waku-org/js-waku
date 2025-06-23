@@ -99,5 +99,9 @@ export type IStore = {
 };
 
 export type StoreProtocolOptions = {
-  peer: string;
+  /**
+   * List of Multi-addresses of peers to be prioritized for Store protocol queries.
+   * @default []
+   */
+  peers: string[];
 };

@@ -1,5 +1,12 @@
-import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
+import type { Peer, PeerId } from "@libp2p/interface";
+import { peerIdFromString } from "@libp2p/peer-id";
+import { multiaddr } from "@multiformats/multiaddr";
+import {
+  ConnectionManager,
+  messageHash,
+  StoreCodec,
+  StoreCore
+} from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -28,14 +35,14 @@ type StoreConstructorParams = {
  */
 export class Store implements IStore {
   private readonly options: Partial<StoreProtocolOptions>;
-  private readonly peerManager: PeerManager;
+  private readonly libp2p: Libp2p;
   private readonly connectionManager: ConnectionManager;
   private readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
-    this.peerManager = params.peerManager;
     this.connectionManager = params.connectionManager;
+    this.libp2p = params.libp2p;
 
     this.protocol = new StoreCore(
       params.connectionManager.pubsubTopics,
@@ -93,7 +100,7 @@ export class Store implements IStore {
       ...options
     };
 
-    const peer = await this.getPeerToUse();
+    const peer = await this.getPeerToUse(pubsubTopic);
 
     if (!peer) {
       log.error("No peers available to query");
@@ -260,32 +267,81 @@ export class Store implements IStore {
     };
   }
 
-  private async getPeerToUse(): Promise<PeerId | undefined> {
-    let peerId: PeerId | undefined;
+  private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
+    const peers = await this.filterConnectedPeers(pubsubTopic);
 
-    if (this.options?.peer) {
-      const connectedPeers = await this.connectionManager.getConnectedPeers();
+    const peer = this.options.peers
+      ? await this.getPeerFromConfigurationOrFirst(peers, this.options.peers)
+      : peers[0]?.id;
 
-      const peer = connectedPeers.find(
-        (p) => p.id.toString() === this.options?.peer
+    return peer;
+  }
+
+  private async getPeerFromConfigurationOrFirst(
+    peers: Peer[],
+    configPeers: string[]
+  ): Promise<PeerId | undefined> {
+    const storeConfigPeers = configPeers.map(multiaddr);
+    const missing = [];
+
+    for (const peer of storeConfigPeers) {
+      const matchedPeer = peers.find(
+        (p) => p.id.toString() === peer.getPeerId()?.toString()
       );
-      peerId = peer?.id;
 
-      if (!peerId) {
+      if (matchedPeer) {
+        return matchedPeer.id;
+      }
+
+      missing.push(peer);
+    }
+
+    while (missing.length) {
+      const toDial = missing.pop();
+
+      if (!toDial) {
+        return;
+      }
+
+      try {
+        const conn = await this.libp2p.dial(toDial);
+
+        if (conn) {
+          return peerIdFromString(toDial.getPeerId() as string);
+        }
+      } catch (e) {
         log.warn(
-          `Passed node to use for Store not found: ${this.options.peer}. Attempting to use random peers.`
+          `Failed to dial peer from options.peers list for Store protocol. Peer:${toDial.getPeerId()}, error:${e}`
         );
       }
     }
 
-    const peerIds = this.peerManager.getPeers();
+    log.warn(
+      `Passed node to use for Store not found: ${configPeers.toString()}. Attempting to use first available peers.`
+    );
 
-    if (peerIds.length > 0) {
-      // TODO(weboko): implement smart way of getting a peer https://github.com/waku-org/js-waku/issues/2243
-      return peerIds[Math.floor(Math.random() * peerIds.length)];
+    return peers[0]?.id;
+  }
+
+  private async filterConnectedPeers(pubsubTopic: string): Promise<Peer[]> {
+    const peers = await this.connectionManager.getConnectedPeers();
+    const result: Peer[] = [];
+
+    for (const peer of peers) {
+      const isStoreCodec = peer.protocols.includes(StoreCodec);
+      const isSameShard = await this.connectionManager.isPeerOnSameShard(
+        peer.id
+      );
+      const isSamePubsub = await this.connectionManager.isPeerOnPubsubTopic(
+        peer.id,
+        pubsubTopic
+      );
+
+      if (isStoreCodec && isSameShard && isSamePubsub) {
+        result.push(peer);
+      }
     }
 
-    log.error("No peers available to use.");
-    return;
+    return result;
   }
 }

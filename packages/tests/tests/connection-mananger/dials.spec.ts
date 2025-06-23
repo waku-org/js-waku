@@ -17,21 +17,21 @@ describe("Dials", function () {
   let dialPeerStub: SinonStub;
   let getConnectionsStub: SinonStub;
   let getTagNamesForPeerStub: SinonStub;
-  let isPeerTopicConfigured: SinonStub;
+  let isPeerOnSameShard: SinonStub;
   let waku: LightNode;
 
   beforeEachCustom(this, async () => {
     waku = await createLightNode();
-    isPeerTopicConfigured = sinon.stub(
+    isPeerOnSameShard = sinon.stub(
       waku.connectionManager as any,
-      "isPeerTopicConfigured"
+      "isPeerOnSameShard"
     );
-    isPeerTopicConfigured.resolves(true);
+    isPeerOnSameShard.resolves(true);
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([], waku);
-    isPeerTopicConfigured.restore();
+    isPeerOnSameShard.restore();
     sinon.restore();
   });
 

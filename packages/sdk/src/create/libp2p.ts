@@ -106,8 +106,13 @@ export async function createLibp2pAndUpdateOptions(
     peerDiscovery.push(...getPeerDiscoveries(options.discovery));
   }
 
-  if (options?.bootstrapPeers) {
-    peerDiscovery.push(bootstrap({ list: options.bootstrapPeers }));
+  const bootstrapPeers = [
+    ...(options.bootstrapPeers || []),
+    ...(options.store?.peers || [])
+  ];
+
+  if (bootstrapPeers.length) {
+    peerDiscovery.push(bootstrap({ list: bootstrapPeers }));
   }
 
   libp2pOptions.peerDiscovery = peerDiscovery;
