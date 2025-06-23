@@ -99,6 +99,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.27 to 0.0.28
 
+## [0.0.30](https://github.com/waku-org/js-waku/compare/enr-v0.0.29...enr-v0.0.30) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+
+### Miscellaneous Chores
+
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+
 ## [0.0.29](https://github.com/waku-org/js-waku/compare/enr-v0.0.28...enr-v0.0.29) (2025-04-23)
 
 

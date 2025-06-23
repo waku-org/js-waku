@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.11](https://github.com/waku-org/js-waku/compare/proto-v0.0.10...proto-v0.0.11) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+
+### Miscellaneous Chores
+
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
 ## [0.0.10](https://github.com/waku-org/js-waku/compare/proto-v0.0.9...proto-v0.0.10) (2025-04-23)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@waku/discovery",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Contains various discovery mechanisms: DNS Discovery (EIP-1459, Peer Exchange, Local Peer Cache Discovery.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -51,11 +51,11 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@waku/core": "0.0.35",
-    "@waku/enr": "0.0.29",
-    "@waku/interfaces": "0.0.30",
-    "@waku/proto": "^0.0.10",
-    "@waku/utils": "0.0.23",
+    "@waku/core": "0.0.36",
+    "@waku/enr": "0.0.30",
+    "@waku/interfaces": "0.0.31",
+    "@waku/proto": "^0.0.11",
+    "@waku/utils": "0.0.24",
     "debug": "^4.3.4",
     "dns-over-http-resolver": "^3.0.8",
     "hi-base32": "^0.5.1",

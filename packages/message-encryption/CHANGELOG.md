@@ -101,6 +101,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.27 to 0.0.28
     * @waku/utils bumped from 0.0.20 to 0.0.21
 
+## [0.0.34](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.33...message-encryption-v0.0.34) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+
+
+### Miscellaneous Chores
+
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/proto bumped from 0.0.10 to 0.0.11
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.33](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.32...message-encryption-v0.0.33) (2025-04-23)
 
 

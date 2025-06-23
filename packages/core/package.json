@@ -1,6 +1,6 @@
 {
   "name": "@waku/core",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -64,11 +64,11 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@waku/enr": "^0.0.29",
-    "@waku/interfaces": "0.0.30",
+    "@waku/enr": "^0.0.30",
+    "@waku/interfaces": "0.0.31",
     "@libp2p/ping": "2.0.35",
-    "@waku/proto": "0.0.10",
-    "@waku/utils": "0.0.23",
+    "@waku/proto": "0.0.11",
+    "@waku/utils": "0.0.24",
     "debug": "^4.3.4",
     "@noble/hashes": "^1.3.2",
     "it-all": "^3.0.4",
