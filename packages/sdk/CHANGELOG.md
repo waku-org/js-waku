@@ -47,6 +47,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.32](https://github.com/waku-org/js-waku/compare/sdk-v0.0.31...sdk-v0.0.32) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+* remove IBaseProtocol and improve interface on PeerExchange ([#2422](https://github.com/waku-org/js-waku/issues/2422))
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Enable/disable discoveries without `defaultBootstrap: true` ([#2363](https://github.com/waku-org/js-waku/issues/2363)) ([16328a3](https://github.com/waku-org/js-waku/commit/16328a3f11efa91d16d59ab958f1fc90f45d9ee0))
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+* Shard retrieval for store and store peers selection ([#2417](https://github.com/waku-org/js-waku/issues/2417)) ([f55db3e](https://github.com/waku-org/js-waku/commit/f55db3eb4bbbbbdf454e420b7238ede0642d996f))
+
+
+### Bug Fixes
+
+* **store:** Update store query validation logic to support msg hash q… ([49f26d8](https://github.com/waku-org/js-waku/commit/49f26d89a8032386ee5b3ba629713b4f84891d5d))
+* **store:** Update store query validation logic to support msg hash queries ([9f7a15d](https://github.com/waku-org/js-waku/commit/9f7a15dfb19e765c4cbfa43f5d4f9323d2804f50))
+
+
+### Miscellaneous Chores
+
+* Remove IBaseProtocol and improve interface on PeerExchange ([#2422](https://github.com/waku-org/js-waku/issues/2422)) ([7c8d107](https://github.com/waku-org/js-waku/commit/7c8d1073b0d076117fb33ce05452a88871259782))
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.35 to 0.0.36
+    * @waku/discovery bumped from 0.0.8 to 0.0.9
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/proto bumped from ^0.0.10 to ^0.0.11
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.31](https://github.com/waku-org/js-waku/compare/sdk-v0.0.30...sdk-v0.0.31) (2025-04-23)
 
 

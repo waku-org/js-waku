@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.36](https://github.com/waku-org/js-waku/compare/core-v0.0.35...core-v0.0.36) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+* remove IBaseProtocol and improve interface on PeerExchange ([#2422](https://github.com/waku-org/js-waku/issues/2422))
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Event based approach to Filter ([#2300](https://github.com/waku-org/js-waku/issues/2300)) ([a4dfd34](https://github.com/waku-org/js-waku/commit/a4dfd3455c88db6ff60531c15a58128afb25db05))
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+* Shard retrieval for store and store peers selection ([#2417](https://github.com/waku-org/js-waku/issues/2417)) ([f55db3e](https://github.com/waku-org/js-waku/commit/f55db3eb4bbbbbdf454e420b7238ede0642d996f))
+
+
+### Bug Fixes
+
+* Rebase package lock ([f649f59](https://github.com/waku-org/js-waku/commit/f649f59e64cd1d9bd2fcc01509f6725790534a7b))
+* Remove unnecessary comments from store validation ([5f63cb5](https://github.com/waku-org/js-waku/commit/5f63cb5bfbb8c7926597490a867c11ab90af8159))
+* **store:** Update store query validation logic to support msg hash q… ([49f26d8](https://github.com/waku-org/js-waku/commit/49f26d89a8032386ee5b3ba629713b4f84891d5d))
+* **store:** Update store query validation logic to support msg hash queries ([9f7a15d](https://github.com/waku-org/js-waku/commit/9f7a15dfb19e765c4cbfa43f5d4f9323d2804f50))
+
+
+### Miscellaneous Chores
+
+* Remove IBaseProtocol and improve interface on PeerExchange ([#2422](https://github.com/waku-org/js-waku/issues/2422)) ([7c8d107](https://github.com/waku-org/js-waku/commit/7c8d1073b0d076117fb33ce05452a88871259782))
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.29 to ^0.0.30
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/proto bumped from 0.0.10 to 0.0.11
+    * @waku/utils bumped from 0.0.23 to 0.0.24
+
 ## [0.0.35](https://github.com/waku-org/js-waku/compare/core-v0.0.34...core-v0.0.35) (2025-04-23)
 
 

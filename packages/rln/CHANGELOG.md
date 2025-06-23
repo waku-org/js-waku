@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.1.6](https://github.com/waku-org/js-waku/compare/rln-v0.1.5...rln-v0.1.6) (2025-06-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401))
+* re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399))
+
+### Features
+
+* Re-work messaging parts and sharding  ([#2399](https://github.com/waku-org/js-waku/issues/2399)) ([1905558](https://github.com/waku-org/js-waku/commit/1905558753a7bf61c3dd27d6892d0f561d4c57c6))
+* Refine work with membership info and other meta information ([#2341](https://github.com/waku-org/js-waku/issues/2341)) ([3b23bce](https://github.com/waku-org/js-waku/commit/3b23bceb9de5a0c250788ffb824367eabafe3728))
+
+
+### Miscellaneous Chores
+
+* Upgrade libp2p, nodejs and typescript ([#2401](https://github.com/waku-org/js-waku/issues/2401)) ([fcc6496](https://github.com/waku-org/js-waku/commit/fcc6496fef914c56f6a4d2d17c494c8b94caea3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.35 to ^0.0.36
+    * @waku/utils bumped from ^0.0.23 to ^0.0.24
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.30 to 0.0.31
+    * @waku/message-encryption bumped from ^0.0.33 to ^0.0.34
+
 ## [0.1.5](https://github.com/waku-org/js-waku/compare/rln-v0.1.4...rln-v0.1.5) (2025-04-23)
 
 
