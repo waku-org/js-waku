@@ -65,7 +65,7 @@ describe("LightPush SDK", () => {
     );
 
     // Mock selectProtocol to return the main protocol with our spy
-    const mockProtocol = { send: sendSpy };
+    const mockProtocol = { send: sendSpy, multicodec: LightPushCodecV3 };
     sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
 
     let result = await lightPush.send(encoder, {
@@ -83,7 +83,7 @@ describe("LightPush SDK", () => {
     );
 
     // Mock selectProtocol to return the main protocol with our spy
-    const mockProtocol2 = { send: sendSpy };
+    const mockProtocol2 = { send: sendSpy, multicodec: LightPushCodecV3 };
     sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol2);
 
     result = await lightPush.send(encoder, { payload: utf8ToBytes("test") });
@@ -103,7 +103,7 @@ describe("LightPush SDK", () => {
     );
 
     // Mock selectProtocol to return the main protocol with our spy
-    const mockProtocol = { send: sendSpy };
+    const mockProtocol = { send: sendSpy, multicodec: LightPushCodecV3 };
     sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
 
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
@@ -134,7 +134,7 @@ describe("LightPush SDK", () => {
     );
 
     // Mock selectProtocol to return the main protocol with our spy
-    const mockProtocol = { send: sendSpy };
+    const mockProtocol = { send: sendSpy, multicodec: LightPushCodecV3 };
     sinon.stub(lightPush as any, "selectProtocol").resolves(mockProtocol);
     const retryPushSpy = (lightPush as any)["retryManager"].push as SinonSpy;
 

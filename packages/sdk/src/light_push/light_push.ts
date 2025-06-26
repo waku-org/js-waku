@@ -162,10 +162,14 @@ export class LightPush implements ILightPush {
       };
     }
 
+    const protocolSelections = new Map<string, string>();
+
     const coreResults: CoreProtocolResultWithMeta[] = await Promise.all(
       peerIds.map(async (peerId) => {
         try {
           const protocol = await this.selectProtocol(peerId);
+          const protocolName = protocol.multicodec;
+          protocolSelections.set(peerId.toString(), protocolName);
           return await protocol.send(encoder, message, peerId);
         } catch (error) {
           log.error(
@@ -176,8 +180,7 @@ export class LightPush implements ILightPush {
             success: null,
             failure: {
               error: ProtocolError.GENERIC_FAIL
-            },
-            protocolUsed: "unknown"
+            }
           };
         }
       })
@@ -195,22 +198,24 @@ export class LightPush implements ILightPush {
 
     coreResults.forEach((result) => {
       if (result.success) {
-        protocolsUsed[result.success.toString()] =
-          result.protocolUsed || "unknown";
+        const peerIdStr = result.success.toString();
+        const protocolUsed = protocolSelections.get(peerIdStr) || "unknown";
+        protocolsUsed[peerIdStr] = protocolUsed;
         responses.push({
-          peerId: result.success.toString(),
-          protocolUsed: result.protocolUsed || "unknown",
+          peerId: peerIdStr,
+          protocolUsed: protocolUsed,
           requestId: result.requestId,
           statusCode: result.statusCode,
           statusDesc: result.statusDesc,
           relayPeerCount: result.relayPeerCount
         });
       } else if (result.failure?.peerId) {
-        protocolsUsed[result.failure.peerId.toString()] =
-          result.protocolUsed || "unknown";
+        const peerIdStr = result.failure.peerId.toString();
+        const protocolUsed = protocolSelections.get(peerIdStr) || "unknown";
+        protocolsUsed[peerIdStr] = protocolUsed;
         responses.push({
-          peerId: result.failure.peerId.toString(),
-          protocolUsed: result.protocolUsed || "unknown",
+          peerId: peerIdStr,
+          protocolUsed: protocolUsed,
           requestId: result.requestId,
           statusCode: result.statusCode,
           statusDesc: result.statusDesc,
@@ -235,7 +240,11 @@ export class LightPush implements ILightPush {
         peerId: PeerId
       ): Promise<CoreProtocolResultWithMeta> => {
         const protocol = await this.selectProtocol(peerId);
-        return protocol.send(encoder, message, peerId);
+        const result = await protocol.send(encoder, message, peerId);
+        // Track protocol used for retry attempts
+        const peerIdStr = peerId.toString();
+        protocolSelections.set(peerIdStr, protocol.multicodec);
+        return result;
       };
       this.retryManager.push(
         sendCallback.bind(this),

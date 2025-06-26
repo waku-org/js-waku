@@ -122,8 +122,7 @@ export class LightPushCoreV3 {
         failure: {
           error: preparationError,
           peerId
-        },
-        protocolUsed: LightPushCodecV3
+        }
       };
     }
 
@@ -137,8 +136,7 @@ export class LightPushCoreV3 {
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodecV3
+        }
       };
     }
 
@@ -161,8 +159,7 @@ export class LightPushCoreV3 {
         failure: {
           error: ProtocolError.STREAM_ABORTED,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodecV3
+        }
       };
     } finally {
       if (stream) {
@@ -185,8 +182,7 @@ export class LightPushCoreV3 {
         failure: {
           error: ProtocolError.DECODE_FAILED,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodecV3
+        }
       };
     }
 
@@ -197,8 +193,7 @@ export class LightPushCoreV3 {
         failure: {
           error: ProtocolError.NO_RESPONSE,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodecV3
+        }
       };
     }
 
@@ -212,7 +207,6 @@ export class LightPushCoreV3 {
           error: ProtocolError.DECODE_FAILED,
           peerId: peerId
         },
-        protocolUsed: LightPushCodecV3,
         requestId: response.requestId,
         statusCode: response.statusCode
       };
@@ -230,7 +224,6 @@ export class LightPushCoreV3 {
             error: ProtocolError.GENERIC_FAIL,
             peerId: peerId
           },
-          protocolUsed: LightPushCodecV3,
           requestId: response.requestId,
           statusCode: response.statusCode
         };
@@ -261,7 +254,6 @@ export class LightPushCoreV3 {
           error: ProtocolError.RLN_PROOF_GENERATION,
           peerId: peerId
         },
-        protocolUsed: LightPushCodecV3,
         requestId: response.requestId,
         statusCode: response.statusCode,
         statusDesc: response.statusDesc
@@ -282,7 +274,6 @@ export class LightPushCoreV3 {
           error: protocolError,
           peerId: peerId
         },
-        protocolUsed: LightPushCodecV3,
         requestId: response.requestId,
         statusCode: response.statusCode,
         statusDesc: response.statusDesc,
@@ -293,7 +284,6 @@ export class LightPushCoreV3 {
     return {
       success: peerId,
       failure: null,
-      protocolUsed: LightPushCodecV3,
       requestId: response.requestId,
       statusCode: response.statusCode,
       statusDesc: response.statusDesc,

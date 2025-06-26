@@ -236,7 +236,6 @@ export type CoreProtocolResult = ThisOrThat<
 >;
 
 export type CoreProtocolResultWithMeta = CoreProtocolResult & {
-  protocolUsed?: string;
   requestId?: string;
   statusCode?: number;
   statusDesc?: string;

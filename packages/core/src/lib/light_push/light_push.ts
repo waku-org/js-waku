@@ -93,8 +93,7 @@ export class LightPushCore {
         failure: {
           error: preparationError,
           peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
@@ -108,8 +107,7 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
@@ -129,8 +127,7 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.STREAM_ABORTED,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
@@ -149,8 +146,7 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.DECODE_FAILED,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
@@ -161,8 +157,7 @@ export class LightPushCore {
         failure: {
           error: ProtocolError.NO_RESPONSE,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
@@ -178,15 +173,13 @@ export class LightPushCore {
         failure: {
           error: error,
           peerId: peerId
-        },
-        protocolUsed: LightPushCodec
+        }
       };
     }
 
     return {
       success: peerId,
-      failure: null,
-      protocolUsed: LightPushCodec
+      failure: null
     };
   }
 }
