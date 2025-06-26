@@ -1,18 +1,19 @@
 // 19/WAKU2-LIGHTPUSH rfc: https://rfc.vac.dev/spec/19/
-// Protocol identifier: /vac/waku/lightpush/2.0.0-beta1
+// Protocol identifier: /vac/waku/lightpush/3.0.0
 
 syntax = "proto3";
 
 import "message.proto";
 
 message PushRequest {
-  string pubsub_topic = 1;
-  WakuMessage message = 2;
+  optional string pubsub_topic = 20;
+  WakuMessage message = 21;
 }
 
 message PushResponse {
-  bool is_success = 1;
-  optional string info = 2;
+  uint32 status_code = 20;
+  optional string status_desc = 30;
+  optional uint32 relay_peer_count = 40;
 }
 
 message PushRpc {

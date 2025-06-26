@@ -235,9 +235,28 @@ export type CoreProtocolResult = ThisOrThat<
   Failure
 >;
 
+export type CoreProtocolResultWithMeta = CoreProtocolResult & {
+  requestId?: string;
+  statusCode?: number;
+  statusDesc?: string;
+  relayPeerCount?: number;
+};
+
 export type SDKProtocolResult = ThisAndThat<
   "successes",
   PeerId[],
   "failures",
   Failure[]
 >;
+
+export type SDKProtocolResultWithMeta = SDKProtocolResult & {
+  protocolsUsed?: Record<string, string>;
+  responses?: Array<{
+    peerId: string;
+    protocolUsed: string;
+    requestId?: string;
+    statusCode?: number;
+    statusDesc?: string;
+    relayPeerCount?: number;
+  }>;
+};

@@ -12,7 +12,7 @@ import type { Codec, DecodeOptions } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface PushRequest {
-  pubsubTopic?: string
+  pubsubTopic: string
   message?: WakuMessage
 }
 
@@ -26,13 +26,13 @@ export namespace PushRequest {
           w.fork()
         }
 
-        if (obj.pubsubTopic != null) {
-          w.uint32(162)
+        if ((obj.pubsubTopic != null && obj.pubsubTopic !== '')) {
+          w.uint32(10)
           w.string(obj.pubsubTopic)
         }
 
         if (obj.message != null) {
-          w.uint32(170)
+          w.uint32(18)
           WakuMessage.codec().encode(obj.message, w)
         }
 
@@ -40,7 +40,9 @@ export namespace PushRequest {
           w.ldelim()
         }
       }, (reader, length, opts = {}) => {
-        const obj: any = {}
+        const obj: any = {
+          pubsubTopic: ''
+        }
 
         const end = length == null ? reader.len : reader.pos + length
 
@@ -48,11 +50,11 @@ export namespace PushRequest {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 20: {
+            case 1: {
               obj.pubsubTopic = reader.string()
               break
             }
-            case 21: {
+            case 2: {
               obj.message = WakuMessage.codec().decode(reader, reader.uint32(), {
                 limits: opts.limits?.message
               })
@@ -82,9 +84,8 @@ export namespace PushRequest {
 }
 
 export interface PushResponse {
-  statusCode: number
-  statusDesc?: string
-  relayPeerCount?: number
+  isSuccess: boolean
+  info?: string
 }
 
 export namespace PushResponse {
@@ -97,19 +98,14 @@ export namespace PushResponse {
           w.fork()
         }
 
-        if ((obj.statusCode != null && obj.statusCode !== 0)) {
-          w.uint32(160)
-          w.uint32(obj.statusCode)
+        if ((obj.isSuccess != null && obj.isSuccess !== false)) {
+          w.uint32(8)
+          w.bool(obj.isSuccess)
         }
 
-        if (obj.statusDesc != null) {
-          w.uint32(242)
-          w.string(obj.statusDesc)
-        }
-
-        if (obj.relayPeerCount != null) {
-          w.uint32(320)
-          w.uint32(obj.relayPeerCount)
+        if (obj.info != null) {
+          w.uint32(18)
+          w.string(obj.info)
         }
 
         if (opts.lengthDelimited !== false) {
@@ -117,7 +113,7 @@ export namespace PushResponse {
         }
       }, (reader, length, opts = {}) => {
         const obj: any = {
-          statusCode: 0
+          isSuccess: false
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -126,16 +122,12 @@ export namespace PushResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 20: {
-              obj.statusCode = reader.uint32()
+            case 1: {
+              obj.isSuccess = reader.bool()
               break
             }
-            case 30: {
-              obj.statusDesc = reader.string()
-              break
-            }
-            case 40: {
-              obj.relayPeerCount = reader.uint32()
+            case 2: {
+              obj.info = reader.string()
               break
             }
             default: {

@@ -1,16 +1,22 @@
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, LightPushCore } from "@waku/core";
 import {
-  type CoreProtocolResult,
+  ConnectionManager,
+  LightPushCodec,
+  LightPushCore,
+  LightPushCoreV3
+} from "@waku/core";
+import {
+  type CoreProtocolResultWithMeta,
   Failure,
   type IEncoder,
   ILightPush,
   type IMessage,
   type ISendOptions,
   type Libp2p,
+  LightPushCodecV3,
   LightPushProtocolOptions,
   ProtocolError,
-  SDKProtocolResult
+  type SDKProtocolResultWithMeta
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -38,8 +44,15 @@ type LightPushConstructorParams = {
 export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
-  private readonly peerManager: PeerManager;
-  private readonly protocol: LightPushCore;
+  private peerManager: PeerManager;
+
+  private readonly protocolV2: LightPushCore;
+  private readonly protocolV3: LightPushCoreV3;
+  private readonly libp2p: Libp2p;
+
+  public get protocol(): LightPushCoreV3 {
+    return this.protocolV3;
+  }
 
   public constructor(params: LightPushConstructorParams) {
     this.config = {
@@ -48,10 +61,17 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.protocol = new LightPushCore(
+    this.libp2p = params.libp2p;
+
+    this.protocolV2 = new LightPushCore(
       params.connectionManager.pubsubTopics,
       params.libp2p
     );
+    this.protocolV3 = new LightPushCoreV3(
+      params.connectionManager.pubsubTopics,
+      params.libp2p
+    );
+
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
@@ -70,11 +90,40 @@ export class LightPush implements ILightPush {
     this.retryManager.stop();
   }
 
+  private async selectProtocol(
+    peerId: PeerId
+  ): Promise<LightPushCore | LightPushCoreV3> {
+    try {
+      const peer = await this.libp2p.peerStore.get(peerId);
+
+      if (peer.protocols.includes(LightPushCodecV3)) {
+        log.info(`Using LightPush v3 for peer ${peerId.toString()}`);
+        return this.protocolV3;
+      }
+
+      if (peer.protocols.includes(LightPushCodec)) {
+        log.info(`Using LightPush v2 for peer ${peerId.toString()}`);
+        return this.protocolV2;
+      }
+
+      log.warn(
+        `No LightPush protocol advertised by peer ${peerId.toString()}, defaulting to v3`
+      );
+      return this.protocolV3;
+    } catch (error) {
+      log.warn(
+        `Failed to get peer info for ${peerId.toString()}, defaulting to v3:`,
+        error
+      );
+      return this.protocolV3;
+    }
+  }
+
   public async send(
     encoder: IEncoder,
     message: IMessage,
     options: ISendOptions = {}
-  ): Promise<SDKProtocolResult> {
+  ): Promise<SDKProtocolResultWithMeta> {
     options = {
       ...this.config,
       ...options
@@ -84,7 +133,10 @@ export class LightPush implements ILightPush {
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
-    if (!this.protocol.pubsubTopics.includes(pubsubTopic)) {
+    if (
+      !this.protocolV3.pubsubTopics.includes(pubsubTopic) &&
+      !this.protocolV2.pubsubTopics.includes(pubsubTopic)
+    ) {
       return {
         successes: [],
         failures: [
@@ -110,29 +162,90 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const coreResults: CoreProtocolResult[] = await Promise.all(
-      peerIds.map((peerId) =>
-        this.protocol.send(encoder, message, peerId).catch((_e) => ({
-          success: null,
-          failure: {
-            error: ProtocolError.GENERIC_FAIL
-          }
-        }))
-      )
+    const protocolSelections = new Map<string, string>();
+
+    const coreResults: CoreProtocolResultWithMeta[] = await Promise.all(
+      peerIds.map(async (peerId) => {
+        try {
+          const protocol = await this.selectProtocol(peerId);
+          const protocolName = protocol.multicodec;
+          protocolSelections.set(peerId.toString(), protocolName);
+          return await protocol.send(encoder, message, peerId);
+        } catch (error) {
+          log.error(
+            `Failed to send message to peer ${peerId.toString()}:`,
+            error
+          );
+          return {
+            success: null,
+            failure: {
+              error: ProtocolError.GENERIC_FAIL
+            }
+          };
+        }
+      })
     );
 
-    const results: SDKProtocolResult = {
+    const protocolsUsed: Record<string, string> = {};
+    const responses: Array<{
+      peerId: string;
+      protocolUsed: string;
+      requestId?: string;
+      statusCode?: number;
+      statusDesc?: string;
+      relayPeerCount?: number;
+    }> = [];
+
+    coreResults.forEach((result) => {
+      if (result.success) {
+        const peerIdStr = result.success.toString();
+        const protocolUsed = protocolSelections.get(peerIdStr) || "unknown";
+        protocolsUsed[peerIdStr] = protocolUsed;
+        responses.push({
+          peerId: peerIdStr,
+          protocolUsed: protocolUsed,
+          requestId: result.requestId,
+          statusCode: result.statusCode,
+          statusDesc: result.statusDesc,
+          relayPeerCount: result.relayPeerCount
+        });
+      } else if (result.failure?.peerId) {
+        const peerIdStr = result.failure.peerId.toString();
+        const protocolUsed = protocolSelections.get(peerIdStr) || "unknown";
+        protocolsUsed[peerIdStr] = protocolUsed;
+        responses.push({
+          peerId: peerIdStr,
+          protocolUsed: protocolUsed,
+          requestId: result.requestId,
+          statusCode: result.statusCode,
+          statusDesc: result.statusDesc,
+          relayPeerCount: result.relayPeerCount
+        });
+      }
+    });
+
+    const results: SDKProtocolResultWithMeta = {
       successes: coreResults
         .filter((v) => v.success)
         .map((v) => v.success) as PeerId[],
       failures: coreResults
         .filter((v) => v.failure)
-        .map((v) => v.failure) as Failure[]
+        .map((v) => v.failure) as Failure[],
+      protocolsUsed,
+      responses
     };
 
     if (options.autoRetry && results.successes.length === 0) {
-      const sendCallback = (peerId: PeerId): Promise<CoreProtocolResult> =>
-        this.protocol.send(encoder, message, peerId);
+      const sendCallback = async (
+        peerId: PeerId
+      ): Promise<CoreProtocolResultWithMeta> => {
+        const protocol = await this.selectProtocol(peerId);
+        const result = await protocol.send(encoder, message, peerId);
+        // Track protocol used for retry attempts
+        const peerIdStr = peerId.toString();
+        protocolSelections.set(peerIdStr, protocol.multicodec);
+        return result;
+      };
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS
