@@ -1,11 +1,13 @@
 import type { PeerId, Stream } from "@libp2p/interface";
 import {
   type CoreProtocolResultWithMeta,
+  getLightPushStatusDescriptionV3,
   type IEncoder,
   type IMessage,
   isSuccessStatusCodeV3,
   type Libp2p,
   LightPushCodecV3,
+  lightPushStatusCodeToProtocolErrorV3,
   LightPushStatusCodeV3,
   ProtocolError,
   PubsubTopic,
@@ -22,10 +24,6 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { StreamManager } from "../stream_manager/index.js";
 
 import { PushRpcV3 } from "./push_rpc_v3.js";
-import {
-  getLightPushStatusDescriptionV3,
-  lightPushStatusCodeToProtocolErrorV3
-} from "./status_codes_v3.js";
 import { isRLNResponseError } from "./utils.js";
 
 const log = new Logger("light-push-v3");

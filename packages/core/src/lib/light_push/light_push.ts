@@ -184,5 +184,4 @@ export class LightPushCore {
   }
 }
 
-export const LightPushCoreV2 = LightPushCore;
 export { PushResponse };
