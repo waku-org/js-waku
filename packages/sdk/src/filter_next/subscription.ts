@@ -31,6 +31,8 @@ type AttemptUnsubscribeParams = {
   useNewContentTopics: boolean;
 };
 
+type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
+
 export class Subscription {
   private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
@@ -362,11 +364,11 @@ export class Subscription {
   private setupEventListeners(): void {
     this.libp2p.addEventListener(
       "peer:connect",
-      (e) => void this.onPeerConnected(e)
+      this.onPeerConnected as Libp2pEventHandler
     );
     this.libp2p.addEventListener(
       "peer:disconnect",
-      (e) => void this.onPeerDisconnected(e)
+      this.onPeerDisconnected as Libp2pEventHandler
     );
   }
 
@@ -395,7 +397,7 @@ export class Subscription {
   }
 
   private disposeEventListeners(): void {
-    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected);
+    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected); // BUUUG
     this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnected);
   }
 
