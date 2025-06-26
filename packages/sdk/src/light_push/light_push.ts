@@ -10,11 +10,12 @@ import {
   type Libp2p,
   LightPushProtocolOptions,
   ProtocolError,
+  Protocols,
   SDKProtocolResult
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { NewPeerManager } from "../peer_manager/index.js";
 
 import { RetryManager } from "./retry_manager.js";
 
@@ -30,7 +31,7 @@ const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
 
 type LightPushConstructorParams = {
   connectionManager: ConnectionManager;
-  peerManager: PeerManager;
+  peerManager: NewPeerManager;
   libp2p: Libp2p;
   options?: Partial<LightPushProtocolOptions>;
 };
@@ -38,7 +39,7 @@ type LightPushConstructorParams = {
 export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
-  private readonly peerManager: PeerManager;
+  private readonly peerManager: NewPeerManager;
   private readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {
@@ -95,20 +96,10 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const peerIds = this.peerManager
-      .getPeers()
-      .slice(0, this.config.numPeersToUse);
-
-    if (peerIds.length === 0) {
-      return {
-        successes: [],
-        failures: [
-          {
-            error: ProtocolError.NO_PEER_AVAILABLE
-          }
-        ]
-      };
-    }
+    const peerIds = await this.peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: encoder.pubsubTopic
+    });
 
     const coreResults: CoreProtocolResult[] = await Promise.all(
       peerIds.map((peerId) =>
@@ -135,7 +126,8 @@ export class LightPush implements ILightPush {
         this.protocol.send(encoder, message, peerId);
       this.retryManager.push(
         sendCallback.bind(this),
-        options.maxAttempts || DEFAULT_MAX_ATTEMPTS
+        options.maxAttempts || DEFAULT_MAX_ATTEMPTS,
+        encoder.pubsubTopic
       );
     }
 
