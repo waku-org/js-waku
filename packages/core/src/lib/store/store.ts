@@ -3,7 +3,6 @@ import {
   IDecodedMessage,
   IDecoder,
   Libp2p,
-  PubsubTopic,
   QueryRequestParams
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -31,10 +30,7 @@ export class StoreCore {
 
   public readonly multicodec = StoreCodec;
 
-  public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
-    libp2p: Libp2p
-  ) {
+  public constructor(libp2p: Libp2p) {
     this.streamManager = new StreamManager(StoreCodec, libp2p.components);
   }
 

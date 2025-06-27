@@ -3,12 +3,12 @@ import { FilterCore } from "@waku/core";
 import type { Libp2p, NextFilterOptions } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { NewPeerManager } from "../peer_manager/index.js";
 
 export type FilterConstructorParams = {
   options?: Partial<NextFilterOptions>;
   libp2p: Libp2p;
-  peerManager: PeerManager;
+  peerManager: NewPeerManager;
   connectionManager: ConnectionManager;
 };
 
@@ -21,5 +21,5 @@ export type SubscriptionParams = {
   pubsubTopic: string;
   protocol: FilterCore;
   config: NextFilterOptions;
-  peerManager: PeerManager;
+  peerManager: NewPeerManager;
 };
