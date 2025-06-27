@@ -398,7 +398,7 @@ export class Subscription {
   }
 
   private disposeEventListeners(): void {
-    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected); // BUUUG
+    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected);
     this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnected);
   }
 
