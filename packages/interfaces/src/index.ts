@@ -1,6 +1,5 @@
 export * from "./enr.js";
 export * from "./filter.js";
-export * from "./filter_next.js";
 export * from "./light_push.js";
 export * from "./message.js";
 export * from "./peer_exchange.js";

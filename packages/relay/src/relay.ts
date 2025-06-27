@@ -9,7 +9,6 @@ import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { PubSub as Libp2pPubsub } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import {
-  ActiveSubscriptions,
   Callback,
   CreateNodeOptions,
   IAsyncIterator,
@@ -41,6 +40,8 @@ export type Observer<T extends IDecodedMessage> = {
 
 export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
 export type ContentTopic = string;
+
+type ActiveSubscriptions = Map<PubsubTopic, ContentTopic[]>;
 
 type RelayConstructorParams = {
   libp2p: Libp2p;

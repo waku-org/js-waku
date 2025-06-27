@@ -10,7 +10,6 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
-  INextFilter,
   IRelay,
   IStore,
   IWaku,
@@ -22,7 +21,6 @@ import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
-import { NextFilter } from "../filter_next/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
@@ -48,7 +46,6 @@ export class WakuNode implements IWaku {
   public relay?: IRelay;
   public store?: IStore;
   public filter?: IFilter;
-  public nextFilter?: INextFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
   public health: HealthIndicator;
@@ -120,14 +117,6 @@ export class WakuNode implements IWaku {
         libp2p,
         connectionManager: this.connectionManager,
         peerManager: this.peerManager,
-        lightPush: this.lightPush,
-        options: options.filter
-      });
-
-      this.nextFilter = new NextFilter({
-        libp2p,
-        connectionManager: this.connectionManager,
-        peerManager: this.peerManager,
         options: options.filter
       });
     }
@@ -192,8 +181,8 @@ export class WakuNode implements IWaku {
       }
     }
     if (_protocols.includes(Protocols.Filter)) {
-      if (this.nextFilter) {
-        codecs.push(this.nextFilter.multicodec);
+      if (this.filter) {
+        codecs.push(this.filter.multicodec);
       } else {
         log.error(
           "Filter codec not included in dial codec: protocol not mounted locally"
