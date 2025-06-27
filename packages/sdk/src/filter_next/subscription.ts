@@ -12,10 +12,11 @@ import type {
   IProtoMessage,
   Libp2p
 } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { NewPeerManager } from "../peer_manager/index.js";
 
 import { SubscriptionEvents, SubscriptionParams } from "./types.js";
 import { TTLSet } from "./utils.js";
@@ -37,7 +38,7 @@ export class Subscription {
   private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
   private readonly protocol: FilterCore;
-  private readonly peerManager: PeerManager;
+  private readonly peerManager: NewPeerManager;
 
   private readonly config: FilterOptions;
 
@@ -457,7 +458,11 @@ export class Subscription {
     }
 
     const prevPeers = new Set(this.peers);
-    const peersToAdd = this.peerManager.getPeers();
+    const peersToAdd = await this.peerManager.getPeers({
+      protocol: Protocols.Filter,
+      pubsubTopic: this.pubsubTopic
+    });
+
     for (const peer of peersToAdd) {
       if (this.peers.size >= this.config.numPeersToUse) {
         break;

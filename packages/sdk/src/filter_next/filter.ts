@@ -10,7 +10,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { NewPeerManager } from "../peer_manager/index.js";
 
 import { Subscription } from "./subscription.js";
 import { FilterConstructorParams } from "./types.js";
@@ -22,7 +22,7 @@ type PubsubTopic = string;
 export class Filter implements IFilter {
   private readonly libp2p: Libp2p;
   private readonly protocol: FilterCore;
-  private readonly peerManager: PeerManager;
+  private readonly peerManager: NewPeerManager;
   private readonly connectionManager: ConnectionManager;
 
   private readonly config: FilterOptions;
