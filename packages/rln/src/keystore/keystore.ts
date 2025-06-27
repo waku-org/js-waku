@@ -331,22 +331,33 @@ export class Keystore {
   // https://github.com/waku-org/nwaku/blob/f05528d4be3d3c876a8b07f9bb7dfaae8aa8ec6e/waku/waku_keystore/protocol_types.nim#L98
   // IdentityCredential is stored in Big Endian format => switch to Little Endian
   private static fromIdentityToBytes(options: KeystoreEntity): Uint8Array {
+    const { IDCommitment, IDNullifier, IDSecretHash, IDTrapdoor } =
+      options.identity;
+    const idCommitmentLE = BytesUtils.switchEndianness(IDCommitment);
+    const idNullifierLE = BytesUtils.switchEndianness(IDNullifier);
+    const idSecretHashLE = BytesUtils.switchEndianness(IDSecretHash);
+    const idTrapdoorLE = BytesUtils.switchEndianness(IDTrapdoor);
+
+    // eslint-disable-next-line no-console
+    console.log({
+      idCommitmentBE: IDCommitment,
+      idCommitmentLE,
+      idNullifierBE: IDNullifier,
+      idNullifierLE,
+      idSecretHashBE: IDSecretHash,
+      idSecretHashLE,
+      idTrapdoorBE: IDTrapdoor,
+      idTrapdoorLE
+    });
+
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
         identityCredential: {
-          idCommitment: Array.from(
-            BytesUtils.switchEndianness(options.identity.IDCommitment)
-          ),
-          idNullifier: Array.from(
-            BytesUtils.switchEndianness(options.identity.IDNullifier)
-          ),
-          idSecretHash: Array.from(
-            BytesUtils.switchEndianness(options.identity.IDSecretHash)
-          ),
-          idTrapdoor: Array.from(
-            BytesUtils.switchEndianness(options.identity.IDTrapdoor)
-          )
+          idCommitment: Array.from(idCommitmentLE),
+          idNullifier: Array.from(idNullifierLE),
+          idSecretHash: Array.from(idSecretHashLE),
+          idTrapdoor: Array.from(idTrapdoorLE)
         },
         membershipContract: {
           chainId: options.membership.chainId,
