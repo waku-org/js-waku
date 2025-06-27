@@ -44,7 +44,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     TEST_STRING.forEach((testItem) => {
       it(`Check received message containing ${testItem.description}`, async function () {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           TestDecoder,
           serviceNodes.messageCollector.callback
         );
@@ -66,7 +66,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     TEST_TIMESTAMPS.forEach((testItem) => {
       it(`Check received message with timestamp: ${testItem} `, async function () {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           TestDecoder,
           serviceNodes.messageCollector.callback
         );
@@ -105,7 +105,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with invalid timestamp is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -127,7 +127,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message on other pubsub topic is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -150,7 +150,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with no pubsub topic is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -173,7 +173,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with no content topic is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -193,7 +193,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with no payload is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -214,7 +214,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with non string payload is not received", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -235,7 +235,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message received after jswaku node is restarted", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -254,7 +254,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
       }
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -279,9 +279,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Check message received after old nwaku nodes are not available and new are created", async function () {
       let callback = serviceNodes.messageCollector.callback;
 
-      await waku.nextFilter.subscribe(TestDecoder, (...args) =>
-        callback(...args)
-      );
+      await waku.filter.subscribe(TestDecoder, (...args) => callback(...args));
 
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 

@@ -60,7 +60,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Subscribe and receive messages via lightPush", async function () {
       expect(waku.libp2p.getConnections()).has.length(2);
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -92,7 +92,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestPubsubTopic
       );
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         decoder,
         serviceNodes.messageCollector.callback
       );
@@ -125,7 +125,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestPubsubTopic
       );
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         decoder,
         serviceNodes.messageCollector.callback
       );
@@ -146,7 +146,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe and receive messages via waku relay post", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -173,7 +173,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe and receive 2 messages on the same topic", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -208,7 +208,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     it("Subscribe and receive messages on 2 different content topics", async function () {
       // Subscribe to the first content topic and send a message.
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -231,7 +231,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         pubsubTopic: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -267,7 +267,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Subscribe to all 20 topics.
       for (let i = 0; i < topicCount; i++) {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           td.decoders[i],
           serviceNodes.messageCollector.callback
         );
@@ -300,7 +300,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       for (let i = 0; i < topicCount; i++) {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           td.decoders[i],
           serviceNodes.messageCollector.callback
         );
@@ -331,7 +331,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const topicCount = 100;
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         td.decoders,
         serviceNodes.messageCollector.callback
       );
@@ -361,7 +361,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       try {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           td.decoders,
           serviceNodes.messageCollector.callback
         );
@@ -391,13 +391,13 @@ const runTests = (strictCheckNodes: boolean): void => {
         pubsubTopic: TestPubsubTopic
       });
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         td1.decoders,
         serviceNodes.messageCollector.callback
       );
 
       // Subscribe to the second set of topics which has overlapping topics with the first set.
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         td2.decoders,
         serviceNodes.messageCollector.callback
       );
@@ -425,14 +425,14 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Refresh subscription", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
       // Resubscribe (refresh) to the same topic and send another message.
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -472,7 +472,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           }
         });
 
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           newDecoder as IDecoder<IDecodedMessage>,
           serviceNodes.messageCollector.callback
         );
@@ -490,7 +490,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Add multiple subscription objects on single nwaku node", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -502,7 +502,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         pubsubTopic: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -529,7 +529,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       // setup check
       expect(waku.libp2p.getConnections()).has.length(2);
 
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -572,7 +572,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe and receive messages from 2 nwaku nodes each with different pubsubtopics", async function () {
-      await waku.nextFilter.subscribe(
+      await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
@@ -605,10 +605,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
         const messageCollector2 = new MessageCollector();
 
-        await waku.nextFilter.subscribe(
-          customDecoder,
-          messageCollector2.callback
-        );
+        await waku.filter.subscribe(customDecoder, messageCollector2.callback);
 
         // Making sure that messages are send and reveiced for both subscriptions
         // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
@@ -652,7 +649,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
       try {
-        await waku.nextFilter.subscribe(
+        await waku.filter.subscribe(
           wrongDecoder,
           serviceNodes.messageCollector.callback
         );
