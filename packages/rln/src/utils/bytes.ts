@@ -3,7 +3,7 @@ export class BytesUtils {
    * Switches endianness of a byte array
    */
   public static switchEndianness(bytes: Uint8Array): Uint8Array {
-    return new Uint8Array(bytes.reverse());
+    return new Uint8Array([...bytes].reverse());
   }
 
   /**
