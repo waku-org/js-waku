@@ -344,7 +344,9 @@ export class Keystore {
           idSecretHash: Array.from(
             BytesUtils.switchEndianness(options.identity.IDSecretHash)
           ),
-          idTrapdoor: Array.from(options.identity.IDTrapdoor)
+          idTrapdoor: Array.from(
+            BytesUtils.switchEndianness(options.identity.IDTrapdoor)
+          )
         },
         membershipContract: {
           chainId: options.membership.chainId,
