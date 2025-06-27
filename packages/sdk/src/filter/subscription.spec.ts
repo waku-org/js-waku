@@ -1,10 +1,10 @@
 import type { PeerId } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import type {
+  FilterProtocolOptions,
   IDecodedMessage,
   IDecoder,
-  Libp2p,
-  NextFilterOptions
+  Libp2p
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
@@ -23,7 +23,7 @@ describe("Filter Subscription", () => {
   let peerManager: PeerManager;
   let subscription: Subscription;
   let decoder: IDecoder<IDecodedMessage>;
-  let config: NextFilterOptions;
+  let config: FilterProtocolOptions;
 
   beforeEach(() => {
     libp2p = mockLibp2p();
