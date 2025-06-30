@@ -145,6 +145,13 @@ export class PeerManager {
     await this.getPeers(params);
   }
 
+  public async isPeerOnPubsub(
+    id: PeerId,
+    pubsubTopic: string
+  ): Promise<boolean> {
+    return this.connectionManager.isPeerOnPubsubTopic(id, pubsubTopic);
+  }
+
   /**
    * Used to notify about new Filter peer available.
    */

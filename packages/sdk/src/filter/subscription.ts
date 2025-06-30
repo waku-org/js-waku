@@ -9,14 +9,13 @@ import type {
   FilterProtocolOptions,
   IDecodedMessage,
   IDecoder,
-  IProtoMessage,
-  Libp2p
+  IProtoMessage
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { PeerManager, PeerManagerEventNames } from "../peer_manager/index.js";
 
 import { SubscriptionEvents, SubscriptionParams } from "./types.js";
 import { TTLSet } from "./utils.js";
@@ -32,8 +31,9 @@ type AttemptUnsubscribeParams = {
   useNewContentTopics: boolean;
 };
 
+type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
+
 export class Subscription {
-  private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;
@@ -73,7 +73,6 @@ export class Subscription {
     this.config = params.config;
     this.pubsubTopic = params.pubsubTopic;
 
-    this.libp2p = params.libp2p;
     this.protocol = params.protocol;
     this.peerManager = params.peerManager;
 
@@ -361,13 +360,13 @@ export class Subscription {
   }
 
   private setupEventListeners(): void {
-    this.libp2p.addEventListener(
-      "peer:connect",
-      (e) => void this.onPeerConnected(e)
+    this.peerManager.events.addEventListener(
+      PeerManagerEventNames.Connect,
+      this.onPeerConnected as Libp2pEventHandler
     );
-    this.libp2p.addEventListener(
-      "peer:disconnect",
-      (e) => void this.onPeerDisconnected(e)
+    this.peerManager.events.addEventListener(
+      PeerManagerEventNames.Disconnect,
+      this.onPeerDisconnected as Libp2pEventHandler
     );
   }
 
@@ -396,12 +395,30 @@ export class Subscription {
   }
 
   private disposeEventListeners(): void {
-    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected);
-    this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnected);
+    this.peerManager.events.removeEventListener(
+      PeerManagerEventNames.Connect,
+      this.onPeerConnected as Libp2pEventHandler
+    );
+    this.peerManager.events.removeEventListener(
+      PeerManagerEventNames.Disconnect,
+      this.onPeerDisconnected as Libp2pEventHandler
+    );
   }
 
-  private onPeerConnected(event: CustomEvent<PeerId>): void {
+  private async onPeerConnected(event: CustomEvent<PeerId>): Promise<void> {
     log.info(`Peer connected: ${event.detail.toString()}`);
+
+    const usablePeer = await this.peerManager.isPeerOnPubsub(
+      event.detail,
+      this.pubsubTopic
+    );
+
+    if (!usablePeer) {
+      log.info(
+        `Peer ${event.detail.toString()} doesn't support pubsubTopic:${this.pubsubTopic}`
+      );
+      return;
+    }
 
     // skip the peer we already subscribe to
     if (this.peers.has(event.detail)) {
@@ -409,14 +426,26 @@ export class Subscription {
       return;
     }
 
-    void this.attemptSubscribe({
+    await this.attemptSubscribe({
       useNewContentTopics: false,
       useOnlyNewPeers: true
     });
   }
 
-  private onPeerDisconnected(event: CustomEvent<PeerId>): void {
+  private async onPeerDisconnected(event: CustomEvent<PeerId>): Promise<void> {
     log.info(`Peer disconnected: ${event.detail.toString()}`);
+
+    const usablePeer = await this.peerManager.isPeerOnPubsub(
+      event.detail,
+      this.pubsubTopic
+    );
+
+    if (!usablePeer) {
+      log.info(
+        `Peer ${event.detail.toString()} doesn't support pubsubTopic:${this.pubsubTopic}`
+      );
+      return;
+    }
 
     // ignore as the peer is not the one that is in use
     if (!this.peers.has(event.detail)) {

@@ -4,8 +4,7 @@ import type {
   FilterProtocolOptions,
   IDecodedMessage,
   IDecoder,
-  IFilter,
-  Libp2p
+  IFilter
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -20,7 +19,6 @@ const log = new Logger("sdk:next-filter");
 type PubsubTopic = string;
 
 export class Filter implements IFilter {
-  private readonly libp2p: Libp2p;
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;
   private readonly connectionManager: ConnectionManager;
@@ -36,7 +34,6 @@ export class Filter implements IFilter {
       ...params.options
     };
 
-    this.libp2p = params.libp2p;
     this.peerManager = params.peerManager;
     this.connectionManager = params.connectionManager;
 
@@ -134,7 +131,6 @@ export class Filter implements IFilter {
     if (!subscription) {
       subscription = new Subscription({
         pubsubTopic: pubsubTopics[0],
-        libp2p: this.libp2p,
         protocol: this.protocol,
         config: this.config,
         peerManager: this.peerManager
