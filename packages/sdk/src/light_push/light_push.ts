@@ -101,25 +101,37 @@ export class LightPush implements ILightPush {
       pubsubTopic: encoder.pubsubTopic
     });
 
-    const coreResults: CoreProtocolResult[] = await Promise.all(
-      peerIds.map((peerId) =>
-        this.protocol.send(encoder, message, peerId).catch((_e) => ({
-          success: null,
-          failure: {
-            error: ProtocolError.GENERIC_FAIL
-          }
-        }))
-      )
-    );
+    const coreResults: CoreProtocolResult[] =
+      peerIds?.length > 0
+        ? await Promise.all(
+            peerIds.map((peerId) =>
+              this.protocol.send(encoder, message, peerId).catch((_e) => ({
+                success: null,
+                failure: {
+                  error: ProtocolError.GENERIC_FAIL
+                }
+              }))
+            )
+          )
+        : [];
 
-    const results: SDKProtocolResult = {
-      successes: coreResults
-        .filter((v) => v.success)
-        .map((v) => v.success) as PeerId[],
-      failures: coreResults
-        .filter((v) => v.failure)
-        .map((v) => v.failure) as Failure[]
-    };
+    const results: SDKProtocolResult = coreResults.length
+      ? {
+          successes: coreResults
+            .filter((v) => v.success)
+            .map((v) => v.success) as PeerId[],
+          failures: coreResults
+            .filter((v) => v.failure)
+            .map((v) => v.failure) as Failure[]
+        }
+      : {
+          successes: [],
+          failures: [
+            {
+              error: ProtocolError.NO_PEER_AVAILABLE
+            }
+          ]
+        };
 
     if (options.autoRetry && results.successes.length === 0) {
       const sendCallback = (peerId: PeerId): Promise<CoreProtocolResult> =>

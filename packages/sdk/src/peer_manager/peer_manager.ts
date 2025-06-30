@@ -27,7 +27,7 @@ type GetPeersParams = {
   pubsubTopic: string;
 };
 
-enum PeerManagerEventNames {
+export enum PeerManagerEventNames {
   Connect = "filter:connect",
   Disconnect = "filter:disconnect"
 }
