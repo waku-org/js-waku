@@ -1,5 +1,9 @@
 import type { PeerId } from "@libp2p/interface";
-import { type CoreProtocolResult, ProtocolError } from "@waku/interfaces";
+import {
+  type CoreProtocolResult,
+  ProtocolError,
+  Protocols
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -19,7 +23,7 @@ describe("RetryManager", () => {
     mockPeerId = { toString: () => "test-peer-id" } as PeerId;
     peerManager = {
       getPeers: () => [mockPeerId],
-      requestRenew: sinon.spy(),
+      renewPeer: sinon.spy(),
       start: sinon.spy(),
       stop: sinon.spy()
     } as unknown as PeerManager;
@@ -55,14 +59,49 @@ describe("RetryManager", () => {
       })
     );
 
-    retryManager.push(successCallback, 3);
+    retryManager.push(successCallback, 3, "test-topic");
     retryManager.start();
 
-    clock.tick(1000);
+    await clock.tickAsync(200);
+    retryManager.stop();
 
     expect(successCallback.calledOnce, "called").to.be.true;
     expect(successCallback.calledWith(mockPeerId), "called with peer").to.be
       .true;
+  });
+
+  it("should requeue task if no peer is available", async () => {
+    (peerManager as any).getPeers = () => [];
+    const callback = sinon.spy();
+
+    retryManager.push(callback, 2, "test-topic");
+    retryManager.start();
+
+    const queue = (retryManager as any)["queue"] as ScheduledTask[];
+    expect(queue.length).to.equal(1);
+
+    await clock.tickAsync(200);
+    retryManager.stop();
+
+    expect(callback.called).to.be.false;
+    expect(queue.length).to.equal(1);
+    expect(queue[0].maxAttempts).to.equal(1);
+  });
+
+  it("should not requeue if maxAttempts is exhausted and no peer is available", async () => {
+    (peerManager as any).getPeers = () => [];
+    const callback = sinon.spy();
+
+    retryManager.push(callback, 1, "test-topic");
+    retryManager.start();
+    const queue = (retryManager as any)["queue"] as ScheduledTask[];
+    expect(queue.length).to.equal(1);
+
+    await clock.tickAsync(500);
+    retryManager.stop();
+
+    expect(callback.called).to.be.false;
+    expect(queue.length).to.equal(0);
   });
 
   it("should retry failed tasks", async () => {
@@ -75,7 +114,11 @@ describe("RetryManager", () => {
 
     const queue = (retryManager as any)["queue"] as ScheduledTask[];
 
-    const task = { callback: failingCallback, maxAttempts: 2 };
+    const task = {
+      callback: failingCallback,
+      maxAttempts: 2,
+      pubsubTopic: "test-topic"
+    };
     await (retryManager as any)["taskExecutor"](task);
 
     expect(failingCallback.calledOnce, "executed callback").to.be.true;
@@ -92,12 +135,17 @@ describe("RetryManager", () => {
 
     await (retryManager as any)["taskExecutor"]({
       callback: errorCallback,
-      maxAttempts: 1
+      maxAttempts: 1,
+      pubsubTopic: "test-topic"
     });
 
-    expect((peerManager.requestRenew as sinon.SinonSpy).calledOnce).to.be.true;
-    expect((peerManager.requestRenew as sinon.SinonSpy).calledWith(mockPeerId))
-      .to.be.true;
+    expect((peerManager.renewPeer as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(
+      (peerManager.renewPeer as sinon.SinonSpy).calledWith(mockPeerId, {
+        protocol: Protocols.LightPush,
+        pubsubTopic: "test-topic"
+      })
+    ).to.be.true;
   });
 
   it("should handle task timeouts", async () => {
@@ -106,24 +154,64 @@ describe("RetryManager", () => {
       return { success: mockPeerId, failure: null };
     });
 
-    const task = { callback: slowCallback, maxAttempts: 1 };
+    const task = {
+      callback: slowCallback,
+      maxAttempts: 1,
+      pubsubTopic: "test-topic"
+    };
     const executionPromise = (retryManager as any)["taskExecutor"](task);
 
-    clock.tick(11000);
+    await clock.tickAsync(11000);
     await executionPromise;
 
     expect(slowCallback.calledOnce).to.be.true;
   });
 
-  it("should respect max attempts limit", async () => {
+  it("should not execute task if max attempts is 0", async () => {
     const failingCallback = sinon.spy(async (): Promise<CoreProtocolResult> => {
       throw new Error("test error" as any);
     });
 
-    const task = { callback: failingCallback, maxAttempts: 0 };
+    const task = {
+      callback: failingCallback,
+      maxAttempts: 0,
+      pubsubTopic: "test-topic"
+    };
     await (retryManager as any)["taskExecutor"](task);
 
-    expect(failingCallback.calledOnce).to.be.true;
-    expect(task.maxAttempts).to.equal(0);
+    expect(failingCallback.called).to.be.false;
+  });
+
+  it("should not retry if at least one success", async () => {
+    let called = 0;
+    (peerManager as any).getPeers = () => [mockPeerId];
+    const successCallback = sinon.stub().callsFake(() => {
+      called++;
+      if (called === 1) retryManager.stop();
+      return Promise.resolve({ success: mockPeerId, failure: null });
+    });
+    retryManager.push(successCallback, 2, "test-topic");
+    retryManager.start();
+    await clock.tickAsync(500);
+    expect(called).to.equal(1);
+  });
+
+  it("should retry if all attempts fail", async () => {
+    let called = 0;
+    (peerManager as any).getPeers = () => [mockPeerId];
+    const failCallback = sinon.stub().callsFake(() => {
+      called++;
+      return Promise.resolve({
+        success: null,
+        failure: { error: ProtocolError.GENERIC_FAIL }
+      });
+    });
+    retryManager.push(failCallback, 2, "test-topic");
+    retryManager.start();
+    await clock.tickAsync(1000);
+    retryManager.stop();
+    expect(called).to.be.greaterThan(1);
+    const queue = (retryManager as any)["queue"] as ScheduledTask[];
+    expect(queue.length).to.equal(0);
   });
 });
