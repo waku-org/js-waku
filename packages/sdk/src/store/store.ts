@@ -15,13 +15,13 @@ import {
 } from "@waku/interfaces";
 import { isDefined, Logger } from "@waku/utils";
 
-import { NewPeerManager } from "../peer_manager/index.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 const log = new Logger("waku:store:sdk");
 
 type StoreConstructorParams = {
   libp2p: Libp2p;
-  peerManager: NewPeerManager;
+  peerManager: PeerManager;
   connectionManager: ConnectionManager;
   options?: Partial<StoreProtocolOptions>;
 };
@@ -33,7 +33,7 @@ type StoreConstructorParams = {
 export class Store implements IStore {
   private readonly options: Partial<StoreProtocolOptions>;
   private readonly libp2p: Libp2p;
-  private readonly peerManager: NewPeerManager;
+  private readonly peerManager: PeerManager;
   private readonly connectionManager: ConnectionManager;
   private readonly protocol: StoreCore;
 

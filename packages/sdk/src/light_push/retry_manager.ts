@@ -2,13 +2,13 @@ import type { PeerId } from "@libp2p/interface";
 import { type CoreProtocolResult, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import type { NewPeerManager } from "../peer_manager/index.js";
+import type { PeerManager } from "../peer_manager/index.js";
 
 import { shouldPeerBeChanged, timeout } from "./utils.js";
 
 type RetryManagerConfig = {
   retryIntervalMs: number;
-  peerManager: NewPeerManager;
+  peerManager: PeerManager;
 };
 
 type AttemptCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
@@ -31,7 +31,7 @@ export class RetryManager {
   private inProgress: number = 0;
   private readonly queue: ScheduledTask[] = [];
 
-  private readonly peerManager: NewPeerManager;
+  private readonly peerManager: PeerManager;
 
   public constructor(config: RetryManagerConfig) {
     this.peerManager = config.peerManager;

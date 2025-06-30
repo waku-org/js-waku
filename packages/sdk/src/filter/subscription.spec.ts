@@ -10,7 +10,7 @@ import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { NewPeerManager } from "../peer_manager/index.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { Subscription } from "./subscription.js";
 
@@ -20,7 +20,7 @@ const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
 describe("Filter Subscription", () => {
   let libp2p: Libp2p;
   let filterCore: FilterCore;
-  let peerManager: NewPeerManager;
+  let peerManager: PeerManager;
   let subscription: Subscription;
   let decoder: IDecoder<IDecodedMessage>;
   let config: FilterProtocolOptions;
@@ -218,10 +218,10 @@ function mockFilterCore(): FilterCore {
   } as unknown as FilterCore;
 }
 
-function mockPeerManager(): NewPeerManager {
+function mockPeerManager(): PeerManager {
   return {
     getPeers: sinon.stub().resolves([mockPeerId("peer1"), mockPeerId("peer2")])
-  } as unknown as NewPeerManager;
+  } as unknown as PeerManager;
 }
 
 function mockPeerId(id: string): PeerId {

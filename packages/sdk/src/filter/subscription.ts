@@ -16,7 +16,7 @@ import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { NewPeerManager } from "../peer_manager/index.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { SubscriptionEvents, SubscriptionParams } from "./types.js";
 import { TTLSet } from "./utils.js";
@@ -36,7 +36,7 @@ export class Subscription {
   private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
   private readonly protocol: FilterCore;
-  private readonly peerManager: NewPeerManager;
+  private readonly peerManager: PeerManager;
 
   private readonly config: FilterProtocolOptions;
 

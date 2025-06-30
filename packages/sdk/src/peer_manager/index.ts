@@ -1,1 +1,1 @@
-export { PeerManager, NewPeerManager } from "./peer_manager.js";
+export { PeerManager } from "./peer_manager.js";

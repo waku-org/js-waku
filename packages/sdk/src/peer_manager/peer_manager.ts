@@ -1,4 +1,4 @@
-import { Connection, Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
+import { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 import {
   ConnectionManager,
   FilterCodecs,
@@ -11,7 +11,6 @@ import { Logger } from "@waku/utils";
 const log = new Logger("peer-manager");
 
 const DEFAULT_NUM_PEERS_TO_USE = 2;
-const CONNECTION_LOCK_TAG = "peer-manager-lock";
 
 type PeerManagerConfig = {
   numPeersToUse?: number;
@@ -48,12 +47,13 @@ interface IPeerManagerEvents {
 type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
 
 /**
+ * @description
  * PeerManager is responsible for:
  * - finding available peers based on shard / protocols;
  * - notifying when peers for a specific protocol are connected;
  * - notifying when peers for a specific protocol are disconnected;
  */
-export class NewPeerManager {
+export class PeerManager {
   public readonly events = new TypedEventEmitter<IPeerManagerEvents>();
 
   private readonly numPeersToUse: number;
@@ -246,120 +246,5 @@ export class NewPeerManager {
     };
 
     return protocolToCodec[protocol];
-  }
-}
-
-export class PeerManager {
-  private readonly numPeersToUse: number;
-
-  private readonly libp2p: Libp2p;
-
-  public constructor(params: PeerManagerParams) {
-    this.onConnected = this.onConnected.bind(this);
-    this.onDisconnected = this.onDisconnected.bind(this);
-
-    this.numPeersToUse =
-      params?.config?.numPeersToUse || DEFAULT_NUM_PEERS_TO_USE;
-
-    this.libp2p = params.libp2p;
-  }
-
-  public start(): void {
-    this.startConnectionListener();
-  }
-
-  public stop(): void {
-    this.stopConnectionListener();
-  }
-
-  public getPeers(): PeerId[] {
-    return this.getLockedConnections().map((c) => c.remotePeer);
-  }
-
-  public requestRenew(peerId: PeerId | string): PeerId | undefined {
-    const lockedConnections = this.getLockedConnections();
-    const neededPeers = this.numPeersToUse - lockedConnections.length;
-
-    if (neededPeers === 0) {
-      return;
-    }
-
-    const connections = this.getUnlockedConnections()
-      .filter((c) => !c.remotePeer.equals(peerId))
-      .slice(0, neededPeers)
-      .map((c) => this.lockConnection(c))
-      .map((c) => c.remotePeer);
-
-    const newPeerId = connections[0];
-
-    if (!newPeerId) {
-      log.warn(
-        `requestRenew: Couldn't renew peer ${peerId.toString()} - no peers.`
-      );
-      return;
-    }
-
-    log.info(
-      `requestRenew: Renewed peer ${peerId.toString()} to ${newPeerId.toString()}`
-    );
-
-    return newPeerId;
-  }
-
-  private startConnectionListener(): void {
-    this.libp2p.addEventListener("peer:connect", this.onConnected);
-    this.libp2p.addEventListener("peer:disconnect", this.onDisconnected);
-  }
-
-  private stopConnectionListener(): void {
-    this.libp2p.removeEventListener("peer:connect", this.onConnected);
-    this.libp2p.removeEventListener("peer:disconnect", this.onDisconnected);
-  }
-
-  private onConnected(event: CustomEvent<PeerId>): void {
-    const peerId = event.detail;
-    this.lockPeerIfNeeded(peerId);
-  }
-
-  private onDisconnected(event: CustomEvent<PeerId>): void {
-    const peerId = event.detail;
-    this.requestRenew(peerId);
-  }
-
-  private lockPeerIfNeeded(peerId: PeerId): void {
-    const lockedConnections = this.getLockedConnections();
-    const neededPeers = this.numPeersToUse - lockedConnections.length;
-
-    if (neededPeers === 0) {
-      return;
-    }
-
-    this.getUnlockedConnections()
-      .filter((c) => c.remotePeer.equals(peerId))
-      .map((c) => this.lockConnection(c));
-  }
-
-  private getLockedConnections(): Connection[] {
-    return this.libp2p
-      .getConnections()
-      .filter((c) => c.status === "open" && this.isConnectionLocked(c));
-  }
-
-  private getUnlockedConnections(): Connection[] {
-    return this.libp2p
-      .getConnections()
-      .filter((c) => c.status === "open" && !this.isConnectionLocked(c));
-  }
-
-  private lockConnection(c: Connection): Connection {
-    log.info(
-      `requestRenew: Locking connection for peerId=${c.remotePeer.toString()}`
-    );
-    c.tags.push(CONNECTION_LOCK_TAG);
-    return c;
-  }
-
-  private isConnectionLocked(c: Connection): boolean {
-    return c.tags.includes(CONNECTION_LOCK_TAG);
   }
 }

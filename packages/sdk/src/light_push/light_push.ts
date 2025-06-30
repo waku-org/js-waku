@@ -15,7 +15,7 @@ import {
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { NewPeerManager } from "../peer_manager/index.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { RetryManager } from "./retry_manager.js";
 
@@ -31,7 +31,7 @@ const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
 
 type LightPushConstructorParams = {
   connectionManager: ConnectionManager;
-  peerManager: NewPeerManager;
+  peerManager: PeerManager;
   libp2p: Libp2p;
   options?: Partial<LightPushProtocolOptions>;
 };
@@ -39,7 +39,7 @@ type LightPushConstructorParams = {
 export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
-  private readonly peerManager: NewPeerManager;
+  private readonly peerManager: PeerManager;
   private readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {

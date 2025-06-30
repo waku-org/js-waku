@@ -23,7 +23,7 @@ import { Logger } from "@waku/utils";
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
-import { NewPeerManager, PeerManager } from "../peer_manager/index.js";
+import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
 import {
@@ -57,7 +57,6 @@ export class WakuNode implements IWaku {
   private _nodeStarted = false;
 
   private readonly peerManager: PeerManager;
-  private readonly newPeerManager: NewPeerManager;
 
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
@@ -94,21 +93,13 @@ export class WakuNode implements IWaku {
       connectionManager: this.connectionManager
     });
 
-    this.newPeerManager = new NewPeerManager({
-      libp2p,
-      config: {
-        numPeersToUse: options.numPeersToUse
-      },
-      connectionManager: this.connectionManager
-    });
-
     this.health = new HealthIndicator({ libp2p });
 
     if (protocolsEnabled.store) {
       this.store = new Store({
         libp2p,
         connectionManager: this.connectionManager,
-        peerManager: this.newPeerManager,
+        peerManager: this.peerManager,
         options: options?.store
       });
     }
@@ -116,7 +107,7 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.lightpush) {
       this.lightPush = new LightPush({
         libp2p,
-        peerManager: this.newPeerManager,
+        peerManager: this.peerManager,
         connectionManager: this.connectionManager,
         options: options?.lightPush
       });
@@ -126,7 +117,7 @@ export class WakuNode implements IWaku {
       this.filter = new Filter({
         libp2p,
         connectionManager: this.connectionManager,
-        peerManager: this.newPeerManager,
+        peerManager: this.peerManager,
         options: options.filter
       });
     }
@@ -212,7 +203,6 @@ export class WakuNode implements IWaku {
 
     await this.libp2p.start();
     this.peerManager.start();
-    this.newPeerManager.start();
     this.health.start();
     this.lightPush?.start();
 
@@ -228,7 +218,6 @@ export class WakuNode implements IWaku {
     this.lightPush?.stop();
     this.health.stop();
     this.peerManager.stop();
-    this.newPeerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();
 
