@@ -37,7 +37,6 @@ describe("Filter Subscription", () => {
 
     subscription = new Subscription({
       pubsubTopic: PUBSUB_TOPIC,
-      libp2p,
       protocol: filterCore,
       config,
       peerManager

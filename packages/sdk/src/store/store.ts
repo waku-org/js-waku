@@ -7,7 +7,6 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolError,
   Protocols,
   QueryRequestParams,
   StoreCursor,
@@ -234,7 +233,9 @@ export class Store implements IStore {
       this.connectionManager.pubsubTopics.includes(pubsubTopicForQuery);
 
     if (!isPubsubSupported) {
-      throw new Error(`Store protocol: ${ProtocolError.TOPIC_NOT_CONFIGURED}`);
+      throw new Error(
+        `Pubsub topic ${pubsubTopicForQuery} has not been configured on this instance. Configured topics are: ${this.connectionManager.pubsubTopics}`
+      );
     }
 
     const decodersAsMap = new Map();
