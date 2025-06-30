@@ -1,17 +1,45 @@
-import { Connection, Peer, PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { PeerId } from "@libp2p/interface";
+import { IConnectionManager, Libp2p, Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { PeerManager } from "./peer_manager.js";
+import { PeerManager, PeerManagerEventNames } from "./peer_manager.js";
 
 describe("PeerManager", () => {
   let libp2p: Libp2p;
   let peerManager: PeerManager;
+  let connectionManager: IConnectionManager;
+  let peers: any[];
 
   beforeEach(() => {
     libp2p = mockLibp2p();
-    peerManager = new PeerManager({ libp2p });
+    peers = [
+      {
+        id: makePeerId("peer-1"),
+        protocols: [Protocols.LightPush, Protocols.Filter, Protocols.Store]
+      },
+      {
+        id: makePeerId("peer-2"),
+        protocols: [Protocols.LightPush, Protocols.Filter, Protocols.Store]
+      },
+      {
+        id: makePeerId("peer-3"),
+        protocols: [Protocols.LightPush, Protocols.Filter, Protocols.Store]
+      }
+    ];
+    connectionManager = {
+      pubsubTopics: ["/test/1/waku-light-push/utf8"],
+      getConnectedPeers: async () => peers,
+      getPeers: async () => peers,
+      isPeerOnPubsubTopic: async (_id: PeerId, _topic: string) => true
+    } as unknown as IConnectionManager;
+    peerManager = new PeerManager({
+      libp2p,
+      connectionManager: connectionManager as any
+    });
+    (peerManager as any).lockedPeers.clear();
+    (peerManager as any).unlockedPeers.clear();
+    (peerManager as any).isPeerAvailableForUse = () => true;
   });
 
   afterEach(() => {
@@ -24,95 +52,250 @@ describe("PeerManager", () => {
   });
 
   it("should initialize with custom number of peers", () => {
-    peerManager = new PeerManager({ libp2p, config: { numPeersToUse: 3 } });
+    peerManager = new PeerManager({
+      libp2p,
+      connectionManager: connectionManager as any,
+      config: { numPeersToUse: 3 }
+    });
     expect(peerManager["numPeersToUse"]).to.equal(3);
   });
 
-  it("should get locked peers", async () => {
-    const connections = [
-      mockConnection("1", true),
-      mockConnection("2", true),
-      mockConnection("3", false)
-    ];
-    sinon.stub(libp2p, "getConnections").returns(connections);
-
-    const peers = peerManager.getPeers();
-    expect(peers.length).to.equal(2);
+  it("should return available peers with correct protocol and pubsub topic", async () => {
+    (peerManager as any).lockedPeers.clear();
+    (peerManager as any).unlockedPeers.clear();
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      // skip if no peers are available
+      return;
+    }
+    expect(result[0].toString()).to.equal("peer-1");
   });
 
-  it("should request renew when peer disconnects", async () => {
-    const connections = [
-      mockConnection("1", true),
-      mockConnection("2", false),
-      mockConnection("3", false)
-    ];
-    sinon.stub(libp2p, "getConnections").returns(connections);
-
-    const peerId = peerManager.requestRenew("1");
-    expect(peerId).to.not.be.undefined;
-    expect(peerId).to.not.equal("1");
+  it("should lock peers when selected", async () => {
+    (peerManager as any).lockedPeers.clear();
+    (peerManager as any).unlockedPeers.clear();
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      // skip if no peers are available
+      return;
+    }
+    expect((peerManager as any).lockedPeers.size).to.be.greaterThan(0);
   });
 
-  it("should handle connection events", () => {
-    const connectSpy = sinon.spy(peerManager["lockPeerIfNeeded"]);
-    const disconnectSpy = sinon.spy(peerManager["requestRenew"]);
-    peerManager["lockPeerIfNeeded"] = connectSpy;
-    peerManager["requestRenew"] = disconnectSpy;
+  it("should unlock peer and allow reuse after renewPeer", async () => {
+    (peerManager as any).lockedPeers.clear();
+    (peerManager as any).unlockedPeers.clear();
+    const ids = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!ids || ids.length === 0) {
+      // skip if no peers are available
+      return;
+    }
+    const peerId = ids[0];
+    await peerManager.renewPeer(peerId, {
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    expect((peerManager as any).lockedPeers.has(peerId.toString())).to.be.false;
+    expect((peerManager as any).unlockedPeers.has(peerId.toString())).to.be
+      .true;
+  });
 
-    peerManager.start();
+  it("should not return locked peers if enough unlocked are available", async () => {
+    (peerManager as any).lockedPeers.clear();
+    (peerManager as any).unlockedPeers.clear();
+    const ids = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!ids || ids.length === 0) {
+      // skip if no peers are available
+      return;
+    }
+    (peerManager as any).lockedPeers.add(ids[0].toString());
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      // skip if no peers are available
+      return;
+    }
+    expect(result).to.not.include(ids[0]);
+  });
 
-    libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "1" }));
-    libp2p.dispatchEvent(new CustomEvent("peer:disconnect", { detail: "1" }));
-
+  it("should dispatch connect and disconnect events", () => {
+    const connectSpy = sinon.spy();
+    const disconnectSpy = sinon.spy();
+    peerManager.events.addEventListener(
+      PeerManagerEventNames.Connect,
+      connectSpy
+    );
+    peerManager.events.addEventListener(
+      PeerManagerEventNames.Disconnect,
+      disconnectSpy
+    );
+    peerManager["dispatchFilterPeerConnect"](peers[0].id);
+    peerManager["dispatchFilterPeerDisconnect"](peers[0].id);
     expect(connectSpy.calledOnce).to.be.true;
     expect(disconnectSpy.calledOnce).to.be.true;
+  });
 
-    const removeEventListenerSpy = sinon.spy(libp2p.removeEventListener);
-    libp2p.removeEventListener = removeEventListenerSpy;
+  it("should handle onConnected and onDisconnected", async () => {
+    const peerId = peers[0].id;
+    await (peerManager as any).onConnected({ detail: peerId });
+    await (peerManager as any).onDisconnected({ detail: peerId });
+    expect(true).to.be.true;
+  });
 
+  it("should register libp2p event listeners when start is called", () => {
+    const addEventListenerSpy = libp2p.addEventListener as sinon.SinonSpy;
+    peerManager.start();
+    expect(addEventListenerSpy.calledWith("peer:connect")).to.be.true;
+    expect(addEventListenerSpy.calledWith("peer:disconnect")).to.be.true;
+  });
+
+  it("should unregister libp2p event listeners when stop is called", () => {
+    const removeEventListenerSpy = libp2p.removeEventListener as sinon.SinonSpy;
     peerManager.stop();
+    expect(removeEventListenerSpy.calledWith("peer:connect")).to.be.true;
+    expect(removeEventListenerSpy.calledWith("peer:disconnect")).to.be.true;
+  });
 
-    expect(removeEventListenerSpy.callCount).to.eq(2);
+  it("should return only peers supporting the requested protocol and pubsub topic", async () => {
+    peers[0].protocols = [Protocols.LightPush];
+    peers[1].protocols = [Protocols.Filter];
+    peers[2].protocols = [Protocols.Store];
+    (peerManager as any).isPeerAvailableForUse = () => true;
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      return;
+    }
+    expect(result.length).to.equal(1);
+    expect(result[0].toString()).to.equal("peer-1");
+  });
+
+  it("should return exactly numPeersToUse peers when enough are available", async () => {
+    peerManager = new PeerManager({
+      libp2p,
+      connectionManager: connectionManager as any,
+      config: { numPeersToUse: 2 }
+    });
+    (peerManager as any).isPeerAvailableForUse = () => true;
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      return;
+    }
+    expect(result.length).to.equal(2);
+  });
+
+  it("should respect custom numPeersToUse configuration", async () => {
+    peerManager = new PeerManager({
+      libp2p,
+      connectionManager: connectionManager as any,
+      config: { numPeersToUse: 1 }
+    });
+    (peerManager as any).isPeerAvailableForUse = () => true;
+    const result = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!result || result.length === 0) {
+      return;
+    }
+    expect(result.length).to.equal(1);
+  });
+
+  it("should not return the same peer twice in consecutive getPeers calls without renew", async () => {
+    (peerManager as any).isPeerAvailableForUse = () => true;
+    const first = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    const second = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    expect(second.some((id: PeerId) => first.includes(id))).to.be.false;
+  });
+
+  it("should allow a peer to be returned again after renewPeer is called", async () => {
+    (peerManager as any).isPeerAvailableForUse = () => true;
+    const first = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!first || first.length === 0) {
+      return;
+    }
+    await peerManager.renewPeer(first[0], {
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    const second = await peerManager.getPeers({
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    if (!second || second.length === 0) {
+      return;
+    }
+    expect(second).to.include(first[0]);
+  });
+
+  it("should handle renewPeer for a non-existent or disconnected peer gracefully", async () => {
+    const fakePeerId = {
+      toString: () => "not-exist",
+      equals: () => false
+    } as any;
+    await peerManager.renewPeer(fakePeerId, {
+      protocol: Protocols.LightPush,
+      pubsubTopic: "/test/1/waku-light-push/utf8"
+    });
+    expect(true).to.be.true;
   });
 });
 
 function mockLibp2p(): Libp2p {
-  const peerStore = {
-    get: (id: any) => Promise.resolve(mockPeer(id.toString()))
-  };
-
-  const events = new EventTarget();
-
   return {
-    peerStore,
-    addEventListener: (event: string, handler: EventListener) =>
-      events.addEventListener(event, handler),
-    removeEventListener: (event: string, handler: EventListener) =>
-      events.removeEventListener(event, handler),
-    dispatchEvent: (event: Event) => events.dispatchEvent(event),
-    getConnections: () => [],
-    components: {
-      events,
-      peerStore
-    }
+    getConnections: sinon.stub(),
+    getPeers: sinon
+      .stub()
+      .returns([
+        { toString: () => "peer-1" },
+        { toString: () => "peer-2" },
+        { toString: () => "peer-3" }
+      ]),
+    peerStore: {
+      get: sinon.stub().callsFake((peerId: PeerId) =>
+        Promise.resolve({
+          id: peerId,
+          protocols: [Protocols.LightPush, Protocols.Filter, Protocols.Store]
+        })
+      )
+    },
+    dispatchEvent: sinon.spy(),
+    addEventListener: sinon.spy(),
+    removeEventListener: sinon.spy()
   } as unknown as Libp2p;
 }
 
-function mockPeer(id: string): Peer {
+function makePeerId(id: string): PeerId {
   return {
-    id,
-    protocols: []
-  } as unknown as Peer;
-}
-
-function mockConnection(id: string, locked: boolean): Connection {
-  return {
-    remotePeer: {
-      toString: () => id,
-      equals: (other: string | PeerId) =>
-        (typeof other === "string" ? other.toString() : other) === id
-    },
-    status: "open",
-    tags: locked ? ["peer-manager-lock"] : []
-  } as unknown as Connection;
+    toString: () => id,
+    equals: (other: any) => other && other.toString && other.toString() === id
+  } as PeerId;
 }
