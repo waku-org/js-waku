@@ -76,11 +76,11 @@ describe("Longevity", function () {
     await waku.waitForPeers([Protocols.Filter]);
 
     const decoder = createDecoder(ContentTopic, singleShardInfo);
-    const { error } = await waku.filter.subscribe(
+    const hasSubscribed = await waku.filter.subscribe(
       [decoder],
       messageCollector.callback
     );
-    if (error) throw error;
+    if (!hasSubscribed) throw new Error("Failed to subscribe from the start.");
 
     const encoder = createEncoder({
       contentTopic: ContentTopic,

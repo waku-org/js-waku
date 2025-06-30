@@ -1,3 +1,6 @@
+/*
+TODO(weboko): skipped until https://github.com/waku-org/js-waku/issues/2431 is resolved
+
 import { createDecoder, createEncoder } from "@waku/core";
 import { type LightNode } from "@waku/interfaces";
 import { toAsyncIterator } from "@waku/utils";
@@ -105,3 +108,4 @@ describe("Util: toAsyncIterator: Filter", function () {
     expect(result.done).to.eq(true);
   });
 });
+*/

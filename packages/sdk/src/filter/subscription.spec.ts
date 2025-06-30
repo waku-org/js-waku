@@ -1,16 +1,16 @@
 import type { PeerId } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import type {
+  FilterProtocolOptions,
   IDecodedMessage,
   IDecoder,
-  Libp2p,
-  NextFilterOptions
+  Libp2p
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { NewPeerManager } from "../peer_manager/index.js";
 
 import { Subscription } from "./subscription.js";
 
@@ -20,10 +20,10 @@ const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
 describe("Filter Subscription", () => {
   let libp2p: Libp2p;
   let filterCore: FilterCore;
-  let peerManager: PeerManager;
+  let peerManager: NewPeerManager;
   let subscription: Subscription;
   let decoder: IDecoder<IDecodedMessage>;
-  let config: NextFilterOptions;
+  let config: FilterProtocolOptions;
 
   beforeEach(() => {
     libp2p = mockLibp2p();
@@ -218,10 +218,10 @@ function mockFilterCore(): FilterCore {
   } as unknown as FilterCore;
 }
 
-function mockPeerManager(): PeerManager {
+function mockPeerManager(): NewPeerManager {
   return {
-    getPeers: sinon.stub().returns([mockPeerId("peer1"), mockPeerId("peer2")])
-  } as unknown as PeerManager;
+    getPeers: sinon.stub().resolves([mockPeerId("peer1"), mockPeerId("peer2")])
+  } as unknown as NewPeerManager;
 }
 
 function mockPeerId(id: string): PeerId {
