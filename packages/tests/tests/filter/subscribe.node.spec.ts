@@ -293,7 +293,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       });
     });
 
-    it("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
+    it.only("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
       console.log("DEBUG: TEST START");
       this.timeout(100_000);
       const topicCount = 30;
