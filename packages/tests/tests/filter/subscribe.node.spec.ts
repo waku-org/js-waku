@@ -293,8 +293,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       });
     });
 
-    // skip for now, will be enabled once old Filter is removed as it exausts amount of streams avaialble
-    it.skip("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
+    it("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
       this.timeout(100_000);
       const topicCount = 30;
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
