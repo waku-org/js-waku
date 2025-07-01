@@ -5,19 +5,20 @@ export type IFilter = {
   readonly multicodec: string;
 
   /**
-   * Subscribes to messages with specified decoders and executes callback when a message is received.
-   * In case no peers available initially - will delay subscription till connects to any peer.
+   * Subscribes to messages that match the filtering criteria defined in the specified decoders.
+   * Executes a callback upon receiving each message.
+   * Checks for a valid peer connection before starting. Will wait until a peer is available.
    *
-   * @param decoders - Single decoder or array of decoders to subscribe to. All decoders must share the same pubsubTopic.
-   * @param callback - Function called when a message matching the decoder's contentTopic is received.
-   * @returns Promise that resolves to true if subscription was successful, false otherwise.
+   * @param decoders - One or more decoders that specify the filtering criteria for this subscription.
+   * @param callback - Function called when a message matching the filtering criteria is received.
+   * @returns Promise that resolves to boolean indicating if the subscription was created successfully.
    *
    * @example
-   * // Subscribe to a single content topic
+   * // Subscribe to a single decoder
    * await filter.subscribe(decoder, (msg) => console.log(msg));
    *
    * @example
-   * // Subscribe to multiple content topics with the same pubsub topic
+   * // Subscribe to multiple decoders with the same pubsub topic
    * await filter.subscribe([decoder1, decoder2], (msg) => console.log(msg));
    *
    * @example
