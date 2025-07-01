@@ -3,8 +3,7 @@ import { FilterCore } from "@waku/core";
 import type {
   FilterProtocolOptions,
   IDecodedMessage,
-  IDecoder,
-  Libp2p
+  IDecoder
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
@@ -18,7 +17,6 @@ const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
 
 describe("Filter Subscription", () => {
-  let libp2p: Libp2p;
   let filterCore: FilterCore;
   let peerManager: PeerManager;
   let subscription: Subscription;
@@ -26,7 +24,6 @@ describe("Filter Subscription", () => {
   let config: FilterProtocolOptions;
 
   beforeEach(() => {
-    libp2p = mockLibp2p();
     filterCore = mockFilterCore();
     peerManager = mockPeerManager();
     config = {
@@ -191,23 +188,6 @@ describe("Filter Subscription", () => {
     expect(disposeHandlersSpy.calledOnce).to.be.true;
   });
 });
-
-function mockLibp2p(): Libp2p {
-  return {
-    addEventListener: sinon.stub(),
-    removeEventListener: sinon.stub(),
-    handle: sinon.stub().resolves(),
-    components: {
-      events: {
-        addEventListener: sinon.stub(),
-        removeEventListener: sinon.stub()
-      },
-      connectionManager: {
-        getConnections: sinon.stub().returns([])
-      }
-    }
-  } as unknown as Libp2p;
-}
 
 function mockFilterCore(): FilterCore {
   return {

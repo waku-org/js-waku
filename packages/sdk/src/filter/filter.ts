@@ -82,7 +82,6 @@ export class Filter implements IFilter {
     if (!subscription) {
       subscription = new Subscription({
         pubsubTopic: singlePubsubTopic,
-        libp2p: this.libp2p,
         protocol: this.protocol,
         config: this.config,
         peerManager: this.peerManager
