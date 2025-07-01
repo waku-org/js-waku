@@ -39,7 +39,7 @@ import {
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
-  describe(`Waku Filter Next: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
+  describe.only(`Waku Filter Next: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
     this.timeout(100000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
@@ -294,6 +294,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
+      console.log("DEBUG: TEST START");
       this.timeout(100_000);
       const topicCount = 30;
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
@@ -323,6 +324,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           expectedPubsubTopic: TestPubsubTopic
         });
       });
+      console.log("DEBUG: TEST END");
     });
 
     it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
