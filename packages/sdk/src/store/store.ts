@@ -1,31 +1,27 @@
-import type { Peer, PeerId } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
-import {
-  ConnectionManager,
-  messageHash,
-  StoreCodec,
-  StoreCore
-} from "@waku/core";
+import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
   IStore,
   Libp2p,
+  Protocols,
   QueryRequestParams,
   StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
-import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
+import { isDefined, Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
 const log = new Logger("waku:store:sdk");
 
 type StoreConstructorParams = {
-  connectionManager: ConnectionManager;
   libp2p: Libp2p;
   peerManager: PeerManager;
+  connectionManager: ConnectionManager;
   options?: Partial<StoreProtocolOptions>;
 };
 
@@ -36,18 +32,17 @@ type StoreConstructorParams = {
 export class Store implements IStore {
   private readonly options: Partial<StoreProtocolOptions>;
   private readonly libp2p: Libp2p;
+  private readonly peerManager: PeerManager;
   private readonly connectionManager: ConnectionManager;
   private readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
+    this.peerManager = params.peerManager;
     this.connectionManager = params.connectionManager;
     this.libp2p = params.libp2p;
 
-    this.protocol = new StoreCore(
-      params.connectionManager.pubsubTopics,
-      params.libp2p
-    );
+    this.protocol = new StoreCore(params.libp2p);
   }
 
   public get multicodec(): string {
@@ -234,11 +229,14 @@ export class Store implements IStore {
     }
 
     const pubsubTopicForQuery = uniquePubsubTopicsInQuery[0];
+    const isPubsubSupported =
+      this.connectionManager.pubsubTopics.includes(pubsubTopicForQuery);
 
-    ensurePubsubTopicIsConfigured(
-      pubsubTopicForQuery,
-      this.protocol.pubsubTopics
-    );
+    if (!isPubsubSupported) {
+      throw new Error(
+        `Pubsub topic ${pubsubTopicForQuery} has not been configured on this instance. Configured topics are: ${this.connectionManager.pubsubTopics}`
+      );
+    }
 
     const decodersAsMap = new Map();
     decoders.forEach((dec) => {
@@ -268,29 +266,32 @@ export class Store implements IStore {
   }
 
   private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
-    const peers = await this.filterConnectedPeers(pubsubTopic);
+    const peers = await this.peerManager.getPeers({
+      protocol: Protocols.Store,
+      pubsubTopic
+    });
 
     const peer = this.options.peers
       ? await this.getPeerFromConfigurationOrFirst(peers, this.options.peers)
-      : peers[0]?.id;
+      : peers[0];
 
     return peer;
   }
 
   private async getPeerFromConfigurationOrFirst(
-    peers: Peer[],
+    peerIds: PeerId[],
     configPeers: string[]
   ): Promise<PeerId | undefined> {
     const storeConfigPeers = configPeers.map(multiaddr);
     const missing = [];
 
     for (const peer of storeConfigPeers) {
-      const matchedPeer = peers.find(
-        (p) => p.id.toString() === peer.getPeerId()?.toString()
+      const matchedPeer = peerIds.find(
+        (id) => id.toString() === peer.getPeerId()?.toString()
       );
 
       if (matchedPeer) {
-        return matchedPeer.id;
+        return matchedPeer;
       }
 
       missing.push(peer);
@@ -320,28 +321,6 @@ export class Store implements IStore {
       `Passed node to use for Store not found: ${configPeers.toString()}. Attempting to use first available peers.`
     );
 
-    return peers[0]?.id;
-  }
-
-  private async filterConnectedPeers(pubsubTopic: string): Promise<Peer[]> {
-    const peers = await this.connectionManager.getConnectedPeers();
-    const result: Peer[] = [];
-
-    for (const peer of peers) {
-      const isStoreCodec = peer.protocols.includes(StoreCodec);
-      const isSameShard = await this.connectionManager.isPeerOnSameShard(
-        peer.id
-      );
-      const isSamePubsub = await this.connectionManager.isPeerOnPubsubTopic(
-        peer.id,
-        pubsubTopic
-      );
-
-      if (isStoreCodec && isSameShard && isSamePubsub) {
-        result.push(peer);
-      }
-    }
-
-    return result;
+    return peerIds[0];
   }
 }

@@ -89,7 +89,8 @@ export class WakuNode implements IWaku {
       libp2p,
       config: {
         numPeersToUse: options.numPeersToUse
-      }
+      },
+      connectionManager: this.connectionManager
     });
 
     this.health = new HealthIndicator({ libp2p });

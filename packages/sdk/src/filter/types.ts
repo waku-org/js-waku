@@ -17,7 +17,6 @@ export type SubscriptionEvents = {
 };
 
 export type SubscriptionParams = {
-  libp2p: Libp2p;
   pubsubTopic: string;
   protocol: FilterCore;
   config: FilterProtocolOptions;

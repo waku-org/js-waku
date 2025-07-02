@@ -22,7 +22,7 @@ import {
   FilterSubscribeRpc
 } from "./filter_rpc.js";
 
-const log = new Logger("filter:v2");
+const log = new Logger("filter-core");
 
 export const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
@@ -104,6 +104,10 @@ export class FilterCore {
         lp.decode,
         async (source) => await all(source)
       );
+
+      if (!res?.length) {
+        throw Error("Received no response from subscription request.");
+      }
     } catch (error) {
       log.error("Failed to send subscribe request", error);
       return {

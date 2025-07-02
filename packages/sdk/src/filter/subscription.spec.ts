@@ -1,10 +1,8 @@
-import type { PeerId } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import type {
   FilterProtocolOptions,
   IDecodedMessage,
-  IDecoder,
-  Libp2p
+  IDecoder
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
@@ -18,7 +16,6 @@ const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
 
 describe("Filter Subscription", () => {
-  let libp2p: Libp2p;
   let filterCore: FilterCore;
   let peerManager: PeerManager;
   let subscription: Subscription;
@@ -26,7 +23,6 @@ describe("Filter Subscription", () => {
   let config: FilterProtocolOptions;
 
   beforeEach(() => {
-    libp2p = mockLibp2p();
     filterCore = mockFilterCore();
     peerManager = mockPeerManager();
     config = {
@@ -37,7 +33,6 @@ describe("Filter Subscription", () => {
 
     subscription = new Subscription({
       pubsubTopic: PUBSUB_TOPIC,
-      libp2p,
       protocol: filterCore,
       config,
       peerManager
@@ -193,23 +188,6 @@ describe("Filter Subscription", () => {
   });
 });
 
-function mockLibp2p(): Libp2p {
-  return {
-    addEventListener: sinon.stub(),
-    removeEventListener: sinon.stub(),
-    handle: sinon.stub().resolves(),
-    components: {
-      events: {
-        addEventListener: sinon.stub(),
-        removeEventListener: sinon.stub()
-      },
-      connectionManager: {
-        getConnections: sinon.stub().returns([])
-      }
-    }
-  } as unknown as Libp2p;
-}
-
 function mockFilterCore(): FilterCore {
   return {
     subscribe: sinon.stub().resolves(true),
@@ -220,20 +198,19 @@ function mockFilterCore(): FilterCore {
 
 function mockPeerManager(): PeerManager {
   return {
-    getPeers: sinon.stub().returns([mockPeerId("peer1"), mockPeerId("peer2")])
+    getPeers: sinon.stub().resolves([]),
+    renewPeer: sinon.stub().resolves(),
+    events: {
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub()
+    }
   } as unknown as PeerManager;
-}
-
-function mockPeerId(id: string): PeerId {
-  return {
-    toString: () => id
-  } as unknown as PeerId;
 }
 
 function mockDecoder(): IDecoder<IDecodedMessage> {
   return {
     pubsubTopic: PUBSUB_TOPIC,
     contentTopic: CONTENT_TOPIC,
-    fromProtoObj: sinon.stub().resolves(undefined)
+    fromProtoObj: sinon.stub().resolves({ payload: new Uint8Array() })
   } as unknown as IDecoder<IDecodedMessage>;
 }

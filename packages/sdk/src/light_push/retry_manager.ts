@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import type { CoreProtocolResult } from "@waku/interfaces";
+import { type CoreProtocolResult, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import type { PeerManager } from "../peer_manager/index.js";
@@ -15,6 +15,7 @@ type AttemptCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
 export type ScheduledTask = {
   maxAttempts: number;
+  pubsubTopic: string;
   callback: AttemptCallback;
 };
 
@@ -34,7 +35,7 @@ export class RetryManager {
 
   public constructor(config: RetryManagerConfig) {
     this.peerManager = config.peerManager;
-    this.retryIntervalMs = config.retryIntervalMs;
+    this.retryIntervalMs = config.retryIntervalMs || 1000;
   }
 
   public start(): void {
@@ -50,16 +51,20 @@ export class RetryManager {
     }
   }
 
-  public push(callback: AttemptCallback, maxAttempts: number): void {
+  public push(
+    callback: AttemptCallback,
+    maxAttempts: number,
+    pubsubTopic: string
+  ): void {
     this.queue.push({
       maxAttempts,
-      callback
+      callback,
+      pubsubTopic
     });
   }
 
   private processQueue(): void {
     if (this.queue.length === 0) {
-      log.info("processQueue: queue is empty");
       return;
     }
 
@@ -83,10 +88,26 @@ export class RetryManager {
   }
 
   private async taskExecutor(task: ScheduledTask): Promise<void> {
-    const peerId = this.peerManager.getPeers()[0];
+    if (task.maxAttempts <= 0) {
+      log.warn("scheduleTask: max attempts has reached, removing from queue");
+      return;
+    }
+
+    const peerId = (
+      await this.peerManager.getPeers({
+        protocol: Protocols.LightPush,
+        pubsubTopic: task.pubsubTopic
+      })
+    )[0];
 
     if (!peerId) {
-      log.warn("scheduleTask: no peers, skipping");
+      log.warn("scheduleTask: no peers, putting back to queue");
+
+      this.queue.push({
+        ...task,
+        maxAttempts: task.maxAttempts - 1
+      });
+
       return;
     }
 
@@ -119,7 +140,10 @@ export class RetryManager {
       log.error("scheduleTask: task execution failed with error:", error);
 
       if (shouldPeerBeChanged(error.message)) {
-        this.peerManager.requestRenew(peerId);
+        await this.peerManager.renewPeer(peerId, {
+          protocol: Protocols.LightPush,
+          pubsubTopic: task.pubsubTopic
+        });
       }
 
       if (task.maxAttempts === 0) {

@@ -10,12 +10,13 @@ import type {
   IDecodedMessage,
   IDecoder,
   IProtoMessage,
-  Libp2p
+  PeerIdStr
 } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager/index.js";
+import { PeerManager, PeerManagerEventNames } from "../peer_manager/index.js";
 
 import { SubscriptionEvents, SubscriptionParams } from "./types.js";
 import { TTLSet } from "./utils.js";
@@ -31,8 +32,9 @@ type AttemptUnsubscribeParams = {
   useNewContentTopics: boolean;
 };
 
+type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
+
 export class Subscription {
-  private readonly libp2p: Libp2p;
   private readonly pubsubTopic: string;
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;
@@ -42,8 +44,9 @@ export class Subscription {
   private isStarted: boolean = false;
   private inProgress: boolean = false;
 
-  private peers = new Set<PeerId>();
-  private peerFailures = new Map<PeerId, number>();
+  // Map and Set cannot reliably use PeerId type as a key
+  private peers = new Map<PeerIdStr, PeerId>();
+  private peerFailures = new Map<PeerIdStr, number>();
 
   private readonly receivedMessages = new TTLSet<string>(60_000);
 
@@ -72,7 +75,6 @@ export class Subscription {
     this.config = params.config;
     this.pubsubTopic = params.pubsubTopic;
 
-    this.libp2p = params.libp2p;
     this.protocol = params.protocol;
     this.peerManager = params.peerManager;
 
@@ -311,13 +313,13 @@ export class Subscription {
 
               if (response.success) {
                 log.info(`Ping successful for peer: ${peer.toString()}`);
-                this.peerFailures.set(peer, 0);
+                this.peerFailures.set(peer.toString(), 0);
                 return;
               }
 
-              let failures = this.peerFailures.get(peer) || 0;
+              let failures = this.peerFailures.get(peer.toString()) || 0;
               failures += 1;
-              this.peerFailures.set(peer, failures);
+              this.peerFailures.set(peer.toString(), failures);
 
               log.warn(
                 `Ping failed for peer: ${peer.toString()}, failures: ${failures}/${this.config.pingsBeforePeerRenewed}`
@@ -339,8 +341,8 @@ export class Subscription {
 
         await Promise.all(
           peersToReplace.map((p) => {
-            this.peers.delete(p as PeerId);
-            this.peerFailures.delete(p as PeerId);
+            this.peers.delete(p?.toString() as PeerIdStr);
+            this.peerFailures.delete(p?.toString() as PeerIdStr);
             return this.requestUnsubscribe(p as PeerId, this.contentTopics);
           })
         );
@@ -360,13 +362,13 @@ export class Subscription {
   }
 
   private setupEventListeners(): void {
-    this.libp2p.addEventListener(
-      "peer:connect",
-      (e) => void this.onPeerConnected(e)
+    this.peerManager.events.addEventListener(
+      PeerManagerEventNames.Connect,
+      this.onPeerConnected as Libp2pEventHandler
     );
-    this.libp2p.addEventListener(
-      "peer:disconnect",
-      (e) => void this.onPeerDisconnected(e)
+    this.peerManager.events.addEventListener(
+      PeerManagerEventNames.Disconnect,
+      this.onPeerDisconnected as Libp2pEventHandler
     );
   }
 
@@ -395,41 +397,65 @@ export class Subscription {
   }
 
   private disposeEventListeners(): void {
-    this.libp2p.removeEventListener("peer:connect", this.onPeerConnected);
-    this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnected);
+    this.peerManager.events.removeEventListener(
+      PeerManagerEventNames.Connect,
+      this.onPeerConnected as Libp2pEventHandler
+    );
+    this.peerManager.events.removeEventListener(
+      PeerManagerEventNames.Disconnect,
+      this.onPeerDisconnected as Libp2pEventHandler
+    );
   }
 
-  private onPeerConnected(event: CustomEvent<PeerId>): void {
-    log.info(`Peer connected: ${event.detail.toString()}`);
+  private async onPeerConnected(event: CustomEvent<PeerId>): Promise<void> {
+    const id = event.detail?.toString();
+    log.info(`Peer connected: ${id}`);
 
-    // skip the peer we already subscribe to
-    if (this.peers.has(event.detail)) {
-      log.info(`Peer ${event.detail.toString()} already subscribed, skipping`);
+    const usablePeer = await this.peerManager.isPeerOnPubsub(
+      event.detail,
+      this.pubsubTopic
+    );
+
+    if (!usablePeer) {
+      log.info(`Peer ${id} doesn't support pubsubTopic:${this.pubsubTopic}`);
       return;
     }
 
-    void this.attemptSubscribe({
+    // skip the peer we already subscribe to
+    if (this.peers.has(id)) {
+      log.info(`Peer ${id} already subscribed, skipping`);
+      return;
+    }
+
+    await this.attemptSubscribe({
       useNewContentTopics: false,
       useOnlyNewPeers: true
     });
   }
 
-  private onPeerDisconnected(event: CustomEvent<PeerId>): void {
-    log.info(`Peer disconnected: ${event.detail.toString()}`);
+  private async onPeerDisconnected(event: CustomEvent<PeerId>): Promise<void> {
+    const id = event.detail?.toString();
+    log.info(`Peer disconnected: ${id}`);
 
-    // ignore as the peer is not the one that is in use
-    if (!this.peers.has(event.detail)) {
-      log.info(
-        `Disconnected peer ${event.detail.toString()} not in use, ignoring`
-      );
+    const usablePeer = await this.peerManager.isPeerOnPubsub(
+      event.detail,
+      this.pubsubTopic
+    );
+
+    if (!usablePeer) {
+      log.info(`Peer ${id} doesn't support pubsubTopic:${this.pubsubTopic}`);
       return;
     }
 
-    log.info(
-      `Active peer ${event.detail.toString()} disconnected, removing from peers list`
-    );
+    // ignore as the peer is not the one that is in use
+    if (!this.peers.has(id)) {
+      log.info(`Disconnected peer ${id} not in use, ignoring`);
+      return;
+    }
 
-    this.peers.delete(event.detail);
+    log.info(`Active peer ${id} disconnected, removing from peers list`);
+
+    this.peers.delete(id);
     void this.attemptSubscribe({
       useNewContentTopics: false,
       useOnlyNewPeers: true
@@ -454,18 +480,24 @@ export class Subscription {
       return false;
     }
 
-    const prevPeers = new Set(this.peers);
-    const peersToAdd = this.peerManager.getPeers();
+    const prevPeers = new Set<PeerIdStr>(this.peers.keys());
+    const peersToAdd = await this.peerManager.getPeers({
+      protocol: Protocols.Filter,
+      pubsubTopic: this.pubsubTopic
+    });
+
     for (const peer of peersToAdd) {
       if (this.peers.size >= this.config.numPeersToUse) {
         break;
       }
 
-      this.peers.add(peer);
+      this.peers.set(peer.toString(), peer);
     }
 
     const peersToUse = useOnlyNewPeers
-      ? Array.from(this.peers.values()).filter((p) => !prevPeers.has(p))
+      ? Array.from(this.peers.values()).filter(
+          (p) => !prevPeers.has(p.toString())
+        )
       : Array.from(this.peers.values());
 
     log.info(
