@@ -14,7 +14,7 @@ import { PeerManager } from "../peer_manager/index.js";
 import { Subscription } from "./subscription.js";
 import { FilterConstructorParams } from "./types.js";
 
-const log = new Logger("sdk:next-filter");
+const log = new Logger("sdk:filter");
 
 type PubsubTopic = string;
 

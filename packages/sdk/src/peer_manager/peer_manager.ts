@@ -103,7 +103,13 @@ export class PeerManager {
   }
 
   public async getPeers(params: GetPeersParams): Promise<PeerId[]> {
+    log.info(
+      `Getting peers for protocol: ${params.protocol}, pubsubTopic: ${params.pubsubTopic}`
+    );
+
     const connectedPeers = await this.connectionManager.getConnectedPeers();
+    log.info(`Found ${connectedPeers.length} connected peers`);
+
     let results: Peer[] = [];
 
     for (const peer of connectedPeers) {
@@ -116,16 +122,31 @@ export class PeerManager {
 
       if (hasProtocol && hasSamePubsub && isPeerAvailableForUse) {
         results.push(peer);
+        log.info(`Peer ${peer.id} qualifies for protocol ${params.protocol}`);
       }
     }
 
     const lockedPeers = results.filter((p) => this.isPeerLocked(p.id));
+    log.info(
+      `Found ${lockedPeers.length} locked peers out of ${results.length} qualifying peers`
+    );
 
     if (lockedPeers.length >= this.numPeersToUse) {
-      return lockedPeers.slice(0, this.numPeersToUse).map((p) => p.id);
+      const selectedPeers = lockedPeers
+        .slice(0, this.numPeersToUse)
+        .map((p) => p.id);
+
+      log.info(
+        `Using ${selectedPeers.length} locked peers: ${selectedPeers.map((p) => p.toString())}`
+      );
+
+      return selectedPeers;
     }
 
     const notLockedPeers = results.filter((p) => !this.isPeerLocked(p.id));
+    log.info(
+      `Found ${notLockedPeers.length} unlocked peers, need ${this.numPeersToUse - lockedPeers.length} more`
+    );
 
     results = [...lockedPeers, ...notLockedPeers]
       .slice(0, this.numPeersToUse)
@@ -134,10 +155,19 @@ export class PeerManager {
         return p;
       });
 
-    return results.map((p) => p.id);
+    const finalPeers = results.map((p) => p.id);
+
+    log.info(
+      `Selected ${finalPeers.length} peers: ${finalPeers.map((p) => p.toString())}`
+    );
+    return finalPeers;
   }
 
   public async renewPeer(id: PeerId, params: GetPeersParams): Promise<void> {
+    log.info(
+      `Renewing peer ${id} for protocol: ${params.protocol}, pubsubTopic: ${params.pubsubTopic}`
+    );
+
     const connectedPeers = await this.connectionManager.getConnectedPeers();
     const renewedPeer = connectedPeers.find((p) => p.id.equals(id));
 
@@ -146,6 +176,9 @@ export class PeerManager {
       return;
     }
 
+    log.info(
+      `Found peer ${id} in connected peers, unlocking and getting new peers`
+    );
     this.unlockPeer(renewedPeer.id);
     await this.getPeers(params);
   }
@@ -189,6 +222,7 @@ export class PeerManager {
   }
 
   private lockPeer(id: PeerId): void {
+    log.info(`Locking peer ${id}`);
     this.lockedPeers.add(id.toString());
     this.unlockedPeers.delete(id.toString());
   }
@@ -198,6 +232,7 @@ export class PeerManager {
   }
 
   private unlockPeer(id: PeerId): void {
+    log.info(`Unlocking peer ${id}`);
     this.lockedPeers.delete(id.toString());
     this.unlockedPeers.set(id.toString(), Date.now());
   }
@@ -210,7 +245,7 @@ export class PeerManager {
     }
 
     const wasUnlocked = new Date(value).getTime();
-    return Date.now() - wasUnlocked >= 30_000 ? true : false;
+    return Date.now() - wasUnlocked >= 10_000 ? true : false;
   }
 
   private dispatchFilterPeerConnect(id: PeerId): void {

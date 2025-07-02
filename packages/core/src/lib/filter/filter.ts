@@ -22,7 +22,7 @@ import {
   FilterSubscribeRpc
 } from "./filter_rpc.js";
 
-const log = new Logger("filter:v2");
+const log = new Logger("filter-core");
 
 export const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
