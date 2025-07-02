@@ -1,4 +1,3 @@
-import type { PeerId } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import type {
   FilterProtocolOptions,
@@ -199,20 +198,19 @@ function mockFilterCore(): FilterCore {
 
 function mockPeerManager(): PeerManager {
   return {
-    getPeers: sinon.stub().resolves([mockPeerId("peer1"), mockPeerId("peer2")])
+    getPeers: sinon.stub().resolves([]),
+    renewPeer: sinon.stub().resolves(),
+    events: {
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub()
+    }
   } as unknown as PeerManager;
-}
-
-function mockPeerId(id: string): PeerId {
-  return {
-    toString: () => id
-  } as unknown as PeerId;
 }
 
 function mockDecoder(): IDecoder<IDecodedMessage> {
   return {
     pubsubTopic: PUBSUB_TOPIC,
     contentTopic: CONTENT_TOPIC,
-    fromProtoObj: sinon.stub().resolves(undefined)
+    fromProtoObj: sinon.stub().resolves({ payload: new Uint8Array() })
   } as unknown as IDecoder<IDecodedMessage>;
 }

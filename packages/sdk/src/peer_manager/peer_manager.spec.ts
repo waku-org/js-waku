@@ -142,7 +142,10 @@ describe("PeerManager", () => {
 
   it("should handle onConnected and onDisconnected", async () => {
     const peerId = peers[0].id;
-    await (peerManager as any).onConnected({ detail: peerId });
+    sinon.stub(peerManager, "isPeerOnPubsub" as any).resolves(true);
+    await (peerManager as any).onConnected({
+      detail: { peerId, protocols: [Protocols.Filter] }
+    });
     await (peerManager as any).onDisconnected({ detail: peerId });
     expect(true).to.be.true;
   });
@@ -150,14 +153,14 @@ describe("PeerManager", () => {
   it("should register libp2p event listeners when start is called", () => {
     const addEventListenerSpy = libp2p.addEventListener as sinon.SinonSpy;
     peerManager.start();
-    expect(addEventListenerSpy.calledWith("peer:connect")).to.be.true;
+    expect(addEventListenerSpy.calledWith("peer:identify")).to.be.true;
     expect(addEventListenerSpy.calledWith("peer:disconnect")).to.be.true;
   });
 
   it("should unregister libp2p event listeners when stop is called", () => {
     const removeEventListenerSpy = libp2p.removeEventListener as sinon.SinonSpy;
     peerManager.stop();
-    expect(removeEventListenerSpy.calledWith("peer:connect")).to.be.true;
+    expect(removeEventListenerSpy.calledWith("peer:identify")).to.be.true;
     expect(removeEventListenerSpy.calledWith("peer:disconnect")).to.be.true;
   });
 

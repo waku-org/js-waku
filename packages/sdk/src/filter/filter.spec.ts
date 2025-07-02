@@ -166,7 +166,11 @@ function mockConnectionManager(): ConnectionManager {
 
 function mockPeerManager(): PeerManager {
   return {
-    getPeers: sinon.stub().returns([])
+    getPeers: sinon.stub().returns([]),
+    events: {
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub()
+    }
   } as unknown as PeerManager;
 }
 
