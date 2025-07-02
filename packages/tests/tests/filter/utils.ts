@@ -2,7 +2,6 @@ import { createDecoder, createEncoder } from "@waku/core";
 import {
   CreateNodeOptions,
   DefaultNetworkConfig,
-  ISubscription,
   IWaku,
   LightNode,
   NetworkConfig,
@@ -45,29 +44,6 @@ export const TestEncoder = createEncoder({
 export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
 export const messageText = "Filtering works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
-
-// Utility to validate errors related to pings in the subscription.
-export async function validatePingError(
-  subscription: ISubscription
-): Promise<void> {
-  try {
-    const { failures, successes } = await subscription.ping();
-    if (failures.length === 0 || successes.length > 0) {
-      throw new Error(
-        "Ping was successful but was expected to fail with a specific error."
-      );
-    }
-  } catch (err) {
-    if (
-      err instanceof Error &&
-      err.message.includes("peer has no subscriptions")
-    ) {
-      return;
-    } else {
-      throw err;
-    }
-  }
-}
 
 export async function runMultipleNodes(
   context: Context,

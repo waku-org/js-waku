@@ -1,297 +1,189 @@
 import { ConnectionManager, FilterCore } from "@waku/core";
 import type {
   Callback,
-  CreateSubscriptionResult,
   FilterProtocolOptions,
-  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IFilter,
-  ILightPush,
-  Libp2p,
-  PubsubTopic,
-  SubscribeResult,
-  Unsubscribe
+  Libp2p
 } from "@waku/interfaces";
-import { NetworkConfig, ProtocolError } from "@waku/interfaces";
-import {
-  ensurePubsubTopicIsConfigured,
-  groupByContentTopic,
-  Logger,
-  shardInfoToPubsubTopics,
-  toAsyncIterator
-} from "@waku/utils";
+import { WakuMessage } from "@waku/proto";
+import { Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
 import { Subscription } from "./subscription.js";
-import { buildConfig } from "./utils.js";
+import { FilterConstructorParams } from "./types.js";
 
-const log = new Logger("sdk:filter");
+const log = new Logger("sdk:next-filter");
 
-type FilterConstructorParams = {
-  connectionManager: ConnectionManager;
-  libp2p: Libp2p;
-  peerManager: PeerManager;
-  lightPush?: ILightPush;
-  options?: Partial<FilterProtocolOptions>;
-};
+type PubsubTopic = string;
 
 export class Filter implements IFilter {
-  public readonly protocol: FilterCore;
+  private readonly libp2p: Libp2p;
+  private readonly protocol: FilterCore;
+  private readonly peerManager: PeerManager;
+  private readonly connectionManager: ConnectionManager;
 
   private readonly config: FilterProtocolOptions;
-  private connectionManager: ConnectionManager;
-  private libp2p: Libp2p;
-  private peerManager: PeerManager;
-  private lightPush?: ILightPush;
-  private activeSubscriptions = new Map<string, Subscription>();
+  private subscriptions = new Map<PubsubTopic, Subscription>();
 
   public constructor(params: FilterConstructorParams) {
-    this.config = buildConfig(params.options);
-    this.lightPush = params.lightPush;
-    this.peerManager = params.peerManager;
+    this.config = {
+      numPeersToUse: 2,
+      pingsBeforePeerRenewed: 3,
+      keepAliveIntervalMs: 60_000,
+      ...params.options
+    };
+
     this.libp2p = params.libp2p;
+    this.peerManager = params.peerManager;
     this.connectionManager = params.connectionManager;
 
     this.protocol = new FilterCore(
-      async (pubsubTopic, wakuMessage, peerIdStr) => {
-        const subscription = this.getActiveSubscription(pubsubTopic);
-        if (!subscription) {
-          log.error(
-            `No subscription locally registered for topic ${pubsubTopic}`
-          );
-          return;
-        }
-
-        await subscription.processIncomingMessage(wakuMessage, peerIdStr);
-      },
-
+      this.onIncomingMessage.bind(this),
       params.connectionManager.pubsubTopics,
       params.libp2p
     );
-
-    this.activeSubscriptions = new Map();
   }
 
   public get multicodec(): string {
     return this.protocol.multicodec;
   }
 
-  /**
-   * Opens a subscription with the Filter protocol using the provided decoders and callback.
-   * This method combines the functionality of creating a subscription and subscribing to it.
-   *
-   * @param {IDecoder<T> | IDecoder<T>[]} decoders - A single decoder or an array of decoders to use for decoding messages.
-   * @param {Callback<T>} callback - The callback function to be invoked with decoded messages.
-   *
-   * @returns {Promise<SubscribeResult>} A promise that resolves to an object containing:
-   *   - subscription: The created subscription object if successful, or null if failed.
-   *   - error: A ProtocolError if the subscription creation failed, or null if successful.
-   *   - results: An object containing arrays of failures and successes from the subscription process.
-   *     Only present if the subscription was created successfully.
-   *
-   * @throws {Error} If there's an unexpected error during the subscription process.
-   *
-   * @remarks
-   * This method attempts to create a subscription using the pubsub topic derived from the provided decoders,
-   * then tries to subscribe using the created subscription. The return value should be interpreted as follows:
-   * - If `subscription` is null and `error` is non-null, a critical error occurred and the subscription failed completely.
-   * - If `subscription` is non-null and `error` is null, the subscription was created successfully.
-   *   In this case, check the `results` field for detailed information about successes and failures during the subscription process.
-   * - Even if the subscription was created successfully, there might be some failures in the results.
-   *
-   * @example
-   * ```typescript
-   * const {subscription, error, results} = await waku.filter.subscribe(decoders, callback);
-   * if (!subscription || error) {
-   *   console.error("Failed to create subscription:", error);
-   * }
-   * console.log("Subscription created successfully");
-   * if (results.failures.length > 0) {
-   *   console.warn("Some errors occurred during subscription:", results.failures);
-   * }
-   * console.log("Successful subscriptions:", results.successes);
-   *
-   * ```
-   */
-  public async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ): Promise<SubscribeResult> {
-    const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
-
-    if (uniquePubsubTopics.length !== 1) {
-      return {
-        subscription: null,
-        error: ProtocolError.INVALID_DECODER_TOPICS,
-        results: null
-      };
+  public unsubscribeAll(): void {
+    for (const subscription of this.subscriptions.values()) {
+      subscription.stop();
     }
 
-    const pubsubTopic = uniquePubsubTopics[0];
-
-    const { subscription, error } = await this.createSubscription(pubsubTopic);
-
-    if (error) {
-      return {
-        subscription: null,
-        error: error,
-        results: null
-      };
-    }
-
-    const { failures, successes } = await subscription.subscribe(
-      decoders,
-      callback
-    );
-    return {
-      subscription,
-      error: null,
-      results: {
-        failures: failures,
-        successes: successes
-      }
-    };
+    this.subscriptions.clear();
   }
 
-  /**
-   * Creates a new subscription to the given pubsub topic.
-   * The subscription is made to multiple peers for decentralization.
-   * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
-   * @returns The subscription object.
-   */
-  private async createSubscription(
-    pubsubTopicShardInfo: NetworkConfig | PubsubTopic
-  ): Promise<CreateSubscriptionResult> {
-    const pubsubTopic =
-      typeof pubsubTopicShardInfo == "string"
-        ? pubsubTopicShardInfo
-        : shardInfoToPubsubTopics(pubsubTopicShardInfo)?.[0];
+  public async subscribe<T extends IDecodedMessage>(
+    decoder: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>
+  ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
 
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
+    if (decoders.length === 0) {
+      throw Error("Cannot subscribe with 0 decoders.");
+    }
 
-    const peerIds = this.peerManager.getPeers();
-    if (peerIds.length === 0) {
-      return {
-        error: ProtocolError.NO_PEER_AVAILABLE,
-        subscription: null
-      };
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const singlePubsubTopic = pubsubTopics[0];
+
+    const contentTopics = decoders.map((v) => v.contentTopic);
+
+    log.info(
+      `Subscribing to contentTopics: ${contentTopics}, pubsubTopic: ${singlePubsubTopic}`
+    );
+
+    this.throwIfTopicNotSame(pubsubTopics);
+    this.throwIfTopicNotSupported(singlePubsubTopic);
+
+    let subscription = this.subscriptions.get(singlePubsubTopic);
+    if (!subscription) {
+      subscription = new Subscription({
+        pubsubTopic: singlePubsubTopic,
+        libp2p: this.libp2p,
+        protocol: this.protocol,
+        config: this.config,
+        peerManager: this.peerManager
+      });
+      subscription.start();
+    }
+
+    const result = await subscription.add(decoders, callback);
+    this.subscriptions.set(singlePubsubTopic, subscription);
+
+    log.info(
+      `Subscription ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
+    );
+
+    return result;
+  }
+
+  public async unsubscribe<T extends IDecodedMessage>(
+    decoder: IDecoder<T> | IDecoder<T>[]
+  ): Promise<boolean> {
+    const decoders = Array.isArray(decoder) ? decoder : [decoder];
+
+    if (decoders.length === 0) {
+      throw Error("Cannot unsubscribe with 0 decoders.");
+    }
+
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const singlePubsubTopic = pubsubTopics[0];
+
+    const contentTopics = decoders.map((v) => v.contentTopic);
+
+    log.info(
+      `Unsubscribing from contentTopics: ${contentTopics}, pubsubTopic: ${singlePubsubTopic}`
+    );
+
+    this.throwIfTopicNotSame(pubsubTopics);
+    this.throwIfTopicNotSupported(singlePubsubTopic);
+
+    const subscription = this.subscriptions.get(singlePubsubTopic);
+    if (!subscription) {
+      log.warn("No subscriptions associated with the decoder.");
+      return false;
+    }
+
+    const result = await subscription.remove(decoders);
+
+    if (subscription.isEmpty()) {
+      log.warn("Subscription has no decoders anymore, terminating it.");
+      subscription.stop();
+      this.subscriptions.delete(singlePubsubTopic);
     }
 
     log.info(
-      `Creating filter subscription with ${peerIds.length} peers: `,
-      peerIds.map((id) => id.toString())
+      `Unsubscribing ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
     );
 
-    const subscription =
-      this.getActiveSubscription(pubsubTopic) ??
-      this.setActiveSubscription(
-        pubsubTopic,
-        new Subscription(
-          pubsubTopic,
-          this.protocol,
-          this.connectionManager,
-          this.peerManager,
-          this.libp2p,
-          this.config,
-          this.lightPush
-        )
-      );
-
-    return {
-      error: null,
-      subscription
-    };
+    return result;
   }
 
-  /**
-   * This method is used to satisfy the `IReceiver` interface.
-   *
-   * @hidden
-   *
-   * @param decoders The decoders to use for the subscription.
-   * @param callback The callback function to use for the subscription.
-   * @param opts Optional protocol options for the subscription.
-   *
-   * @returns A Promise that resolves to a function that unsubscribes from the subscription.
-   *
-   * @remarks
-   * This method should not be used directly.
-   * Instead, use `createSubscription` to create a new subscription.
-   */
-  public async subscribeWithUnsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ): Promise<Unsubscribe> {
-    const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
+  private async onIncomingMessage(
+    pubsubTopic: string,
+    message: WakuMessage,
+    peerId: string
+  ): Promise<void> {
+    log.info(
+      `Received message for pubsubTopic:${pubsubTopic}, contentTopic:${message.contentTopic}, peerId:${peerId.toString()}`
+    );
 
-    if (uniquePubsubTopics.length === 0) {
+    const subscription = this.subscriptions.get(pubsubTopic);
+
+    if (!subscription) {
+      log.error(`No subscription locally registered for topic ${pubsubTopic}`);
+      return;
+    }
+
+    subscription.invoke(message, peerId);
+  }
+
+  // Limiting to one pubsubTopic for simplicity reasons, we can enable subscription for more than one PubsubTopic at once later when requested
+  private throwIfTopicNotSame(pubsubTopics: string[]): void {
+    const first = pubsubTopics[0];
+    const isSameTopic = pubsubTopics.every((t) => t === first);
+
+    if (!isSameTopic) {
       throw Error(
-        "Failed to subscribe: no pubsubTopic found on decoders provided."
+        `Cannot subscribe to more than one pubsub topic at the same time, got pubsubTopics:${pubsubTopics}`
       );
     }
+  }
 
-    if (uniquePubsubTopics.length > 1) {
+  private throwIfTopicNotSupported(pubsubTopic: string): void {
+    const supportedPubsubTopic =
+      this.connectionManager.pubsubTopics.includes(pubsubTopic);
+
+    if (!supportedPubsubTopic) {
       throw Error(
-        "Failed to subscribe: all decoders should have the same pubsub topic. Use createSubscription to be more agile."
+        `Pubsub topic ${pubsubTopic} has not been configured on this instance.`
       );
     }
-
-    const { subscription, error } = await this.createSubscription(
-      uniquePubsubTopics[0]
-    );
-
-    if (error) {
-      throw Error(`Failed to create subscription: ${error}`);
-    }
-
-    await subscription.subscribe(decoders, callback);
-
-    const contentTopics = Array.from(
-      groupByContentTopic(
-        Array.isArray(decoders) ? decoders : [decoders]
-      ).keys()
-    );
-
-    return async () => {
-      await subscription.unsubscribe(contentTopics);
-    };
-  }
-
-  public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders);
-  }
-
-  private getActiveSubscription(
-    pubsubTopic: PubsubTopic
-  ): Subscription | undefined {
-    return this.activeSubscriptions.get(pubsubTopic);
-  }
-
-  private setActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    subscription: Subscription
-  ): Subscription {
-    this.activeSubscriptions.set(pubsubTopic, subscription);
-    return subscription;
-  }
-
-  private getUniquePubsubTopics<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): string[] {
-    if (!Array.isArray(decoders)) {
-      return [decoders.pubsubTopic];
-    }
-
-    if (decoders.length === 0) {
-      return [];
-    }
-
-    const pubsubTopics = new Set(decoders.map((d) => d.pubsubTopic));
-
-    return [...pubsubTopics];
   }
 }
