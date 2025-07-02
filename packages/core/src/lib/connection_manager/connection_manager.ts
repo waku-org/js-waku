@@ -49,8 +49,7 @@ export class ConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
   implements IConnectionManager
 {
-  // TODO(weboko): make it private
-  public readonly pubsubTopics: PubsubTopic[];
+  private readonly pubsubTopics: PubsubTopic[];
 
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -210,6 +209,10 @@ export class ConnectionManager
       .filter((p) => !!p)
       .filter((p) => (codec ? (p as Peer).protocols.includes(codec) : true))
       .sort((left, right) => getPeerPing(left) - getPeerPing(right)) as Peer[];
+  }
+
+  public isPubsubTopicConfigured(pubsubTopic: PubsubTopic): boolean {
+    return this.pubsubTopics.includes(pubsubTopic);
   }
 
   private async dialPeerStorePeers(): Promise<void> {

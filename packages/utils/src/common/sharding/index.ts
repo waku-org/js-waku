@@ -161,19 +161,6 @@ export const pubsubTopicsToShardInfo = (
   };
 };
 
-//TODO: move part of BaseProtocol instead of utils
-// return `ProtocolError.TOPIC_NOT_CONFIGURED` instead of throwing
-export function ensurePubsubTopicIsConfigured(
-  pubsubTopic: PubsubTopic,
-  configuredTopics: PubsubTopic[]
-): void {
-  if (!configuredTopics.includes(pubsubTopic)) {
-    throw new Error(
-      `Pubsub topic ${pubsubTopic} has not been configured on this instance. Configured topics are: ${configuredTopics}. Please update your configuration by passing in the topic during Waku node instantiation.`
-    );
-  }
-}
-
 interface ContentTopic {
   generation: number;
   application: string;

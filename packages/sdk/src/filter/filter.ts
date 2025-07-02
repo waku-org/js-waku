@@ -39,7 +39,6 @@ export class Filter implements IFilter {
 
     this.protocol = new FilterCore(
       this.onIncomingMessage.bind(this),
-      params.connectionManager.pubsubTopics,
       params.libp2p
     );
   }
@@ -174,7 +173,7 @@ export class Filter implements IFilter {
 
   private throwIfTopicNotSupported(pubsubTopic: string): void {
     const supportedPubsubTopic =
-      this.connectionManager.pubsubTopics.includes(pubsubTopic);
+      this.connectionManager.isPubsubTopicConfigured(pubsubTopic);
 
     if (!supportedPubsubTopic) {
       throw Error(

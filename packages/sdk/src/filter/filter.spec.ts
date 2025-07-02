@@ -160,8 +160,8 @@ function mockLibp2p(): Libp2p {
 
 function mockConnectionManager(): ConnectionManager {
   return {
-    pubsubTopics: [PUBSUB_TOPIC]
-  } as ConnectionManager;
+    isPubsubTopicConfigured: sinon.stub().returns(true)
+  } as unknown as ConnectionManager;
 }
 
 function mockPeerManager(): PeerManager {

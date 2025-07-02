@@ -43,7 +43,6 @@ export class FilterCore {
 
   public constructor(
     handleIncomingMessage: IncomingMessageHandler,
-    public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
     this.streamManager = new StreamManager(
