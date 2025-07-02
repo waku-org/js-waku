@@ -1,4 +1,9 @@
-import { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
+import {
+  IdentifyResult,
+  Peer,
+  PeerId,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import {
   ConnectionManager,
   FilterCodecs,
@@ -44,7 +49,7 @@ interface IPeerManagerEvents {
   [PeerManagerEventNames.Disconnect]: CustomEvent<PeerId>;
 }
 
-type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
+type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 /**
  * @description
@@ -77,23 +82,23 @@ export class PeerManager {
 
   public start(): void {
     this.libp2p.addEventListener(
-      "peer:connect",
-      this.onConnected as Libp2pEventHandler
+      "peer:identify",
+      this.onConnected as Libp2pEventHandler<IdentifyResult>
     );
     this.libp2p.addEventListener(
       "peer:disconnect",
-      this.onDisconnected as Libp2pEventHandler
+      this.onDisconnected as Libp2pEventHandler<PeerId>
     );
   }
 
   public stop(): void {
     this.libp2p.removeEventListener(
-      "peer:connect",
-      this.onConnected as Libp2pEventHandler
+      "peer:identify",
+      this.onConnected as Libp2pEventHandler<IdentifyResult>
     );
     this.libp2p.removeEventListener(
       "peer:disconnect",
-      this.onDisconnected as Libp2pEventHandler
+      this.onDisconnected as Libp2pEventHandler<PeerId>
     );
   }
 
@@ -152,49 +157,25 @@ export class PeerManager {
     return this.connectionManager.isPeerOnPubsubTopic(id, pubsubTopic);
   }
 
-  /**
-   * Used to notify about new Filter peer available.
-   */
-  private async onConnected(event: CustomEvent<PeerId>): Promise<void> {
-    const peerId = event.detail;
-    const peer = (await this.connectionManager.getConnectedPeers()).filter(
-      (p) => p.id.equals(peerId)
-    )[0];
+  private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {
+    const result = event.detail;
+    const isFilterPeer = result.protocols.includes(
+      this.matchProtocolToCodec(Protocols.Filter)
+    );
 
-    if (!peer) {
-      log.warn(
-        `Received connected event for peer:${peerId}, but no connection found.`
-      );
-      return;
-    }
-
-    const isFilterPeer = this.hasPeerProtocol(peer, Protocols.Filter);
     if (isFilterPeer) {
-      this.dispatchFilterPeerConnect(peer.id);
+      this.dispatchFilterPeerConnect(result.peerId);
     }
   }
 
-  /**
-   * Used to notify about Filter peer disconnect.
-   */
   private async onDisconnected(event: CustomEvent<PeerId>): Promise<void> {
     const peerId = event.detail;
-    let peer = (await this.connectionManager.getConnectedPeers()).filter((p) =>
-      p.id.equals(peerId)
-    )[0];
 
-    if (peer) {
-      log.warn(
-        `Received disconnected event for peer:${peerId}, but connection is still present.`
-      );
-      return;
-    }
-
-    // we need to read from peerStore as peer is already disconnected
     try {
-      peer = await this.libp2p.peerStore.get(peerId);
-
+      // we need to read from peerStore as peer is already disconnected
+      const peer = await this.libp2p.peerStore.get(peerId);
       const isFilterPeer = this.hasPeerProtocol(peer, Protocols.Filter);
+
       if (isFilterPeer) {
         this.dispatchFilterPeerDisconnect(peer.id);
       }

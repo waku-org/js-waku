@@ -104,6 +104,10 @@ export class FilterCore {
         lp.decode,
         async (source) => await all(source)
       );
+
+      if (!res?.length) {
+        throw Error("Received no response from subscription request.");
+      }
     } catch (error) {
       log.error("Failed to send subscribe request", error);
       return {
