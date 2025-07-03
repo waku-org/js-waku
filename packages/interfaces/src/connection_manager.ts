@@ -54,15 +54,11 @@ export type ConnectionManagerOptions = {
 };
 
 export enum EPeersByDiscoveryEvents {
-  PEER_DISCOVERY_BOOTSTRAP = "peer:discovery:bootstrap",
-  PEER_DISCOVERY_PEER_EXCHANGE = "peer:discovery:peer-exchange",
   PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
   PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange"
 }
 
 export interface IPeersByDiscoveryEvents {
-  [EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP]: CustomEvent<PeerId>;
-  [EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE]: CustomEvent<PeerId>;
   [EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP]: CustomEvent<PeerId>;
   [EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE]: CustomEvent<PeerId>;
 }
@@ -91,6 +87,7 @@ export interface IConnectionStateEvents {
 
 export interface IConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
+  start(): void;
   stop(): void;
   dial(
     peer: PeerId | MultiaddrInput,

@@ -218,16 +218,6 @@ describe("Public methods", function () {
 
     expect(
       waku.connectionManager.listenerCount(
-        EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
-      )
-    ).to.eq(0);
-    expect(
-      waku.connectionManager.listenerCount(
-        EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE
-      )
-    ).to.eq(0);
-    expect(
-      waku.connectionManager.listenerCount(
         EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP
       )
     ).to.eq(1);
