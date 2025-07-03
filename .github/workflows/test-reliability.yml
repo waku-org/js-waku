@@ -2,6 +2,16 @@ name: Run Reliability Test
 
 on:
   workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of reliability test to run'
+        required: true
+        default: 'longevity'
+        type: choice
+        options:
+          - longevity
+          - high-throughput
+          - throughput-sizes
   push:
     branches:
       - "chore/longevity-tests"
@@ -34,4 +44,11 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 150
-        run: npm run test:longevity
+        run: |
+          if [ "${{ github.event.inputs.test_type }}" = "high-throughput" ]; then
+            npm run test:high-throughput
+          elif [ "${{ github.event.inputs.test_type }}" = "throughput-sizes" ]; then
+            npm run test:throughput-sizes
+          else
+            npm run test:longevity
+          fi
