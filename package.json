@@ -34,6 +34,8 @@
     "test:browser": "NODE_ENV=test npm run test:browser --workspaces --if-present",
     "test:node": "NODE_ENV=test npm run test:node --workspaces --if-present",
     "test:longevity": "npm --prefix packages/reliability-tests run test:longevity",
+    "test:high-throughput": "npm --prefix packages/reliability-tests run test:high-throughput",
+    "test:throughput-sizes": "npm --prefix packages/reliability-tests run test:throughput-sizes",
     "proto": "npm run proto --workspaces --if-present",
     "deploy": "node ci/deploy.js",
     "doc": "run-s doc:*",

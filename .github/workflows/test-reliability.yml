@@ -2,20 +2,33 @@ name: Run Reliability Test
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "chore/longevity-tests"
+    inputs:
+      test_type:
+        description: 'Type of reliability test to run'
+        required: true
+        default: 'longevity'
+        type: choice
+        options:
+          - longevity
+          - high-throughput
+          - throughput-sizes
+          - all
 
 env:
   NODE_JS: "22"
 
 jobs:
-  node:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
       checks: write
+    strategy:
+      matrix:
+        test_type: [longevity, high-throughput, throughput-sizes]
+      fail-fast: false
+    if: ${{ github.event.inputs.test_type == 'all' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -34,4 +47,45 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 150
-        run: npm run test:longevity
+        run: |
+          if [ "${{ matrix.test_type }}" = "high-throughput" ]; then
+            npm run test:high-throughput
+          elif [ "${{ matrix.test_type }}" = "throughput-sizes" ]; then
+            npm run test:throughput-sizes
+          else
+            npm run test:longevity
+          fi
+
+  single-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    if: ${{ github.event.inputs.test_type != 'all' }}
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+
+      - name: Remove unwanted software
+        uses: ./.github/actions/prune-vm
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+
+      - run: npm run build:esm
+
+      - name: Run tests
+        timeout-minutes: 150
+        run: |
+          if [ "${{ github.event.inputs.test_type }}" = "high-throughput" ]; then
+            npm run test:high-throughput
+          elif [ "${{ github.event.inputs.test_type }}" = "throughput-sizes" ]; then
+            npm run test:throughput-sizes
+          else
+            npm run test:longevity
+          fi
