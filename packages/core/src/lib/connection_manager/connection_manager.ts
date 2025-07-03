@@ -391,7 +391,12 @@ export class ConnectionManager
     protocolCodecs: string[]
   ): Promise<Stream> {
     const ma = mapToPeerIdOrMultiaddr(peer);
-    return await this.libp2p.dialProtocol(ma, protocolCodecs);
+    const peerId = mapToPeerId(peer);
+
+    const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
+    this.keepAliveManager.start(peerId);
+
+    return stream;
   }
 
   private async attemptDnsDiscovery(): Promise<void> {
