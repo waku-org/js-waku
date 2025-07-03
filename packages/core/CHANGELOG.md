@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.37](https://github.com/waku-org/js-waku/compare/core-v0.0.36...core-v0.0.37) (2025-07-03)
+
+
+### Features
+
+* Make peer manager aware of codec and shard, fix retry manager and shut down subscriptions ([#2425](https://github.com/waku-org/js-waku/issues/2425)) ([058f2ff](https://github.com/waku-org/js-waku/commit/058f2ff620a4a9a6f465a1498c05fb85df369941))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.30 to ^0.0.31
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+    * @waku/utils bumped from 0.0.24 to 0.0.25
+
 ## [0.0.36](https://github.com/waku-org/js-waku/compare/core-v0.0.35...core-v0.0.36) (2025-06-23)
 
 
