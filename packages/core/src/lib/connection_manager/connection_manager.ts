@@ -104,6 +104,26 @@ export class ConnectionManager
     }
   }
 
+  /**
+   * Dial a peer with specific protocols.
+   * This method is a raw proxy to the libp2p dialProtocol method.
+   * @param peer - The peer to connect to, either as a PeerId or multiaddr
+   * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
+   * @returns A stream to the peer
+   */
+  public async dial(
+    peer: PeerId | MultiaddrInput,
+    protocolCodecs: string[]
+  ): Promise<Stream> {
+    const ma = mapToPeerIdOrMultiaddr(peer);
+    const peerId = mapToPeerId(peer);
+
+    const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
+    this.keepAliveManager.start(peerId);
+
+    return stream;
+  }
+
   public async getPeersByDiscovery(): Promise<PeersByDiscoveryResult> {
     const peersDiscovered = await this.libp2p.peerStore.all();
     const peersConnected = this.libp2p
@@ -377,26 +397,6 @@ export class ConnectionManager
     }
 
     return connection;
-  }
-
-  /**
-   * Dial a peer with specific protocols.
-   * This method is a raw proxy to the libp2p dialProtocol method.
-   * @param peer - The peer to connect to, either as a PeerId or multiaddr
-   * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
-   * @returns A stream to the peer
-   */
-  public async dial(
-    peer: PeerId | MultiaddrInput,
-    protocolCodecs: string[]
-  ): Promise<Stream> {
-    const ma = mapToPeerIdOrMultiaddr(peer);
-    const peerId = mapToPeerId(peer);
-
-    const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
-    this.keepAliveManager.start(peerId);
-
-    return stream;
   }
 
   private async attemptDnsDiscovery(): Promise<void> {
