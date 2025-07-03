@@ -12,6 +12,15 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/utils-v0.0.24...utils-v0.0.25) (2025-07-03)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/utils-v0.0.23...utils-v0.0.24) (2025-06-23)
 
 
