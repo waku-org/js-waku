@@ -70,19 +70,18 @@ export class DiscoveryDialer implements IDiscoveryDialer {
 
     log.info(`Discovered new peer: ${peerId}`);
 
+    // TODO: check if peer is in peer store and if not, create a record
+
     try {
       if (this.dialingQueue.length > 0) {
+        // TODO: add to the queue if peer qualifies: shard, protocols or just dial if we know nothing yet
         this.dialingQueue.push(peerId);
 
         log.info(
           `Added peer to dialing queue, queue size: ${this.dialingQueue.length}`
         );
       } else {
-        log.info(`Dialing peer immediately: ${peerId}`);
-
-        await this.libp2p.dial(peerId);
-
-        log.info(`Successfully dialed peer: ${peerId}`);
+        await this.dialPeer(peerId);
       }
     } catch (error) {
       log.error(`Error dialing peer ${peerId}`, error);
@@ -99,18 +98,16 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       `Processing dial queue: dialing ${peersToDial.length} peers, ${this.dialingQueue.length} remaining in queue`
     );
 
-    await Promise.all(
-      peersToDial.map(async (peerId) => {
-        try {
-          log.info(`Dialing peer from queue: ${peerId}`);
+    await Promise.all(peersToDial.map(this.dialPeer));
+  }
 
-          await this.libp2p.dial(peerId);
-
-          log.info(`Successfully dialed peer from queue: ${peerId}`);
-        } catch (error) {
-          log.error(`Error dialing peer ${peerId}`, error);
-        }
-      })
-    );
+  private async dialPeer(peerId: PeerId): Promise<void> {
+    try {
+      log.info(`Dialing peer from queue: ${peerId}`);
+      await this.libp2p.dial(peerId);
+      log.info(`Successfully dialed peer from queue: ${peerId}`);
+    } catch (error) {
+      log.error(`Error dialing peer ${peerId}`, error);
+    }
   }
 }

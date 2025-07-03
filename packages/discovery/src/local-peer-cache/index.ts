@@ -15,7 +15,7 @@ import {
 } from "@waku/interfaces";
 import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
 
-const log = new Logger("peer-exchange-discovery");
+const log = new Logger("local-cache-discovery");
 
 type LocalPeerCacheDiscoveryOptions = {
   tagName?: string;

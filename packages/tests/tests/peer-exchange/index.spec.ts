@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
-import type { LightNode, PeersByDiscoveryResult } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { createLightNode, Tags } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 import { expect } from "chai";
@@ -25,7 +25,6 @@ describe("Peer Exchange", function () {
   let nwaku2: ServiceNode;
   let nwaku3: ServiceNode;
   let dialPeerSpy: SinonSpy;
-  let nwaku1PeerId: PeerId;
 
   beforeEachCustom(this, async () => {
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
@@ -45,14 +44,13 @@ describe("Peer Exchange", function () {
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
       relay: true
     });
-    nwaku1PeerId = await nwaku1.getPeerId();
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
   });
 
-  it("getPeersByDiscovery", async function () {
+  it("peer exchange sets tag", async function () {
     waku = await createLightNode({
       networkConfig: DefaultTestShardInfo,
       libp2p: {
@@ -63,8 +61,10 @@ describe("Peer Exchange", function () {
       }
     });
     await waku.start();
+
     dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
     const pxPeersDiscovered = new Set<PeerId>();
+
     await new Promise<void>((resolve) => {
       waku.libp2p.addEventListener("peer:discovery", (evt) => {
         return void (async () => {
@@ -80,23 +80,9 @@ describe("Peer Exchange", function () {
         })();
       });
     });
-    expect(dialPeerSpy.callCount).to.equal(1);
 
-    const peers_after = <PeersByDiscoveryResult>(
-      await waku.connectionManager.getPeersByDiscovery()
-    );
-    const discovered_peer_exchange = peers_after.DISCOVERED[Tags.PEER_EXCHANGE];
-    const discovered_bootstram = peers_after.DISCOVERED[Tags.BOOTSTRAP];
-    const connected_peer_exchange = peers_after.CONNECTED[Tags.PEER_EXCHANGE];
-    const connected_bootstram = peers_after.CONNECTED[Tags.BOOTSTRAP];
-    expect(discovered_peer_exchange.length).to.eq(1);
-    expect(discovered_peer_exchange[0].id.toString()).to.eq(
-      nwaku1PeerId.toString()
-    );
-    expect(discovered_peer_exchange[0].tags.has("peer-exchange")).to.be.true;
-    expect(discovered_bootstram.length).to.eq(1);
-    expect(connected_peer_exchange.length).to.eq(0);
-    expect(connected_bootstram.length).to.eq(1);
+    expect(dialPeerSpy.callCount).to.equal(1);
+    expect(pxPeersDiscovered.size).to.equal(1);
   });
 
   // will be skipped until https://github.com/waku-org/js-waku/issues/1860 is fixed

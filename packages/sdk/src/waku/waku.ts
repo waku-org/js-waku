@@ -51,7 +51,8 @@ export class WakuNode implements IWaku {
   private _nodeStateLock = false;
   private _nodeStarted = false;
 
-  private connectionManager: ConnectionManager;
+  // TODO: make these private
+  public readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
 
   public constructor(
@@ -204,6 +205,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     await this.libp2p.start();
+    this.connectionManager.start();
     this.peerManager.start();
     this.health.start();
     this.lightPush?.start();
