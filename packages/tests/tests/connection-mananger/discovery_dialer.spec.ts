@@ -13,7 +13,7 @@ import {
 
 import { TestShardInfo } from "./utils.js";
 
-describe.only("DiscoveryDialer", function () {
+describe("DiscoveryDialer", function () {
   const ctx: Context = this.ctx;
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
@@ -80,7 +80,7 @@ describe.only("DiscoveryDialer", function () {
       });
     });
 
-    // TODO(weboko): investigate why peer-exchange discovery is not working
+    // TODO(weboko): investigate why peer-exchange discovery is not working https://github.com/waku-org/js-waku/issues/2446
     await waku.libp2p.peerStore.save(secondPeerId, {
       multiaddrs: [maddrs[1]]
     });
