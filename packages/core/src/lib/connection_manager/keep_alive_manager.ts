@@ -19,7 +19,13 @@ type CreateKeepAliveManagerOptions = {
   relay?: IRelay;
 };
 
-export class KeepAliveManager {
+interface IKeepAliveManager {
+  start(peerId: PeerId | PeerIdStr): void;
+  stop(peerId: PeerId | PeerIdStr): void;
+  stopAll(): void;
+}
+
+export class KeepAliveManager implements IKeepAliveManager {
   private readonly relay?: IRelay;
   private readonly libp2p: Libp2p;
 
@@ -27,7 +33,7 @@ export class KeepAliveManager {
 
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
     new Map();
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
+  private relayKeepAliveTimers: Map<string, ReturnType<typeof setInterval>[]> =
     new Map();
 
   public constructor({
@@ -93,7 +99,7 @@ export class KeepAliveManager {
         relayPeriodSecs,
         peerId.toString()
       );
-      this.relayKeepAliveTimers.set(peerId, intervals);
+      this.relayKeepAliveTimers.set(peerId.toString(), intervals);
     }
   }
 
@@ -105,9 +111,9 @@ export class KeepAliveManager {
       this.pingKeepAliveTimers.delete(peerIdStr);
     }
 
-    if (this.relayKeepAliveTimers.has(peerId)) {
-      this.relayKeepAliveTimers.get(peerId)?.map(clearInterval);
-      this.relayKeepAliveTimers.delete(peerId);
+    if (this.relayKeepAliveTimers.has(peerIdStr)) {
+      this.relayKeepAliveTimers.get(peerIdStr)?.map(clearInterval);
+      this.relayKeepAliveTimers.delete(peerIdStr);
     }
   }
 
@@ -121,12 +127,6 @@ export class KeepAliveManager {
 
     this.pingKeepAliveTimers.clear();
     this.relayKeepAliveTimers.clear();
-  }
-
-  public connectionsExist(): boolean {
-    return (
-      this.pingKeepAliveTimers.size > 0 || this.relayKeepAliveTimers.size > 0
-    );
   }
 
   private scheduleRelayPings(

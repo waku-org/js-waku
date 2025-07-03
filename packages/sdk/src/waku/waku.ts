@@ -1,5 +1,5 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
-import { MultiaddrInput } from "@multiformats/multiaddr";
+import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
   CreateDecoderParams,
@@ -26,11 +26,7 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
-import {
-  decoderParamsToShardInfo,
-  isShardCompatible,
-  mapToPeerIdOrMultiaddr
-} from "./utils.js";
+import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -47,7 +43,6 @@ export class WakuNode implements IWaku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
-  public connectionManager: ConnectionManager;
   public health: HealthIndicator;
 
   public readonly networkConfig: NetworkConfig;
@@ -56,6 +51,7 @@ export class WakuNode implements IWaku {
   private _nodeStateLock = false;
   private _nodeStarted = false;
 
+  private connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
 
   public constructor(
@@ -191,9 +187,15 @@ export class WakuNode implements IWaku {
       }
     }
 
-    const peerId = mapToPeerIdOrMultiaddr(peer);
-    log.info(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
-    return await this.connectionManager.rawDialPeerWithProtocols(peer, codecs);
+    log.info(`Dialing to ${peer?.toString()} with protocols ${_protocols}`);
+
+    return await this.connectionManager.dial(peer, codecs);
+  }
+
+  public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
+    log.info(`Hanging up peer:${peer?.toString()}.`);
+
+    return this.connectionManager.hangUp(peer);
   }
 
   public async start(): Promise<void> {

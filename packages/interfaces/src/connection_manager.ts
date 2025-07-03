@@ -1,6 +1,12 @@
-import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
+import type {
+  Peer,
+  PeerId,
+  Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
+import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import { PubsubTopic } from "./misc.js";
+import type { PubsubTopic } from "./misc.js";
 
 export enum Tags {
   BOOTSTRAP = "bootstrap",
@@ -85,9 +91,12 @@ export interface IConnectionStateEvents {
 
 export interface IConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
+  stop(): void;
+  dial(
+    peer: PeerId | MultiaddrInput,
+    protocolCodecs: string[]
+  ): Promise<Stream>;
+  hangUp(peer: PeerId | MultiaddrInput): Promise<boolean>;
   isPubsubTopicConfigured(pubsubTopic: PubsubTopic): boolean;
   getConnectedPeers(codec?: string): Promise<Peer[]>;
-  dropConnection(peerId: PeerId): Promise<void>;
-  getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
-  stop(): void;
 }

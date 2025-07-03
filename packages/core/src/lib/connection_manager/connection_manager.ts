@@ -1,13 +1,12 @@
 import {
   type Connection,
-  isPeerId,
   type Peer,
   type PeerId,
   type PeerInfo,
   type Stream,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { Multiaddr, multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
+import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManagerOptions,
   DiscoveryTrigger,
@@ -27,7 +26,7 @@ import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
-import { getPeerPing } from "./utils.js";
+import { getPeerPing, mapToPeerId, mapToPeerIdOrMultiaddr } from "./utils.js";
 
 const log = new Logger("connection-manager");
 
@@ -87,15 +86,21 @@ export class ConnectionManager
     this.stopNetworkStatusListener();
   }
 
-  public async dropConnection(peerId: PeerId): Promise<void> {
+  public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
+    const peerId = mapToPeerId(peer);
+
     try {
       this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
+
       log.info(`Dropped connection with peer ${peerId.toString()}`);
+      return true;
     } catch (error) {
       log.error(
         `Error dropping connection with peer ${peerId.toString()} - ${error}`
       );
+
+      return false;
     }
   }
 
@@ -283,10 +288,8 @@ export class ConnectionManager
   public async dialPeer(peer: PeerId | MultiaddrInput): Promise<Connection> {
     let connection: Connection | undefined;
     let peerId: PeerId | undefined;
-    const peerDialInfo = this.getDialablePeerInfo(peer);
-    const peerIdStr = isPeerId(peerDialInfo)
-      ? peerDialInfo.toString()
-      : peerDialInfo.getPeerId()!;
+    const peerDialInfo = mapToPeerIdOrMultiaddr(peer);
+    const peerIdStr = mapToPeerId(peer).toString();
 
     this.currentActiveParallelDialCount += 1;
     let dialAttempt = 0;
@@ -383,33 +386,12 @@ export class ConnectionManager
    * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
    * @returns A stream to the peer
    */
-  public async rawDialPeerWithProtocols(
+  public async dial(
     peer: PeerId | MultiaddrInput,
     protocolCodecs: string[]
   ): Promise<Stream> {
-    const peerDialInfo = this.getDialablePeerInfo(peer);
-    return await this.libp2p.dialProtocol(peerDialInfo, protocolCodecs);
-  }
-
-  /**
-   * Internal utility to extract a PeerId or Multiaddr from a peer input.
-   * This is used internally by the connection manager to handle different peer input formats.
-   * @internal
-   */
-  private getDialablePeerInfo(
-    peer: PeerId | MultiaddrInput
-  ): PeerId | Multiaddr {
-    if (isPeerId(peer)) {
-      return peer;
-    } else {
-      // peer is of MultiaddrInput type
-      const ma = multiaddr(peer);
-      const peerIdStr = ma.getPeerId();
-      if (!peerIdStr) {
-        throw new Error("Failed to dial multiaddr: missing peer ID");
-      }
-      return ma;
-    }
+    const ma = mapToPeerIdOrMultiaddr(peer);
+    return await this.libp2p.dialProtocol(ma, protocolCodecs);
   }
 
   private async attemptDnsDiscovery(): Promise<void> {
@@ -525,7 +507,7 @@ export class ConnectionManager
           if (
             bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
           ) {
-            await this.dropConnection(peerId);
+            await this.hangUp(peerId);
           } else {
             this.dispatchEvent(
               new CustomEvent<PeerId>(
