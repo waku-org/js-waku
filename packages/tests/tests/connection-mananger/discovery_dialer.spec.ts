@@ -93,46 +93,4 @@ describe.only("DiscoveryDialer", function () {
       "waku has two connections"
     ).to.have.length(2);
   });
-
-  // it("should handle peer exchange gracefully when second node is unavailable", async function () {
-  //   console.log("=== Testing error handling ===");
-
-  //   // Stop nwaku2 to simulate unavailable peer
-  //   await nwaku2.stop();
-
-  //   console.log("Attempting to connect to nwaku1...");
-  //   try {
-  //     await waku.dial(nwaku1Multiaddr, [Protocols.Filter]);
-  //     await delay(3000);
-  //   } catch (error) {
-  //     console.log("Connection failed, but testing DiscoveryDialer anyway...");
-  //   }
-
-  //   // Reset dial spy
-  //   dialSpy.resetHistory();
-
-  //   // Test DiscoveryDialer with unavailable peer
-  //   console.log("Simulating discovery of unavailable peer...");
-  //   waku.libp2p.dispatchEvent(
-  //     new CustomEvent("peer:discovery", {
-  //       detail: {
-  //         id: nwaku2Multiaddr.getPeerId(),
-  //         multiaddrs: [nwaku2Multiaddr]
-  //       }
-  //     })
-  //   );
-
-  //   await delay(3000);
-
-  //   // DiscoveryDialer should attempt to dial even if it fails
-  //   console.log(
-  //     `DiscoveryDialer dial attempts to unavailable peer: ${dialSpy.callCount}`
-  //   );
-
-  //   // This test primarily verifies DiscoveryDialer attempts to dial discovered peers
-  //   // even when they're unavailable (graceful error handling)
-  //   console.log(
-  //     "✓ Error handling test completed - DiscoveryDialer handles unavailable peers gracefully"
-  //   );
-  // });
 });
