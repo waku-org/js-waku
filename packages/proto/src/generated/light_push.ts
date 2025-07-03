@@ -86,6 +86,9 @@ export namespace PushRequest {
 export interface PushResponse {
   isSuccess: boolean
   info?: string
+  statusCode?: number
+  statusDesc?: string
+  relayPeerCount?: number
 }
 
 export namespace PushResponse {
@@ -108,6 +111,21 @@ export namespace PushResponse {
           w.string(obj.info)
         }
 
+        if (obj.statusCode != null) {
+          w.uint32(80)
+          w.uint32(obj.statusCode)
+        }
+
+        if (obj.statusDesc != null) {
+          w.uint32(90)
+          w.string(obj.statusDesc)
+        }
+
+        if (obj.relayPeerCount != null) {
+          w.uint32(96)
+          w.uint32(obj.relayPeerCount)
+        }
+
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
@@ -128,6 +146,18 @@ export namespace PushResponse {
             }
             case 2: {
               obj.info = reader.string()
+              break
+            }
+            case 10: {
+              obj.statusCode = reader.uint32()
+              break
+            }
+            case 11: {
+              obj.statusDesc = reader.string()
+              break
+            }
+            case 12: {
+              obj.relayPeerCount = reader.uint32()
               break
             }
             default: {
@@ -234,6 +264,179 @@ export namespace PushRpc {
 
   export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PushRpc>): PushRpc => {
     return decodeMessage(buf, PushRpc.codec(), opts)
+  }
+}
+
+export interface LightPushRequestV3 {
+  requestId: string
+  pubsubTopic?: string
+  message?: WakuMessage
+}
+
+export namespace LightPushRequestV3 {
+  let _codec: Codec<LightPushRequestV3>
+
+  export const codec = (): Codec<LightPushRequestV3> => {
+    if (_codec == null) {
+      _codec = message<LightPushRequestV3>((obj, w, opts = {}) => {
+        if (opts.lengthDelimited !== false) {
+          w.fork()
+        }
+
+        if ((obj.requestId != null && obj.requestId !== '')) {
+          w.uint32(10)
+          w.string(obj.requestId)
+        }
+
+        if (obj.pubsubTopic != null) {
+          w.uint32(162)
+          w.string(obj.pubsubTopic)
+        }
+
+        if (obj.message != null) {
+          w.uint32(170)
+          WakuMessage.codec().encode(obj.message, w)
+        }
+
+        if (opts.lengthDelimited !== false) {
+          w.ldelim()
+        }
+      }, (reader, length, opts = {}) => {
+        const obj: any = {
+          requestId: ''
+        }
+
+        const end = length == null ? reader.len : reader.pos + length
+
+        while (reader.pos < end) {
+          const tag = reader.uint32()
+
+          switch (tag >>> 3) {
+            case 1: {
+              obj.requestId = reader.string()
+              break
+            }
+            case 20: {
+              obj.pubsubTopic = reader.string()
+              break
+            }
+            case 21: {
+              obj.message = WakuMessage.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.message
+              })
+              break
+            }
+            default: {
+              reader.skipType(tag & 7)
+              break
+            }
+          }
+        }
+
+        return obj
+      })
+    }
+
+    return _codec
+  }
+
+  export const encode = (obj: Partial<LightPushRequestV3>): Uint8Array => {
+    return encodeMessage(obj, LightPushRequestV3.codec())
+  }
+
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<LightPushRequestV3>): LightPushRequestV3 => {
+    return decodeMessage(buf, LightPushRequestV3.codec(), opts)
+  }
+}
+
+export interface LightPushResponseV3 {
+  requestId: string
+  statusCode: number
+  statusDesc?: string
+  relayPeerCount?: number
+}
+
+export namespace LightPushResponseV3 {
+  let _codec: Codec<LightPushResponseV3>
+
+  export const codec = (): Codec<LightPushResponseV3> => {
+    if (_codec == null) {
+      _codec = message<LightPushResponseV3>((obj, w, opts = {}) => {
+        if (opts.lengthDelimited !== false) {
+          w.fork()
+        }
+
+        if ((obj.requestId != null && obj.requestId !== '')) {
+          w.uint32(10)
+          w.string(obj.requestId)
+        }
+
+        if ((obj.statusCode != null && obj.statusCode !== 0)) {
+          w.uint32(80)
+          w.uint32(obj.statusCode)
+        }
+
+        if (obj.statusDesc != null) {
+          w.uint32(90)
+          w.string(obj.statusDesc)
+        }
+
+        if (obj.relayPeerCount != null) {
+          w.uint32(96)
+          w.uint32(obj.relayPeerCount)
+        }
+
+        if (opts.lengthDelimited !== false) {
+          w.ldelim()
+        }
+      }, (reader, length, opts = {}) => {
+        const obj: any = {
+          requestId: '',
+          statusCode: 0
+        }
+
+        const end = length == null ? reader.len : reader.pos + length
+
+        while (reader.pos < end) {
+          const tag = reader.uint32()
+
+          switch (tag >>> 3) {
+            case 1: {
+              obj.requestId = reader.string()
+              break
+            }
+            case 10: {
+              obj.statusCode = reader.uint32()
+              break
+            }
+            case 11: {
+              obj.statusDesc = reader.string()
+              break
+            }
+            case 12: {
+              obj.relayPeerCount = reader.uint32()
+              break
+            }
+            default: {
+              reader.skipType(tag & 7)
+              break
+            }
+          }
+        }
+
+        return obj
+      })
+    }
+
+    return _codec
+  }
+
+  export const encode = (obj: Partial<LightPushResponseV3>): Uint8Array => {
+    return encodeMessage(obj, LightPushResponseV3.codec())
+  }
+
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<LightPushResponseV3>): LightPushResponseV3 => {
+    return decodeMessage(buf, LightPushResponseV3.codec(), opts)
   }
 }
 
