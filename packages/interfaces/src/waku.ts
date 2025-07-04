@@ -1,7 +1,11 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
+import type {
+  Peer,
+  PeerId,
+  Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
@@ -30,6 +34,12 @@ export type CreateEncoderParams = CreateDecoderParams & {
   ephemeral?: boolean;
 };
 
+export interface IWakuEvents {
+  "waku:connection": CustomEvent<boolean>;
+}
+
+export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
+
 export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
@@ -37,9 +47,8 @@ export interface IWaku {
   filter?: IFilter;
   lightPush?: ILightPush;
 
-  connectionManager: IConnectionManager;
-
   health: IHealthIndicator;
+  events: IWakuEventEmitter;
 
   /**
    * Returns a unique identifier for a node on the network.

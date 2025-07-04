@@ -1,9 +1,4 @@
-import type {
-  Peer,
-  PeerId,
-  Stream,
-  TypedEventEmitter
-} from "@libp2p/interface";
+import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { PubsubTopic } from "./misc.js";
@@ -53,16 +48,6 @@ export type ConnectionManagerOptions = {
   relayKeepAlive: number;
 };
 
-export enum EPeersByDiscoveryEvents {
-  PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
-  PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange"
-}
-
-export interface IPeersByDiscoveryEvents {
-  [EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP]: CustomEvent<PeerId>;
-  [EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE]: CustomEvent<PeerId>;
-}
-
 export interface PeersByDiscoveryResult {
   DISCOVERED: {
     [Tags.BOOTSTRAP]: Peer[];
@@ -76,17 +61,7 @@ export interface PeersByDiscoveryResult {
   };
 }
 
-export enum EConnectionStateEvents {
-  CONNECTION_STATUS = "waku:connection"
-}
-
-export interface IConnectionStateEvents {
-  // true when online, false when offline
-  [EConnectionStateEvents.CONNECTION_STATUS]: CustomEvent<boolean>;
-}
-
-export interface IConnectionManager
-  extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
+export interface IConnectionManager {
   start(): void;
   stop(): void;
   dial(

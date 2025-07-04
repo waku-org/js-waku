@@ -1,4 +1,9 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
+import {
+  type Peer,
+  type PeerId,
+  type Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
@@ -13,6 +18,7 @@ import type {
   IRelay,
   IStore,
   IWaku,
+  IWakuEventEmitter,
   Libp2p,
   NetworkConfig,
   PubsubTopic
@@ -43,18 +49,17 @@ export class WakuNode implements IWaku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
-  public health: HealthIndicator;
 
-  // TODO: make access from connection manager through getter
-  // TODO: make is only static sharding or auto sharding
-  public readonly networkConfig: NetworkConfig;
+  public readonly health: HealthIndicator;
+  public readonly events: IWakuEventEmitter = new TypedEventEmitter();
+
+  private readonly networkConfig: NetworkConfig;
 
   // needed to create a lock for async operations
   private _nodeStateLock = false;
   private _nodeStarted = false;
 
-  // TODO: make these private
-  public readonly connectionManager: ConnectionManager;
+  private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
 
   public constructor(
@@ -80,6 +85,7 @@ export class WakuNode implements IWaku {
     this.connectionManager = new ConnectionManager({
       libp2p,
       relay: this.relay,
+      events: this.events,
       pubsubTopics: pubsubTopics,
       networkConfig: this.networkConfig,
       config: options?.connectionManager

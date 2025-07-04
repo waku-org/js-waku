@@ -1,5 +1,9 @@
+import { generateKeyPair } from "@libp2p/crypto/keys";
+import type { PeerId } from "@libp2p/interface";
+import { TypedEventEmitter } from "@libp2p/interface";
+import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { Multiaddr } from "@multiformats/multiaddr";
-import { EConnectionStateEvents, LightNode, Protocols } from "@waku/interfaces";
+import { LightNode, Protocols, Tags } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
@@ -60,13 +64,10 @@ describe("Connection state", function () {
   it("should emit `waku:online` event only when first peer is connected", async function () {
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
-      waku.connectionManager.addEventListener(
-        EConnectionStateEvents.CONNECTION_STATUS,
-        ({ detail: status }) => {
-          eventCount++;
-          resolve(status);
-        }
-      );
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount++;
+        resolve(status);
+      });
     });
 
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
@@ -85,13 +86,10 @@ describe("Connection state", function () {
 
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
-      waku.connectionManager.addEventListener(
-        EConnectionStateEvents.CONNECTION_STATUS,
-        ({ detail: status }) => {
-          eventCount++;
-          resolve(status);
-        }
-      );
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount++;
+        resolve(status);
+      });
     });
 
     await nwaku1.stop();
@@ -115,24 +113,18 @@ describe("Connection state", function () {
 
     let eventCount1 = 0;
     const connectionStatus1 = new Promise<boolean>((resolve) => {
-      waku1.connectionManager.addEventListener(
-        EConnectionStateEvents.CONNECTION_STATUS,
-        ({ detail: status }) => {
-          eventCount1++;
-          resolve(status);
-        }
-      );
+      waku1.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount1++;
+        resolve(status);
+      });
     });
 
     let eventCount2 = 0;
     const connectionStatus2 = new Promise<boolean>((resolve) => {
-      waku2.connectionManager.addEventListener(
-        EConnectionStateEvents.CONNECTION_STATUS,
-        ({ detail: status }) => {
-          eventCount2++;
-          resolve(status);
-        }
-      );
+      waku2.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount2++;
+        resolve(status);
+      });
     });
 
     await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
@@ -191,5 +183,175 @@ describe("Connection state", function () {
     await delay(400);
     expect(waku1.isConnected()).to.be.true;
     expect(waku2.isConnected()).to.be.true;
+  });
+});
+
+describe("waku:connection", function () {
+  let navigatorMock: any;
+  let originalNavigator: any;
+
+  let waku: LightNode;
+  this.timeout(TEST_TIMEOUT);
+  beforeEachCustom(this, async () => {
+    waku = await createLightNode();
+    originalNavigator = global.navigator;
+
+    navigatorMock = { onLine: true };
+    Object.defineProperty(globalThis, "navigator", {
+      value: navigatorMock,
+      configurable: true,
+      writable: false
+    });
+
+    const eventEmmitter = new TypedEventEmitter();
+    globalThis.addEventListener =
+      eventEmmitter.addEventListener.bind(eventEmmitter);
+    globalThis.removeEventListener =
+      eventEmmitter.removeEventListener.bind(eventEmmitter);
+    globalThis.dispatchEvent = eventEmmitter.dispatchEvent.bind(eventEmmitter);
+  });
+
+  afterEachCustom(this, async () => {
+    await tearDownNodes([], waku);
+
+    Object.defineProperty(globalThis, "navigator", {
+      value: originalNavigator,
+      configurable: true,
+      writable: false
+    });
+    // @ts-expect-error: resetting set value
+    globalThis.addEventListener = undefined;
+    // @ts-expect-error: resetting set value
+    globalThis.removeEventListener = undefined;
+    // @ts-expect-error: resetting set value
+    globalThis.dispatchEvent = undefined;
+  });
+
+  it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
+    const privateKey1 = await generateKeyPair("secp256k1");
+    const privateKey2 = await generateKeyPair("secp256k1");
+    const peerIdPx = peerIdFromPrivateKey(privateKey1);
+    const peerIdPx2 = peerIdFromPrivateKey(privateKey2);
+
+    await waku.libp2p.peerStore.save(peerIdPx, {
+      tags: {
+        [Tags.PEER_EXCHANGE]: {
+          value: 50,
+          ttl: 1200000
+        }
+      }
+    });
+
+    await waku.libp2p.peerStore.save(peerIdPx2, {
+      tags: {
+        [Tags.PEER_EXCHANGE]: {
+          value: 50,
+          ttl: 1200000
+        }
+      }
+    });
+
+    let eventCount = 0;
+    const connectedStatus = new Promise<boolean>((resolve) => {
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount++;
+        resolve(status);
+      });
+    });
+
+    waku.libp2p.dispatchEvent(
+      new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+    );
+    waku.libp2p.dispatchEvent(
+      new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx2 })
+    );
+
+    await delay(100);
+
+    expect(waku.isConnected()).to.be.true;
+    expect(await connectedStatus).to.eq(true);
+    expect(eventCount).to.be.eq(1);
+
+    const disconnectedStatus = new Promise<boolean>((resolve) => {
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        resolve(status);
+      });
+    });
+
+    waku.libp2p.dispatchEvent(
+      new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
+    );
+    waku.libp2p.dispatchEvent(
+      new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx2 })
+    );
+
+    expect(waku.isConnected()).to.be.false;
+    expect(await disconnectedStatus).to.eq(false);
+    expect(eventCount).to.be.eq(2);
+  });
+
+  it("should be online or offline if network state changed", async function () {
+    // have to recreate js-waku for it to pick up new globalThis
+    waku = await createLightNode();
+
+    const privateKey = await generateKeyPair("secp256k1");
+    const peerIdPx = peerIdFromPrivateKey(privateKey);
+
+    await waku.libp2p.peerStore.save(peerIdPx, {
+      tags: {
+        [Tags.PEER_EXCHANGE]: {
+          value: 50,
+          ttl: 1200000
+        }
+      }
+    });
+
+    let eventCount = 0;
+    const connectedStatus = new Promise<boolean>((resolve) => {
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        eventCount++;
+        resolve(status);
+      });
+    });
+
+    waku.libp2p.dispatchEvent(
+      new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+    );
+
+    await delay(100);
+
+    expect(waku.isConnected()).to.be.true;
+    expect(await connectedStatus).to.eq(true);
+    expect(eventCount).to.be.eq(1);
+
+    const disconnectedStatus = new Promise<boolean>((resolve) => {
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        resolve(status);
+      });
+    });
+
+    navigatorMock.onLine = false;
+    globalThis.dispatchEvent(new CustomEvent("offline"));
+
+    await delay(100);
+
+    expect(waku.isConnected()).to.be.false;
+    expect(await disconnectedStatus).to.eq(false);
+    expect(eventCount).to.be.eq(2);
+
+    const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
+      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
+        resolve(status);
+      });
+    });
+
+    navigatorMock.onLine = true;
+    globalThis.dispatchEvent(new CustomEvent("online"));
+
+    await delay(100);
+
+    expect(waku.isConnected()).to.be.true;
+    expect(await connectionRecoveredStatus).to.eq(true);
+    expect(eventCount).to.be.eq(3);
   });
 });

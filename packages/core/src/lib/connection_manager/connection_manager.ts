@@ -2,20 +2,16 @@ import {
   type Connection,
   type Peer,
   type PeerId,
-  type Stream,
-  TypedEventEmitter
+  type Stream
 } from "@libp2p/interface";
 import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManagerOptions,
   DiscoveryTrigger,
   DNS_DISCOVERY_TAG,
-  EConnectionStateEvents,
-  EPeersByDiscoveryEvents,
   IConnectionManager,
-  IConnectionStateEvents,
-  IPeersByDiscoveryEvents,
   IRelay,
+  IWakuEventEmitter,
   NetworkConfig,
   PeersByDiscoveryResult,
   PubsubTopic,
@@ -41,16 +37,15 @@ const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
 
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
+  events: IWakuEventEmitter;
   pubsubTopics: PubsubTopic[];
   networkConfig: NetworkConfig;
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
 };
 
-export class ConnectionManager
-  extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
-  implements IConnectionManager
-{
+export class ConnectionManager implements IConnectionManager {
+  private readonly events: IWakuEventEmitter;
   private readonly pubsubTopics: PubsubTopic[];
 
   private readonly keepAliveManager: KeepAliveManager;
@@ -68,9 +63,10 @@ export class ConnectionManager
   private isP2PNetworkConnected: boolean = false;
 
   public constructor(options: ConnectionManagerConstructorOptions) {
-    super();
     this.libp2p = options.libp2p;
+    this.events = options.events;
     this.pubsubTopics = options.pubsubTopics;
+
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -503,25 +499,7 @@ export class ConnectionManager
             bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
           ) {
             await this.hangUp(peerId);
-          } else {
-            this.dispatchEvent(
-              new CustomEvent<PeerId>(
-                EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
-                {
-                  detail: peerId
-                }
-              )
-            );
           }
-        } else {
-          this.dispatchEvent(
-            new CustomEvent<PeerId>(
-              EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
-              {
-                detail: peerId
-              }
-            )
-          );
         }
 
         this.setP2PNetworkConnected();
@@ -712,8 +690,8 @@ export class ConnectionManager
   }
 
   private dispatchWakuConnectionEvent(): void {
-    this.dispatchEvent(
-      new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+    this.events.dispatchEvent(
+      new CustomEvent<boolean>("waku:connection", {
         detail: this.isConnected()
       })
     );
