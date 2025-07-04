@@ -1,0 +1,88 @@
+import { IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+
+type NetworkMonitorConstructorOptions = {
+  libp2p: Libp2p;
+  events: IWakuEventEmitter;
+};
+
+interface INetworkMonitor {
+  start(): void;
+  stop(): void;
+}
+
+export class NetworkMonitor implements INetworkMonitor {
+  private readonly libp2p: Libp2p;
+  private readonly events: IWakuEventEmitter;
+
+  private isNetworkConnected: boolean = false;
+
+  public constructor(options: NetworkMonitorConstructorOptions) {
+    this.libp2p = options.libp2p;
+    this.events = options.events;
+
+    this.onConnectedEvent = this.onConnectedEvent.bind(this);
+    this.onDisconnectedEvent = this.onDisconnectedEvent.bind(this);
+    this.dispatchNetworkEvent = this.dispatchNetworkEvent.bind(this);
+  }
+
+  public start(): void {
+    this.libp2p.addEventListener("peer:connect", this.onConnectedEvent);
+    this.libp2p.addEventListener("peer:disconnect", this.onDisconnectedEvent);
+
+    try {
+      globalThis.addEventListener("online", this.dispatchNetworkEvent);
+      globalThis.addEventListener("offline", this.dispatchNetworkEvent);
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  public stop(): void {
+    this.libp2p.removeEventListener("peer:connect", this.onConnectedEvent);
+    this.libp2p.removeEventListener(
+      "peer:disconnect",
+      this.onDisconnectedEvent
+    );
+
+    try {
+      globalThis.removeEventListener("online", this.dispatchNetworkEvent);
+      globalThis.removeEventListener("offline", this.dispatchNetworkEvent);
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  public isConnected(): boolean {
+    try {
+      if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
+        return false;
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    return this.isNetworkConnected;
+  }
+
+  private onConnectedEvent(): void {
+    if (!this.isNetworkConnected) {
+      this.isNetworkConnected = true;
+      this.dispatchNetworkEvent();
+    }
+  }
+
+  private onDisconnectedEvent(): void {
+    if (this.isNetworkConnected && this.libp2p.getConnections().length === 0) {
+      this.isNetworkConnected = false;
+      this.dispatchNetworkEvent();
+    }
+  }
+
+  private dispatchNetworkEvent(): void {
+    this.events.dispatchEvent(
+      new CustomEvent<boolean>("waku:connection", {
+        detail: this.isConnected()
+      })
+    );
+  }
+}

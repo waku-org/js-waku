@@ -3,6 +3,7 @@ import type { ContentTopic, PubsubTopic } from "./misc.js";
 export interface SingleShardInfo {
   clusterId: number;
   /**
+   * TODO: make shard required
    * Specifying this field indicates to the encoder/decoder that static sharding must be used.
    */
   shard?: number;

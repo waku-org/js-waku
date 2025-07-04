@@ -6,7 +6,6 @@ import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,
   determinePubsubTopic,
-  ensurePubsubTopicIsConfigured,
   ensureShardingConfigured,
   ensureValidContentTopic,
   pubsubTopicToSingleShardInfo,
@@ -354,32 +353,6 @@ describe("pubsubTopicToSingleShardInfo with various invalid formats", () => {
         pubsubTopicToSingleShardInfo(`/waku/2/rs/1/${value}`)
       ).to.throw("Invalid clusterId or shard");
     });
-  });
-});
-
-describe("ensurePubsubTopicIsConfigured", () => {
-  it("should not throw an error for a single configured topic", () => {
-    const topic = "/waku/2/rs/1/2";
-    const configuredTopics = [topic];
-    expect(() =>
-      ensurePubsubTopicIsConfigured(topic, configuredTopics)
-    ).not.to.throw();
-  });
-
-  it("should not throw an error when the topic is within a list of configured topics", () => {
-    const topic = "/waku/2/rs/1/2";
-    const configuredTopics = ["/waku/2/rs/1/1", topic, "/waku/2/rs/1/3"];
-    expect(() =>
-      ensurePubsubTopicIsConfigured(topic, configuredTopics)
-    ).not.to.throw();
-  });
-
-  it("should throw an error for an unconfigured topic", () => {
-    const topic = "/waku/2/rs/1/2";
-    const configuredTopics = ["/waku/2/rs/1/3"];
-    expect(() =>
-      ensurePubsubTopicIsConfigured(topic, configuredTopics)
-    ).to.throw();
   });
 });
 

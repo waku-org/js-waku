@@ -114,7 +114,7 @@ export class PeerManager {
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnPubsubTopic(
+      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
         peer.id,
         params.pubsubTopic
       );
@@ -187,7 +187,7 @@ export class PeerManager {
     id: PeerId,
     pubsubTopic: string
   ): Promise<boolean> {
-    return this.connectionManager.isPeerOnPubsubTopic(id, pubsubTopic);
+    return this.connectionManager.isPeerOnTopic(id, pubsubTopic);
   }
 
   private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {

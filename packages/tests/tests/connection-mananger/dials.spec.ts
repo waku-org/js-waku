@@ -16,22 +16,21 @@ describe("Dials", function () {
   this.timeout(TEST_TIMEOUT);
   let dialPeerStub: SinonStub;
   let getConnectionsStub: SinonStub;
-  let getTagNamesForPeerStub: SinonStub;
-  let isPeerOnSameShard: SinonStub;
+  let isPeerOnNetwork: SinonStub;
   let waku: LightNode;
 
   beforeEachCustom(this, async () => {
     waku = await createLightNode();
-    isPeerOnSameShard = sinon.stub(
-      waku.connectionManager as any,
-      "isPeerOnSameShard"
+    isPeerOnNetwork = sinon.stub(
+      (waku as any).connectionManager.shardReader,
+      "isPeerOnNetwork"
     );
-    isPeerOnSameShard.resolves(true);
+    isPeerOnNetwork.resolves(true);
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([], waku);
-    isPeerOnSameShard.restore();
+    isPeerOnNetwork.restore();
     sinon.restore();
   });
 
@@ -39,7 +38,7 @@ describe("Dials", function () {
     let attemptDialSpy: SinonSpy;
 
     beforeEachCustom(this, async () => {
-      attemptDialSpy = sinon.spy(waku.connectionManager as any, "attemptDial");
+      attemptDialSpy = sinon.spy((waku as any).libp2p, "dial");
     });
 
     afterEachCustom(this, async () => {
@@ -72,42 +71,23 @@ describe("Dials", function () {
 
   describe("dialPeer method", function () {
     let peerStoreHasStub: SinonStub;
-    let dialAttemptsForPeerHasStub: SinonStub;
+
     beforeEachCustom(this, async () => {
-      getConnectionsStub = sinon.stub(
-        (waku.connectionManager as any).libp2p,
-        "getConnections"
-      );
-      getTagNamesForPeerStub = sinon.stub(
-        waku.connectionManager as any,
-        "getTagNamesForPeer"
-      );
-      dialPeerStub = sinon.stub(waku.connectionManager as any, "dialPeer");
+      getConnectionsStub = sinon.stub((waku as any).libp2p, "getConnections");
+      dialPeerStub = sinon.stub(waku.libp2p, "dial");
       peerStoreHasStub = sinon.stub(waku.libp2p.peerStore, "has");
-      dialAttemptsForPeerHasStub = sinon.stub(
-        (waku.connectionManager as any).dialAttemptsForPeer,
-        "has"
-      );
 
       // simulate that the peer is not connected
       getConnectionsStub.returns([]);
 
-      // simulate that the peer is a bootstrap peer
-      getTagNamesForPeerStub.resolves([Tags.BOOTSTRAP]);
-
       // simulate that the peer is not in the peerStore
       peerStoreHasStub.returns(false);
-
-      // simulate that the peer has not been dialed before
-      dialAttemptsForPeerHasStub.returns(false);
     });
 
     afterEachCustom(this, async () => {
       dialPeerStub.restore();
-      getTagNamesForPeerStub.restore();
       getConnectionsStub.restore();
       peerStoreHasStub.restore();
-      dialAttemptsForPeerHasStub.restore();
     });
 
     describe("For bootstrap peers", function () {

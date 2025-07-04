@@ -19,7 +19,12 @@ type CreateKeepAliveManagerOptions = {
   relay?: IRelay;
 };
 
-export class KeepAliveManager {
+interface IKeepAliveManager {
+  start(): void;
+  stop(): void;
+}
+
+export class KeepAliveManager implements IKeepAliveManager {
   private readonly relay?: IRelay;
   private readonly libp2p: Libp2p;
 
@@ -27,7 +32,7 @@ export class KeepAliveManager {
 
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
     new Map();
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
+  private relayKeepAliveTimers: Map<string, ReturnType<typeof setInterval>[]> =
     new Map();
 
   public constructor({
@@ -38,11 +43,44 @@ export class KeepAliveManager {
     this.options = options;
     this.relay = relay;
     this.libp2p = libp2p;
+
+    this.onPeerConnect = this.onPeerConnect.bind(this);
+    this.onPeerDisconnect = this.onPeerDisconnect.bind(this);
   }
 
-  public start(peerId: PeerId): void {
+  public start(): void {
+    this.libp2p.addEventListener("peer:connect", this.onPeerConnect);
+    this.libp2p.addEventListener("peer:disconnect", this.onPeerDisconnect);
+  }
+
+  public stop(): void {
+    this.libp2p.removeEventListener("peer:connect", this.onPeerConnect);
+    this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnect);
+
+    for (const timer of [
+      ...Object.values(this.pingKeepAliveTimers),
+      ...Object.values(this.relayKeepAliveTimers)
+    ]) {
+      clearInterval(timer);
+    }
+
+    this.pingKeepAliveTimers.clear();
+    this.relayKeepAliveTimers.clear();
+  }
+
+  private onPeerConnect(evt: CustomEvent<PeerId>): void {
+    const peerId = evt.detail;
+    this.startPingForPeer(peerId);
+  }
+
+  private onPeerDisconnect(evt: CustomEvent<PeerId>): void {
+    const peerId = evt.detail;
+    this.stopPingForPeer(peerId);
+  }
+
+  private startPingForPeer(peerId: PeerId): void {
     // Just in case a timer already exists for this peer
-    this.stop(peerId);
+    this.stopPingForPeer(peerId);
 
     const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
       this.options;
@@ -93,11 +131,11 @@ export class KeepAliveManager {
         relayPeriodSecs,
         peerId.toString()
       );
-      this.relayKeepAliveTimers.set(peerId, intervals);
+      this.relayKeepAliveTimers.set(peerId.toString(), intervals);
     }
   }
 
-  public stop(peerId: PeerId): void {
+  private stopPingForPeer(peerId: PeerId): void {
     const peerIdStr = peerId.toString();
 
     if (this.pingKeepAliveTimers.has(peerIdStr)) {
@@ -105,28 +143,10 @@ export class KeepAliveManager {
       this.pingKeepAliveTimers.delete(peerIdStr);
     }
 
-    if (this.relayKeepAliveTimers.has(peerId)) {
-      this.relayKeepAliveTimers.get(peerId)?.map(clearInterval);
-      this.relayKeepAliveTimers.delete(peerId);
+    if (this.relayKeepAliveTimers.has(peerIdStr)) {
+      this.relayKeepAliveTimers.get(peerIdStr)?.map(clearInterval);
+      this.relayKeepAliveTimers.delete(peerIdStr);
     }
-  }
-
-  public stopAll(): void {
-    for (const timer of [
-      ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers)
-    ]) {
-      clearInterval(timer);
-    }
-
-    this.pingKeepAliveTimers.clear();
-    this.relayKeepAliveTimers.clear();
-  }
-
-  public connectionsExist(): boolean {
-    return (
-      this.pingKeepAliveTimers.size > 0 || this.relayKeepAliveTimers.size > 0
-    );
   }
 
   private scheduleRelayPings(

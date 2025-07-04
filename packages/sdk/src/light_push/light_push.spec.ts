@@ -170,7 +170,7 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   const lightPush = new LightPush({
     connectionManager: {
       pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
-    } as ConnectionManager,
+    } as unknown as ConnectionManager,
     peerManager: {
       getPeers: () =>
         options.libp2p

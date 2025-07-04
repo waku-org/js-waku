@@ -54,7 +54,7 @@ interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
   "waku:peer-exchange:started": CustomEvent<boolean>;
 }
 
-export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
+const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 

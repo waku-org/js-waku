@@ -67,6 +67,9 @@ export const singleShardInfosToShardInfo = (
   };
 };
 
+/**
+ * @deprecated will be removed, use cluster and shard comparison directly
+ */
 export const shardInfoToPubsubTopics = (
   shardInfo: Partial<NetworkConfig>
 ): PubsubTopic[] => {
@@ -103,6 +106,9 @@ export const shardInfoToPubsubTopics = (
   }
 };
 
+/**
+ * @deprecated will be removed
+ */
 export const pubsubTopicToSingleShardInfo = (
   pubsubTopics: PubsubTopic
 ): SingleShardInfo => {
@@ -160,19 +166,6 @@ export const pubsubTopicsToShardInfo = (
     shards
   };
 };
-
-//TODO: move part of BaseProtocol instead of utils
-// return `ProtocolError.TOPIC_NOT_CONFIGURED` instead of throwing
-export function ensurePubsubTopicIsConfigured(
-  pubsubTopic: PubsubTopic,
-  configuredTopics: PubsubTopic[]
-): void {
-  if (!configuredTopics.includes(pubsubTopic)) {
-    throw new Error(
-      `Pubsub topic ${pubsubTopic} has not been configured on this instance. Configured topics are: ${configuredTopics}. Please update your configuration by passing in the topic during Waku node instantiation.`
-    );
-  }
-}
 
 interface ContentTopic {
   generation: number;

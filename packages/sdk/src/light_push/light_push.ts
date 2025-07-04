@@ -40,6 +40,7 @@ export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
   private readonly peerManager: PeerManager;
+  private readonly connectionManager: ConnectionManager;
   private readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {
@@ -49,10 +50,8 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.protocol = new LightPushCore(
-      params.connectionManager.pubsubTopics,
-      params.libp2p
-    );
+    this.connectionManager = params.connectionManager;
+    this.protocol = new LightPushCore(params.libp2p);
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
@@ -85,7 +84,7 @@ export class LightPush implements ILightPush {
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
-    if (!this.protocol.pubsubTopics.includes(pubsubTopic)) {
+    if (!this.connectionManager.isTopicConfigured(pubsubTopic)) {
       return {
         successes: [],
         failures: [

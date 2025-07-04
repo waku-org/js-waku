@@ -6,6 +6,5 @@ export {
 export {
   wakuPeerExchangeDiscovery,
   PeerExchangeDiscovery,
-  Options,
-  DEFAULT_PEER_EXCHANGE_TAG_NAME
+  Options
 } from "./waku_peer_exchange_discovery.js";

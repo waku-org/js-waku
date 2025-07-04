@@ -5,7 +5,6 @@ import {
   type IMessage,
   type Libp2p,
   ProtocolError,
-  PubsubTopic,
   type ThisOrThat
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
@@ -36,10 +35,7 @@ export class LightPushCore {
 
   public readonly multicodec = LightPushCodec;
 
-  public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
-    libp2p: Libp2p
-  ) {
+  public constructor(libp2p: Libp2p) {
     this.streamManager = new StreamManager(LightPushCodec, libp2p.components);
   }
 

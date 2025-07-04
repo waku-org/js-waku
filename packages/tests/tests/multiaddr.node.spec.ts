@@ -20,7 +20,7 @@ describe("multiaddr: dialing", function () {
   let waku: IWaku;
   let nwaku: ServiceNode;
   let dialPeerSpy: SinonSpy;
-  let isPeerOnSameShard: SinonStub;
+  let isPeerOnNetwork: SinonStub;
 
   afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
@@ -63,12 +63,12 @@ describe("multiaddr: dialing", function () {
       peerId = await nwaku.getPeerId();
       multiaddr = await nwaku.getMultiaddrWithId();
 
-      isPeerOnSameShard = Sinon.stub(
-        waku.connectionManager as any,
-        "isPeerOnSameShard"
+      isPeerOnNetwork = Sinon.stub(
+        (waku as any).connectionManager.shardReader,
+        "isPeerOnNetwork"
       );
-      isPeerOnSameShard.resolves(true);
-      dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
+      isPeerOnNetwork.resolves(true);
+      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
     });
 
     afterEachCustom(this, async () => {
