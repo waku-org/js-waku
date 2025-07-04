@@ -84,7 +84,7 @@ export class LightPush implements ILightPush {
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
-    if (!this.connectionManager.isPubsubTopicConfigured(pubsubTopic)) {
+    if (!this.connectionManager.isTopicConfigured(pubsubTopic)) {
       return {
         successes: [],
         failures: [

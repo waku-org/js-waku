@@ -173,7 +173,7 @@ export class Filter implements IFilter {
 
   private throwIfTopicNotSupported(pubsubTopic: string): void {
     const supportedPubsubTopic =
-      this.connectionManager.isPubsubTopicConfigured(pubsubTopic);
+      this.connectionManager.isTopicConfigured(pubsubTopic);
 
     if (!supportedPubsubTopic) {
       throw Error(

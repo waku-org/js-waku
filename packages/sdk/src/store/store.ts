@@ -229,10 +229,10 @@ export class Store implements IStore {
     }
 
     const pubsubTopicForQuery = uniquePubsubTopicsInQuery[0];
-    const isPubsubSupported =
-      this.connectionManager.isPubsubTopicConfigured(pubsubTopicForQuery);
+    const isTopicSupported =
+      this.connectionManager.isTopicConfigured(pubsubTopicForQuery);
 
-    if (!isPubsubSupported) {
+    if (!isTopicSupported) {
       throw new Error(
         `Pubsub topic ${pubsubTopicForQuery} has not been configured on this instance.`
       );
