@@ -28,6 +28,9 @@ interface IShardReader {
   isPeerOnTopic(id: PeerId, pubsubTopic: PubsubTopic): Promise<boolean>;
 }
 
+/**
+ * This class is responsible for reading the shard info from the libp2p peer store or from the current node's network config.
+ */
 export class ShardReader implements IShardReader {
   private readonly libp2p: Libp2p;
 

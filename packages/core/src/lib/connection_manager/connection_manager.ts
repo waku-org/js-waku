@@ -23,6 +23,7 @@ import { Logger } from "@waku/utils";
 
 import { DiscoveryDialer } from "./discovery_dialer.js";
 import { KeepAliveManager } from "./keep_alive_manager.js";
+import { NetworkMonitor } from "./network_monitor.js";
 import { ShardReader } from "./shard_reader.js";
 import { getPeerPing, mapToPeerId, mapToPeerIdOrMultiaddr } from "./utils.js";
 
@@ -45,12 +46,12 @@ type ConnectionManagerConstructorOptions = {
 };
 
 export class ConnectionManager implements IConnectionManager {
-  private readonly events: IWakuEventEmitter;
   private readonly pubsubTopics: PubsubTopic[];
 
   private readonly keepAliveManager: KeepAliveManager;
   private readonly discoveryDialer: DiscoveryDialer;
   private readonly shardReader: ShardReader;
+  private readonly networkMonitor: NetworkMonitor;
 
   private options: ConnectionManagerOptions;
   private libp2p: Libp2p;
@@ -60,11 +61,8 @@ export class ConnectionManager implements IConnectionManager {
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
 
-  private isP2PNetworkConnected: boolean = false;
-
   public constructor(options: ConnectionManagerConstructorOptions) {
     this.libp2p = options.libp2p;
-    this.events = options.events;
     this.pubsubTopics = options.pubsubTopics;
 
     this.options = {
@@ -94,9 +92,15 @@ export class ConnectionManager implements IConnectionManager {
       libp2p: options.libp2p,
       shardReader: this.shardReader
     });
+
+    this.networkMonitor = new NetworkMonitor({
+      libp2p: options.libp2p,
+      events: options.events
+    });
   }
 
   public start(): void {
+    this.networkMonitor.start();
     this.discoveryDialer.start();
     void this.startEventListeners();
 
@@ -107,6 +111,7 @@ export class ConnectionManager implements IConnectionManager {
   }
 
   public stop(): void {
+    this.networkMonitor.stop();
     this.discoveryDialer.stop();
     this.keepAliveManager.stopAll();
 
@@ -118,15 +123,10 @@ export class ConnectionManager implements IConnectionManager {
       "peer:disconnect",
       this.onEventHandlers["peer:disconnect"]
     );
-    this.stopNetworkStatusListener();
   }
 
   public isConnected(): boolean {
-    if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
-      return false;
-    }
-
-    return this.isP2PNetworkConnected;
+    return this.networkMonitor.isConnected();
   }
 
   /**
@@ -268,8 +268,6 @@ export class ConnectionManager implements IConnectionManager {
   private async startEventListeners(): Promise<void> {
     this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
-
-    this.startNetworkStatusListener();
   }
 
   /**
@@ -501,18 +499,12 @@ export class ConnectionManager implements IConnectionManager {
             await this.hangUp(peerId);
           }
         }
-
-        this.setP2PNetworkConnected();
       })();
     },
     "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
         this.keepAliveManager.stop(evt.detail);
-        this.setP2PNetworkDisconnected();
       })();
-    },
-    "browser:network": (): void => {
-      this.dispatchWakuConnectionEvent();
     }
   };
 
@@ -640,60 +632,5 @@ export class ConnectionManager implements IConnectionManager {
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;
     return decodeRelayShard(shardInfoBytes);
-  }
-
-  private startNetworkStatusListener(): void {
-    try {
-      globalThis.addEventListener(
-        "online",
-        this.onEventHandlers["browser:network"]
-      );
-      globalThis.addEventListener(
-        "offline",
-        this.onEventHandlers["browser:network"]
-      );
-    } catch (err) {
-      log.error(`Failed to start network listener: ${err}`);
-    }
-  }
-
-  private stopNetworkStatusListener(): void {
-    try {
-      globalThis.removeEventListener(
-        "online",
-        this.onEventHandlers["browser:network"]
-      );
-      globalThis.removeEventListener(
-        "offline",
-        this.onEventHandlers["browser:network"]
-      );
-    } catch (err) {
-      log.error(`Failed to stop network listener: ${err}`);
-    }
-  }
-
-  private setP2PNetworkConnected(): void {
-    if (!this.isP2PNetworkConnected) {
-      this.isP2PNetworkConnected = true;
-      this.dispatchWakuConnectionEvent();
-    }
-  }
-
-  private setP2PNetworkDisconnected(): void {
-    if (
-      this.isP2PNetworkConnected &&
-      this.libp2p.getConnections().length === 0
-    ) {
-      this.isP2PNetworkConnected = false;
-      this.dispatchWakuConnectionEvent();
-    }
-  }
-
-  private dispatchWakuConnectionEvent(): void {
-    this.events.dispatchEvent(
-      new CustomEvent<boolean>("waku:connection", {
-        detail: this.isConnected()
-      })
-    );
   }
 }
