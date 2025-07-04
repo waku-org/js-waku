@@ -16,6 +16,7 @@ import {
   IConnectionStateEvents,
   IPeersByDiscoveryEvents,
   IRelay,
+  NetworkConfig,
   PeersByDiscoveryResult,
   PubsubTopic,
   ShardInfo
@@ -26,6 +27,7 @@ import { Logger } from "@waku/utils";
 
 import { DiscoveryDialer } from "./discovery_dialer.js";
 import { KeepAliveManager } from "./keep_alive_manager.js";
+import { ShardReader } from "./shard_reader.js";
 import { getPeerPing, mapToPeerId, mapToPeerIdOrMultiaddr } from "./utils.js";
 
 const log = new Logger("connection-manager");
@@ -40,6 +42,7 @@ const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
   pubsubTopics: PubsubTopic[];
+  networkConfig: NetworkConfig;
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
 };
@@ -52,6 +55,7 @@ export class ConnectionManager
 
   private readonly keepAliveManager: KeepAliveManager;
   private readonly discoveryDialer: DiscoveryDialer;
+  private readonly shardReader: ShardReader;
 
   private options: ConnectionManagerOptions;
   private libp2p: Libp2p;
@@ -85,8 +89,14 @@ export class ConnectionManager
       }
     });
 
+    this.shardReader = new ShardReader({
+      libp2p: options.libp2p,
+      networkConfig: options.networkConfig
+    });
+
     this.discoveryDialer = new DiscoveryDialer({
-      libp2p: options.libp2p
+      libp2p: options.libp2p,
+      shardReader: this.shardReader
     });
   }
 

@@ -67,6 +67,9 @@ export const singleShardInfosToShardInfo = (
   };
 };
 
+/**
+ * @deprecated will be removed, use cluster and shard comparison directly
+ */
 export const shardInfoToPubsubTopics = (
   shardInfo: Partial<NetworkConfig>
 ): PubsubTopic[] => {
@@ -103,6 +106,9 @@ export const shardInfoToPubsubTopics = (
   }
 };
 
+/**
+ * @deprecated will be removed
+ */
 export const pubsubTopicToSingleShardInfo = (
   pubsubTopics: PubsubTopic
 ): SingleShardInfo => {

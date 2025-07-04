@@ -45,6 +45,8 @@ export class WakuNode implements IWaku {
   public lightPush?: ILightPush;
   public health: HealthIndicator;
 
+  // TODO: make access from connection manager through getter
+  // TODO: make is only static sharding or auto sharding
   public readonly networkConfig: NetworkConfig;
 
   // needed to create a lock for async operations
@@ -56,7 +58,7 @@ export class WakuNode implements IWaku {
   private readonly peerManager: PeerManager;
 
   public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
+    pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
@@ -78,7 +80,8 @@ export class WakuNode implements IWaku {
     this.connectionManager = new ConnectionManager({
       libp2p,
       relay: this.relay,
-      pubsubTopics: this.pubsubTopics,
+      pubsubTopics: pubsubTopics,
+      networkConfig: this.networkConfig,
       config: options?.connectionManager
     });
 
