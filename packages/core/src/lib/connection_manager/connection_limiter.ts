@@ -2,31 +2,39 @@ import { PeerId } from "@libp2p/interface";
 import { ConnectionManagerOptions, Libp2p, Tags } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import type { KeepAliveManager } from "./keep_alive_manager.js";
-
 const log = new Logger("connection-limiter");
 
 type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 type ConnectionLimiterConstructorOptions = {
   libp2p: Libp2p;
-  keepAliveManager: KeepAliveManager;
   options: ConnectionManagerOptions;
 };
 
 interface IConnectionLimiter {
+  /**
+   * Dial all known peers because libp2p might have emitted `peer:discovery` before initialization
+   * and listen to `peer:connect` and `peer:disconnect` events to manage connections.
+   */
   start(): void;
+
+  /**
+   * Stop listening to `peer:connect` and `peer:disconnect` events.
+   */
   stop(): void;
 }
 
+/**
+ * This class is responsible for limiting the number of connections to peers.
+ * It also dials all known peers because libp2p might have emitted `peer:discovery` before initialization
+ * and listen to `peer:connect` and `peer:disconnect` events to manage connections.
+ */
 export class ConnectionLimiter implements IConnectionLimiter {
   private readonly libp2p: Libp2p;
-  private readonly keepAliveManager: KeepAliveManager;
   private readonly options: ConnectionManagerOptions;
 
   public constructor(options: ConnectionLimiterConstructorOptions) {
     this.libp2p = options.libp2p;
-    this.keepAliveManager = options.keepAliveManager;
     this.options = options.options;
 
     this.onConnectedEvent = this.onConnectedEvent.bind(this);
@@ -75,7 +83,6 @@ export class ConnectionLimiter implements IConnectionLimiter {
     log.info(`Connected to peer ${evt.detail.toString()}`);
 
     const peerId = evt.detail;
-    this.keepAliveManager.start(peerId);
 
     const tags = await this.getTagsForPeer(peerId);
     const isBootstrap = tags.includes(Tags.BOOTSTRAP);
@@ -93,11 +100,9 @@ export class ConnectionLimiter implements IConnectionLimiter {
     }
   }
 
-  private async onDisconnectedEvent(evt: CustomEvent<PeerId>): Promise<void> {
-    this.keepAliveManager.stop(evt.detail);
-
+  private async onDisconnectedEvent(): Promise<void> {
     if (this.libp2p.getConnections().length === 0) {
-      void this.dialPeersFromStore();
+      await this.dialPeersFromStore();
     }
   }
 

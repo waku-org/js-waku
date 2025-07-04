@@ -3,7 +3,7 @@ import { Multiaddr } from "@multiformats/multiaddr";
 import { Logger } from "@waku/utils";
 import { Libp2p } from "libp2p";
 
-import { ShardReader } from "./shard_reader.js";
+import type { ShardReader } from "./shard_reader.js";
 
 type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 

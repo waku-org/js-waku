@@ -82,7 +82,6 @@ export class ConnectionManager implements IConnectionManager {
 
     this.connectionLimiter = new ConnectionLimiter({
       libp2p: options.libp2p,
-      keepAliveManager: this.keepAliveManager,
       options: this.options
     });
   }
@@ -90,14 +89,15 @@ export class ConnectionManager implements IConnectionManager {
   public start(): void {
     this.networkMonitor.start();
     this.discoveryDialer.start();
+    this.keepAliveManager.start();
     this.connectionLimiter.start();
   }
 
   public stop(): void {
     this.networkMonitor.stop();
     this.discoveryDialer.stop();
+    this.keepAliveManager.stop();
     this.connectionLimiter.stop();
-    this.keepAliveManager.stopAll();
   }
 
   public isConnected(): boolean {
@@ -116,19 +116,13 @@ export class ConnectionManager implements IConnectionManager {
     protocolCodecs: string[]
   ): Promise<Stream> {
     const ma = mapToPeerIdOrMultiaddr(peer);
-    const peerId = mapToPeerId(peer);
-
-    const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
-    this.keepAliveManager.start(peerId);
-
-    return stream;
+    return this.libp2p.dialProtocol(ma, protocolCodecs);
   }
 
   public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
     const peerId = mapToPeerId(peer);
 
     try {
-      this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
 
       log.info(`Dropped connection with peer ${peerId.toString()}`);
