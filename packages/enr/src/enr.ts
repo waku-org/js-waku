@@ -32,7 +32,6 @@ export enum TransportProtocolPerIpVersion {
 
 export class ENR extends RawEnr implements IEnr {
   public static readonly RECORD_PREFIX = "enr:";
-  public peerId?: PeerId;
 
   public static create(
     kvs: Record<ENRKey, ENRValue> = {},
@@ -51,6 +50,8 @@ export class ENR extends RawEnr implements IEnr {
 
     return enr;
   }
+
+  public peerId?: PeerId;
 
   public get nodeId(): NodeId | undefined {
     switch (this.id) {
