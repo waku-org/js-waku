@@ -24,7 +24,8 @@ export async function runMultipleNodes(
   customArgs?: Args,
   strictChecking: boolean = false,
   numServiceNodes = 2,
-  withoutFilter = false
+  withoutFilter = false,
+  jsWakuParams: CreateNodeOptions = {}
 ): Promise<[ServiceNodesFleet, LightNode]> {
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
@@ -43,7 +44,8 @@ export async function runMultipleNodes(
     },
     networkConfig,
     lightPush: { numPeersToUse: numServiceNodes },
-    discovery: DEFAULT_DISCOVERIES_ENABLED
+    discovery: DEFAULT_DISCOVERIES_ENABLED,
+    ...jsWakuParams
   };
 
   const waku = await createLightNode(wakuOptions);

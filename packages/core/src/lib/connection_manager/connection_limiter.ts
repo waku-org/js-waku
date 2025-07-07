@@ -1,4 +1,4 @@
-import { PeerId } from "@libp2p/interface";
+import { Peer, PeerId } from "@libp2p/interface";
 import { ConnectionManagerOptions, Libp2p, Tags } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -91,11 +91,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
       return;
     }
 
-    const bootstrapConnections = this.libp2p
-      .getConnections()
-      .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
-
-    if (bootstrapConnections.length > this.options.maxBootstrapPeers) {
+    if (await this.hasMoreThanMaxBootstrapConnections()) {
       await this.libp2p.hangUp(peerId);
     }
   }
@@ -119,6 +115,38 @@ export class ConnectionLimiter implements IConnectionLimiter {
       await Promise.all(promises);
     } catch (error) {
       log.error(`Unexpected error while dialing peer store peers`, error);
+    }
+  }
+
+  private async hasMoreThanMaxBootstrapConnections(): Promise<boolean> {
+    try {
+      const peers = await Promise.all(
+        this.libp2p
+          .getConnections()
+          .map((conn) => conn.remotePeer)
+          .map((id) => this.getPeer(id))
+      );
+
+      const bootstrapPeers = peers.filter(
+        (peer) => peer && peer.tags.has(Tags.BOOTSTRAP)
+      );
+
+      return bootstrapPeers.length > this.options.maxBootstrapPeers;
+    } catch (error) {
+      log.error(
+        `Unexpected error while checking for bootstrap connections`,
+        error
+      );
+      return false;
+    }
+  }
+
+  private async getPeer(peerId: PeerId): Promise<Peer | null> {
+    try {
+      return await this.libp2p.peerStore.get(peerId);
+    } catch (error) {
+      log.error(`Failed to get peer ${peerId}, error: ${error}`);
+      return null;
     }
   }
 

@@ -216,8 +216,16 @@ describe("ConnectionLimiter", () => {
       const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
         Tags.BOOTSTRAP
       ]);
-      libp2p.peerStore.get.resolves(bootstrapPeer);
+      const connectedBootstrapPeer = createMockPeer(
+        "12D3KooWConnectedBootstrap",
+        [Tags.BOOTSTRAP]
+      );
+
       libp2p.getConnections.returns([mockConnection]);
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(mockConnection.remotePeer)
+        .resolves(connectedBootstrapPeer);
 
       const mockEvent = new CustomEvent("peer:connect", {
         detail: mockPeerId
@@ -232,14 +240,31 @@ describe("ConnectionLimiter", () => {
       const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
         Tags.BOOTSTRAP
       ]);
-      libp2p.peerStore.get.resolves(bootstrapPeer);
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer3 = createMockPeer("12D3KooWBootstrap3", [
+        Tags.BOOTSTRAP
+      ]);
+
+      const peerId1 = createMockPeerId("peer1");
+      const peerId2 = createMockPeerId("peer2");
+      const peerId3 = createMockPeerId("peer3");
 
       const bootstrapConnections = [
-        createMockConnection(createMockPeerId("peer1"), [Tags.BOOTSTRAP]),
-        createMockConnection(createMockPeerId("peer2"), [Tags.BOOTSTRAP]),
-        createMockConnection(createMockPeerId("peer3"), [Tags.BOOTSTRAP])
+        createMockConnection(peerId1, [Tags.BOOTSTRAP]),
+        createMockConnection(peerId2, [Tags.BOOTSTRAP]),
+        createMockConnection(peerId3, [Tags.BOOTSTRAP])
       ];
+
       libp2p.getConnections.returns(bootstrapConnections);
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get.withArgs(peerId1).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(peerId2).resolves(bootstrapPeer2);
+      libp2p.peerStore.get.withArgs(peerId3).resolves(bootstrapPeer3);
 
       const mockEvent = new CustomEvent("peer:connect", {
         detail: mockPeerId
@@ -415,6 +440,239 @@ describe("ConnectionLimiter", () => {
     });
   });
 
+  describe("getPeer", () => {
+    beforeEach(() => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: defaultOptions
+      });
+    });
+
+    it("should return peer for existing peer", async () => {
+      const peer = await (connectionLimiter as any).getPeer(mockPeerId);
+
+      expect(libp2p.peerStore.get.calledWith(mockPeerId)).to.be.true;
+      expect(peer).to.equal(mockPeer);
+    });
+
+    it("should return null for non-existent peer", async () => {
+      libp2p.peerStore.get.rejects(new Error("Peer not found"));
+
+      const peer = await (connectionLimiter as any).getPeer(mockPeerId);
+
+      expect(peer).to.be.null;
+    });
+
+    it("should handle peer store errors gracefully", async () => {
+      libp2p.peerStore.get.rejects(new Error("Database error"));
+
+      const peer = await (connectionLimiter as any).getPeer(mockPeerId);
+
+      expect(peer).to.be.null;
+    });
+  });
+
+  describe("hasMoreThanMaxBootstrapConnections", () => {
+    beforeEach(() => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: defaultOptions
+      });
+    });
+
+    it("should return false when no connections", async () => {
+      libp2p.getConnections.returns([]);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should return false when under bootstrap limit", async () => {
+      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
+        Tags.BOOTSTRAP
+      ]);
+      libp2p.getConnections.returns([mockConnection]);
+      libp2p.peerStore.get.resolves(bootstrapPeer);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should return false when at bootstrap limit", async () => {
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+      const connection1 = createMockConnection(bootstrapPeer1.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection2 = createMockConnection(bootstrapPeer2.id, [
+        Tags.BOOTSTRAP
+      ]);
+
+      libp2p.getConnections.returns([connection1, connection2]);
+      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should return true when over bootstrap limit", async () => {
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer3 = createMockPeer("12D3KooWBootstrap3", [
+        Tags.BOOTSTRAP
+      ]);
+      const connection1 = createMockConnection(bootstrapPeer1.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection2 = createMockConnection(bootstrapPeer2.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection3 = createMockConnection(bootstrapPeer3.id, [
+        Tags.BOOTSTRAP
+      ]);
+
+      libp2p.getConnections.returns([connection1, connection2, connection3]);
+      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
+      libp2p.peerStore.get.withArgs(bootstrapPeer3.id).resolves(bootstrapPeer3);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.true;
+    });
+
+    it("should return false when connections are non-bootstrap peers", async () => {
+      const nonBootstrapPeer1 = createMockPeer("12D3KooWNonBootstrap1", []);
+      const nonBootstrapPeer2 = createMockPeer("12D3KooWNonBootstrap2", []);
+      const connection1 = createMockConnection(nonBootstrapPeer1.id, []);
+      const connection2 = createMockConnection(nonBootstrapPeer2.id, []);
+
+      libp2p.getConnections.returns([connection1, connection2]);
+      libp2p.peerStore.get
+        .withArgs(nonBootstrapPeer1.id)
+        .resolves(nonBootstrapPeer1);
+      libp2p.peerStore.get
+        .withArgs(nonBootstrapPeer2.id)
+        .resolves(nonBootstrapPeer2);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should handle mixed bootstrap and non-bootstrap peers", async () => {
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+      const nonBootstrapPeer = createMockPeer("12D3KooWNonBootstrap", []);
+      const connection1 = createMockConnection(bootstrapPeer1.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection2 = createMockConnection(bootstrapPeer2.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection3 = createMockConnection(nonBootstrapPeer.id, []);
+
+      libp2p.getConnections.returns([connection1, connection2, connection3]);
+      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
+      libp2p.peerStore.get
+        .withArgs(nonBootstrapPeer.id)
+        .resolves(nonBootstrapPeer);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should handle peer store errors gracefully", async () => {
+      libp2p.getConnections.returns([mockConnection]);
+      libp2p.peerStore.get.rejects(new Error("Peer store error"));
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should handle null peers returned by getPeer", async () => {
+      const getPeerStub = sinon.stub(connectionLimiter, "getPeer" as any);
+      getPeerStub.resolves(null);
+
+      libp2p.getConnections.returns([mockConnection]);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.false;
+    });
+
+    it("should work with custom bootstrap limits", async () => {
+      const customOptions = {
+        maxBootstrapPeers: 1,
+        pingKeepAlive: 300,
+        relayKeepAlive: 300
+      };
+
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: customOptions
+      });
+
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+      const connection1 = createMockConnection(bootstrapPeer1.id, [
+        Tags.BOOTSTRAP
+      ]);
+      const connection2 = createMockConnection(bootstrapPeer2.id, [
+        Tags.BOOTSTRAP
+      ]);
+
+      libp2p.getConnections.returns([connection1, connection2]);
+      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
+
+      const result = await (
+        connectionLimiter as any
+      ).hasMoreThanMaxBootstrapConnections();
+
+      expect(result).to.be.true;
+    });
+  });
+
   describe("integration tests", () => {
     it("should handle full lifecycle (start -> events -> stop)", async () => {
       connectionLimiter = new ConnectionLimiter({
@@ -457,10 +715,23 @@ describe("ConnectionLimiter", () => {
       const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
         Tags.BOOTSTRAP
       ]);
-      libp2p.peerStore.get.resolves(bootstrapPeer);
+      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
+        Tags.BOOTSTRAP
+      ]);
+      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
+        Tags.BOOTSTRAP
+      ]);
+
+      const peerId1 = createMockPeerId("peer1");
+      const peerId2 = createMockPeerId("peer2");
+
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get.withArgs(peerId1).resolves(bootstrapPeer1);
+      libp2p.peerStore.get.withArgs(peerId2).resolves(bootstrapPeer2);
+
       libp2p.getConnections.returns([
-        createMockConnection(createMockPeerId("peer1"), [Tags.BOOTSTRAP]),
-        createMockConnection(createMockPeerId("peer2"), [Tags.BOOTSTRAP])
+        createMockConnection(peerId1, [Tags.BOOTSTRAP]),
+        createMockConnection(peerId2, [Tags.BOOTSTRAP])
       ]);
 
       const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
@@ -471,6 +742,178 @@ describe("ConnectionLimiter", () => {
       await connectEventHandler(connectEvent);
 
       expect(libp2p.hangUp.calledWith(mockPeerId)).to.be.true;
+    });
+
+    it("should handle bootstrap limit of 1 correctly", async () => {
+      const customOptions = {
+        maxBootstrapPeers: 1,
+        pingKeepAlive: 300,
+        relayKeepAlive: 300
+      };
+
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: customOptions
+      });
+      connectionLimiter.start();
+
+      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
+        Tags.BOOTSTRAP
+      ]);
+      const existingBootstrapPeer = createMockPeer(
+        "12D3KooWExistingBootstrap",
+        [Tags.BOOTSTRAP]
+      );
+      const existingPeerId = createMockPeerId("existing");
+
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(existingPeerId)
+        .resolves(existingBootstrapPeer);
+
+      // Include the new peer in connections since peer:connect is fired after connection is established
+      libp2p.getConnections.returns([
+        createMockConnection(existingPeerId, [Tags.BOOTSTRAP]),
+        createMockConnection(mockPeerId, [Tags.BOOTSTRAP])
+      ]);
+
+      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
+      const connectEvent = new CustomEvent("peer:connect", {
+        detail: mockPeerId
+      });
+
+      await connectEventHandler(connectEvent);
+
+      expect(libp2p.hangUp.calledWith(mockPeerId)).to.be.true;
+    });
+
+    it("should handle high bootstrap limit correctly", async () => {
+      const customOptions = {
+        maxBootstrapPeers: 10,
+        pingKeepAlive: 300,
+        relayKeepAlive: 300
+      };
+
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: customOptions
+      });
+      connectionLimiter.start();
+
+      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
+        Tags.BOOTSTRAP
+      ]);
+      const existingBootstrapPeer = createMockPeer(
+        "12D3KooWExistingBootstrap",
+        [Tags.BOOTSTRAP]
+      );
+      const existingPeerId = createMockPeerId("existing");
+
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(existingPeerId)
+        .resolves(existingBootstrapPeer);
+
+      libp2p.getConnections.returns([
+        createMockConnection(existingPeerId, [Tags.BOOTSTRAP])
+      ]);
+
+      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
+      const connectEvent = new CustomEvent("peer:connect", {
+        detail: mockPeerId
+      });
+
+      await connectEventHandler(connectEvent);
+
+      expect(libp2p.hangUp.called).to.be.false;
+    });
+
+    it("should handle mixed peer types with bootstrap limiting", async () => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: defaultOptions
+      });
+      connectionLimiter.start();
+
+      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
+        Tags.BOOTSTRAP
+      ]);
+      const existingBootstrapPeer = createMockPeer(
+        "12D3KooWExistingBootstrap",
+        [Tags.BOOTSTRAP]
+      );
+      const nonBootstrapPeer = createMockPeer("12D3KooWNonBootstrap", []);
+
+      const existingBootstrapPeerId = createMockPeerId("existing-bootstrap");
+      const nonBootstrapPeerId = createMockPeerId("non-bootstrap");
+
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(existingBootstrapPeerId)
+        .resolves(existingBootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(nonBootstrapPeerId)
+        .resolves(nonBootstrapPeer);
+
+      libp2p.getConnections.returns([
+        createMockConnection(existingBootstrapPeerId, [Tags.BOOTSTRAP]),
+        createMockConnection(nonBootstrapPeerId, [])
+      ]);
+
+      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
+      const connectEvent = new CustomEvent("peer:connect", {
+        detail: mockPeerId
+      });
+
+      await connectEventHandler(connectEvent);
+
+      expect(libp2p.hangUp.called).to.be.false;
+    });
+
+    it("should redial peers when all connections are lost", async () => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: defaultOptions
+      });
+      connectionLimiter.start();
+
+      const disconnectEventHandler = libp2p.addEventListener.getCall(1).args[1];
+
+      libp2p.getConnections.returns([]);
+      libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
+
+      await disconnectEventHandler();
+
+      expect(libp2p.peerStore.all.called).to.be.true;
+      expect(libp2p.dial.calledTwice).to.be.true;
+    });
+
+    it("should handle peer store errors during connection limiting", async () => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        options: defaultOptions
+      });
+      connectionLimiter.start();
+
+      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
+        Tags.BOOTSTRAP
+      ]);
+
+      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
+      libp2p.peerStore.get
+        .withArgs(mockConnection.remotePeer)
+        .rejects(new Error("Peer store error"));
+
+      libp2p.getConnections.returns([mockConnection]);
+
+      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
+      const connectEvent = new CustomEvent("peer:connect", {
+        detail: mockPeerId
+      });
+
+      await connectEventHandler(connectEvent);
+
+      expect(libp2p.hangUp.called).to.be.false;
     });
   });
 });
