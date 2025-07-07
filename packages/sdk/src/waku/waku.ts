@@ -60,7 +60,6 @@ export class WakuNode implements IWaku {
   private readonly peerManager: PeerManager;
 
   public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,

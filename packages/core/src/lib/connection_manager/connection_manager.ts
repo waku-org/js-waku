@@ -19,8 +19,7 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   PeersByDiscoveryResult,
-  PubsubTopic,
-  ShardInfo
+  SubscribedShardsInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
@@ -40,7 +39,7 @@ const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
 
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
-  pubsubTopics: PubsubTopic[];
+  clusterId: number;
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
 };
@@ -49,8 +48,7 @@ export class ConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
   implements IConnectionManager
 {
-  // TODO(weboko): make it private
-  public readonly pubsubTopics: PubsubTopic[];
+  public clusterId: number;
 
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -156,7 +154,7 @@ export class ConnectionManager
   public constructor(options: ConnectionManagerConstructorOptions) {
     super();
     this.libp2p = options.libp2p;
-    this.pubsubTopics = options.pubsubTopics;
+    this.clusterId = options.clusterId;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -561,7 +559,7 @@ export class ConnectionManager
   /**
    * Checks if the peer should be dialed based on the following conditions:
    * 1. If the peer is already connected, don't dial
-   * 2. If the peer is not part of any of the configured pubsub topics, don't dial
+   * 2. If the peer is not on the same cluster, don't dial
    * 3. If the peer is not dialable based on bootstrap status, don't dial
    * 4. If the peer is already has an active dial attempt, or has been dialed before, don't dial it
    * @returns true if the peer should be dialed, false otherwise
@@ -573,13 +571,13 @@ export class ConnectionManager
       return false;
     }
 
-    const isSameShard = await this.isPeerOnSameShard(peerId);
+    const isSameShard = await this.isPeerOnSameCluster(peerId);
     if (!isSameShard) {
       const shardInfo = await this.getPeerShardInfo(peerId);
 
       log.warn(
-        `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
-          this.pubsubTopics
+        `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} has different cluster id from configured (${
+          this.clusterId
         }).
             Not dialing.`
       );
@@ -662,39 +660,28 @@ export class ConnectionManager
     }
   }
 
-  public async isPeerOnSameShard(peerId: PeerId): Promise<boolean> {
+  public async isPeerOnSameCluster(peerId: PeerId): Promise<boolean> {
     const shardInfo = await this.getPeerShardInfo(peerId);
-
-    if (!shardInfo) {
-      return true;
-    }
-
-    const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
-
-    const isTopicConfigured = pubsubTopics.some((topic) =>
-      this.pubsubTopics.includes(topic)
-    );
-
-    return isTopicConfigured;
+    return this.clusterId == shardInfo?.clusterId;
   }
 
   public async isPeerOnPubsubTopic(
     peerId: PeerId,
     pubsubTopic: string
   ): Promise<boolean> {
-    const shardInfo = await this.getPeerShardInfo(peerId);
+    const subscribedShardInfo = await this.getPeerShardInfo(peerId);
 
-    if (!shardInfo) {
+    if (!subscribedShardInfo) {
       return true;
     }
 
-    const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
+    const pubsubTopics = shardInfoToPubsubTopics(subscribedShardInfo);
     return pubsubTopics.some((t) => t === pubsubTopic);
   }
 
   private async getPeerShardInfo(
     peerId: PeerId
-  ): Promise<ShardInfo | undefined> {
+  ): Promise<SubscribedShardsInfo | undefined> {
     const peer = await this.libp2p.peerStore.get(peerId);
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;

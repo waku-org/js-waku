@@ -23,6 +23,7 @@ export interface Args {
   discv5UdpPort?: number;
   clusterId?: number;
   shard?: Array<number>;
+  numShardsInNetwork?: number;
   rlnRelayEthClientAddress?: string;
 }
 

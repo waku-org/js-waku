@@ -6,11 +6,10 @@ import {
   type MetadataQueryResult,
   type PeerIdStr,
   ProtocolError,
-  PubsubTopic,
-  type ShardInfo
+  SubscribedShardsInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
-import { encodeRelayShard, Logger, pubsubTopicsToShardInfo } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -25,13 +24,14 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 class Metadata implements IMetadata {
   private readonly streamManager: StreamManager;
   private readonly libp2pComponents: Libp2pComponents;
-  protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
+  protected handshakesConfirmed: Map<PeerIdStr, SubscribedShardsInfo> = new Map();
 
   public readonly multicodec = MetadataCodec;
 
   public constructor(
-    public pubsubTopics: PubsubTopic[],
-    libp2p: Libp2pComponents
+    libp2p: Libp2pComponents,
+    public clusterId: number,
+    public relaySubscribedShards?: number[]
   ) {
     this.streamManager = new StreamManager(MetadataCodec, libp2p);
     this.libp2pComponents = libp2p;
@@ -44,14 +44,15 @@ class Metadata implements IMetadata {
    * Make a metadata query to a peer
    */
   public async query(peerId: PeerId): Promise<MetadataQueryResult> {
-    const request = proto_metadata.WakuMetadataRequest.encode(
-      pubsubTopicsToShardInfo(this.pubsubTopics)
-    );
+    const request = proto_metadata.WakuMetadataRequest.encode({
+      clusterId: this.clusterId,
+      shards: this.relaySubscribedShards
+    });
 
     const peer = await this.libp2pComponents.peerStore.get(peerId);
     if (!peer) {
       return {
-        shardInfo: null,
+        subscribedShardInfo: null,
         error: ProtocolError.NO_PEER_AVAILABLE
       };
     }
@@ -62,7 +63,7 @@ class Metadata implements IMetadata {
     } catch (error) {
       log.error("Failed to get stream", error);
       return {
-        shardInfo: null,
+        subscribedShardInfo: null,
         error: ProtocolError.NO_STREAM_AVAILABLE
       };
     }
@@ -75,19 +76,19 @@ class Metadata implements IMetadata {
       async (source) => await all(source)
     );
 
-    const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
+    const { error, subscribedShardInfo } = this.decodeMetadataResponse(encodedResponse);
 
     if (error) {
       return {
-        shardInfo: null,
+        subscribedShardInfo: null,
         error
       };
     }
 
-    await this.savePeerShardInfo(peerId, shardInfo);
+    await this.savePeerShardInfo(peerId, subscribedShardInfo);
 
     return {
-      shardInfo,
+      subscribedShardInfo,
       error: null
     };
   }
@@ -95,10 +96,10 @@ class Metadata implements IMetadata {
   public async confirmOrAttemptHandshake(
     peerId: PeerId
   ): Promise<MetadataQueryResult> {
-    const shardInfo = this.handshakesConfirmed.get(peerId.toString());
-    if (shardInfo) {
+    const subscribedShardInfo = this.handshakesConfirmed.get(peerId.toString());
+    if (subscribedShardInfo) {
       return {
-        shardInfo,
+        subscribedShardInfo,
         error: null
       };
     }
@@ -113,7 +114,7 @@ class Metadata implements IMetadata {
     try {
       const { stream, connection } = streamData;
       const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
-        pubsubTopicsToShardInfo(this.pubsubTopics)
+        {clusterId: this.clusterId}
       );
 
       const encodedResponse = await pipe(
@@ -124,13 +125,13 @@ class Metadata implements IMetadata {
         async (source) => await all(source)
       );
 
-      const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
+      const { error, subscribedShardInfo } = this.decodeMetadataResponse(encodedResponse);
 
       if (error) {
         return;
       }
 
-      await this.savePeerShardInfo(connection.remotePeer, shardInfo);
+      await this.savePeerShardInfo(connection.remotePeer, subscribedShardInfo);
     } catch (error) {
       log.error("Error handling metadata request", error);
     }
@@ -146,40 +147,41 @@ class Metadata implements IMetadata {
     });
     const response = proto_metadata.WakuMetadataResponse.decode(
       bytes
-    ) as ShardInfo;
+    ) as SubscribedShardsInfo;
 
     if (!response) {
       log.error("Error decoding metadata response");
       return {
-        shardInfo: null,
+        subscribedShardInfo: null,
         error: ProtocolError.DECODE_FAILED
       };
     }
 
     return {
-      shardInfo: response,
+      subscribedShardInfo: response,
       error: null
     };
   }
 
   private async savePeerShardInfo(
     peerId: PeerId,
-    shardInfo: ShardInfo
+    subscribedShardInfo: SubscribedShardsInfo
   ): Promise<void> {
     // add or update the shardInfo to peer store
     await this.libp2pComponents.peerStore.merge(peerId, {
       metadata: {
-        shardInfo: encodeRelayShard(shardInfo)
+        subscribedShardInfo: encodeRelayShard(subscribedShardInfo)
       }
     });
 
-    this.handshakesConfirmed.set(peerId.toString(), shardInfo);
+    this.handshakesConfirmed.set(peerId.toString(), subscribedShardInfo);
   }
 }
 
 export function wakuMetadata(
-  pubsubTopics: PubsubTopic[]
+  clusterId: number,
+  subscribedShards?: number[]
 ): (components: Libp2pComponents) => IMetadata {
   return (components: Libp2pComponents) =>
-    new Metadata(pubsubTopics, components);
+    new Metadata(components, clusterId, subscribedShards);
 }

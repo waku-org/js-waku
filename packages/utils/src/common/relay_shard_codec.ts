@@ -1,6 +1,6 @@
-import type { ShardInfo } from "@waku/interfaces";
+import type { SubscribedShardsInfo } from "@waku/interfaces";
 
-export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
+export const decodeRelayShard = (bytes: Uint8Array): SubscribedShardsInfo => {
   // explicitly converting to Uint8Array to avoid Buffer
   // https://github.com/libp2p/js-libp2p/issues/2146
   bytes = new Uint8Array(bytes);
@@ -33,7 +33,9 @@ export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
   return { clusterId, shards };
 };
 
-export const encodeRelayShard = (shardInfo: ShardInfo): Uint8Array => {
+export const encodeRelayShard = (
+  shardInfo: SubscribedShardsInfo
+): Uint8Array => {
   const { clusterId, shards } = shardInfo;
   const totalLength = shards.length >= 64 ? 130 : 3 + 2 * shards.length;
   const buffer = new ArrayBuffer(totalLength);

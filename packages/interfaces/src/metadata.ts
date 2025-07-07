@@ -1,13 +1,14 @@
 import type { PeerId } from "@libp2p/interface";
 
-import { PubsubTopic, ThisOrThat } from "./misc.js";
-import type { ShardInfo } from "./sharding.js";
+import { ThisOrThat } from "./misc.js";
+import { SubscribedShardsInfo } from "./sharding.js";
 
-export type MetadataQueryResult = ThisOrThat<"shardInfo", ShardInfo>;
+export type MetadataQueryResult = ThisOrThat<"subscribedShardInfo", SubscribedShardsInfo>;
 
 export interface IMetadata {
   readonly multicodec: string;
-  readonly pubsubTopics: PubsubTopic[];
+  readonly clusterId: number;
+  readonly subscribedShards?: number[];
   confirmOrAttemptHandshake(peerId: PeerId): Promise<MetadataQueryResult>;
   query(peerId: PeerId): Promise<MetadataQueryResult>;
 }

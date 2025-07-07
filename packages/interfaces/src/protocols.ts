@@ -36,20 +36,22 @@ export type CreateNodeOptions = {
 
   /**
    * Configuration for determining the network in use.
-   * Network configuration refers to the shards and clusters used in the network.
+   * All nodes within the same network should have the same network configuration.
    *
-   * If using Static Sharding:
-   * Cluster ID and shards are specified in the format: clusterId: number, shards: number[]
-   * The default value is configured for The Waku Network => clusterId: 0, shards: [0, 1, 2, 3, 4, 5, 6, 7]
+   * When using Static Sharding:
+   * Only the Cluster ID is necessary, shards needs to be specified when doing subscribe or sending actions.
+   * The cluster id is specified in the format: clusterId: number
+   *
    * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    *
-   * If using Auto Sharding:
-   * Cluster ID and content topics are specified in the format: clusterId: number, contentTopics: string[]
-   * Content topics are used to determine the shards to be configured for the network.
-   * Cluster ID is optional, and defaults to The Waku Network's cluster ID => 0
-   * To specify content topics, see [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details
+   * When using Auto Sharding:
+   * The number of shards in the network needs to be specified to derive the shards from the content topic.
    *
-   * @default { clusterId: 1, shards: [0, 1, 2, 3, 4, 5, 6, 7] }
+   * Cluster ID and number of shards in the network are specified in the format: clusterId: number, numShardsInNetwork: number
+   * Cluster ID is optional, and defaults to The Waku Network's cluster ID => 1
+   * Number of shards in the network is optional, and defaults to The Waku Network's => 8
+   *
+   * @default { clusterId: 1, numShardsInNetwork: 8 }
    */
   networkConfig?: NetworkConfig;
 

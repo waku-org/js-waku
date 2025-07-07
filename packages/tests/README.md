@@ -8,6 +8,13 @@ Some of the tests from this package require a running `nwaku` node.
 These nodes are setup to be run in a docker container.
 Therefore, you need to have `docker` installed on your machine to run the tests.
 
+Also be sure to build first:
+
+```shell
+npm install
+npm run build
+```
+
 # Running interop tests
 
 - The tests by default run against an `nwaku` node with the image name specified in `nwaku.ts` and `packages/tests/package.json`. The tests can be run against a different image by setting the environment variable `WAKUNODE_IMAGE` to the desired image.

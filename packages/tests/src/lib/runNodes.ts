@@ -1,10 +1,16 @@
-import { CreateNodeOptions, NetworkConfig, Protocols } from "@waku/interfaces";
+import {
+  CreateNodeOptions,
+  NetworkConfig,
+  Protocols,
+  PubsubTopic, SingleShardInfo
+} from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode, WakuNode } from "@waku/sdk";
 import {
-  derivePubsubTopicsFromNetworkConfig,
+  contentTopicToPubsubTopic,
+  derivePubsubTopicsFromNetworkConfig, isAutoSharding, isStaticSharding,
   Logger,
-  pubsubTopicsToShardInfo
+  pubsubTopicsToShardInfo, shardInfoToPubsubTopics
 } from "@waku/utils";
 import { Context } from "mocha";
 
@@ -74,3 +80,5 @@ export async function runNodes<T>(
     throw new Error("Failed to initialize waku");
   }
 }
+
+

@@ -9,13 +9,12 @@ import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
   type CreateNodeOptions,
-  DefaultNetworkConfig,
+  DEFAULT_CLUSTER_ID,
   type IMetadata,
   type Libp2p,
-  type Libp2pComponents,
-  PubsubTopic
+  type Libp2pComponents
 } from "@waku/interfaces";
-import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
@@ -32,7 +31,7 @@ const DefaultUserAgent = "js-waku";
 const DefaultPingMaxInboundStreams = 10;
 
 export async function defaultLibp2p(
-  pubsubTopics: PubsubTopic[],
+  clusterId: number,
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -49,8 +48,8 @@ export async function defaultLibp2p(
     /* eslint-enable no-console */
   }
 
-  const metadataService: MetadataService = pubsubTopics
-    ? { metadata: wakuMetadata(pubsubTopics) }
+  const metadataService: MetadataService = clusterId
+    ? { metadata: wakuMetadata(clusterId) }
     : {};
 
   const filter =
@@ -85,12 +84,9 @@ const DEFAULT_DISCOVERIES_ENABLED = {
 
 export async function createLibp2pAndUpdateOptions(
   options: CreateNodeOptions
-): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
+): Promise<{ libp2p: Libp2p }> {
   const { networkConfig } = options;
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(
-    networkConfig ?? DefaultNetworkConfig
-  );
-  log.info("Creating Waku node with pubsub topics", pubsubTopics);
+  log.info("Creating Waku node with network config", networkConfig);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -118,10 +114,10 @@ export async function createLibp2pAndUpdateOptions(
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
-    pubsubTopics,
+    networkConfig?.clusterId ?? DEFAULT_CLUSTER_ID,
     libp2pOptions,
     options?.userAgent
   );
 
-  return { libp2p, pubsubTopics };
+  return { libp2p };
 }

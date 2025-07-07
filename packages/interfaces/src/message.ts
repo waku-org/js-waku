@@ -6,6 +6,11 @@ export interface SingleShardInfo {
    * Specifying this field indicates to the encoder/decoder that static sharding must be used.
    */
   shard?: number;
+  /**
+   * Specifying this field indicates to the encoder/decoder that auto sharding is being used.
+   */
+  // TODO: infer from node configuration
+  numShardsInNetwork?: number;
 }
 
 export interface IRateLimitProof {

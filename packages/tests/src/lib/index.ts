@@ -4,7 +4,10 @@ import {
   NetworkConfig,
   StaticSharding
 } from "@waku/interfaces";
-import { contentTopicToShardIndex, Logger } from "@waku/utils";
+import {
+  contentTopicToShardIndex,
+  Logger
+} from "@waku/utils";
 import { expect } from "chai";
 
 import { DefaultTestPubsubTopic } from "../constants.js";
@@ -271,8 +274,9 @@ function getArgs(networkConfig: NetworkConfig, args?: Args): Args {
     defaultArgs.shard = (networkConfig as StaticSharding).shards;
   } else if ((networkConfig as AutoSharding).contentTopics) {
     defaultArgs.contentTopic = (networkConfig as AutoSharding).contentTopics;
+    defaultArgs.numShardsInNetwork: (networkConfig as AutoSharding).numShardsInNetwork
     defaultArgs.shard = (networkConfig as AutoSharding).contentTopics.map(
-      (topic) => contentTopicToShardIndex(topic)
+      (topic) => contentTopicToShardIndex(topic, (networkConfig as AutoSharding).numShardsInNetwork)
     );
   }
 

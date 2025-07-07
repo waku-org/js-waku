@@ -21,15 +21,15 @@ export const decoderParamsToShardInfo = (
 ): SingleShardInfo => {
   const clusterId = (params.shardInfo?.clusterId ||
     networkConfig.clusterId) as number;
-  const shardsUnderCluster =
-    params.shardInfo && "shardsUnderCluster" in params.shardInfo
-      ? params.shardInfo.shardsUnderCluster
+  const numShardsInNetwork =
+    params.shardInfo && "numShardsInNetwork" in params.shardInfo
+      ? params.shardInfo.numShardsInNetwork
       : DEFAULT_NUM_SHARDS;
 
   const shardIndex =
     params.shardInfo && "shard" in params.shardInfo
       ? params.shardInfo.shard
-      : contentTopicToShardIndex(params.contentTopic, shardsUnderCluster);
+      : contentTopicToShardIndex(params.contentTopic, numShardsInNetwork);
 
   return {
     clusterId,
