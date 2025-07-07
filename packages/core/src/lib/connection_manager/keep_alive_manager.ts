@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface";
 import type { IEncoder, IRelay, Libp2p } from "@waku/interfaces";
-import { Logger, pubsubTopicToSingleShardInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
 import { createEncoder } from "../message/version_0.js";
@@ -164,8 +164,8 @@ export class KeepAliveManager implements IKeepAliveManager {
       }
 
       const encoder = createEncoder({
-        pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(topic),
         contentTopic: RelayPingContentTopic,
+        pubsubTopicOrShard: topic,
         ephemeral: true
       });
 

@@ -6,10 +6,11 @@ import {
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
-import type {
+import {
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
+  DEFAULT_CLUSTER_ID,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -112,6 +113,7 @@ export class WakuNode implements IWaku {
 
     if (protocolsEnabled.lightpush) {
       this.lightPush = new LightPush({
+        clusterId: options.networkConfig?.clusterId ?? DEFAULT_CLUSTER_ID,
         libp2p,
         peerManager: this.peerManager,
         connectionManager: this.connectionManager,
@@ -274,14 +276,18 @@ export class WakuNode implements IWaku {
     return createDecoder(params.contentTopic, singleShardInfo);
   }
 
-  public createEncoder(params: CreateEncoderParams): IEncoder {
+  public createEncoder({
+    contentTopic,
+    shardInfo,
+    ephemeral
+  }: CreateEncoderParams): IEncoder {
     const singleShardInfo = decoderParamsToShardInfo(
-      params,
+      { contentTopic, shardInfo },
       this.networkConfig
     );
 
     log.info(
-      `Creating Encoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
+      `Creating Encoder with input:${JSON.stringify(shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
     );
 
     if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
@@ -289,9 +295,9 @@ export class WakuNode implements IWaku {
     }
 
     return createEncoder({
-      contentTopic: params.contentTopic,
-      ephemeral: params.ephemeral,
-      pubsubTopicShardInfo: singleShardInfo
+      contentTopic,
+      ephemeral,
+      pubsubTopicOrShard: singleShardInfo.shard
     });
   }
 }

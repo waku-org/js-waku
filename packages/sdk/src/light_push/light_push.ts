@@ -13,7 +13,7 @@ import {
   Protocols,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { determinePubsubTopic, Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
@@ -33,6 +33,7 @@ type LightPushConstructorParams = {
   connectionManager: ConnectionManager;
   peerManager: PeerManager;
   libp2p: Libp2p;
+  clusterId: number;
   options?: Partial<LightPushProtocolOptions>;
 };
 
@@ -80,7 +81,11 @@ export class LightPush implements ILightPush {
       ...options
     };
 
-    const { pubsubTopic } = encoder;
+    const pubsubTopic = determinePubsubTopic(
+      encoder.contentTopic,
+      this.protocol.clusterId,
+      encoder.pubsubTopicOrShard
+    );
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
@@ -97,7 +102,7 @@ export class LightPush implements ILightPush {
 
     const peerIds = await this.peerManager.getPeers({
       protocol: Protocols.LightPush,
-      pubsubTopic: encoder.pubsubTopic
+      pubsubTopic
     });
 
     const coreResults: CoreProtocolResult[] =
@@ -138,7 +143,7 @@ export class LightPush implements ILightPush {
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS,
-        encoder.pubsubTopic
+        pubsubTopic
       );
     }
 

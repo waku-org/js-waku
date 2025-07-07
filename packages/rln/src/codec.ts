@@ -56,10 +56,6 @@ export class RLNEncoder implements IEncoder {
     return proof;
   }
 
-  public get pubsubTopic(): string {
-    return this.encoder.pubsubTopic;
-  }
-
   public get contentTopic(): string {
     return this.encoder.contentTopic;
   }

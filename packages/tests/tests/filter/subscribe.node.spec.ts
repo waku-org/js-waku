@@ -84,7 +84,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const encoder = ecies.createEncoder({
         contentTopic: TestContentTopic,
         publicKey,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const decoder = ecies.createDecoder(
         TestContentTopic,
@@ -117,7 +117,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const encoder = symmetric.createEncoder({
         contentTopic: TestContentTopic,
         symKey,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const decoder = symmetric.createDecoder(
         TestContentTopic,
@@ -228,7 +228,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter/default";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await waku.filter.subscribe(
@@ -499,7 +499,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter/default";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await waku.filter.subscribe(
@@ -588,7 +588,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         });
         const customEncoder = createEncoder({
           contentTopic: customContentTopic,
-          pubsubTopicShardInfo: { clusterId: ClusterId, shard: 4 }
+          pubsubTopicOrShard: 4
         });
 
         await nwaku2.start({

@@ -144,7 +144,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       const customTestEncoder = createEncoder({
         contentTopic: TestContentTopic,
         metaSetter: () => new Uint8Array(10),
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
 
       const pushResponse = await waku.lightPush.send(
@@ -168,7 +168,7 @@ const runTests = (strictNodeCheck: boolean): void => {
     it("Fails to push message with large meta", async function () {
       const customTestEncoder = createEncoder({
         contentTopic: TestContentTopic,
-        pubsubTopic: TestPubsubTopic,
+        pubsubTopicOrShard: TestPubsubTopic,
         metaSetter: () => new Uint8Array(105024) // see the note below ***
       });
 

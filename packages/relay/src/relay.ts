@@ -22,7 +22,11 @@ import {
   PubsubTopic,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
+import {
+  determinePubsubTopic,
+  isWireSizeUnderCap,
+  toAsyncIterator
+} from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
@@ -45,6 +49,7 @@ type ActiveSubscriptions = Map<PubsubTopic, ContentTopic[]>;
 
 type RelayConstructorParams = {
   libp2p: Libp2p;
+  clusterId: number;
   pubsubTopics: PubsubTopic[];
 };
 
@@ -53,6 +58,8 @@ type RelayConstructorParams = {
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 export class Relay implements IRelay {
+  public readonly clusterId: number;
+
   public readonly pubsubTopics: Set<PubsubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
@@ -74,6 +81,8 @@ export class Relay implements IRelay {
 
     this.gossipSub = params.libp2p.services.pubsub as GossipSub;
     this.pubsubTopics = new Set(params.pubsubTopics);
+
+    this.clusterId = params.clusterId;
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();
@@ -124,7 +133,12 @@ export class Relay implements IRelay {
     encoder: IEncoder,
     message: IMessage
   ): Promise<SDKProtocolResult> {
-    const { pubsubTopic } = encoder;
+    const pubsubTopic = determinePubsubTopic(
+      encoder.contentTopic,
+      this.clusterId,
+      encoder.pubsubTopicOrShard
+    );
+
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {

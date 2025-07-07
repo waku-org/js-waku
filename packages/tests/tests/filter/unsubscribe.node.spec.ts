@@ -80,7 +80,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await waku.filter.subscribe(
@@ -115,7 +115,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await waku.filter.subscribe(

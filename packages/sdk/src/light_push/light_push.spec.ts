@@ -14,6 +14,7 @@ import { PeerManager } from "../peer_manager/index.js";
 
 import { LightPush } from "./light_push.js";
 
+const CLUSTER_ID = 1;
 const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-light-push/utf8";
 
@@ -168,6 +169,7 @@ type MockLightPushOptions = {
 
 function mockLightPush(options: MockLightPushOptions): LightPush {
   const lightPush = new LightPush({
+    clusterId: CLUSTER_ID,
     connectionManager: {
       isTopicConfigured: (topic: string) =>
         (options.pubsubTopics || [PUBSUB_TOPIC]).includes(topic)

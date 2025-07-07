@@ -1,9 +1,6 @@
 import { LightNode, ProtocolError } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  contentTopicToShardIndex
-} from "@waku/utils";
+import { contentTopicToPubsubTopic, determinePubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -44,11 +41,7 @@ describe("Autosharding: Running Nodes", function () {
     );
 
     const encoder = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      contentTopic: ContentTopic
     });
 
     const request = await waku.lightPush.send(encoder, {
@@ -58,7 +51,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(request.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder.pubsubTopic
+        pubsubTopic: determinePubsubTopic(encoder.contentTopic, clusterId)
       })
     ).to.eq(true);
   });
@@ -76,11 +69,7 @@ describe("Autosharding: Running Nodes", function () {
     );
 
     const encoder = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      contentTopic: ContentTopic
     });
 
     const request = await waku.lightPush.send(encoder, {
@@ -90,7 +79,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(request.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder.pubsubTopic
+        pubsubTopic: determinePubsubTopic(ContentTopic, clusterId)
       })
     ).to.eq(true);
   });
@@ -119,11 +108,7 @@ describe("Autosharding: Running Nodes", function () {
       );
 
       const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId: clusterId,
-          shard: contentTopicToShardIndex(ContentTopic)
-        }
+        contentTopic: ContentTopic
       });
 
       const request = await waku.lightPush.send(encoder, {
@@ -133,7 +118,7 @@ describe("Autosharding: Running Nodes", function () {
       expect(request.successes.length).to.eq(numServiceNodes);
       expect(
         await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: encoder.pubsubTopic
+          pubsubTopic: determinePubsubTopic(ContentTopic, clusterId)
         })
       ).to.eq(true);
     });
@@ -166,19 +151,11 @@ describe("Autosharding: Running Nodes", function () {
     );
 
     const encoder1 = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      contentTopic: ContentTopic
     });
 
     const encoder2 = createEncoder({
-      contentTopic: ContentTopic2,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic2)
-      }
+      contentTopic: ContentTopic2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -187,7 +164,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(request1.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder1.pubsubTopic
+        pubsubTopic: determinePubsubTopic(ContentTopic, clusterId)
       })
     ).to.eq(true);
 
@@ -197,7 +174,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(request2.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder2.pubsubTopic
+        pubsubTopic: determinePubsubTopic(ContentTopic, clusterId)
       })
     ).to.eq(true);
   });
@@ -214,11 +191,7 @@ describe("Autosharding: Running Nodes", function () {
 
     // use a content topic that is not configured
     const encoder = createEncoder({
-      contentTopic: ContentTopic2,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic2)
-      }
+      contentTopic: ContentTopic2
     });
 
     const { successes, failures } = await waku.lightPush.send(encoder, {

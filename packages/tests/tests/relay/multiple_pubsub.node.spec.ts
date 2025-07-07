@@ -32,14 +32,8 @@ describe("Waku Relay, multiple pubsub topics", function () {
   let waku2: RelayNode;
   let waku3: RelayNode;
 
-  const customPubsubTopic1 = singleShardInfoToPubsubTopic({
-    clusterId: 3,
-    shard: 1
-  });
-  const customPubsubTopic2 = singleShardInfoToPubsubTopic({
-    clusterId: 3,
-    shard: 2
-  });
+  const customPubsubTopic1 = singleShardInfoToPubsubTopic(3, 1);
+  const customPubsubTopic2 = singleShardInfoToPubsubTopic(3, 2);
   const shardInfo1: ShardInfo = { clusterId: 3, shards: [1] };
   const singleShardInfo1: SingleShardInfo = {
     clusterId: 3,
@@ -53,12 +47,12 @@ describe("Waku Relay, multiple pubsub topics", function () {
     shard: 2
   };
   const customEncoder1 = createEncoder({
-    pubsubTopicShardInfo: singleShardInfo1,
+    pubsubTopicOrShard: singleShardInfo1.shard,
     contentTopic: customContentTopic1
   });
   const customDecoder1 = createDecoder(customContentTopic1, singleShardInfo1);
   const customEncoder2 = createEncoder({
-    pubsubTopicShardInfo: singleShardInfo2,
+    pubsubTopicOrShard: singleShardInfo2.shard,
     contentTopic: customContentTopic2
   });
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
@@ -350,7 +344,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
-    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+    pubsubTopicOrShard: autoshardingPubsubTopic1
   });
   const customDecoder1 = createDecoder(
     customContentTopic1,
@@ -358,7 +352,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   );
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
+    pubsubTopicOrShard: autoshardingPubsubTopic2
   });
   const customDecoder2 = createDecoder(
     customContentTopic2,

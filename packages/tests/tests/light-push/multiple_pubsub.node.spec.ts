@@ -27,7 +27,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 
   const customEncoder2 = createEncoder({
     contentTopic: "/test/2/waku-light-push/utf8",
-    pubsubTopic: contentTopicToPubsubTopic(
+    pubsubTopicOrShard: contentTopicToPubsubTopic(
       "/test/2/waku-light-push/utf8",
       ClusterId
     )
@@ -67,26 +67,26 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 
     expect(
       await messageCollector1.waitForMessages(1, {
-        pubsubTopic: TestEncoder.pubsubTopic
+        pubsubTopic: TestEncoder.pubsubTopicOrShard as string
       })
     ).to.eq(true);
 
     expect(
       await messageCollector2.waitForMessages(1, {
-        pubsubTopic: customEncoder2.pubsubTopic
+        pubsubTopic: customEncoder2.pubsubTopicOrShard as string
       })
     ).to.eq(true);
 
     messageCollector1.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
       expectedContentTopic: TestEncoder.contentTopic,
-      expectedPubsubTopic: TestEncoder.pubsubTopic
+      expectedPubsubTopic: TestEncoder.pubsubTopicOrShard as string
     });
 
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
       expectedContentTopic: customEncoder2.contentTopic,
-      expectedPubsubTopic: customEncoder2.pubsubTopic
+      expectedPubsubTopic: customEncoder2.pubsubTopicOrShard as string
     });
   });
 
@@ -103,7 +103,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
         shard: [2]
       });
       await nwaku2.ensureSubscriptionsAutosharding([
-        customEncoder2.pubsubTopic
+        customEncoder2.pubsubTopicOrShard as string
       ]);
       await waku.dial(await nwaku2.getMultiaddrWithId());
       await waku.waitForPeers([Protocols.LightPush]);
@@ -118,7 +118,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       });
 
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: TestEncoder.pubsubTopic
+        pubsubTopic: TestEncoder.pubsubTopicOrShard as string
       });
       await messageCollector2.waitForMessagesAutosharding(1, {
         contentTopic: customEncoder2.contentTopic
@@ -127,12 +127,12 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
         expectedContentTopic: TestEncoder.contentTopic,
-        expectedPubsubTopic: TestEncoder.pubsubTopic
+        expectedPubsubTopic: TestEncoder.pubsubTopicOrShard as string
       });
       messageCollector2.verifyReceivedMessage(0, {
         expectedMessageText: "M2",
         expectedContentTopic: customEncoder2.contentTopic,
-        expectedPubsubTopic: customEncoder2.pubsubTopic
+        expectedPubsubTopic: customEncoder2.pubsubTopicOrShard as string
       });
     } catch (e) {
       await tearDownNodes([nwaku2], []);

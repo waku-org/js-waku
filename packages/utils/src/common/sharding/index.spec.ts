@@ -230,9 +230,10 @@ describe("contentTopicsByPubsubTopic", () => {
 
 describe("singleShardInfoToPubsubTopic", () => {
   it("should convert a SingleShardInfo object to the correct PubsubTopic", () => {
-    const singleShardInfo = { clusterId: 2, shard: 2 };
+    const clusterId = 2;
+    const shard = 2;
     const expectedTopic = "/waku/2/rs/2/2";
-    expect(singleShardInfoToPubsubTopic(singleShardInfo)).to.equal(
+    expect(singleShardInfoToPubsubTopic(clusterId, shard)).to.equal(
       expectedTopic
     );
   });
@@ -360,34 +361,30 @@ describe("determinePubsubTopic", () => {
   const contentTopic = "/app/46/sometopic/someencoding";
   it("should return the pubsub topic directly if a string is provided", () => {
     const topic = "/waku/2/rs/1/3";
-    expect(determinePubsubTopic(contentTopic, topic)).to.equal(topic);
+    expect(determinePubsubTopic(contentTopic, 0, topic)).to.equal(topic);
   });
 
   it("should return a calculated topic if SingleShardInfo is provided", () => {
-    const info = { clusterId: 1, shard: 2 };
+    const clusterId = 1;
+    const shard = 2;
     const expectedTopic = "/waku/2/rs/1/2";
-    expect(determinePubsubTopic(contentTopic, info)).to.equal(expectedTopic);
-  });
-
-  it("should fall back to default pubsub topic when pubsubTopicShardInfo is not provided", () => {
-    expect(determinePubsubTopic(contentTopic)).to.equal("/waku/2/rs/1/6");
-  });
-
-  it("should process correctly when SingleShardInfo has no clusterId but has a shard", () => {
-    const info = { shard: 0 };
-    const expectedTopic = `/waku/2/rs/${DEFAULT_CLUSTER_ID}/0`;
-    expect(determinePubsubTopic(contentTopic, info as any)).to.equal(
+    expect(determinePubsubTopic(contentTopic, clusterId, shard)).to.equal(
       expectedTopic
     );
   });
 
+  it("should process correctly when SingleShardInfo has no clusterId but has a shard", () => {
+    const shard = 0;
+    const expectedTopic = `/waku/2/rs/${DEFAULT_CLUSTER_ID}/0`;
+    expect(
+      determinePubsubTopic(contentTopic, undefined as any, shard)
+    ).to.equal(expectedTopic);
+  });
+
   it("should derive a pubsub topic using contentTopic when SingleShardInfo only contains clusterId", () => {
-    const info = { clusterId: 2 };
-    const expectedTopic = contentTopicToPubsubTopic(
-      contentTopic,
-      info.clusterId
-    );
-    expect(determinePubsubTopic(contentTopic, info as any)).to.equal(
+    const clusterId = 2;
+    const expectedTopic = contentTopicToPubsubTopic(contentTopic, clusterId);
+    expect(determinePubsubTopic(contentTopic, clusterId)).to.equal(
       expectedTopic
     );
   });

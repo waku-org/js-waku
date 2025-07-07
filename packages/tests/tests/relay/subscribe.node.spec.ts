@@ -133,7 +133,7 @@ describe("Waku Relay, Subscribe", function () {
     const secondContentTopic = "/test/2/waku-relay/utf8";
     const secondEncoder = createEncoder({
       contentTopic: secondContentTopic,
-      pubsubTopic: TestPubsubTopic
+      pubsubTopicOrShard: TestPubsubTopic
     });
     const secondDecoder = createDecoder(secondContentTopic, TestPubsubTopic);
 
@@ -304,7 +304,7 @@ describe("Waku Relay, Subscribe", function () {
       const newContentTopic = testItem.value;
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        pubsubTopicOrShard: TestPubsubTopic
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
 

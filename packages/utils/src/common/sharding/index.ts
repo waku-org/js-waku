@@ -40,11 +40,11 @@ export function derivePubsubTopicsFromNetworkConfig(
 }
 
 export const singleShardInfoToPubsubTopic = (
-  shardInfo: SingleShardInfo
+  clusterId: number,
+  shard: number
 ): PubsubTopic => {
-  if (shardInfo.shard === undefined) throw new Error("Invalid shard");
-
-  return `/waku/2/rs/${shardInfo.clusterId ?? DEFAULT_CLUSTER_ID}/${shardInfo.shard}`;
+  // TODO: remove this "default".
+  return `/waku/2/rs/${clusterId ?? DEFAULT_CLUSTER_ID}/${shard}`;
 };
 
 export const singleShardInfosToShardInfo = (
@@ -284,18 +284,22 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
-  // TODO: make it accept ShardInfo https://github.com/waku-org/js-waku/issues/2086
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  clusterId: number,
+  pubsubTopicOrShard?: PubsubTopic | number
 ): string {
-  if (typeof pubsubTopicShardInfo == "string") {
-    return pubsubTopicShardInfo;
+  if (typeof pubsubTopicOrShard == "string") {
+    return pubsubTopicOrShard;
   }
 
-  return pubsubTopicShardInfo?.shard !== undefined
-    ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+  // TODO: We should know whether we are using auto-sharding or static sharding
+  // instead of deducing things.
+  return pubsubTopicOrShard !== undefined
+    ? singleShardInfoToPubsubTopic(clusterId, pubsubTopicOrShard)
     : contentTopicToPubsubTopic(
         contentTopic,
-        pubsubTopicShardInfo?.clusterId ?? DEFAULT_CLUSTER_ID
+        clusterId ?? DEFAULT_CLUSTER_ID,
+        pubsubTopicOrShard
+        // TODO: Num network shards is never passed!
       );
 }
 

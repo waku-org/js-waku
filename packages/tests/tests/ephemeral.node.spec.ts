@@ -42,7 +42,7 @@ const PubsubTopic = contentTopicToPubsubTopic(TestContentTopic, ClusterId);
 
 const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: PubsubTopic
+  pubsubTopicOrShard: PubsubTopic
 });
 const TestDecoder = createDecoder(TestContentTopic, PubsubTopic);
 
@@ -57,18 +57,18 @@ const AsymEncoder = createEciesEncoder({
   contentTopic: AsymContentTopic,
   publicKey,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  pubsubTopicOrShard: PubsubTopic
 });
 const SymEncoder = createSymEncoder({
   contentTopic: SymContentTopic,
   symKey,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  pubsubTopicOrShard: PubsubTopic
 });
 const ClearEncoder = createEncoder({
   contentTopic: TestContentTopic,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  pubsubTopicOrShard: PubsubTopic
 });
 
 const AsymDecoder = createEciesDecoder(
@@ -200,7 +200,7 @@ describe("Waku Message Ephemeral field", function () {
     const ephemeralEncoder = createEncoder({
       contentTopic: TestContentTopic,
       ephemeral: true,
-      pubsubTopic: PubsubTopic
+      pubsubTopicOrShard: PubsubTopic
     });
 
     const messages: IDecodedMessage[] = [];
@@ -246,7 +246,7 @@ describe("Waku Message Ephemeral field", function () {
     const encoder = createSymEncoder({
       contentTopic: SymContentTopic,
       symKey,
-      pubsubTopic: PubsubTopic
+      pubsubTopicOrShard: PubsubTopic
     });
     const decoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
 
@@ -293,7 +293,7 @@ describe("Waku Message Ephemeral field", function () {
     const encoder = createEciesEncoder({
       contentTopic: AsymContentTopic,
       publicKey: publicKey,
-      pubsubTopic: PubsubTopic
+      pubsubTopicOrShard: PubsubTopic
     });
     const decoder = createEciesDecoder(
       AsymContentTopic,

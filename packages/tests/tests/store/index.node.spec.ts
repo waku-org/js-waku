@@ -254,17 +254,17 @@ describe("Waku Store, general", function () {
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
       publicKey,
-      pubsubTopic: TestPubsubTopic1
+      pubsubTopicOrShard: TestPubsubTopic1
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
       symKey,
-      pubsubTopic: TestPubsubTopic1
+      pubsubTopicOrShard: TestPubsubTopic1
     });
 
     const otherEncoder = createEciesEncoder({
       contentTopic: TestContentTopic1,
-      pubsubTopic: TestPubsubTopic1,
+      pubsubTopicOrShard: TestPubsubTopic1,
       publicKey: getPublicKey(generatePrivateKey())
     });
 
