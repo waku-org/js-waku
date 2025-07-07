@@ -3,10 +3,6 @@ import debug, { Debugger } from "debug";
 const APP_NAME = "waku";
 
 export class Logger {
-  private _info: Debugger;
-  private _warn: Debugger;
-  private _error: Debugger;
-
   private static createDebugNamespace(level: string, prefix?: string): string {
     return prefix ? `${APP_NAME}:${level}:${prefix}` : `${APP_NAME}:${level}`;
   }
@@ -33,4 +29,8 @@ export class Logger {
     const logger = this[level] as (...args: unknown[]) => void;
     logger(...args);
   }
+
+  private _info: Debugger;
+  private _warn: Debugger;
+  private _error: Debugger;
 }

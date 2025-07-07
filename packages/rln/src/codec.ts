@@ -15,8 +15,6 @@ import { RLNInstance } from "./rln.js";
 const log = new Logger("waku:rln:encoder");
 
 export class RLNEncoder implements IEncoder {
-  private readonly idSecretHash: Uint8Array;
-
   public constructor(
     private readonly encoder: IEncoder,
     private readonly rlnInstance: RLNInstance,
@@ -45,17 +43,6 @@ export class RLNEncoder implements IEncoder {
     return protoMessage;
   }
 
-  private async generateProof(message: IMessage): Promise<IRateLimitProof> {
-    const signal = toRLNSignal(this.contentTopic, message);
-    const proof = await this.rlnInstance.zerokit.generateRLNProof(
-      signal,
-      this.index,
-      message.timestamp,
-      this.idSecretHash
-    );
-    return proof;
-  }
-
   public get pubsubTopic(): string {
     return this.encoder.pubsubTopic;
   }
@@ -66,6 +53,19 @@ export class RLNEncoder implements IEncoder {
 
   public get ephemeral(): boolean {
     return this.encoder.ephemeral;
+  }
+
+  private readonly idSecretHash: Uint8Array;
+
+  private async generateProof(message: IMessage): Promise<IRateLimitProof> {
+    const signal = toRLNSignal(this.contentTopic, message);
+    const proof = await this.rlnInstance.zerokit.generateRLNProof(
+      signal,
+      this.index,
+      message.timestamp,
+      this.idSecretHash
+    );
+    return proof;
   }
 }
 

@@ -9,8 +9,6 @@ export class DecodedMessage
   extends DecodedMessageV0
   implements IEncryptedMessage
 {
-  private readonly _decodedPayload: Uint8Array;
-
   public constructor(
     pubsubTopic: string,
     proto: proto.WakuMessage,
@@ -37,4 +35,6 @@ export class DecodedMessage
     }
     return false;
   }
+
+  private readonly _decodedPayload: Uint8Array;
 }
