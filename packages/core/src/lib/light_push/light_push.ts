@@ -32,8 +32,6 @@ type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class LightPushCore {
-  private readonly streamManager: StreamManager;
-
   public readonly multicodec = LightPushCodec;
 
   public constructor(
@@ -42,6 +40,8 @@ export class LightPushCore {
   ) {
     this.streamManager = new StreamManager(LightPushCodec, libp2p.components);
   }
+
+  private readonly streamManager: StreamManager;
 
   private async preparePushMessage(
     encoder: IEncoder,

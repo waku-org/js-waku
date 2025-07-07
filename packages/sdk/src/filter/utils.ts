@@ -1,8 +1,4 @@
 export class TTLSet<T> {
-  private readonly ttlMs: number;
-  private cleanupIntervalId: number | null = null;
-  private readonly entryTimestamps = new Map<T, number>();
-
   /**
    * Creates a new CustomSet with TTL functionality.
    * @param ttlMs - The time-to-live in milliseconds for each entry.
@@ -30,6 +26,10 @@ export class TTLSet<T> {
   public has(entry: T): boolean {
     return this.entryTimestamps.has(entry);
   }
+
+  private readonly ttlMs: number;
+  private cleanupIntervalId: number | null = null;
+  private readonly entryTimestamps = new Map<T, number>();
 
   private startCleanupInterval(intervalMs: number): void {
     this.cleanupIntervalId = setInterval(() => {

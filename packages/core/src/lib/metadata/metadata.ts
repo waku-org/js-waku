@@ -23,10 +23,6 @@ const log = new Logger("metadata");
 export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata implements IMetadata {
-  private readonly streamManager: StreamManager;
-  private readonly libp2pComponents: Libp2pComponents;
-  protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
-
   public readonly multicodec = MetadataCodec;
 
   public constructor(
@@ -105,6 +101,10 @@ class Metadata implements IMetadata {
 
     return await this.query(peerId);
   }
+
+  private readonly streamManager: StreamManager;
+  private readonly libp2pComponents: Libp2pComponents;
+  protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
 
   /**
    * Handle an incoming metadata request
