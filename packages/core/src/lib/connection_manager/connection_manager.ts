@@ -104,13 +104,6 @@ export class ConnectionManager implements IConnectionManager {
     return this.networkMonitor.isConnected();
   }
 
-  /**
-   * Dial a peer with specific protocols.
-   * This method is a raw proxy to the libp2p dialProtocol method.
-   * @param peer - The peer to connect to, either as a PeerId or multiaddr
-   * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
-   * @returns A stream to the peer
-   */
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocolCodecs: string[]
