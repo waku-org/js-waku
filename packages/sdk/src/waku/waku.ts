@@ -1,10 +1,11 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
-import type {
+import {
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
+  DEFAULT_CLUSTER_ID,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -14,8 +15,7 @@ import type {
   IStore,
   IWaku,
   Libp2p,
-  NetworkConfig,
-  PubsubTopic
+  NetworkConfig
 } from "@waku/interfaces";
 import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -59,7 +59,6 @@ export class WakuNode implements IWaku {
   private readonly peerManager: PeerManager;
 
   public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
@@ -78,10 +77,12 @@ export class WakuNode implements IWaku {
 
     const peerId = this.libp2p.peerId.toString();
 
+    const clusterId = options.networkConfig?.clusterId ?? DEFAULT_CLUSTER_ID;
+
     this.connectionManager = new ConnectionManager({
+      clusterId,
       libp2p,
       relay: this.relay,
-      pubsubTopics: this.pubsubTopics,
       config: options?.connectionManager
     });
 
@@ -98,7 +99,6 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.store) {
       this.store = new Store({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options?.store
       });
@@ -116,7 +116,6 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.filter) {
       this.filter = new Filter({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options.filter
       });

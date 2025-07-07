@@ -1,4 +1,4 @@
-import { ConnectionManager, FilterCore } from "@waku/core";
+import { FilterCore } from "@waku/core";
 import type {
   Callback,
   FilterProtocolOptions,
@@ -21,7 +21,6 @@ type PubsubTopic = string;
 export class Filter implements IFilter {
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;
-  private readonly connectionManager: ConnectionManager;
 
   private readonly config: FilterProtocolOptions;
   private subscriptions = new Map<PubsubTopic, Subscription>();
@@ -35,11 +34,9 @@ export class Filter implements IFilter {
     };
 
     this.peerManager = params.peerManager;
-    this.connectionManager = params.connectionManager;
 
     this.protocol = new FilterCore(
       this.onIncomingMessage.bind(this),
-      params.connectionManager.pubsubTopics,
       params.libp2p
     );
   }
@@ -76,7 +73,6 @@ export class Filter implements IFilter {
     );
 
     this.throwIfTopicNotSame(pubsubTopics);
-    this.throwIfTopicNotSupported(singlePubsubTopic);
 
     let subscription = this.subscriptions.get(singlePubsubTopic);
     if (!subscription) {
@@ -118,7 +114,6 @@ export class Filter implements IFilter {
     );
 
     this.throwIfTopicNotSame(pubsubTopics);
-    this.throwIfTopicNotSupported(singlePubsubTopic);
 
     const subscription = this.subscriptions.get(singlePubsubTopic);
     if (!subscription) {
@@ -168,17 +163,6 @@ export class Filter implements IFilter {
     if (!isSameTopic) {
       throw Error(
         `Cannot subscribe to more than one pubsub topic at the same time, got pubsubTopics:${pubsubTopics}`
-      );
-    }
-  }
-
-  private throwIfTopicNotSupported(pubsubTopic: string): void {
-    const supportedPubsubTopic =
-      this.connectionManager.pubsubTopics.includes(pubsubTopic);
-
-    if (!supportedPubsubTopic) {
-      throw Error(
-        `Pubsub topic ${pubsubTopic} has not been configured on this instance.`
       );
     }
   }

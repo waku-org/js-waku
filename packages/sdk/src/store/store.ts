@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
-import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
+import { messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -21,7 +21,6 @@ const log = new Logger("waku:store:sdk");
 type StoreConstructorParams = {
   libp2p: Libp2p;
   peerManager: PeerManager;
-  connectionManager: ConnectionManager;
   options?: Partial<StoreProtocolOptions>;
 };
 
@@ -33,13 +32,11 @@ export class Store implements IStore {
   private readonly options: Partial<StoreProtocolOptions>;
   private readonly libp2p: Libp2p;
   private readonly peerManager: PeerManager;
-  private readonly connectionManager: ConnectionManager;
   private readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
     this.peerManager = params.peerManager;
-    this.connectionManager = params.connectionManager;
     this.libp2p = params.libp2p;
 
     this.protocol = new StoreCore(params.libp2p);
@@ -229,14 +226,6 @@ export class Store implements IStore {
     }
 
     const pubsubTopicForQuery = uniquePubsubTopicsInQuery[0];
-    const isPubsubSupported =
-      this.connectionManager.pubsubTopics.includes(pubsubTopicForQuery);
-
-    if (!isPubsubSupported) {
-      throw new Error(
-        `Pubsub topic ${pubsubTopicForQuery} has not been configured on this instance. Configured topics are: ${this.connectionManager.pubsubTopics}`
-      );
-    }
 
     const decodersAsMap = new Map();
     decoders.forEach((dec) => {

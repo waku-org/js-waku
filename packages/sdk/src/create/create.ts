@@ -26,7 +26,7 @@ export async function createLightNode(
   );
   log.info("Creating Waku node with pubsub topics", pubsubTopics);
 
-  const node = new WakuNode(pubsubTopics, options, libp2p, {
+  const node = new WakuNode(options, libp2p, {
     store: true,
     lightpush: true,
     filter: true

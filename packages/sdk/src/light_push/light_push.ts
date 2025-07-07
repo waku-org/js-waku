@@ -49,10 +49,7 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.protocol = new LightPushCore(
-      params.connectionManager.pubsubTopics,
-      params.libp2p
-    );
+    this.protocol = new LightPushCore(params.libp2p);
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
@@ -84,17 +81,6 @@ export class LightPush implements ILightPush {
     const { pubsubTopic } = encoder;
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
-
-    if (!this.protocol.pubsubTopics.includes(pubsubTopic)) {
-      return {
-        successes: [],
-        failures: [
-          {
-            error: ProtocolError.TOPIC_NOT_CONFIGURED
-          }
-        ]
-      };
-    }
 
     const peerIds = await this.peerManager.getPeers({
       protocol: Protocols.LightPush,
