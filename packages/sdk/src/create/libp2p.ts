@@ -9,13 +9,11 @@ import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
   type CreateNodeOptions,
-  DefaultNetworkConfig,
+  DEFAULT_CLUSTER_ID,
   type IMetadata,
   type Libp2p,
-  type Libp2pComponents,
-  PubsubTopic
+  type Libp2pComponents
 } from "@waku/interfaces";
-import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
@@ -26,13 +24,11 @@ type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
 
-const log = new Logger("sdk:create");
-
 const DefaultUserAgent = "js-waku";
 const DefaultPingMaxInboundStreams = 10;
 
 export async function defaultLibp2p(
-  pubsubTopics: PubsubTopic[],
+  clusterId: number,
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -49,9 +45,9 @@ export async function defaultLibp2p(
     /* eslint-enable no-console */
   }
 
-  const metadataService: MetadataService = pubsubTopics
-    ? { metadata: wakuMetadata(pubsubTopics) }
-    : {};
+  const metadataService: MetadataService = {
+    metadata: wakuMetadata(clusterId)
+  };
 
   const filter =
     options?.filterMultiaddrs === false || isTestEnvironment()
@@ -85,12 +81,8 @@ const DEFAULT_DISCOVERIES_ENABLED = {
 
 export async function createLibp2pAndUpdateOptions(
   options: CreateNodeOptions
-): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
-  const { networkConfig } = options;
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(
-    networkConfig ?? DefaultNetworkConfig
-  );
-  log.info("Creating Waku node with pubsub topics", pubsubTopics);
+): Promise<Libp2p> {
+  const clusterId = options?.networkConfig?.clusterId ?? DEFAULT_CLUSTER_ID;
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -117,11 +109,5 @@ export async function createLibp2pAndUpdateOptions(
 
   libp2pOptions.peerDiscovery = peerDiscovery;
 
-  const libp2p = await defaultLibp2p(
-    pubsubTopics,
-    libp2pOptions,
-    options?.userAgent
-  );
-
-  return { libp2p, pubsubTopics };
+  return defaultLibp2p(clusterId, libp2pOptions, options?.userAgent);
 }
