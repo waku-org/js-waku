@@ -1,6 +1,6 @@
 import type { IRateLimitProof } from "@waku/interfaces";
 
-import { concatenate, poseidonHash } from "./utils/index.js";
+import { BytesUtils, poseidonHash } from "./utils/index.js";
 
 const proofOffset = 128;
 const rootOffset = proofOffset + 32;
@@ -57,7 +57,7 @@ export class Proof implements IRateLimitProof {
 }
 
 export function proofToBytes(p: IRateLimitProof): Uint8Array {
-  return concatenate(
+  return BytesUtils.concatenate(
     p.proof,
     p.merkleRoot,
     p.epoch,

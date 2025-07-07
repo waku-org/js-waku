@@ -14,7 +14,7 @@ import {
 import _ from "lodash";
 import { v4 as uuidV4 } from "uuid";
 
-import { buildBigIntFromUint8Array } from "../utils/bytes.js";
+import { BytesUtils } from "../utils/bytes.js";
 
 import { decryptEipKeystore, keccak256Checksum } from "./cipher.js";
 import { isCredentialValid, isKeystoreValid } from "./schema_validator.js";
@@ -250,26 +250,35 @@ export class Keystore {
       const str = bytesToUtf8(bytes);
       const obj = JSON.parse(str);
 
-      // TODO: add runtime validation of nwaku credentials
+      // Little Endian
+      const idCommitmentLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idCommitment", [])
+      );
+      const idTrapdoorLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idTrapdoor", [])
+      );
+      const idNullifierLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idNullifier", [])
+      );
+      const idSecretHashLE = Keystore.fromArraylikeToBytes(
+        _.get(obj, "identityCredential.idSecretHash", [])
+      );
+
+      // Big Endian
+      const idCommitmentBE = BytesUtils.switchEndianness(idCommitmentLE);
+      const idTrapdoorBE = BytesUtils.switchEndianness(idTrapdoorLE);
+      const idNullifierBE = BytesUtils.switchEndianness(idNullifierLE);
+      const idSecretHashBE = BytesUtils.switchEndianness(idSecretHashLE);
+      const idCommitmentBigInt =
+        BytesUtils.buildBigIntFromUint8ArrayBE(idCommitmentBE);
+
       return {
         identity: {
-          IDCommitment: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idCommitment", [])
-          ),
-          IDTrapdoor: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idTrapdoor", [])
-          ),
-          IDNullifier: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idNullifier", [])
-          ),
-          IDCommitmentBigInt: buildBigIntFromUint8Array(
-            Keystore.fromArraylikeToBytes(
-              _.get(obj, "identityCredential.idCommitment", [])
-            )
-          ),
-          IDSecretHash: Keystore.fromArraylikeToBytes(
-            _.get(obj, "identityCredential.idSecretHash", [])
-          )
+          IDCommitment: idCommitmentBE,
+          IDTrapdoor: idTrapdoorBE,
+          IDNullifier: idNullifierBE,
+          IDSecretHash: idSecretHashBE,
+          IDCommitmentBigInt: idCommitmentBigInt
         },
         membership: {
           treeIndex: _.get(obj, "treeIndex"),
@@ -320,15 +329,35 @@ export class Keystore {
 
   // follows nwaku implementation
   // https://github.com/waku-org/nwaku/blob/f05528d4be3d3c876a8b07f9bb7dfaae8aa8ec6e/waku/waku_keystore/protocol_types.nim#L98
+  // IdentityCredential is stored in Big Endian format => switch to Little Endian
   private static fromIdentityToBytes(options: KeystoreEntity): Uint8Array {
+    const { IDCommitment, IDNullifier, IDSecretHash, IDTrapdoor } =
+      options.identity;
+    const idCommitmentLE = BytesUtils.switchEndianness(IDCommitment);
+    const idNullifierLE = BytesUtils.switchEndianness(IDNullifier);
+    const idSecretHashLE = BytesUtils.switchEndianness(IDSecretHash);
+    const idTrapdoorLE = BytesUtils.switchEndianness(IDTrapdoor);
+
+    // eslint-disable-next-line no-console
+    console.log({
+      idCommitmentBE: IDCommitment,
+      idCommitmentLE,
+      idNullifierBE: IDNullifier,
+      idNullifierLE,
+      idSecretHashBE: IDSecretHash,
+      idSecretHashLE,
+      idTrapdoorBE: IDTrapdoor,
+      idTrapdoorLE
+    });
+
     return utf8ToBytes(
       JSON.stringify({
         treeIndex: options.membership.treeIndex,
         identityCredential: {
-          idCommitment: Array.from(options.identity.IDCommitment),
-          idNullifier: Array.from(options.identity.IDNullifier),
-          idSecretHash: Array.from(options.identity.IDSecretHash),
-          idTrapdoor: Array.from(options.identity.IDTrapdoor)
+          idCommitment: Array.from(idCommitmentLE),
+          idNullifier: Array.from(idNullifierLE),
+          idSecretHash: Array.from(idSecretHashLE),
+          idTrapdoor: Array.from(idTrapdoorLE)
         },
         membershipContract: {
           chainId: options.membership.chainId,
