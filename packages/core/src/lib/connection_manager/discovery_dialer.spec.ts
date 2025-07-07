@@ -184,6 +184,137 @@ describe("DiscoveryDialer", () => {
       expect(dialStub.calledOnce).to.be.true;
       expect(dialStub.calledWith(mockPeerId)).to.be.true;
     });
+
+    it("does not attempt the same peer discovered multiple times more than once", async () => {
+      const peerStoreStub = libp2p.peerStore.get as sinon.SinonStub;
+      peerStoreStub.resolves(undefined);
+
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.resolves();
+
+      const mockEvent1 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+      const mockEvent2 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+
+      // Trigger multiple discoveries of same peer
+      await eventHandler(mockEvent1);
+      await eventHandler(mockEvent2);
+
+      // Verify only one dial attempt
+      expect(dialStub.calledOnce).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+    });
+
+    it("should skip peer discovered when already connected", async () => {
+      const peerStoreStub = libp2p.peerStore.get as sinon.SinonStub;
+      peerStoreStub.resolves(undefined);
+
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.resolves();
+
+      const getPeersStub = libp2p.getPeers as sinon.SinonStub;
+      getPeersStub.returns([mockPeerId]);
+
+      mockShardReader.hasShardInfo.resolves(true);
+      mockShardReader.isPeerOnNetwork.resolves(true);
+
+      const mockEvent = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+
+      await eventHandler(mockEvent);
+
+      expect(dialStub.called).to.be.false;
+    });
+
+    it("should dial each unique peer once when multiple different peers are discovered", async () => {
+      const peerStoreStub = libp2p.peerStore.get as sinon.SinonStub;
+      peerStoreStub.resolves(undefined);
+
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.resolves();
+
+      const mockPeerId2 = {
+        toString: () => "mock-peer-id-2",
+        equals: (other: PeerId) => other.toString() === "mock-peer-id-2"
+      } as PeerId;
+
+      const mockPeerInfo2 = {
+        id: mockPeerId2,
+        multiaddrs: []
+      } as PeerInfo;
+
+      const mockEvent1 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+      const mockEvent2 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo2
+      });
+
+      await eventHandler(mockEvent1);
+      await eventHandler(mockEvent2);
+
+      expect(dialStub.calledTwice).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+      expect(dialStub.calledWith(mockPeerId2)).to.be.true;
+    });
+
+    it("should handle peer discovered while dial is in progress", async () => {
+      const peerStoreStub = libp2p.peerStore.get as sinon.SinonStub;
+      peerStoreStub.resolves(undefined);
+
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      let resolveFirstDial: () => void;
+      const firstDialPromise = new Promise<void>((resolve) => {
+        resolveFirstDial = resolve;
+      });
+
+      dialStub.onFirstCall().returns(firstDialPromise);
+      dialStub.onSecondCall().resolves();
+
+      const mockEvent1 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+      const mockEvent2 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+
+      const firstDiscoveryPromise = eventHandler(mockEvent1);
+
+      await eventHandler(mockEvent2);
+
+      resolveFirstDial!();
+      await firstDiscoveryPromise;
+
+      expect(dialStub.calledTwice).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+    });
+
+    it("should allow retry after failed dial attempt", async () => {
+      const peerStoreStub = libp2p.peerStore.get as sinon.SinonStub;
+      peerStoreStub.resolves(undefined);
+
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.onFirstCall().rejects(new Error("Dial failed"));
+      dialStub.onSecondCall().resolves();
+
+      const mockEvent1 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+      const mockEvent2 = new CustomEvent("peer:discovery", {
+        detail: mockPeerInfo
+      });
+
+      await eventHandler(mockEvent1);
+
+      await eventHandler(mockEvent2);
+
+      expect(dialStub.calledTwice).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+    });
   });
 
   describe("queue processing", () => {

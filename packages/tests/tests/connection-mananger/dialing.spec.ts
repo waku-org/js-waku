@@ -132,4 +132,22 @@ describe("Dialing", function () {
       "Connection should be dropped"
     );
   });
+
+  it("should be able to dial TLS multiaddrs", async function () {
+    let tlsWorks = true;
+
+    const multiaddr = `/ip4/127.0.0.1/tcp/30303/tls/ws`;
+    try {
+      // dummy multiaddr, doesn't have to be valid
+      await waku.dial(multiaddr);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(`[DEBUG] error: ${error.message}`);
+        expect(error.message).to.eq(`Could not connect to ${multiaddr}`);
+        tlsWorks = !error.message.includes("Unsupported protocol tls");
+      }
+    }
+
+    expect(tlsWorks).to.eq(true);
+  });
 });
