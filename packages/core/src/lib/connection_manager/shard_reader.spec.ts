@@ -12,7 +12,6 @@ import sinon from "sinon";
 
 import { ShardReader } from "./shard_reader.js";
 
-// Mock PeerId for testing
 const createMockPeerId = (): PeerId => {
   const mockPeerId = {
     toString: () => "12D3KooWTest123",

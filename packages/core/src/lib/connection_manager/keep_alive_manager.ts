@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import type { IRelay, Libp2p, PeerIdStr } from "@waku/interfaces";
+import type { IEncoder, IRelay, Libp2p } from "@waku/interfaces";
 import { Logger, pubsubTopicToSingleShardInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
@@ -57,11 +57,14 @@ export class KeepAliveManager implements IKeepAliveManager {
     this.libp2p.removeEventListener("peer:connect", this.onPeerConnect);
     this.libp2p.removeEventListener("peer:disconnect", this.onPeerDisconnect);
 
-    for (const timer of [
-      ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers)
-    ]) {
+    for (const timer of this.pingKeepAliveTimers.values()) {
       clearInterval(timer);
+    }
+
+    for (const timerArray of this.relayKeepAliveTimers.values()) {
+      for (const timer of timerArray) {
+        clearInterval(timer);
+      }
     }
 
     this.pingKeepAliveTimers.clear();
@@ -82,98 +85,142 @@ export class KeepAliveManager implements IKeepAliveManager {
     // Just in case a timer already exists for this peer
     this.stopPingForPeer(peerId);
 
-    const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
-      this.options;
-
-    const peerIdStr = peerId.toString();
-
-    // Ping the peer every pingPeriodSecs seconds
-    // if pingPeriodSecs is 0, don't ping the peer
-    if (pingPeriodSecs !== 0) {
-      const interval = setInterval(() => {
-        void (async () => {
-          let ping: number;
-          try {
-            // ping the peer for keep alive
-            // also update the peer store with the latency
-            try {
-              ping = await this.libp2p.services.ping.ping(peerId);
-              log.info(`Ping succeeded (${peerIdStr})`, ping);
-            } catch (error) {
-              log.error(`Ping failed for peer (${peerIdStr}).
-                Next ping will be attempted in ${pingPeriodSecs} seconds.
-              `);
-              return;
-            }
-
-            try {
-              await this.libp2p.peerStore.merge(peerId, {
-                metadata: {
-                  ping: utf8ToBytes(ping.toString())
-                }
-              });
-            } catch (e) {
-              log.error("Failed to update ping", e);
-            }
-          } catch (e) {
-            log.error(`Ping failed (${peerIdStr})`, e);
-          }
-        })();
-      }, pingPeriodSecs * 1000);
-
-      this.pingKeepAliveTimers.set(peerIdStr, interval);
-    }
-
-    const relay = this.relay;
-    if (relay && relayPeriodSecs !== 0) {
-      const intervals = this.scheduleRelayPings(
-        relay,
-        relayPeriodSecs,
-        peerId.toString()
-      );
-      this.relayKeepAliveTimers.set(peerId.toString(), intervals);
-    }
+    this.startLibp2pPing(peerId);
+    this.startRelayPing(peerId);
   }
 
   private stopPingForPeer(peerId: PeerId): void {
+    this.stopLibp2pPing(peerId);
+    this.stopRelayPing(peerId);
+  }
+
+  private startLibp2pPing(peerId: PeerId): void {
+    if (this.options.pingKeepAlive === 0) {
+      log.warn(
+        `Ping keep alive is disabled pingKeepAlive:${this.options.pingKeepAlive}, skipping start for libp2p ping`
+      );
+      return;
+    }
+
     const peerIdStr = peerId.toString();
 
     if (this.pingKeepAliveTimers.has(peerIdStr)) {
-      clearInterval(this.pingKeepAliveTimers.get(peerIdStr));
-      this.pingKeepAliveTimers.delete(peerIdStr);
+      log.warn(
+        `Ping already started for peer: ${peerIdStr}, skipping start for libp2p ping`
+      );
+      return;
     }
 
-    if (this.relayKeepAliveTimers.has(peerIdStr)) {
-      this.relayKeepAliveTimers.get(peerIdStr)?.map(clearInterval);
-      this.relayKeepAliveTimers.delete(peerIdStr);
-    }
+    const interval = setInterval(() => {
+      void this.pingLibp2p(peerId);
+    }, this.options.pingKeepAlive * 1000);
+
+    this.pingKeepAliveTimers.set(peerIdStr, interval);
   }
 
-  private scheduleRelayPings(
-    relay: IRelay,
-    relayPeriodSecs: number,
-    peerIdStr: PeerIdStr
-  ): NodeJS.Timeout[] {
-    // send a ping message to each PubsubTopic the peer is part of
+  private stopLibp2pPing(peerId: PeerId): void {
+    const peerIdStr = peerId.toString();
+
+    if (!this.pingKeepAliveTimers.has(peerIdStr)) {
+      log.warn(
+        `Ping not started for peer: ${peerIdStr}, skipping stop for ping`
+      );
+      return;
+    }
+
+    clearInterval(this.pingKeepAliveTimers.get(peerIdStr));
+    this.pingKeepAliveTimers.delete(peerIdStr);
+  }
+
+  private startRelayPing(peerId: PeerId): void {
+    if (!this.relay) {
+      return;
+    }
+
+    if (this.options.relayKeepAlive === 0) {
+      log.warn(
+        `Relay keep alive is disabled relayKeepAlive:${this.options.relayKeepAlive}, skipping start for relay ping`
+      );
+      return;
+    }
+
+    if (this.relayKeepAliveTimers.has(peerId.toString())) {
+      log.warn(
+        `Relay ping already started for peer: ${peerId.toString()}, skipping start for relay ping`
+      );
+      return;
+    }
+
     const intervals: NodeJS.Timeout[] = [];
-    for (const topic of relay.pubsubTopics) {
-      const meshPeers = relay.getMeshPeers(topic);
-      if (!meshPeers.includes(peerIdStr)) continue;
+
+    for (const topic of this.relay.pubsubTopics) {
+      const meshPeers = this.relay.getMeshPeers(topic);
+
+      if (!meshPeers.includes(peerId.toString())) {
+        log.warn(
+          `Peer: ${peerId.toString()} is not in the mesh for topic: ${topic}, skipping start for relay ping`
+        );
+        continue;
+      }
 
       const encoder = createEncoder({
         pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(topic),
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });
+
       const interval = setInterval(() => {
-        log.info("Sending Waku Relay ping message");
-        relay
-          .send(encoder, { payload: new Uint8Array([1]) })
-          .catch((e) => log.error("Failed to send relay ping", e));
-      }, relayPeriodSecs * 1000);
+        void this.pingRelay(encoder);
+      }, this.options.relayKeepAlive * 1000);
+
       intervals.push(interval);
     }
 
-    return intervals;
+    this.relayKeepAliveTimers.set(peerId.toString(), intervals);
+  }
+
+  private stopRelayPing(peerId: PeerId): void {
+    if (!this.relay) {
+      return;
+    }
+
+    const peerIdStr = peerId.toString();
+
+    if (!this.relayKeepAliveTimers.has(peerIdStr)) {
+      log.warn(
+        `Relay ping not started for peer: ${peerIdStr}, skipping stop for relay ping`
+      );
+      return;
+    }
+
+    this.relayKeepAliveTimers.get(peerIdStr)?.map(clearInterval);
+    this.relayKeepAliveTimers.delete(peerIdStr);
+  }
+
+  private async pingRelay(encoder: IEncoder): Promise<void> {
+    try {
+      log.info("Sending Waku Relay ping message");
+      await this.relay!.send(encoder, { payload: new Uint8Array([1]) });
+    } catch (e) {
+      log.error("Failed to send relay ping", e);
+    }
+  }
+
+  private async pingLibp2p(peerId: PeerId): Promise<void> {
+    try {
+      log.info(`Pinging libp2p peer (${peerId.toString()})`);
+      const ping = await this.libp2p.services.ping.ping(peerId);
+
+      log.info(`Ping succeeded (${peerId.toString()})`, ping);
+
+      await this.libp2p.peerStore.merge(peerId, {
+        metadata: {
+          ping: utf8ToBytes(ping.toString())
+        }
+      });
+      log.info(`Ping updated for peer (${peerId.toString()})`);
+    } catch (e) {
+      log.error(`Ping failed for peer (${peerId.toString()})`, e);
+    }
   }
 }
