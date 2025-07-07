@@ -18,7 +18,10 @@ export function generateTestData(
     (_, i) => `/test/${i + 1}/waku-multi/default`
   );
   const encoders = contentTopics.map((topic) =>
-    createEncoder({ contentTopic: topic, pubsubTopic: options?.pubsubTopic })
+    createEncoder({
+      contentTopic: topic,
+      pubsubTopicOrShard: options?.pubsubTopic
+    })
   );
   const decoders = contentTopics.map((topic) =>
     createDecoder(topic, options?.pubsubTopic)

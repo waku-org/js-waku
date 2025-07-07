@@ -8,8 +8,7 @@ import {
   LightNode,
   NetworkConfig,
   Protocols,
-  ShardInfo,
-  type SingleShardInfo
+  ShardInfo
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
@@ -27,16 +26,18 @@ export const TestShardInfo: ShardInfo = {
   shards: [1, 2]
 };
 
-export const TestShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
-export const TestPubsubTopic1 = singleShardInfoToPubsubTopic(TestShardInfo1);
+export const TestShard1 = 1;
+export const TestPubsubTopic1 = singleShardInfoToPubsubTopic(
+  TestClusterId,
+  TestShard1
+);
 
-export const TestShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
-export const TestPubsubTopic2 = singleShardInfoToPubsubTopic(TestShardInfo2);
+export const TestPubsubTopic2 = singleShardInfoToPubsubTopic(TestClusterId, 2);
 
 export const TestContentTopic1 = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic1,
-  pubsubTopicShardInfo: TestShardInfo1
+  pubsubTopicOrShard: TestShard1
 });
 export const TestDecoder = createDecoder(TestContentTopic1, TestPubsubTopic1);
 
@@ -124,17 +125,6 @@ export async function startAndConnectLightNode(
 
   log.info("Waku node created");
   return waku;
-}
-
-export function chunkAndReverseArray(
-  arr: number[],
-  chunkSize: number
-): number[] {
-  const result: number[] = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    result.push(...arr.slice(i, i + chunkSize).reverse());
-  }
-  return result.reverse();
 }
 
 export const adjustDate = (baseDate: Date, adjustMs: number): Date => {

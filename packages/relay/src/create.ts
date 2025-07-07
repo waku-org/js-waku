@@ -1,4 +1,8 @@
-import type { CreateNodeOptions, RelayNode } from "@waku/interfaces";
+import {
+  CreateNodeOptions,
+  DEFAULT_CLUSTER_ID,
+  RelayNode
+} from "@waku/interfaces";
 import { createLibp2pAndUpdateOptions, WakuNode } from "@waku/sdk";
 
 import { Relay, RelayCreateOptions, wakuGossipSub } from "./relay.js";
@@ -26,8 +30,11 @@ export async function createRelayNode(
     }
   };
 
+  const clusterId = options.networkConfig?.clusterId ?? DEFAULT_CLUSTER_ID;
+
   const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
   const relay = new Relay({
+    clusterId,
     pubsubTopics: pubsubTopics || [],
     libp2p
   });

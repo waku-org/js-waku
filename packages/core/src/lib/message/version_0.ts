@@ -1,5 +1,5 @@
+import { DEFAULT_CLUSTER_ID } from "@waku/interfaces";
 import type {
-  EncoderOptions,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -11,13 +11,37 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  determinePubsubTopic,
+  Logger
+} from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
 
 export const Version = 0;
 export { proto };
+
+export interface EncoderOptions {
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * The pubsub topic or shard to send messages on, can be omitted when using auto sharding.
+   */
+  pubsubTopicOrShard?: PubsubTopic | number;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
+}
 
 export class DecodedMessage implements IDecodedMessage {
   public constructor(
@@ -71,7 +95,7 @@ export class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubsubTopic: PubsubTopic,
+    public pubsubTopicOrShard?: PubsubTopic | number,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -114,18 +138,12 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
   ephemeral,
+  pubsubTopicOrShard,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(
-    contentTopic,
-    ephemeral,
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
-    metaSetter
-  );
+  return new Encoder(contentTopic, ephemeral, pubsubTopicOrShard, metaSetter);
 }
 
 export class Decoder implements IDecoder<IDecodedMessage> {
@@ -187,8 +205,23 @@ export function createDecoder(
   contentTopic: string,
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): Decoder {
+  if (!pubsubTopicShardInfo) {
+    return new Decoder(
+      contentTopicToPubsubTopic(contentTopic, DEFAULT_CLUSTER_ID),
+      contentTopic
+    );
+  }
+
+  if (typeof pubsubTopicShardInfo == "string") {
+    return new Decoder(pubsubTopicShardInfo, contentTopic);
+  }
+
   return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(
+      contentTopic,
+      pubsubTopicShardInfo.clusterId,
+      pubsubTopicShardInfo.shard
+    ),
     contentTopic
   );
 }

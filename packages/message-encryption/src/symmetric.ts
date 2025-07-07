@@ -1,6 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
+import { DEFAULT_CLUSTER_ID } from "@waku/interfaces";
 import type {
-  EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IEncryptedMessage,
@@ -11,7 +11,11 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  determinePubsubTopic,
+  Logger
+} from "@waku/utils";
 
 import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -35,11 +39,11 @@ const log = new Logger("message-encryption:symmetric");
 
 class Encoder implements IEncoder {
   public constructor(
-    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
+    public pubsubTopicOrShard?: PubsubTopic | number,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -81,7 +85,24 @@ class Encoder implements IEncoder {
   }
 }
 
-export interface EncoderOptions extends BaseEncoderOptions {
+export interface EncoderOptions {
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * The pubsub topic or shard to send messages on, can be omitted when using auto sharding.
+   */
+  pubsubTopicOrShard?: PubsubTopic | number;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
   /** The symmetric key to encrypt the payload with. */
   symKey: Uint8Array;
   /** An optional private key to be used to sign the payload before encryption. */
@@ -101,20 +122,19 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
   symKey,
   sigPrivKey,
   ephemeral = false,
+  pubsubTopicOrShard,
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
     symKey,
     sigPrivKey,
     ephemeral,
+    pubsubTopicOrShard,
     metaSetter
   );
 }
@@ -200,8 +220,24 @@ export function createDecoder(
   symKey: Uint8Array,
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): Decoder {
+  if (!pubsubTopicShardInfo) {
+    return new Decoder(
+      contentTopicToPubsubTopic(contentTopic, DEFAULT_CLUSTER_ID),
+      contentTopic,
+      symKey
+    );
+  }
+
+  if (typeof pubsubTopicShardInfo == "string") {
+    return new Decoder(pubsubTopicShardInfo, contentTopic, symKey);
+  }
+
   return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(
+      contentTopic,
+      pubsubTopicShardInfo.clusterId,
+      pubsubTopicShardInfo.shard
+    ),
     contentTopic,
     symKey
   );

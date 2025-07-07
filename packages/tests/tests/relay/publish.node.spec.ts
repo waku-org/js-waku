@@ -115,7 +115,7 @@ describe("Waku Relay, Publish", function () {
   it("Fails to publish message with wrong content topic", async function () {
     const wrong_encoder = createEncoder({
       contentTopic: "/test/1/wrong/utf8",
-      pubsubTopic: TestPubsubTopic
+      pubsubTopicOrShard: TestPubsubTopic
     });
     await waku1.relay.send(wrong_encoder, {
       payload: utf8ToBytes("")
@@ -127,10 +127,7 @@ describe("Waku Relay, Publish", function () {
 
   it("Fails to publish message with wrong pubsubtopic", async function () {
     const wrong_encoder = createEncoder({
-      pubsubTopicShardInfo: {
-        clusterId: TestShardInfo.clusterId,
-        shard: TestShardInfo.shards[0] + 1
-      },
+      pubsubTopicOrShard: TestShardInfo.shards[0] + 1,
       contentTopic: TestContentTopic
     });
     const pushResponse = await waku1.relay.send(wrong_encoder, {
@@ -218,7 +215,7 @@ describe("Waku Relay, Publish", function () {
   it("Publish message with large meta", async function () {
     const customTestEncoder = createEncoder({
       contentTopic: TestContentTopic,
-      pubsubTopic: TestPubsubTopic,
+      pubsubTopicOrShard: TestPubsubTopic,
       metaSetter: () => new Uint8Array(10 ** 6)
     });
 

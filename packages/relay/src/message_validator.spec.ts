@@ -9,8 +9,9 @@ import fc from "fast-check";
 
 import { messageValidator } from "./message_validator.js";
 
+const TestClusterId = 0;
 const TestContentTopic = "/app/1/topic/utf8";
-const TestPubsubTopic = determinePubsubTopic(TestContentTopic);
+const TestPubsubTopic = determinePubsubTopic(TestContentTopic, TestClusterId);
 
 describe("Message Validator", () => {
   it("Accepts a valid Waku Message", async () => {
@@ -21,7 +22,7 @@ describe("Message Validator", () => {
 
         const encoder = createEncoder({
           contentTopic: TestContentTopic,
-          pubsubTopic: TestPubsubTopic
+          pubsubTopicOrShard: TestPubsubTopic
         });
         const bytes = await encoder.toWire({ payload });
 

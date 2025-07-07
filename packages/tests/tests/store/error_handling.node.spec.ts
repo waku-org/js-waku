@@ -92,7 +92,7 @@ describe("Waku Store, error handling", function () {
   });
 
   it("Query Generator, No message returned", async function () {
-    const WrongTestPubsubTopic = determinePubsubTopic("/test/1/wrong/utf8");
+    const WrongTestPubsubTopic = determinePubsubTopic("/test/1/wrong/utf8", 0);
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],

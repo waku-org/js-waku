@@ -39,7 +39,7 @@ export const TestPubsubTopic = contentTopicToPubsubTopic(
 );
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: TestPubsubTopic
+  pubsubTopicOrShard: TestPubsubTopic
 });
 export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
 export const messageText = "Filtering works!";

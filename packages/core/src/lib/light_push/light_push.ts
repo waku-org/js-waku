@@ -9,7 +9,7 @@ import {
   type ThisOrThat
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import { isMessageSizeUnderCap } from "@waku/utils";
+import { determinePubsubTopic, isMessageSizeUnderCap } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -37,6 +37,8 @@ export class LightPushCore {
   public readonly multicodec = LightPushCodec;
 
   public constructor(
+    public clusterId: number,
+    // TODO: remove this, looks unused
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
@@ -67,7 +69,13 @@ export class LightPushCore {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+      const pubsubTopic = determinePubsubTopic(
+        encoder.contentTopic,
+        this.clusterId,
+        encoder.pubsubTopicOrShard
+      );
+
+      const query = PushRpc.createRequest(protoMessage, pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);

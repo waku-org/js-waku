@@ -213,7 +213,7 @@ describe("Decryption Keys", function () {
 
     const encoder = createEncoder({
       contentTopic: TestContentTopic,
-      pubsubTopicShardInfo: DefaultTestSingleShardInfo,
+      pubsubTopicOrShard: DefaultTestSingleShardInfo.shard,
       symKey
     });
 

@@ -51,12 +51,12 @@ describe("Waku Relay", function () {
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
       publicKey,
-      pubsubTopic: TestPubsubTopic
+      pubsubTopicOrShard: TestPubsubTopic
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
       symKey,
-      pubsubTopic: TestPubsubTopic
+      pubsubTopicOrShard: TestPubsubTopic
     });
 
     const eciesDecoder = createEciesDecoder(

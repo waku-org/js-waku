@@ -78,31 +78,10 @@ export interface IMetaSetter {
   (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }
 
-export interface EncoderOptions {
-  /**
-   * @deprecated
-   */
-  pubsubTopic?: PubsubTopic;
-  pubsubTopicShardInfo?: SingleShardInfo;
-  /** The content topic to set on outgoing messages. */
-  contentTopic: string;
-  /**
-   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
-   * @defaultValue `false`
-   */
-  ephemeral?: boolean;
-  /**
-   * A function called when encoding messages to set the meta field.
-   * @param IProtoMessage The message encoded for wire, without the meta field.
-   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
-   */
-  metaSetter?: IMetaSetter;
-}
-
 export interface IEncoder {
-  pubsubTopic: PubsubTopic;
   contentTopic: string;
   ephemeral: boolean;
+  pubsubTopicOrShard?: PubsubTopic | number;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }

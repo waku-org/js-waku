@@ -26,7 +26,7 @@ export const TestShardInfo = {
 };
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: TestPubsubTopic
+  pubsubTopicOrShard: TestPubsubTopic
 });
 export const messageText = "Light Push works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };

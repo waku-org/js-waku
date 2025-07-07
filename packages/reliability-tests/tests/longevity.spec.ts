@@ -1,15 +1,9 @@
 import { LightNode, Protocols } from "@waku/interfaces";
-import {
-  createDecoder,
-  createEncoder,
-  createLightNode,
-  utf8ToBytes
-} from "@waku/sdk";
+import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import {
   delay,
   shardInfoToPubsubTopics,
-  singleShardInfosToShardInfo,
-  singleShardInfoToPubsubTopic
+  singleShardInfosToShardInfo
 } from "@waku/utils";
 import { expect } from "chai";
 
@@ -81,15 +75,6 @@ describe("Longevity", function () {
       messageCollector.callback
     );
     if (!hasSubscribed) throw new Error("Failed to subscribe from the start.");
-
-    const encoder = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleShardInfo
-    });
-
-    expect(encoder.pubsubTopic).to.eq(
-      singleShardInfoToPubsubTopic(singleShardInfo)
-    );
 
     let messageId = 0;
 

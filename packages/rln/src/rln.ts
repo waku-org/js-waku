@@ -2,7 +2,8 @@ import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopic,
   IDecodedMessage,
-  EncoderOptions as WakuEncoderOptions
+  IMetaSetter,
+  PubsubTopic
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import init from "@waku/zerokit-rln-wasm";
@@ -27,9 +28,27 @@ import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:rln");
 
-type WakuRLNEncoderOptions = WakuEncoderOptions & {
+export interface WakuRLNEncoderOptions {
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * The pubsub topic or shard to send messages on, can be omitted when using auto sharding.
+   */
+  pubsubTopicOrShard?: PubsubTopic | number;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
+
   credentials: EncryptedCredentials | DecryptedCredentials;
-};
+}
 
 export class RLNInstance extends RLNCredentialsManager {
   /**
