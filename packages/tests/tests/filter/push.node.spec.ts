@@ -300,16 +300,21 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestShardInfo,
         {
           lightpush: true,
-          filter: true
+          filter: true,
+          peerExchange: true
         },
         false
       );
 
       callback = serviceNodes.messageCollector.callback;
 
+      let cnt = 0;
       const peerConnectEvent = new Promise((resolve, reject) => {
         waku.libp2p.addEventListener("peer:connect", (e) => {
-          resolve(e);
+          cnt += 1;
+          if (cnt === 2) {
+            resolve(e);
+          }
         });
         setTimeout(() => reject, 1000);
       });

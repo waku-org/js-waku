@@ -86,7 +86,7 @@ export class ShardReader implements IShardReader {
   ): Promise<boolean> {
     const peerShardInfo = await this.getShardInfo(id);
 
-    if (!peerShardInfo || !shard.shard) {
+    if (!peerShardInfo || shard.shard === undefined) {
       return false;
     }
 

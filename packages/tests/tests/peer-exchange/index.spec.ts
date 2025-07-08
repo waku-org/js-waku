@@ -62,7 +62,7 @@ describe("Peer Exchange", function () {
     });
     await waku.start();
 
-    dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+    dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
     const pxPeersDiscovered = new Set<PeerId>();
 
     await new Promise<void>((resolve) => {
@@ -194,7 +194,7 @@ describe("Peer Exchange", function () {
       }
     });
     await waku.start();
-    dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+    dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
     const pxPeersDiscovered = new Set<PeerId>();
     await new Promise<void>((resolve) => {

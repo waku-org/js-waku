@@ -187,6 +187,13 @@ export class PeerManager {
     id: PeerId,
     pubsubTopic: string
   ): Promise<boolean> {
+    const hasShardInfo = await this.connectionManager.hasShardInfo(id);
+
+    // allow to use peers that we don't know information about yet
+    if (!hasShardInfo) {
+      return true;
+    }
+
     return this.connectionManager.isPeerOnTopic(id, pubsubTopic);
   }
 

@@ -93,7 +93,7 @@ describe("Static Sharding: Peer Management", function () {
 
       await waku.start();
 
-      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
       const pxPeersDiscovered = new Set<PeerId>();
 
@@ -164,7 +164,7 @@ describe("Static Sharding: Peer Management", function () {
         }
       });
 
-      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
       await waku.start();
 
@@ -270,7 +270,7 @@ describe("Autosharding: Peer Management", function () {
 
       await waku.start();
 
-      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
       const pxPeersDiscovered = new Set<PeerId>();
 
@@ -346,7 +346,7 @@ describe("Autosharding: Peer Management", function () {
         }
       });
 
-      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
       await waku.start();
 

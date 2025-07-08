@@ -156,6 +156,10 @@ export class ConnectionManager implements IConnectionManager {
     return this.pubsubTopics.includes(pubsubTopic);
   }
 
+  public async hasShardInfo(peerId: PeerId): Promise<boolean> {
+    return this.shardReader.hasShardInfo(peerId);
+  }
+
   public async isPeerOnTopic(
     peerId: PeerId,
     pubsubTopic: string

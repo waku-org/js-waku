@@ -130,4 +130,12 @@ export interface IConnectionManager {
    * ```
    */
   isTopicConfigured(pubsubTopic: PubsubTopic): boolean;
+
+  /**
+   * Checks if a peer has shard info.
+   *
+   * @param peerId - The peer to check
+   * @returns Promise resolving to true if the peer has shard info, false otherwise
+   */
+  hasShardInfo(peerId: PeerId): Promise<boolean>;
 }

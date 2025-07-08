@@ -127,11 +127,11 @@ describe("Connection state", function () {
       });
     });
 
-    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+    await waku1.libp2p.peerStore.merge(waku2.peerId, {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
-    await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
-    await delay(400);
+
+    await waku1.dial(waku2.peerId);
 
     expect(await connectionStatus1).to.eq(true);
     expect(await connectionStatus2).to.eq(true);
