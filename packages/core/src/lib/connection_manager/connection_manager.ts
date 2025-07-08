@@ -12,6 +12,7 @@ import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { ConnectionLimiter } from "./connection_limiter.js";
+import { Dialer } from "./dialer.js";
 import { DiscoveryDialer } from "./discovery_dialer.js";
 import { KeepAliveManager } from "./keep_alive_manager.js";
 import { NetworkMonitor } from "./network_monitor.js";
@@ -38,6 +39,7 @@ export class ConnectionManager implements IConnectionManager {
 
   private readonly keepAliveManager: KeepAliveManager;
   private readonly discoveryDialer: DiscoveryDialer;
+  private readonly dialer: Dialer;
   private readonly shardReader: ShardReader;
   private readonly networkMonitor: NetworkMonitor;
   private readonly connectionLimiter: ConnectionLimiter;
@@ -70,9 +72,14 @@ export class ConnectionManager implements IConnectionManager {
       networkConfig: options.networkConfig
     });
 
-    this.discoveryDialer = new DiscoveryDialer({
+    this.dialer = new Dialer({
       libp2p: options.libp2p,
       shardReader: this.shardReader
+    });
+
+    this.discoveryDialer = new DiscoveryDialer({
+      libp2p: options.libp2p,
+      dialer: this.dialer
     });
 
     this.networkMonitor = new NetworkMonitor({
@@ -82,6 +89,9 @@ export class ConnectionManager implements IConnectionManager {
 
     this.connectionLimiter = new ConnectionLimiter({
       libp2p: options.libp2p,
+      events: options.events,
+      networkMonitor: this.networkMonitor,
+      dialer: this.dialer,
       options: this.options
     });
   }
@@ -109,8 +119,9 @@ export class ConnectionManager implements IConnectionManager {
     protocolCodecs: string[]
   ): Promise<Stream> {
     const ma = mapToPeerIdOrMultiaddr(peer);
-
     log.info(`Dialing peer ${ma.toString()} with protocols ${protocolCodecs}`);
+
+    // must use libp2p directly instead of dialer because we need to dial the peer right away
     const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
     log.info(`Dialed peer ${ma.toString()} with protocols ${protocolCodecs}`);
 

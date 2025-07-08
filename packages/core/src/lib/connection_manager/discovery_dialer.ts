@@ -3,13 +3,13 @@ import { Multiaddr } from "@multiformats/multiaddr";
 import { Logger } from "@waku/utils";
 import { Libp2p } from "libp2p";
 
-import type { ShardReader } from "./shard_reader.js";
+import { Dialer } from "./dialer.js";
 
 type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 type DiscoveryDialerConstructorOptions = {
   libp2p: Libp2p;
-  shardReader: ShardReader;
+  dialer: Dialer;
 };
 
 interface IDiscoveryDialer {
@@ -26,15 +26,11 @@ const log = new Logger("discovery-dialer");
  */
 export class DiscoveryDialer implements IDiscoveryDialer {
   private readonly libp2p: Libp2p;
-  private readonly shardReader: ShardReader;
-
-  private dialingInterval: NodeJS.Timeout | null = null;
-  private dialingQueue: PeerId[] = [];
-  private dialHistory: Set<string> = new Set();
+  private readonly dialer: Dialer;
 
   public constructor(options: DiscoveryDialerConstructorOptions) {
     this.libp2p = options.libp2p;
-    this.shardReader = options.shardReader;
+    this.dialer = options.dialer;
 
     this.onPeerDiscovery = this.onPeerDiscovery.bind(this);
   }
@@ -44,14 +40,6 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       "peer:discovery",
       this.onPeerDiscovery as Libp2pEventHandler<PeerInfo>
     );
-
-    if (!this.dialingInterval) {
-      this.dialingInterval = setInterval(() => {
-        void this.processQueue();
-      }, 500);
-    }
-
-    this.dialHistory.clear();
   }
 
   public stop(): void {
@@ -59,13 +47,6 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       "peer:discovery",
       this.onPeerDiscovery as Libp2pEventHandler<PeerInfo>
     );
-
-    if (this.dialingInterval) {
-      clearInterval(this.dialingInterval);
-      this.dialingInterval = null;
-    }
-
-    this.dialHistory.clear();
   }
 
   private async onPeerDiscovery(event: CustomEvent<PeerInfo>): Promise<void> {
@@ -73,67 +54,11 @@ export class DiscoveryDialer implements IDiscoveryDialer {
     log.info(`Discovered new peer: ${peerId}`);
 
     try {
-      const shouldSkip = await this.shouldSkipPeer(peerId);
-
-      if (shouldSkip) {
-        log.info(`Skipping peer: ${peerId}`);
-        return;
-      }
-
       await this.updatePeerStore(peerId, event.detail.multiaddrs);
-
-      if (this.dialingQueue.length === 0) {
-        await this.dialPeer(peerId);
-      } else {
-        this.dialingQueue.push(peerId);
-
-        log.info(
-          `Added peer to dialing queue, queue size: ${this.dialingQueue.length}`
-        );
-      }
+      await this.dialer.dial(peerId);
     } catch (error) {
       log.error(`Error dialing peer ${peerId}`, error);
     }
-  }
-
-  private async processQueue(): Promise<void> {
-    if (this.dialingQueue.length === 0) return;
-
-    const peersToDial = this.dialingQueue.slice(0, 3);
-    this.dialingQueue = this.dialingQueue.slice(peersToDial.length);
-
-    log.info(
-      `Processing dial queue: dialing ${peersToDial.length} peers, ${this.dialingQueue.length} remaining in queue`
-    );
-
-    await Promise.all(peersToDial.map(this.dialPeer));
-  }
-
-  private async shouldSkipPeer(peerId: PeerId): Promise<boolean> {
-    if (this.dialHistory.has(peerId.toString())) {
-      log.info(`Skipping peer ${peerId} - already dialed`);
-      return true;
-    }
-
-    const hasShardInfo = await this.shardReader.hasShardInfo(peerId);
-    if (!hasShardInfo) {
-      log.info(`Skipping peer ${peerId} - no shard info`);
-      return false;
-    }
-
-    const isOnSameShard = await this.shardReader.isPeerOnNetwork(peerId);
-    if (!isOnSameShard) {
-      log.info(`Skipping peer ${peerId} - not on same shard`);
-      return true;
-    }
-
-    const hasConnection = this.libp2p.getPeers().some((p) => p.equals(peerId));
-    if (hasConnection) {
-      log.info(`Skipping peer ${peerId} - already connected`);
-      return true;
-    }
-
-    return false;
   }
 
   private async updatePeerStore(
@@ -167,19 +92,6 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       });
     } catch (error) {
       log.error(`Error updating peer store for ${peerId}`, error);
-    }
-  }
-
-  private async dialPeer(peerId: PeerId): Promise<void> {
-    try {
-      log.info(`Dialing peer from queue: ${peerId}`);
-
-      await this.libp2p.dial(peerId);
-      this.dialHistory.add(peerId.toString());
-
-      log.info(`Successfully dialed peer from queue: ${peerId}`);
-    } catch (error) {
-      log.error(`Error dialing peer ${peerId}`, error);
     }
   }
 

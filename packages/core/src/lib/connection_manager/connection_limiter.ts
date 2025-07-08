@@ -1,6 +1,14 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManagerOptions, Libp2p, Tags } from "@waku/interfaces";
+import {
+  ConnectionManagerOptions,
+  IWakuEventEmitter,
+  Libp2p,
+  Tags
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
+
+import { Dialer } from "./dialer.js";
+import { NetworkMonitor } from "./network_monitor.js";
 
 const log = new Logger("connection-limiter");
 
@@ -8,19 +16,14 @@ type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 type ConnectionLimiterConstructorOptions = {
   libp2p: Libp2p;
+  events: IWakuEventEmitter;
+  dialer: Dialer;
+  networkMonitor: NetworkMonitor;
   options: ConnectionManagerOptions;
 };
 
 interface IConnectionLimiter {
-  /**
-   * Dial all known peers because libp2p might have emitted `peer:discovery` before initialization
-   * and listen to `peer:connect` and `peer:disconnect` events to manage connections.
-   */
   start(): void;
-
-  /**
-   * Stop listening to `peer:connect` and `peer:disconnect` events.
-   */
   stop(): void;
 }
 
@@ -31,12 +34,21 @@ interface IConnectionLimiter {
  */
 export class ConnectionLimiter implements IConnectionLimiter {
   private readonly libp2p: Libp2p;
+  private readonly events: IWakuEventEmitter;
+  private readonly networkMonitor: NetworkMonitor;
+  private readonly dialer: Dialer;
+
   private readonly options: ConnectionManagerOptions;
 
   public constructor(options: ConnectionLimiterConstructorOptions) {
     this.libp2p = options.libp2p;
+    this.events = options.events;
+    this.networkMonitor = options.networkMonitor;
+    this.dialer = options.dialer;
+
     this.options = options.options;
 
+    this.onWakuConnectionEvent = this.onWakuConnectionEvent.bind(this);
     this.onConnectedEvent = this.onConnectedEvent.bind(this);
     this.onDisconnectedEvent = this.onDisconnectedEvent.bind(this);
   }
@@ -44,6 +56,8 @@ export class ConnectionLimiter implements IConnectionLimiter {
   public start(): void {
     // dial all known peers because libp2p might have emitted `peer:discovery` before initialization
     void this.dialPeersFromStore();
+
+    this.events.addEventListener("waku:connection", this.onWakuConnectionEvent);
 
     this.libp2p.addEventListener(
       "peer:connect",
@@ -68,6 +82,11 @@ export class ConnectionLimiter implements IConnectionLimiter {
   }
 
   public stop(): void {
+    this.events.removeEventListener(
+      "waku:connection",
+      this.onWakuConnectionEvent
+    );
+
     this.libp2p.removeEventListener(
       "peer:connect",
       this.onConnectedEvent as Libp2pEventHandler<PeerId>
@@ -77,6 +96,12 @@ export class ConnectionLimiter implements IConnectionLimiter {
       "peer:disconnect",
       this.onDisconnectedEvent as Libp2pEventHandler<PeerId>
     );
+  }
+
+  private onWakuConnectionEvent(): void {
+    if (this.networkMonitor.isBrowserConnected()) {
+      void this.dialPeersFromStore();
+    }
   }
 
   private async onConnectedEvent(evt: CustomEvent<PeerId>): Promise<void> {
@@ -121,7 +146,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
     const promises = allPeers
       .filter((p) => !allConnections.some((c) => c.remotePeer.equals(p.id)))
-      .map((p) => this.libp2p.dial(p.id));
+      .map((p) => this.dialer.dial(p.id));
 
     try {
       log.info(`Dialing ${promises.length} peers from store`);

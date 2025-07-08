@@ -52,7 +52,28 @@ export class NetworkMonitor implements INetworkMonitor {
     }
   }
 
+  /**
+   * Returns true if the node is connected to the network via libp2p and browser.
+   */
   public isConnected(): boolean {
+    if (!this.isBrowserConnected()) {
+      return false;
+    }
+
+    return this.isP2PConnected();
+  }
+
+  /**
+   * Returns true if the node is connected to the network via libp2p.
+   */
+  public isP2PConnected(): boolean {
+    return this.isNetworkConnected;
+  }
+
+  /**
+   * Returns true if the node is connected to the network via browser.
+   */
+  public isBrowserConnected(): boolean {
     try {
       if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
         return false;
@@ -61,7 +82,7 @@ export class NetworkMonitor implements INetworkMonitor {
       // ignore
     }
 
-    return this.isNetworkConnected;
+    return true;
   }
 
   private onConnectedEvent(): void {

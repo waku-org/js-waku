@@ -1,12 +1,17 @@
 import { type Connection, type Peer, type PeerId } from "@libp2p/interface";
-import { Tags } from "@waku/interfaces";
+import { IWakuEventEmitter, Tags } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
 import { ConnectionLimiter } from "./connection_limiter.js";
+import { Dialer } from "./dialer.js";
+import { NetworkMonitor } from "./network_monitor.js";
 
 describe("ConnectionLimiter", () => {
   let libp2p: any;
+  let events: IWakuEventEmitter;
+  let dialer: sinon.SinonStubbedInstance<Dialer>;
+  let networkMonitor: sinon.SinonStubbedInstance<NetworkMonitor>;
   let connectionLimiter: ConnectionLimiter;
   let mockPeerId: PeerId;
 
@@ -64,6 +69,26 @@ describe("ConnectionLimiter", () => {
         get: sinon.stub().resolves(mockPeer)
       }
     };
+
+    events = {
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub(),
+      dispatchEvent: sinon.stub()
+    } as any;
+
+    dialer = {
+      start: sinon.stub(),
+      stop: sinon.stub(),
+      dial: sinon.stub().resolves()
+    } as unknown as sinon.SinonStubbedInstance<Dialer>;
+
+    networkMonitor = {
+      start: sinon.stub(),
+      stop: sinon.stub(),
+      isBrowserConnected: sinon.stub().returns(true),
+      isConnected: sinon.stub().returns(true),
+      isP2PConnected: sinon.stub().returns(true)
+    } as unknown as sinon.SinonStubbedInstance<NetworkMonitor>;
   });
 
   afterEach(() => {
@@ -77,6 +102,9 @@ describe("ConnectionLimiter", () => {
     it("should create ConnectionLimiter with required options", () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
 
@@ -86,6 +114,9 @@ describe("ConnectionLimiter", () => {
     it("should store libp2p and options references", () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
 
@@ -98,6 +129,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
     });
@@ -113,8 +147,17 @@ describe("ConnectionLimiter", () => {
       expect(dialPeersStub.calledOnce).to.be.true;
     });
 
-    it("should add event listeners for peer connect and disconnect", () => {
+    it("should add event listeners for waku:connection, peer connect and disconnect", () => {
       connectionLimiter.start();
+
+      expect((events.addEventListener as sinon.SinonStub).calledOnce).to.be
+        .true;
+      expect(
+        (events.addEventListener as sinon.SinonStub).calledWith(
+          "waku:connection",
+          sinon.match.func
+        )
+      ).to.be.true;
 
       expect(libp2p.addEventListener.calledTwice).to.be.true;
       expect(
@@ -129,6 +172,9 @@ describe("ConnectionLimiter", () => {
       connectionLimiter.start();
       connectionLimiter.start();
 
+      expect((events.addEventListener as sinon.SinonStub).callCount).to.equal(
+        2
+      );
       expect(libp2p.addEventListener.callCount).to.equal(4);
     });
   });
@@ -137,6 +183,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
@@ -144,6 +193,15 @@ describe("ConnectionLimiter", () => {
 
     it("should remove event listeners", () => {
       connectionLimiter.stop();
+
+      expect((events.removeEventListener as sinon.SinonStub).calledOnce).to.be
+        .true;
+      expect(
+        (events.removeEventListener as sinon.SinonStub).calledWith(
+          "waku:connection",
+          sinon.match.func
+        )
+      ).to.be.true;
 
       expect(libp2p.removeEventListener.calledTwice).to.be.true;
       expect(
@@ -161,7 +219,52 @@ describe("ConnectionLimiter", () => {
       connectionLimiter.stop();
       connectionLimiter.stop();
 
+      expect(
+        (events.removeEventListener as sinon.SinonStub).callCount
+      ).to.equal(2);
       expect(libp2p.removeEventListener.callCount).to.equal(4);
+    });
+  });
+
+  describe("onWakuConnectionEvent", () => {
+    let eventHandler: () => void;
+
+    beforeEach(() => {
+      connectionLimiter = new ConnectionLimiter({
+        libp2p,
+        events,
+        dialer,
+        networkMonitor,
+        options: defaultOptions
+      });
+      connectionLimiter.start();
+
+      const addEventListenerStub = events.addEventListener as sinon.SinonStub;
+      eventHandler = addEventListenerStub.getCall(0).args[1];
+    });
+
+    it("should dial peers from store when browser is connected", () => {
+      const dialPeersStub = sinon.stub(
+        connectionLimiter,
+        "dialPeersFromStore" as any
+      );
+      networkMonitor.isBrowserConnected.returns(true);
+
+      eventHandler();
+
+      expect(dialPeersStub.calledOnce).to.be.true;
+    });
+
+    it("should not dial peers from store when browser is not connected", () => {
+      const dialPeersStub = sinon.stub(
+        connectionLimiter,
+        "dialPeersFromStore" as any
+      );
+      networkMonitor.isBrowserConnected.returns(false);
+
+      eventHandler();
+
+      expect(dialPeersStub.called).to.be.false;
     });
   });
 
@@ -171,6 +274,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
@@ -294,6 +400,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
@@ -331,6 +440,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
     });
@@ -350,9 +462,9 @@ describe("ConnectionLimiter", () => {
 
       await (connectionLimiter as any).dialPeersFromStore();
 
-      expect(libp2p.dial.calledOnce).to.be.true;
-      expect(libp2p.dial.calledWith(mockPeer2.id)).to.be.true;
-      expect(libp2p.dial.calledWith(mockPeer.id)).to.be.false;
+      expect(dialer.dial.calledOnce).to.be.true;
+      expect(dialer.dial.calledWith(mockPeer2.id)).to.be.true;
+      expect(dialer.dial.calledWith(mockPeer.id)).to.be.false;
     });
 
     it("should dial all remaining peers", async () => {
@@ -361,19 +473,19 @@ describe("ConnectionLimiter", () => {
 
       await (connectionLimiter as any).dialPeersFromStore();
 
-      expect(libp2p.dial.calledTwice).to.be.true;
-      expect(libp2p.dial.calledWith(mockPeer.id)).to.be.true;
-      expect(libp2p.dial.calledWith(mockPeer2.id)).to.be.true;
+      expect(dialer.dial.calledTwice).to.be.true;
+      expect(dialer.dial.calledWith(mockPeer.id)).to.be.true;
+      expect(dialer.dial.calledWith(mockPeer2.id)).to.be.true;
     });
 
     it("should handle dial errors gracefully", async () => {
       libp2p.peerStore.all.resolves([mockPeer]);
       libp2p.getConnections.returns([]);
-      libp2p.dial.rejects(new Error("Dial failed"));
+      dialer.dial.rejects(new Error("Dial failed"));
 
       await (connectionLimiter as any).dialPeersFromStore();
 
-      expect(libp2p.dial.calledOnce).to.be.true;
+      expect(dialer.dial.calledOnce).to.be.true;
     });
 
     it("should handle case with no peers in store", async () => {
@@ -382,7 +494,7 @@ describe("ConnectionLimiter", () => {
 
       await (connectionLimiter as any).dialPeersFromStore();
 
-      expect(libp2p.dial.called).to.be.false;
+      expect(dialer.dial.called).to.be.false;
     });
 
     it("should handle case with all peers already connected", async () => {
@@ -391,7 +503,7 @@ describe("ConnectionLimiter", () => {
 
       await (connectionLimiter as any).dialPeersFromStore();
 
-      expect(libp2p.dial.called).to.be.false;
+      expect(dialer.dial.called).to.be.false;
     });
   });
 
@@ -399,6 +511,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
     });
@@ -444,6 +559,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
     });
@@ -476,6 +594,9 @@ describe("ConnectionLimiter", () => {
     beforeEach(() => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
     });
@@ -645,6 +766,9 @@ describe("ConnectionLimiter", () => {
 
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: customOptions
       });
 
@@ -677,10 +801,15 @@ describe("ConnectionLimiter", () => {
     it("should handle full lifecycle (start -> events -> stop)", async () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
 
       connectionLimiter.start();
+      expect((events.addEventListener as sinon.SinonStub).calledOnce).to.be
+        .true;
       expect(libp2p.addEventListener.calledTwice).to.be.true;
 
       const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
@@ -696,6 +825,8 @@ describe("ConnectionLimiter", () => {
       expect(libp2p.peerStore.all.called).to.be.true;
 
       connectionLimiter.stop();
+      expect((events.removeEventListener as sinon.SinonStub).calledOnce).to.be
+        .true;
       expect(libp2p.removeEventListener.calledTwice).to.be.true;
     });
 
@@ -708,6 +839,9 @@ describe("ConnectionLimiter", () => {
 
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: customOptions
       });
       connectionLimiter.start();
@@ -753,6 +887,9 @@ describe("ConnectionLimiter", () => {
 
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: customOptions
       });
       connectionLimiter.start();
@@ -796,6 +933,9 @@ describe("ConnectionLimiter", () => {
 
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: customOptions
       });
       connectionLimiter.start();
@@ -831,6 +971,9 @@ describe("ConnectionLimiter", () => {
     it("should handle mixed peer types with bootstrap limiting", async () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
@@ -873,6 +1016,9 @@ describe("ConnectionLimiter", () => {
     it("should redial peers when all connections are lost", async () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
@@ -885,12 +1031,15 @@ describe("ConnectionLimiter", () => {
       await disconnectEventHandler();
 
       expect(libp2p.peerStore.all.called).to.be.true;
-      expect(libp2p.dial.calledTwice).to.be.true;
+      expect(dialer.dial.calledTwice).to.be.true;
     });
 
     it("should handle peer store errors during connection limiting", async () => {
       connectionLimiter = new ConnectionLimiter({
         libp2p,
+        events,
+        dialer,
+        networkMonitor,
         options: defaultOptions
       });
       connectionLimiter.start();
