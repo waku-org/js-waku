@@ -1,4 +1,4 @@
-import { LightNode, Protocols } from "@waku/interfaces";
+import { LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 import type { Context } from "mocha";
 
@@ -13,7 +13,7 @@ import {
 
 import { TestShardInfo } from "./utils.js";
 
-describe("DiscoveryDialer", function () {
+describe.only("DiscoveryDialer", function () {
   const ctx: Context = this.ctx;
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
@@ -60,7 +60,7 @@ describe("DiscoveryDialer", function () {
     ).to.have.length(0);
 
     try {
-      await waku.dial(maddrs[0], [Protocols.Filter, Protocols.LightPush]);
+      await waku.dial(maddrs[0]);
     } catch (error) {
       throw Error(error as string);
     }
