@@ -113,7 +113,11 @@ describe("DiscoveryDialer", function () {
     );
 
     const isConnectedAfterDial = waku.isConnected();
-    console.log("[DEBUG] waku.isConnected() after dial:", isConnectedAfterDial);
+    console.log(
+      "[DEBUG] waku.isConnected() after dial:",
+      isConnectedAfterDial,
+      waku.libp2p.getConnections().length
+    );
     expect(isConnectedAfterDial, "waku is connected").to.be.true;
 
     const connectedPeersAfterDial = await waku.getConnectedPeers();
