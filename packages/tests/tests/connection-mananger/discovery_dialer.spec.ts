@@ -13,7 +13,7 @@ import {
 
 import { TestShardInfo } from "./utils.js";
 
-describe("DiscoveryDialer", function () {
+describe.only("DiscoveryDialer", function () {
   const ctx: Context = this.ctx;
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
