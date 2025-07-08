@@ -8,6 +8,9 @@ type NetworkMonitorConstructorOptions = {
 interface INetworkMonitor {
   start(): void;
   stop(): void;
+  isConnected(): boolean;
+  isP2PConnected(): boolean;
+  isBrowserConnected(): boolean;
 }
 
 export class NetworkMonitor implements INetworkMonitor {
