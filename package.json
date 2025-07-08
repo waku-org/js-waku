@@ -36,6 +36,7 @@
     "test:longevity": "npm --prefix packages/reliability-tests run test:longevity",
     "test:high-throughput": "npm --prefix packages/reliability-tests run test:high-throughput",
     "test:throughput-sizes": "npm --prefix packages/reliability-tests run test:throughput-sizes",
+    "test:network-latency": "npm --prefix packages/reliability-tests run test:network-latency",
     "proto": "npm run proto --workspaces --if-present",
     "deploy": "node ci/deploy.js",
     "doc": "run-s doc:*",

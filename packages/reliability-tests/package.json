@@ -44,6 +44,7 @@
     "test:longevity": "NODE_ENV=test node ./src/run-tests.js tests/longevity.spec.ts",
     "test:high-throughput": "NODE_ENV=test node ./src/run-tests.js tests/high-throughput.spec.ts",
     "test:throughput-sizes": "NODE_ENV=test node ./src/run-tests.js tests/throughput-sizes.spec.ts",
+    "test:network-latency": "NODE_ENV=test node ./src/run-tests.js tests/network-latency.spec.ts",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
