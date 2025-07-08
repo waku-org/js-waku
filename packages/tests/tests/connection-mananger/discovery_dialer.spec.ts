@@ -59,11 +59,23 @@ describe("DiscoveryDialer", function () {
       "waku has no connected peers"
     ).to.have.length(0);
 
+    const connectPromise = new Promise((resolve, reject) => {
+      waku.libp2p.addEventListener("peer:connect", () => {
+        resolve(true);
+      });
+
+      setTimeout(() => {
+        reject(new Error("Timeout waiting for peer:connect event"));
+      }, 1000);
+    });
+
     try {
       await waku.dial(maddrs[0]);
     } catch (error) {
       throw Error(error as string);
     }
+
+    await connectPromise;
 
     expect(waku.isConnected(), "waku is connected").to.be.true;
     expect(
@@ -72,7 +84,7 @@ describe("DiscoveryDialer", function () {
     ).to.have.length(1);
 
     const secondPeerId = await serviceNodes.nodes[1].getPeerId();
-    const promise = new Promise((resolve) => {
+    const discoveryPromise = new Promise((resolve) => {
       waku.libp2p.addEventListener("peer:discovery", (event) => {
         if (event.detail.id.equals(secondPeerId)) {
           resolve(true);
@@ -85,7 +97,7 @@ describe("DiscoveryDialer", function () {
       multiaddrs: [maddrs[1]]
     });
 
-    await promise;
+    await discoveryPromise;
     await delay(500);
 
     expect(
