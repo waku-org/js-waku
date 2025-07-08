@@ -60,8 +60,20 @@ export class NetworkMonitor implements INetworkMonitor {
    */
   public isConnected(): boolean {
     if (!this.isBrowserConnected()) {
+      // eslint-disable-next-line no-console
+      console.log(
+        "[DEBUG] isBrowserConnected() is false",
+        this.isBrowserConnected()
+      );
       return false;
     }
+
+    // eslint-disable-next-line no-console
+    console.log(
+      "[DEBUG] isP2PConnected() is true",
+      this.isP2PConnected(),
+      this.isBrowserConnected()
+    );
 
     return this.isP2PConnected();
   }
