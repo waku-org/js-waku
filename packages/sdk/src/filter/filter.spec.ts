@@ -160,7 +160,9 @@ function mockLibp2p(): Libp2p {
 
 function mockConnectionManager(): ConnectionManager {
   return {
-    isPubsubTopicConfigured: sinon.stub().returns(true)
+    isTopicConfigured: sinon.stub().callsFake((topic: string) => {
+      return topic === PUBSUB_TOPIC;
+    })
   } as unknown as ConnectionManager;
 }
 
