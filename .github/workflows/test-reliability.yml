@@ -13,6 +13,8 @@ on:
           - high-throughput
           - throughput-sizes
           - network-latency
+          - low-bandwidth
+          - packet-loss
           - all
 
 env:
@@ -27,7 +29,7 @@ jobs:
       checks: write
     strategy:
       matrix:
-        test_type: [longevity, high-throughput, throughput-sizes, network-latency]
+        test_type: [longevity, high-throughput, throughput-sizes, network-latency, low-bandwidth, packet-loss]
       fail-fast: false
     if: ${{ github.event.inputs.test_type == 'all' }}
     steps:
@@ -55,6 +57,10 @@ jobs:
             npm run test:throughput-sizes
           elif [ "${{ matrix.test_type }}" = "network-latency" ]; then
             npm run test:network-latency
+          elif [ "${{ matrix.test_type }}" = "low-bandwidth" ]; then
+            npm run test:low-bandwidth
+          elif [ "${{ matrix.test_type }}" = "packet-loss" ]; then
+            npm run test:packet-loss
           else
             npm run test:longevity
           fi
@@ -91,6 +97,10 @@ jobs:
             npm run test:throughput-sizes
           elif [ "${{ github.event.inputs.test_type }}" = "network-latency" ]; then
             npm run test:network-latency
+          elif [ "${{ github.event.inputs.test_type }}" = "low-bandwidth" ]; then
+            npm run test:low-bandwidth
+          elif [ "${{ github.event.inputs.test_type }}" = "packet-loss" ]; then
+            npm run test:packet-loss
           else
             npm run test:longevity
           fi
