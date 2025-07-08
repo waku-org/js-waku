@@ -1,0 +1,181 @@
+import { execSync } from "child_process";
+
+import { LightNode, Protocols } from "@waku/interfaces";
+import {
+  createDecoder,
+  createEncoder,
+  createLightNode,
+  utf8ToBytes
+} from "@waku/sdk";
+import {
+  delay,
+  shardInfoToPubsubTopics,
+  singleShardInfosToShardInfo,
+  singleShardInfoToPubsubTopic
+} from "@waku/utils";
+import { expect } from "chai";
+
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  makeLogFileName,
+  MessageCollector,
+  ServiceNode,
+  tearDownNodes
+} from "../../tests/src/index.js";
+
+const ContentTopic = "/waku/2/content/test.js";
+
+describe("Packet Loss Test", function () {
+  const testDurationMs = 10 * 60 * 1000; // 10 mins
+  this.timeout(testDurationMs * 1.1);
+  let waku: LightNode;
+  let nwaku: ServiceNode;
+  let messageCollector: MessageCollector;
+
+  beforeEachCustom(this, async () => {
+    // Add network packet loss using tc
+    try {
+      execSync(`sudo tc qdisc add dev eth0 root netem loss 2%`);
+    } catch (e) {
+      console.warn(
+        "Failed to add tc network packet loss rule, continuing without it:",
+        e
+      );
+    }
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    messageCollector = new MessageCollector(nwaku);
+  });
+
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
+    // Remove network latency and jitter
+    try {
+      execSync("sudo tc qdisc del dev eth0 root netem");
+    } catch (e) {
+      console.warn("Failed to remove tc network delay rule:", e);
+    }
+  });
+
+  it("Send/Receive messages under network packet loss", async function () {
+    const singleShardInfo = { clusterId: 0, shard: 0 };
+    const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+
+    const testStart = new Date();
+
+    const testEnd = Date.now() + testDurationMs;
+
+    const report: {
+      messageId: number;
+      timestamp: string;
+      sent: boolean;
+      received: boolean;
+      error?: string;
+    }[] = [];
+
+    await nwaku.start(
+      {
+        store: true,
+        filter: true,
+        relay: true,
+        clusterId: 0,
+        shard: [0],
+        contentTopic: [ContentTopic]
+      },
+      { retries: 3 }
+    );
+
+    await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
+
+    waku = await createLightNode({ networkConfig: shardInfo });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waku.waitForPeers([Protocols.Filter]);
+
+    const decoder = createDecoder(ContentTopic, singleShardInfo);
+    const hasSubscribed = await waku.filter.subscribe(
+      [decoder],
+      messageCollector.callback
+    );
+    if (!hasSubscribed) throw new Error("Failed to subscribe from the start.");
+
+    const encoder = createEncoder({
+      contentTopic: ContentTopic,
+      pubsubTopicShardInfo: singleShardInfo
+    });
+
+    expect(encoder.pubsubTopic).to.eq(
+      singleShardInfoToPubsubTopic(singleShardInfo)
+    );
+
+    let messageId = 0;
+
+    while (Date.now() < testEnd) {
+      const now = new Date();
+      const message = `ping-${messageId}`;
+      let sent = false;
+      let received = false;
+      let err: string | undefined;
+
+      try {
+        await nwaku.sendMessage(
+          ServiceNode.toMessageRpcQuery({
+            contentTopic: ContentTopic,
+            payload: utf8ToBytes(message)
+          })
+        );
+        sent = true;
+
+        received = await messageCollector.waitForMessages(1, {
+          timeoutDuration: 5000
+        });
+
+        if (received) {
+          messageCollector.verifyReceivedMessage(0, {
+            expectedMessageText: message,
+            expectedContentTopic: ContentTopic,
+            expectedPubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
+          });
+        }
+      } catch (e: any) {
+        err = e.message || String(e);
+      }
+
+      report.push({
+        messageId,
+        timestamp: now.toISOString(),
+        sent,
+        received,
+        error: err
+      });
+
+      messageId++;
+      messageCollector.list = []; // clearing the message collector
+      await delay(400);
+    }
+
+    const failedMessages = report.filter(
+      (m) => !m.sent || !m.received || m.error
+    );
+
+    console.log("\n=== Network Latency Test Summary ===");
+    console.log("Start time:", testStart.toISOString());
+    console.log("End time:", new Date().toISOString());
+    console.log("Total messages:", report.length);
+    console.log("Failures:", failedMessages.length);
+
+    if (failedMessages.length > 0) {
+      console.log("\n--- Failed Messages ---");
+      for (const fail of failedMessages) {
+        console.log(
+          `#${fail.messageId} @ ${fail.timestamp} | sent: ${fail.sent} | received: ${fail.received} | error: ${fail.error || "N/A"}`
+        );
+      }
+    }
+
+    expect(
+      failedMessages.length,
+      `Some messages failed: ${failedMessages.length}`
+    ).to.eq(0);
+  });
+});
