@@ -35,8 +35,7 @@ export type ConnectionManagerOptions = {
 
 export interface IConnectionManager {
   /**
-   * Starts the connection manager and all internal components.
-   * Initializes network monitoring, discovery dialing, keep-alive management, and connection limiting.
+   * Starts network monitoring, dialing discovered peers, keep-alive management, and connection limiting.
    *
    * @example
    * ```typescript
@@ -47,8 +46,7 @@ export interface IConnectionManager {
   start(): void;
 
   /**
-   * Stops the connection manager and all internal components.
-   * Shuts down network monitoring, discovery dialing, keep-alive management, and connection limiting.
+   * Stops network monitoring, discovery dialing, keep-alive management, and connection limiting.
    *
    * @example
    * ```typescript
@@ -58,7 +56,7 @@ export interface IConnectionManager {
   stop(): void;
 
   /**
-   * Establishes a connection to a peer using specific protocol codecs.
+   * Connects to a peer using specific protocol codecs.
    * This is a direct proxy to libp2p's dialProtocol method.
    *
    * @param peer - The peer to connect to (PeerId or multiaddr)

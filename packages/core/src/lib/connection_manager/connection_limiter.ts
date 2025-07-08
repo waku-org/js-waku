@@ -104,11 +104,10 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
   private async dialPeersFromStore(): Promise<void> {
     const allPeers = await this.libp2p.peerStore.all();
+    const allConnections = this.libp2p.getConnections();
+
     const promises = allPeers
-      .filter(
-        (p) =>
-          !this.libp2p.getConnections().some((c) => c.remotePeer.equals(p.id))
-      )
+      .filter((p) => !allConnections.some((c) => c.remotePeer.equals(p.id)))
       .map((p) => this.libp2p.dial(p.id));
 
     try {
