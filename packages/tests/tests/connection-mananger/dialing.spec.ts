@@ -142,7 +142,6 @@ describe("Dialing", function () {
       await waku.dial(multiaddr);
     } catch (error) {
       if (error instanceof Error) {
-        console.log(`[DEBUG] error: ${error.message}`);
         expect(error.message).to.eq(`Could not connect to ${multiaddr}`);
         tlsWorks = !error.message.includes("Unsupported protocol tls");
       }
