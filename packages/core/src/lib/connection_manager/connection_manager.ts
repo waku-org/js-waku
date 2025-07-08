@@ -109,16 +109,22 @@ export class ConnectionManager implements IConnectionManager {
     protocolCodecs: string[]
   ): Promise<Stream> {
     const ma = mapToPeerIdOrMultiaddr(peer);
-    return this.libp2p.dialProtocol(ma, protocolCodecs);
+
+    log.info(`Dialing peer ${ma.toString()} with protocols ${protocolCodecs}`);
+    const stream = await this.libp2p.dialProtocol(ma, protocolCodecs);
+    log.info(`Dialed peer ${ma.toString()} with protocols ${protocolCodecs}`);
+
+    return stream;
   }
 
   public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
     const peerId = mapToPeerId(peer);
 
     try {
+      log.info(`Dropping connection with peer ${peerId.toString()}`);
       await this.libp2p.hangUp(peerId);
-
       log.info(`Dropped connection with peer ${peerId.toString()}`);
+
       return true;
     } catch (error) {
       log.error(
@@ -132,7 +138,10 @@ export class ConnectionManager implements IConnectionManager {
   public async getConnectedPeers(codec?: string): Promise<Peer[]> {
     const peerIDs = this.libp2p.getPeers();
 
+    log.info(`Getting connected peers for codec ${codec}`);
+
     if (peerIDs.length === 0) {
+      log.info(`No connected peers`);
       return [];
     }
 
@@ -146,10 +155,14 @@ export class ConnectionManager implements IConnectionManager {
       })
     );
 
-    return peers
+    const result = peers
       .filter((p) => !!p)
       .filter((p) => (codec ? (p as Peer).protocols.includes(codec) : true))
       .sort((left, right) => getPeerPing(left) - getPeerPing(right)) as Peer[];
+
+    log.info(`Found ${result.length} connected peers for codec ${codec}`);
+
+    return result;
   }
 
   public isTopicConfigured(pubsubTopic: PubsubTopic): boolean {

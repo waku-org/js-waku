@@ -88,30 +88,45 @@ export class ConnectionLimiter implements IConnectionLimiter {
     const isBootstrap = tags.includes(Tags.BOOTSTRAP);
 
     if (!isBootstrap) {
+      log.info(
+        `Connected to peer ${peerId.toString()} is not a bootstrap peer`
+      );
       return;
     }
 
     if (await this.hasMoreThanMaxBootstrapConnections()) {
+      log.info(
+        `Connected to peer ${peerId.toString()} and node has more than max bootstrap connections ${this.options.maxBootstrapPeers}. Dropping connection.`
+      );
       await this.libp2p.hangUp(peerId);
     }
   }
 
   private async onDisconnectedEvent(): Promise<void> {
     if (this.libp2p.getConnections().length === 0) {
+      log.info(`No connections, dialing peers from store`);
       await this.dialPeersFromStore();
     }
   }
 
   private async dialPeersFromStore(): Promise<void> {
+    log.info(`Dialing peers from store`);
+
     const allPeers = await this.libp2p.peerStore.all();
     const allConnections = this.libp2p.getConnections();
+
+    log.info(
+      `Found ${allPeers.length} peers in store, and found ${allConnections.length} connections`
+    );
 
     const promises = allPeers
       .filter((p) => !allConnections.some((c) => c.remotePeer.equals(p.id)))
       .map((p) => this.libp2p.dial(p.id));
 
     try {
+      log.info(`Dialing ${promises.length} peers from store`);
       await Promise.all(promises);
+      log.info(`Dialed ${promises.length} peers from store`);
     } catch (error) {
       log.error(`Unexpected error while dialing peer store peers`, error);
     }

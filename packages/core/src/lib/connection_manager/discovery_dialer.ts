@@ -40,8 +40,6 @@ export class DiscoveryDialer implements IDiscoveryDialer {
   }
 
   public start(): void {
-    log.info("Starting discovery dialer");
-
     this.libp2p.addEventListener(
       "peer:discovery",
       this.onPeerDiscovery as Libp2pEventHandler<PeerInfo>
@@ -51,16 +49,12 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       this.dialingInterval = setInterval(() => {
         void this.processQueue();
       }, 500);
-
-      log.info("Started dialing interval processor");
     }
 
     this.dialHistory.clear();
   }
 
   public stop(): void {
-    log.info("Stopping discovery dialer");
-
     this.libp2p.removeEventListener(
       "peer:discovery",
       this.onPeerDiscovery as Libp2pEventHandler<PeerInfo>
@@ -69,8 +63,6 @@ export class DiscoveryDialer implements IDiscoveryDialer {
     if (this.dialingInterval) {
       clearInterval(this.dialingInterval);
       this.dialingInterval = null;
-
-      log.info("Stopped dialing interval processor");
     }
 
     this.dialHistory.clear();
@@ -119,11 +111,13 @@ export class DiscoveryDialer implements IDiscoveryDialer {
 
   private async shouldSkipPeer(peerId: PeerId): Promise<boolean> {
     if (this.dialHistory.has(peerId.toString())) {
+      log.info(`Skipping peer ${peerId} - already dialed`);
       return true;
     }
 
     const hasShardInfo = await this.shardReader.hasShardInfo(peerId);
     if (!hasShardInfo) {
+      log.info(`Skipping peer ${peerId} - no shard info`);
       return false;
     }
 
@@ -135,6 +129,7 @@ export class DiscoveryDialer implements IDiscoveryDialer {
 
     const hasConnection = this.libp2p.getPeers().some((p) => p.equals(peerId));
     if (hasConnection) {
+      log.info(`Skipping peer ${peerId} - already connected`);
       return true;
     }
 
@@ -146,9 +141,11 @@ export class DiscoveryDialer implements IDiscoveryDialer {
     multiaddrs: Multiaddr[]
   ): Promise<void> {
     try {
+      log.info(`Updating peer store for ${peerId}`);
       const peer = await this.getPeer(peerId);
 
       if (!peer) {
+        log.info(`Peer ${peerId} not found in store, saving`);
         await this.libp2p.peerStore.save(peerId, {
           multiaddrs: multiaddrs
         });
@@ -160,9 +157,11 @@ export class DiscoveryDialer implements IDiscoveryDialer {
       );
 
       if (hasSameAddr) {
+        log.info(`Peer ${peerId} has same addresses in peer store, skipping`);
         return;
       }
 
+      log.info(`Merging peer ${peerId} addresses in peer store`);
       await this.libp2p.peerStore.merge(peerId, {
         multiaddrs: multiaddrs
       });
