@@ -53,7 +53,7 @@ describe("Low Bandwith Test", function () {
     await tearDownNodes(nwaku, waku);
     // Remove network latency and jitter
     try {
-      execSync("sudo tc qdisc del dev eth0 root netem");
+      execSync("sudo tc qdisc del dev eth0 root");
     } catch (e) {
       console.warn("Failed to remove tc network Low Bandwith rule:", e);
     }
