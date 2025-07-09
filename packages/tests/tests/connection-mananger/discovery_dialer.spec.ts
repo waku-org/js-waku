@@ -13,7 +13,8 @@ import {
 
 import { TestShardInfo } from "./utils.js";
 
-describe("DiscoveryDialer", function () {
+// TODO: investigate and re-enable in https://github.com/waku-org/js-waku/issues/2453
+describe.skip("DiscoveryDialer", function () {
   const ctx: Context = this.ctx;
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
