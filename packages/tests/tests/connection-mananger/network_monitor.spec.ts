@@ -192,6 +192,7 @@ describe("waku:connection", function () {
 
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
+
   beforeEachCustom(this, async () => {
     waku = await createLightNode();
     originalNavigator = global.navigator;

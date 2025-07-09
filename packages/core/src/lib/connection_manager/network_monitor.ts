@@ -60,20 +60,8 @@ export class NetworkMonitor implements INetworkMonitor {
    */
   public isConnected(): boolean {
     if (!this.isBrowserConnected()) {
-      // eslint-disable-next-line no-console
-      console.log(
-        "[DEBUG] isBrowserConnected() is false",
-        this.isBrowserConnected()
-      );
       return false;
     }
-
-    // eslint-disable-next-line no-console
-    console.log(
-      "[DEBUG] isP2PConnected() is true",
-      this.isP2PConnected(),
-      this.isBrowserConnected()
-    );
 
     return this.isP2PConnected();
   }
@@ -82,6 +70,12 @@ export class NetworkMonitor implements INetworkMonitor {
    * Returns true if the node is connected to the network via libp2p.
    */
   public isP2PConnected(): boolean {
+    // eslint-disable-next-line no-console
+    console.log(
+      "[DEBUG] isP2PConnected()",
+      this.isNetworkConnected,
+      this.libp2p.getConnections().length
+    );
     return this.isNetworkConnected;
   }
 
@@ -90,10 +84,17 @@ export class NetworkMonitor implements INetworkMonitor {
    */
   public isBrowserConnected(): boolean {
     try {
+      // eslint-disable-next-line no-console
+      console.log(
+        "[DEBUG] isBrowserConnected()",
+        globalThis?.navigator?.onLine
+      );
       if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
         return false;
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
+      console.log("[DEBUG] isBrowserConnected() error", err);
       // ignore
     }
 
