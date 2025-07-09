@@ -22,10 +22,10 @@ import {
   tearDownNodes
 } from "../../tests/src/index.js";
 
-const ContentTopic = "/waku/2/content/test.js";
+const ContentTopic = "/waku/2/content/test.high-throughput.js";
 
-describe("Longevity", function () {
-  const testDurationMs = 2 * 60 * 60 * 1000; // 2 hours
+describe("High Throughput Messaging", function () {
+  const testDurationMs = 20 * 60 * 1000; // 20 minutes
   this.timeout(testDurationMs * 1.1);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -40,12 +40,11 @@ describe("Longevity", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  it("Filter - 2 hours", async function () {
+  it("Send/Receive thousands of messages quickly", async function () {
     const singleShardInfo = { clusterId: 0, shard: 0 };
     const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
 
     const testStart = new Date();
-
     const testEnd = Date.now() + testDurationMs;
 
     const report: {
@@ -67,6 +66,8 @@ describe("Longevity", function () {
       },
       { retries: 3 }
     );
+
+    await delay(1000);
 
     await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
@@ -93,9 +94,10 @@ describe("Longevity", function () {
 
     let messageId = 0;
 
+    // Send messages as fast as possible until testEnd
     while (Date.now() < testEnd) {
       const now = new Date();
-      const message = `ping-${messageId}`;
+      const message = `msg-${messageId}`;
       let sent = false;
       let received = false;
       let err: string | undefined;
@@ -110,7 +112,7 @@ describe("Longevity", function () {
         sent = true;
 
         received = await messageCollector.waitForMessages(1, {
-          timeoutDuration: 5000
+          timeoutDuration: 2000
         });
 
         if (received) {
@@ -134,14 +136,13 @@ describe("Longevity", function () {
 
       messageId++;
       messageCollector.list = []; // clearing the message collector
-      await delay(400);
     }
 
     const failedMessages = report.filter(
       (m) => !m.sent || !m.received || m.error
     );
 
-    console.log("\n=== Longevity Test Summary ===");
+    console.log("\n=== High Throughput Test Summary ===");
     console.log("Start time:", testStart.toISOString());
     console.log("End time:", new Date().toISOString());
     console.log("Total messages:", report.length);
