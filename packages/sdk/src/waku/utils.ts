@@ -1,6 +1,3 @@
-import { isPeerId } from "@libp2p/interface";
-import type { PeerId } from "@libp2p/interface";
-import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   CreateDecoderParams,
   NetworkConfig,
@@ -8,12 +5,6 @@ import type {
 } from "@waku/interfaces";
 import { DEFAULT_NUM_SHARDS } from "@waku/interfaces";
 import { contentTopicToShardIndex } from "@waku/utils";
-
-export const mapToPeerIdOrMultiaddr = (
-  peerId: PeerId | MultiaddrInput
-): PeerId | Multiaddr => {
-  return isPeerId(peerId) ? peerId : multiaddr(peerId);
-};
 
 export const decoderParamsToShardInfo = (
   params: CreateDecoderParams,

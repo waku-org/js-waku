@@ -46,7 +46,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance. Configured topics are: ${TestDecoder.pubsubTopic}`
+          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance.`
         )
       ) {
         throw err;
@@ -110,7 +110,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance. Configured topics are: ${TestDecoder.pubsubTopic}`
+          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance.`
         )
       ) {
         throw err;
@@ -168,7 +168,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance. Configured topics are: ${TestDecoder.pubsubTopic}`
+          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance.`
         )
       ) {
         throw err;

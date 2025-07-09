@@ -1,4 +1,4 @@
-import type { NodeCapabilityCount } from "@waku/interfaces";
+import { type NodeCapabilityCount, Tags } from "@waku/interfaces";
 
 /**
  * The ENR tree for the different fleets.
@@ -10,7 +10,7 @@ export const enrTree = {
   TEST: "enrtree://AOGYWMBYOUIMOENHXCHILPKY3ZRFEULMFI4DOM442QSZ73TT2A7VI@test.waku.nodes.status.im"
 };
 
-export const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
+export const DEFAULT_BOOTSTRAP_TAG_NAME = Tags.BOOTSTRAP;
 export const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
 export const DEFAULT_BOOTSTRAP_TAG_TTL = 100_000_000;
 
