@@ -1,3 +1,5 @@
+import { execSync } from "child_process";
+
 import { LightNode, Protocols } from "@waku/interfaces";
 import {
   createDecoder,
@@ -24,23 +26,40 @@ import {
 
 const ContentTopic = "/waku/2/content/test.js";
 
-describe("Longevity", function () {
-  const testDurationMs = 2 * 60 * 60 * 1000; // 2 hours
+describe("Network Latency and Jitter Test", function () {
+  const testDurationMs = 10 * 60 * 1000; // 10 mins
   this.timeout(testDurationMs * 1.1);
   let waku: LightNode;
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
+    // Add network latency and jitter using tc
+    try {
+      execSync(
+        `sudo tc qdisc add dev eth0 root netem delay 300ms 50ms distribution normal`
+      );
+    } catch (e) {
+      console.warn(
+        "Failed to add tc network delay rule, continuing without it:",
+        e
+      );
+    }
     nwaku = new ServiceNode(makeLogFileName(this.ctx));
     messageCollector = new MessageCollector(nwaku);
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
+    // Remove network latency and jitter
+    try {
+      execSync("sudo tc qdisc del dev eth0 root netem");
+    } catch (e) {
+      console.warn("Failed to remove tc network delay rule:", e);
+    }
   });
 
-  it("Filter - 2 hours", async function () {
+  it("Send/Receive messages under network latency and jitter", async function () {
     const singleShardInfo = { clusterId: 0, shard: 0 };
     const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
 
@@ -141,7 +160,7 @@ describe("Longevity", function () {
       (m) => !m.sent || !m.received || m.error
     );
 
-    console.log("\n=== Longevity Test Summary ===");
+    console.log("\n=== Network Latency Test Summary ===");
     console.log("Start time:", testStart.toISOString());
     console.log("End time:", new Date().toISOString());
     console.log("Total messages:", report.length);

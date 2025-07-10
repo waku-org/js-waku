@@ -22,10 +22,21 @@ import {
   tearDownNodes
 } from "../../tests/src/index.js";
 
-const ContentTopic = "/waku/2/content/test.js";
+const ContentTopic = "/waku/2/content/test.throughput-sizes.js";
 
-describe("Longevity", function () {
-  const testDurationMs = 2 * 60 * 60 * 1000; // 2 hours
+function generateRandomString(size: number): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  let result = "";
+  for (let i = 0; i < size; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+describe("Throughput Sanity Checks - Different Message Sizes", function () {
+  const testDurationMs = 20 * 60 * 1000; // 20 minute
   this.timeout(testDurationMs * 1.1);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -40,21 +51,14 @@ describe("Longevity", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  it("Filter - 2 hours", async function () {
+  it("Send/Receive messages of varying sizes", async function () {
     const singleShardInfo = { clusterId: 0, shard: 0 };
     const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
 
     const testStart = new Date();
-
     const testEnd = Date.now() + testDurationMs;
 
-    const report: {
-      messageId: number;
-      timestamp: string;
-      sent: boolean;
-      received: boolean;
-      error?: string;
-    }[] = [];
+    const sizes = [10, 100, 1000, 10_000, 100_000]; // bytes
 
     await nwaku.start(
       {
@@ -67,6 +71,8 @@ describe("Longevity", function () {
       },
       { retries: 3 }
     );
+
+    await delay(1000);
 
     await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
@@ -92,10 +98,20 @@ describe("Longevity", function () {
     );
 
     let messageId = 0;
+    const report: {
+      messageId: number;
+      size: number;
+      timestamp: string;
+      sent: boolean;
+      received: boolean;
+      error?: string;
+    }[] = [];
 
     while (Date.now() < testEnd) {
       const now = new Date();
-      const message = `ping-${messageId}`;
+      // Pick a random size from sizes array
+      const size = sizes[Math.floor(Math.random() * sizes.length)];
+      const message = generateRandomString(size);
       let sent = false;
       let received = false;
       let err: string | undefined;
@@ -110,7 +126,7 @@ describe("Longevity", function () {
         sent = true;
 
         received = await messageCollector.waitForMessages(1, {
-          timeoutDuration: 5000
+          timeoutDuration: 3000
         });
 
         if (received) {
@@ -126,6 +142,7 @@ describe("Longevity", function () {
 
       report.push({
         messageId,
+        size,
         timestamp: now.toISOString(),
         sent,
         received,
@@ -141,17 +158,29 @@ describe("Longevity", function () {
       (m) => !m.sent || !m.received || m.error
     );
 
-    console.log("\n=== Longevity Test Summary ===");
+    console.log("\n=== Throughput Sizes Test Summary ===");
     console.log("Start time:", testStart.toISOString());
     console.log("End time:", new Date().toISOString());
     console.log("Total messages:", report.length);
     console.log("Failures:", failedMessages.length);
 
+    // Additional size info
+    const sizeCounts: Record<number, number> = {};
+    for (const entry of report) {
+      sizeCounts[entry.size] = (sizeCounts[entry.size] || 0) + 1;
+    }
+    console.log("\nMessage size distribution:");
+    for (const size of Object.keys(sizeCounts).sort(
+      (a, b) => Number(a) - Number(b)
+    )) {
+      console.log(`Size ${size} bytes: ${sizeCounts[Number(size)]} messages`);
+    }
+
     if (failedMessages.length > 0) {
       console.log("\n--- Failed Messages ---");
       for (const fail of failedMessages) {
         console.log(
-          `#${fail.messageId} @ ${fail.timestamp} | sent: ${fail.sent} | received: ${fail.received} | error: ${fail.error || "N/A"}`
+          `#${fail.messageId} (size: ${fail.size} bytes) @ ${fail.timestamp} | sent: ${fail.sent} | received: ${fail.received} | error: ${fail.error || "N/A"}`
         );
       }
     }
