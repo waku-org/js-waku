@@ -157,7 +157,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
 
@@ -168,7 +167,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -180,7 +178,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
 
@@ -197,7 +194,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         config: customConfig
       });
@@ -209,7 +205,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -224,7 +219,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -255,7 +249,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -287,7 +280,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -316,7 +308,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -367,7 +358,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -409,7 +399,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -540,21 +529,8 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
-    });
-
-    it("should return true when topic is configured", () => {
-      const result = connectionManager.isTopicConfigured("/waku/2/rs/1/0");
-
-      expect(result).to.be.true;
-    });
-
-    it("should return false when topic is not configured", () => {
-      const result = connectionManager.isTopicConfigured("/waku/2/rs/1/99");
-
-      expect(result).to.be.false;
     });
   });
 
@@ -563,7 +539,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });

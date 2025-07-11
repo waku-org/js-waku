@@ -1,8 +1,6 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import type { PubsubTopic } from "./misc.js";
-
 // Peer tags
 export enum Tags {
   BOOTSTRAP = "bootstrap",
@@ -155,22 +153,6 @@ export interface IConnectionManager {
    * ```
    */
   getConnectedPeers(codec?: string): Promise<Peer[]>;
-
-  /**
-   * Checks if a specific pubsub topic is configured in the connection manager.
-   *
-   * @param pubsubTopic - The pubsub topic to check
-   * @returns True if the topic is configured, false otherwise
-   *
-   * @example
-   * ```typescript
-   * const isConfigured = connectionManager.isTopicConfigured("/waku/2/default-waku/proto");
-   * if (isConfigured) {
-   *   console.log("Topic is configured");
-   * }
-   * ```
-   */
-  isTopicConfigured(pubsubTopic: PubsubTopic): boolean;
 
   /**
    * Checks if a peer has shard info.

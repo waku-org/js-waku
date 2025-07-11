@@ -5,8 +5,7 @@ import {
   IConnectionManager,
   IRelay,
   IWakuEventEmitter,
-  NetworkConfig,
-  PubsubTopic
+  NetworkConfig
 } from "@waku/interfaces";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -33,15 +32,12 @@ const DEFAULT_DIAL_COOLDOWN_SEC = 10;
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
   events: IWakuEventEmitter;
-  pubsubTopics: PubsubTopic[];
   networkConfig: NetworkConfig;
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
 };
 
 export class ConnectionManager implements IConnectionManager {
-  private readonly pubsubTopics: PubsubTopic[];
-
   private readonly keepAliveManager: KeepAliveManager;
   private readonly discoveryDialer: DiscoveryDialer;
   private readonly dialer: Dialer;
@@ -54,7 +50,6 @@ export class ConnectionManager implements IConnectionManager {
 
   public constructor(options: ConnectionManagerConstructorOptions) {
     this.libp2p = options.libp2p;
-    this.pubsubTopics = options.pubsubTopics;
 
     this.options = {
       maxBootstrapPeers: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -187,10 +182,6 @@ export class ConnectionManager implements IConnectionManager {
     log.info(`Found ${result.length} connected peers for codec ${codec}`);
 
     return result;
-  }
-
-  public isTopicConfigured(pubsubTopic: PubsubTopic): boolean {
-    return this.pubsubTopics.includes(pubsubTopic);
   }
 
   public async hasShardInfo(peerId: PeerId): Promise<boolean> {
