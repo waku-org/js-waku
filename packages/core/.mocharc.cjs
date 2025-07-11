@@ -8,7 +8,7 @@ const config = {
     'loader=ts-node/esm'
   ],
   exit: true,
-  retries: 4,
+  retries: 0,
 };
 
 if (process.env.CI) {
