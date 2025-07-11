@@ -1,16 +1,16 @@
 import type { PeerId } from "@libp2p/interface";
 import { IncomingStreamData } from "@libp2p/interface";
 import {
+  type ClusterId,
   type IMetadata,
   type Libp2pComponents,
   type MetadataQueryResult,
   type PeerIdStr,
   ProtocolError,
-  PubsubTopic,
   type ShardInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
-import { encodeRelayShard, Logger, pubsubTopicsToShardInfo } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -30,7 +30,7 @@ class Metadata implements IMetadata {
   public readonly multicodec = MetadataCodec;
 
   public constructor(
-    public pubsubTopics: PubsubTopic[],
+    public clusterId: ClusterId,
     libp2p: Libp2pComponents
   ) {
     this.streamManager = new StreamManager(MetadataCodec, libp2p);
@@ -44,9 +44,10 @@ class Metadata implements IMetadata {
    * Make a metadata query to a peer
    */
   public async query(peerId: PeerId): Promise<MetadataQueryResult> {
-    const request = proto_metadata.WakuMetadataRequest.encode(
-      pubsubTopicsToShardInfo(this.pubsubTopics)
-    );
+    const request = proto_metadata.WakuMetadataRequest.encode({
+      clusterId: this.clusterId,
+      shards: [] // Only services node need to provide shards
+    });
 
     const peer = await this.libp2pComponents.peerStore.get(peerId);
     if (!peer) {
@@ -112,9 +113,10 @@ class Metadata implements IMetadata {
   private async onRequest(streamData: IncomingStreamData): Promise<void> {
     try {
       const { stream, connection } = streamData;
-      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
-        pubsubTopicsToShardInfo(this.pubsubTopics)
-      );
+      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode({
+        clusterId: this.clusterId,
+        shards: [] // Only service nodes need to provide shards
+      });
 
       const encodedResponse = await pipe(
         [encodedShardInfo],
@@ -178,8 +180,7 @@ class Metadata implements IMetadata {
 }
 
 export function wakuMetadata(
-  pubsubTopics: PubsubTopic[]
+  clusterId: ClusterId
 ): (components: Libp2pComponents) => IMetadata {
-  return (components: Libp2pComponents) =>
-    new Metadata(pubsubTopics, components);
+  return (components: Libp2pComponents) => new Metadata(clusterId, components);
 }
