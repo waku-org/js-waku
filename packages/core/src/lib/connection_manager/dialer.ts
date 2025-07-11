@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { ConnectionManagerOptions, Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { ShardReader } from "./shard_reader.js";
@@ -9,6 +9,7 @@ const log = new Logger("dialer");
 type DialerConstructorOptions = {
   libp2p: Libp2p;
   shardReader: ShardReader;
+  options: ConnectionManagerOptions;
 };
 
 interface IDialer {
@@ -20,6 +21,7 @@ interface IDialer {
 export class Dialer implements IDialer {
   private readonly libp2p: Libp2p;
   private readonly shardReader: ShardReader;
+  private readonly options: ConnectionManagerOptions;
 
   private dialingQueue: PeerId[] = [];
   private dialHistory: Map<string, number> = new Map();
@@ -32,6 +34,7 @@ export class Dialer implements IDialer {
   public constructor(options: DialerConstructorOptions) {
     this.libp2p = options.libp2p;
     this.shardReader = options.shardReader;
+    this.options = options.options;
   }
 
   public start(): void {
@@ -93,7 +96,10 @@ export class Dialer implements IDialer {
     this.isProcessing = true;
 
     try {
-      const peersToDial = this.dialingQueue.slice(0, 3);
+      const peersToDial = this.dialingQueue.slice(
+        0,
+        this.options.maxDialingPeers
+      );
       this.dialingQueue = this.dialingQueue.slice(peersToDial.length);
 
       log.info(
@@ -162,7 +168,10 @@ export class Dialer implements IDialer {
 
   private isRecentlyDialed(peerId: PeerId): boolean {
     const lastDialed = this.dialHistory.get(peerId.toString());
-    if (lastDialed && Date.now() - lastDialed < 10_000) {
+    if (
+      lastDialed &&
+      Date.now() - lastDialed < this.options.dialCooldown * 1000
+    ) {
       return true;
     }
 
@@ -171,7 +180,10 @@ export class Dialer implements IDialer {
 
   private isRecentlyFailed(peerId: PeerId): boolean {
     const lastFailed = this.failedDials.get(peerId.toString());
-    if (lastFailed && Date.now() - lastFailed < 60_000) {
+    if (
+      lastFailed &&
+      Date.now() - lastFailed < this.options.failedDialCooldown * 1000
+    ) {
       return true;
     }
 
