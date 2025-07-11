@@ -228,7 +228,7 @@ describe("waku:connection", function () {
     globalThis.dispatchEvent = undefined;
   });
 
-  it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
+  it(`should emit events and transition isConnected state when has peers or no peers`, async function () {
     const privateKey1 = await generateKeyPair("secp256k1");
     const privateKey2 = await generateKeyPair("secp256k1");
     const peerIdPx = peerIdFromPrivateKey(privateKey1);
