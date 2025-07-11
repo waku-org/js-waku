@@ -24,8 +24,8 @@ import {
 import {
   createTestMetaSetter,
   createTestRLNCodecSetup,
-  EMPTY_PROTO_MESSAGE,
-  TEST_CONSTANTS,
+  EmptyProtoMessage,
+  TestConstants,
   verifyRLNMessage
 } from "./codec.test-utils.js";
 import { RlnMessage } from "./message.js";
@@ -37,14 +37,20 @@ describe("RLN codec with version 0", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = createRLNEncoder({
-      encoder: createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      encoder: createEncoder({
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     });
     const rlnDecoder = createRLNDecoder({
       rlnInstance,
-      decoder: createDecoder(TEST_CONSTANTS.contentTopic)
+      decoder: createDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo
+      )
     });
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -53,11 +59,11 @@ describe("RLN codec with version 0", () => {
     const protoResult = await rlnDecoder.fromWireToProtoObj(bytes!);
     expect(protoResult).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 0, rlnInstance);
   });
 
   it("toProtoObj", async function () {
@@ -65,25 +71,28 @@ describe("RLN codec with version 0", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      createEncoder({
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TestConstants.contentTopic, TestConstants.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       proto!
     )) as RlnMessage<IDecodedMessage>;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 0, rlnInstance);
   });
 });
 
@@ -95,7 +104,8 @@ describe("RLN codec with version 1", () => {
 
     const rlnEncoder = new RLNEncoder(
       createSymEncoder({
-        contentTopic: TEST_CONSTANTS.contentTopic,
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
         symKey
       }),
       rlnInstance,
@@ -104,7 +114,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createSymDecoder(TEST_CONSTANTS.contentTopic, symKey)
+      createSymDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo,
+        symKey
+      )
     );
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -113,11 +127,11 @@ describe("RLN codec with version 1", () => {
     const protoResult = await rlnDecoder.fromWireToProtoObj(bytes!);
     expect(protoResult).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 1, rlnInstance);
   });
 
   it("Symmetric, toProtoObj", async function () {
@@ -127,7 +141,8 @@ describe("RLN codec with version 1", () => {
 
     const rlnEncoder = new RLNEncoder(
       createSymEncoder({
-        contentTopic: TEST_CONSTANTS.contentTopic,
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
         symKey
       }),
       rlnInstance,
@@ -136,18 +151,22 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createSymDecoder(TEST_CONSTANTS.contentTopic, symKey)
+      createSymDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo,
+        symKey
+      )
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
     const msg = await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       proto!
     );
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 1, rlnInstance);
   });
 
   it("Asymmetric, toWire", async function () {
@@ -158,7 +177,8 @@ describe("RLN codec with version 1", () => {
 
     const rlnEncoder = new RLNEncoder(
       createAsymEncoder({
-        contentTopic: TEST_CONSTANTS.contentTopic,
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
         publicKey
       }),
       rlnInstance,
@@ -167,7 +187,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createAsymDecoder(TEST_CONSTANTS.contentTopic, privateKey)
+      createAsymDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo,
+        privateKey
+      )
     );
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -176,11 +200,11 @@ describe("RLN codec with version 1", () => {
     const protoResult = await rlnDecoder.fromWireToProtoObj(bytes!);
     expect(protoResult).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 1, rlnInstance);
   });
 
   it("Asymmetric, toProtoObj", async function () {
@@ -191,7 +215,8 @@ describe("RLN codec with version 1", () => {
 
     const rlnEncoder = new RLNEncoder(
       createAsymEncoder({
-        contentTopic: TEST_CONSTANTS.contentTopic,
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
         publicKey
       }),
       rlnInstance,
@@ -200,18 +225,22 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createAsymDecoder(TEST_CONSTANTS.contentTopic, privateKey)
+      createAsymDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo,
+        privateKey
+      )
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
     const msg = await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       proto!
     );
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 1, rlnInstance);
   });
 });
 
@@ -221,21 +250,24 @@ describe("RLN Codec - epoch", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      createEncoder({
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TestConstants.contentTopic, TestConstants.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       proto!
     )) as RlnMessage<IDecodedMessage>;
 
@@ -245,7 +277,7 @@ describe("RLN Codec - epoch", () => {
     expect(msg.epoch!.toString(10).length).to.eq(9);
     expect(msg.epoch).to.eq(epoch);
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 0, rlnInstance);
   });
 });
 
@@ -257,7 +289,8 @@ describe("RLN codec with version 0 and meta setter", () => {
 
     const rlnEncoder = createRLNEncoder({
       encoder: createEncoder({
-        contentTopic: TEST_CONSTANTS.contentTopic,
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
         metaSetter
       }),
       rlnInstance,
@@ -266,7 +299,10 @@ describe("RLN codec with version 0 and meta setter", () => {
     });
     const rlnDecoder = createRLNDecoder({
       rlnInstance,
-      decoder: createDecoder(TEST_CONSTANTS.contentTopic)
+      decoder: createDecoder(
+        TestConstants.contentTopic,
+        TestConstants.routingInfo
+      )
     });
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -275,17 +311,17 @@ describe("RLN codec with version 0 and meta setter", () => {
     const protoResult = await rlnDecoder.fromWireToProtoObj(bytes!);
     expect(protoResult).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       protoResult!
     ))!;
 
     const expectedMeta = metaSetter({
-      ...EMPTY_PROTO_MESSAGE,
+      ...EmptyProtoMessage,
       payload: protoResult!.payload
     });
 
     expect(msg!.meta).to.deep.eq(expectedMeta);
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 0, rlnInstance);
   });
 
   it("toProtoObj", async function () {
@@ -294,30 +330,34 @@ describe("RLN codec with version 0 and meta setter", () => {
     const metaSetter = createTestMetaSetter();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic, metaSetter }),
+      createEncoder({
+        contentTopic: TestConstants.contentTopic,
+        routingInfo: TestConstants.routingInfo,
+        metaSetter
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TestConstants.contentTopic, TestConstants.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
 
     expect(proto).to.not.be.undefined;
     const msg = (await rlnDecoder.fromProtoObj(
-      TEST_CONSTANTS.emptyPubsubTopic,
+      TestConstants.emptyPubsubTopic,
       proto!
     )) as RlnMessage<IDecodedMessage>;
 
     const expectedMeta = metaSetter({
-      ...EMPTY_PROTO_MESSAGE,
+      ...EmptyProtoMessage,
       payload: msg!.payload
     });
 
     expect(msg!.meta).to.deep.eq(expectedMeta);
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TestConstants.contentTopic, 0, rlnInstance);
   });
 });

@@ -11,8 +11,8 @@ import { createLightNode } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,
-  derivePubsubTopicsFromNetworkConfig,
-  Logger
+  Logger,
+  RoutingInfo
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
@@ -29,19 +29,23 @@ export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter/default";
 export const ClusterId = 2;
 export const ShardIndex = contentTopicToShardIndex(TestContentTopic);
-export const TestShardInfo = {
-  contentTopics: [TestContentTopic],
-  clusterId: ClusterId
+export const TestNetworkConfig = {
+  clusterId: ClusterId,
+  numShardsInCluster: 8
 };
 export const TestPubsubTopic = contentTopicToPubsubTopic(
   TestContentTopic,
   ClusterId
 );
+export const TestRoutingInfo = RoutingInfo.fromContentTopic(
+  TestContentTopic,
+  TestNetworkConfig
+);
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: TestPubsubTopic
+  routingInfo: TestRoutingInfo
 });
-export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
+export const TestDecoder = createDecoder(TestContentTopic, TestRoutingInfo);
 export const messageText = "Filtering works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
 
@@ -52,7 +56,6 @@ export async function runMultipleNodes(
   numServiceNodes = 3,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
@@ -86,7 +89,9 @@ export async function runMultipleNodes(
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    await node.ensureSubscriptions(pubsubTopics);
+
+    // TODO
+    // await node.ensureSubscriptions(pubsubTopics);
 
     const wakuConnections = waku.libp2p.getConnections();
 

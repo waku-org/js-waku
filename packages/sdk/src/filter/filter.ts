@@ -63,7 +63,7 @@ export class Filter implements IFilter {
       throw Error("Cannot subscribe with 0 decoders.");
     }
 
-    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const pubsubTopics = decoders.map((v) => v.routingInfo.pubsubTopic);
     const singlePubsubTopic = pubsubTopics[0];
 
     const contentTopics = decoders.map((v) => v.contentTopic);
@@ -104,7 +104,7 @@ export class Filter implements IFilter {
       throw Error("Cannot unsubscribe with 0 decoders.");
     }
 
-    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const pubsubTopics = decoders.map((v) => v.routingInfo.pubsubTopic);
     const singlePubsubTopic = pubsubTopics[0];
 
     const contentTopics = decoders.map((v) => v.contentTopic);

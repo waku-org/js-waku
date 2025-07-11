@@ -114,13 +114,20 @@ export class PeerManager {
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
-        peer.id,
-        params.pubsubTopic
-      );
+
+      if (params.pubsubTopic) {
+        const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
+          peer.id,
+          params.pubsubTopic
+        );
+        if (!hasSamePubsub) {
+          continue;
+        }
+      }
+
       const isPeerAvailableForUse = this.isPeerAvailableForUse(peer.id);
 
-      if (hasProtocol && hasSamePubsub && isPeerAvailableForUse) {
+      if (hasProtocol && isPeerAvailableForUse) {
         results.push(peer);
         log.info(`Peer ${peer.id} qualifies for protocol ${params.protocol}`);
       }
@@ -252,7 +259,7 @@ export class PeerManager {
     }
 
     const wasUnlocked = new Date(value).getTime();
-    return Date.now() - wasUnlocked >= 10_000 ? true : false;
+    return Date.now() - wasUnlocked >= 10_000;
   }
 
   private dispatchFilterPeerConnect(id: PeerId): void {

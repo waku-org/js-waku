@@ -1,17 +1,14 @@
 import type {
-  EncoderOptions,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  IRateLimitProof,
-  PubsubTopic,
-  SingleShardInfo
+  IRateLimitProof
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -67,11 +64,31 @@ export class DecodedMessage implements IDecodedMessage {
   }
 }
 
+export type EncoderOptions = {
+  /**
+   * The routing information for messages to encode.
+   */
+  routingInfo: RoutingInfo;
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
+};
+
 export class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubsubTopic: PubsubTopic,
+    public routingInfo: RoutingInfo,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -114,24 +131,18 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
+  routingInfo,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(
-    contentTopic,
-    ephemeral,
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
-    metaSetter
-  );
+  return new Encoder(contentTopic, ephemeral, routingInfo, metaSetter);
 }
 
 export class Decoder implements IDecoder<IDecodedMessage> {
   public constructor(
-    public pubsubTopic: PubsubTopic,
-    public contentTopic: string
+    public contentTopic: string,
+    public routingInfo: RoutingInfo
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -185,10 +196,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  routingInfo: RoutingInfo
 ): Decoder {
-  return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
-    contentTopic
-  );
+  return new Decoder(contentTopic, routingInfo);
 }

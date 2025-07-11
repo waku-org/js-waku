@@ -23,7 +23,12 @@ import type {
   NetworkConfig
 } from "@waku/interfaces";
 import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import {
+  isAutoSharding,
+  isStaticSharding,
+  Logger,
+  RoutingInfo
+} from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -31,7 +36,6 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
-import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -252,40 +256,50 @@ export class WakuNode implements IWaku {
   }
 
   public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = getRoutingInfo(
+      params.contentTopic,
+      this.networkConfig,
+      params.shardOrPubsubTopic
     );
-
-    log.info(
-      `Creating Decoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create decoder: incompatible shard configuration.`);
-    }
-
-    return createDecoder(params.contentTopic, singleShardInfo);
+    return createDecoder(params.contentTopic, routingInfo);
   }
 
   public createEncoder(params: CreateEncoderParams): IEncoder {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = getRoutingInfo(
+      params.contentTopic,
+      this.networkConfig,
+      params.shardOrPubsubTopic
     );
-
-    log.info(
-      `Creating Encoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create encoder: incompatible shard configuration.`);
-    }
 
     return createEncoder({
       contentTopic: params.contentTopic,
       ephemeral: params.ephemeral,
-      pubsubTopicShardInfo: singleShardInfo
+      routingInfo: routingInfo
     });
   }
+}
+
+function getRoutingInfo(
+  contentTopic: string,
+  networkConfig: NetworkConfig,
+  shardOrPubsubTopic?: string | number
+): RoutingInfo {
+  if (isAutoSharding(networkConfig)) {
+    if (shardOrPubsubTopic)
+      throw "Neither pubsub topic nor shard can be specified with auto sharding network";
+    return RoutingInfo.fromContentTopic(contentTopic, networkConfig);
+  }
+
+  if (isStaticSharding(networkConfig)) {
+    if (!shardOrPubsubTopic)
+      throw "Pubsub topic or shard must be specified with static sharding network";
+
+    if (typeof shardOrPubsubTopic === "string") {
+      return RoutingInfo.fromPubsubTopic(shardOrPubsubTopic, networkConfig);
+    } else {
+      return RoutingInfo.fromShard(shardOrPubsubTopic, networkConfig);
+    }
+  }
+
+  throw "Invalid network config";
 }

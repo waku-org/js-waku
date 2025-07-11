@@ -3,14 +3,18 @@ import { TopicValidatorResult } from "@libp2p/interface";
 import type { UnsignedMessage } from "@libp2p/interface";
 import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { createEncoder } from "@waku/core";
-import { determinePubsubTopic } from "@waku/utils";
+import { RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import fc from "fast-check";
 
 import { messageValidator } from "./message_validator.js";
 
-const TestContentTopic = "/app/1/topic/utf8";
-const TestPubsubTopic = determinePubsubTopic(TestContentTopic);
+const testContentTopic = "/app/1/topic/utf8";
+const testRoutingInfo = RoutingInfo.fromContentTopic(testContentTopic, {
+  clusterId: 0,
+  numShardsInCluster: 3
+});
+const testPubsubTopic = testRoutingInfo.pubsubTopic;
 
 describe("Message Validator", () => {
   it("Accepts a valid Waku Message", async () => {
@@ -20,14 +24,14 @@ describe("Message Validator", () => {
         const peerId = peerIdFromPrivateKey(privateKey);
 
         const encoder = createEncoder({
-          contentTopic: TestContentTopic,
-          pubsubTopic: TestPubsubTopic
+          contentTopic: testContentTopic,
+          routingInfo: testRoutingInfo
         });
         const bytes = await encoder.toWire({ payload });
 
         const message: UnsignedMessage = {
           type: "unsigned",
-          topic: TestPubsubTopic,
+          topic: testPubsubTopic,
           data: bytes
         };
 
@@ -46,7 +50,7 @@ describe("Message Validator", () => {
 
         const message: UnsignedMessage = {
           type: "unsigned",
-          topic: TestPubsubTopic,
+          topic: testPubsubTopic,
           data
         };
 

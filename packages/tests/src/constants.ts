@@ -5,7 +5,7 @@
  * @module
  */
 
-import { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
+import { AutoSharding, PubsubTopic, RelayShards } from "@waku/interfaces";
 
 export const NOISE_KEY_1 = new Uint8Array(
   ((): number[] => {
@@ -69,11 +69,12 @@ export const SEPOLIA_RPC_URL =
   process.env.SEPOLIA_RPC_URL || "https://sepolia.gateway.tenderly.co";
 
 export const DefaultTestPubsubTopic: PubsubTopic = "/waku/2/rs/0/0";
-export const DefaultTestShardInfo: ShardInfo = {
-  clusterId: 0,
-  shards: [0]
+export const DefaultTestClusterId = 0;
+export const DefaultTestNetworkConfig: AutoSharding = {
+  clusterId: DefaultTestClusterId,
+  numShardsInCluster: 8
 };
-export const DefaultTestSingleShardInfo: SingleShardInfo = {
-  clusterId: 0,
-  shard: 0
+export const DefaultTestRelayShards: RelayShards = {
+  clusterId: DefaultTestClusterId,
+  shards: [0]
 };

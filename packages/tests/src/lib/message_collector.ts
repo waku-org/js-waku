@@ -67,20 +67,19 @@ export class MessageCollector {
   public async waitForMessages(
     numMessages: number,
     options?: {
-      pubsubTopic?: string;
+      // pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = this.getPubsubTopicToUse(options?.pubsubTopic);
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
     while (this.count < numMessages) {
       if (this.nwaku) {
         try {
-          this.list = await this.nwaku.messages(pubsubTopic);
+          this.list = await this.nwaku.messages();
         } catch (error) {
           log.error(`Can't retrieve messages because of ${error}`);
           await delay(10);

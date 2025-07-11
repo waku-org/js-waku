@@ -31,7 +31,6 @@ export const TestEncoder = createEncoder({
   pubsubTopic: TestPubsubTopic
 });
 export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
-export const TestWaitMessageOptions = { pubsubTopic: TestPubsubTopic };
 export const TestExpectOptions = {
   expectedContentTopic: TestContentTopic,
   expectedPubsubTopic: TestPubsubTopic

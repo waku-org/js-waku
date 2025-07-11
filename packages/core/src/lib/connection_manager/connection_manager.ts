@@ -56,6 +56,7 @@ export class ConnectionManager implements IConnectionManager {
     this.keepAliveManager = new KeepAliveManager({
       relay: options.relay,
       libp2p: options.libp2p,
+      networkConfig: options.networkConfig,
       options: {
         pingKeepAlive: this.options.pingKeepAlive,
         relayKeepAlive: this.options.relayKeepAlive

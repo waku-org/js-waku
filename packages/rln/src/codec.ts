@@ -4,7 +4,8 @@ import type {
   IEncoder,
   IMessage,
   IProtoMessage,
-  IRateLimitProof
+  IRateLimitProof,
+  IRoutingInfo
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -47,17 +48,16 @@ export class RLNEncoder implements IEncoder {
 
   private async generateProof(message: IMessage): Promise<IRateLimitProof> {
     const signal = toRLNSignal(this.contentTopic, message);
-    const proof = await this.rlnInstance.zerokit.generateRLNProof(
+    return this.rlnInstance.zerokit.generateRLNProof(
       signal,
       this.index,
       message.timestamp,
       this.idSecretHash
     );
-    return proof;
   }
 
-  public get pubsubTopic(): string {
-    return this.encoder.pubsubTopic;
+  public get routingInfo(): IRoutingInfo {
+    return this.encoder.routingInfo;
   }
 
   public get contentTopic(): string {
@@ -93,8 +93,8 @@ export class RLNDecoder<T extends IDecodedMessage>
     private readonly decoder: IDecoder<T>
   ) {}
 
-  public get pubsubTopic(): string {
-    return this.decoder.pubsubTopic;
+  public get routingInfo(): IRoutingInfo {
+    return this.decoder.routingInfo;
   }
 
   public get contentTopic(): string {
