@@ -5,7 +5,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["src/logger/index.ts"],
+      files: ["src/logger.ts"],
       rules: {
         "no-console": "off",
         "no-restricted-imports": "off"

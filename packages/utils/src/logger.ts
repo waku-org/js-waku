@@ -8,7 +8,7 @@ export class Logger {
   private _error: Debugger;
 
   private static createDebugNamespace(level: string, prefix?: string): string {
-    return prefix ? `${APP_NAME}:${level}:${prefix}` : `${APP_NAME}:${level}`;
+    return prefix ? `${APP_NAME}:${prefix}:${level}` : `${APP_NAME}:${level}`;
   }
 
   public constructor(prefix?: string) {
@@ -30,7 +30,7 @@ export class Logger {
   }
 
   public log(level: "info" | "warn" | "error", ...args: unknown[]): void {
-    const logger = this[level] as (...args: unknown[]) => void;
+    const logger = (this[level] as (...args: unknown[]) => void) || this.log;
     logger(...args);
   }
 }
