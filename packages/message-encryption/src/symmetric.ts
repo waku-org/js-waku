@@ -1,17 +1,15 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
-  EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IEncryptedMessage,
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  PubsubTopic,
-  SingleShardInfo
+  IRoutingInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 
 import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -35,8 +33,8 @@ const log = new Logger("message-encryption:symmetric");
 
 class Encoder implements IEncoder {
   public constructor(
-    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
+    public routingInfo: IRoutingInfo,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
@@ -81,7 +79,24 @@ class Encoder implements IEncoder {
   }
 }
 
-export interface EncoderOptions extends BaseEncoderOptions {
+export interface EncoderOptions {
+  /**
+   * The routing information for messages to encode.
+   */
+  routingInfo: RoutingInfo;
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
   /** The symmetric key to encrypt the payload with. */
   symKey: Uint8Array;
   /** An optional private key to be used to sign the payload before encryption. */
@@ -101,17 +116,16 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
+  routingInfo,
   symKey,
   sigPrivKey,
   ephemeral = false,
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
+    routingInfo,
     symKey,
     sigPrivKey,
     ephemeral,
@@ -121,11 +135,11 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
-    pubsubTopic: PubsubTopic,
     contentTopic: string,
+    routingInfo: RoutingInfo,
     private symKey: Uint8Array
   ) {
-    super(pubsubTopic, contentTopic);
+    super(contentTopic, routingInfo);
   }
 
   public async fromProtoObj(
@@ -193,16 +207,13 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
  * decode incoming messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param routingInfo Routing information, depends on the network config (static vs auto sharding)
  * @param symKey The symmetric key used to decrypt the message.
  */
 export function createDecoder(
   contentTopic: string,
-  symKey: Uint8Array,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  routingInfo: RoutingInfo,
+  symKey: Uint8Array
 ): Decoder {
-  return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
-    contentTopic,
-    symKey
-  );
+  return new Decoder(contentTopic, routingInfo, symKey);
 }

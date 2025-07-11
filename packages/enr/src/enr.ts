@@ -5,8 +5,8 @@ import type {
   ENRValue,
   IEnr,
   NodeId,
-  SequenceNumber,
-  ShardInfo
+  RelayShards,
+  SequenceNumber
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -64,7 +64,7 @@ export class ENR extends RawEnr implements IEnr {
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
-  public get shardInfo(): ShardInfo | undefined {
+  public get shardInfo(): RelayShards | undefined {
     if (this.rs && this.rsv) {
       log.warn("ENR contains both `rs` and `rsv` fields.");
     }

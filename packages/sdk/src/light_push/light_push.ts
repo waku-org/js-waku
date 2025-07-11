@@ -77,13 +77,13 @@ export class LightPush implements ILightPush {
       ...options
     };
 
-    const { pubsubTopic } = encoder;
+    const { pubsubTopic } = encoder.routingInfo;
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
     const peerIds = await this.peerManager.getPeers({
       protocol: Protocols.LightPush,
-      pubsubTopic: encoder.pubsubTopic
+      routingInfo: encoder.routingInfo
     });
 
     const coreResults: CoreProtocolResult[] =
@@ -124,7 +124,7 @@ export class LightPush implements ILightPush {
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS,
-        encoder.pubsubTopic
+        encoder.routingInfo
       );
     }
 

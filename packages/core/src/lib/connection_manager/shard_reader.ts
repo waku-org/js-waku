@@ -1,13 +1,12 @@
 import type { PeerId } from "@libp2p/interface";
 import type {
+  ClusterId,
   NetworkConfig,
   PubsubTopic,
-  ShardInfo,
-  SingleShardInfo,
-  StaticSharding
+  RelayShards,
+  ShardId
 } from "@waku/interfaces";
 import {
-  contentTopicToShardIndex,
   decodeRelayShard,
   Logger,
   pubsubTopicToSingleShardInfo
@@ -23,8 +22,12 @@ type ShardReaderConstructorOptions = {
 
 interface IShardReader {
   hasShardInfo(id: PeerId): Promise<boolean>;
-  isPeerOnNetwork(id: PeerId): Promise<boolean>;
-  isPeerOnShard(id: PeerId, shard: SingleShardInfo): Promise<boolean>;
+  isPeerOnCluster(id: PeerId): Promise<boolean>;
+  isPeerOnShard(
+    id: PeerId,
+    clusterId: ClusterId,
+    shard: ShardId
+  ): Promise<boolean>;
   isPeerOnTopic(id: PeerId, pubsubTopic: PubsubTopic): Promise<boolean>;
 }
 
@@ -34,33 +37,26 @@ interface IShardReader {
 export class ShardReader implements IShardReader {
   private readonly libp2p: Libp2p;
 
-  private readonly staticShard: StaticSharding;
+  private readonly clusterId: ClusterId;
 
   public constructor(options: ShardReaderConstructorOptions) {
     this.libp2p = options.libp2p;
 
-    this.staticShard = this.getStaticShardFromNetworkConfig(
-      options.networkConfig
-    );
+    this.clusterId = options.networkConfig.clusterId;
   }
 
-  public async isPeerOnNetwork(id: PeerId): Promise<boolean> {
-    const shardInfo = await this.getShardInfo(id);
+  public async isPeerOnCluster(id: PeerId): Promise<boolean> {
+    const peerRelayShards = await this.getRelayShards(id);
 
-    if (!shardInfo) {
+    if (!peerRelayShards) {
       return false;
     }
 
-    const clusterMatch = shardInfo.clusterId === this.staticShard.clusterId;
-    const shardOverlap = this.staticShard.shards.some((s) =>
-      shardInfo.shards.includes(s)
-    );
-
-    return clusterMatch && shardOverlap;
+    return peerRelayShards.clusterId === this.clusterId;
   }
 
   public async hasShardInfo(id: PeerId): Promise<boolean> {
-    const shardInfo = await this.getShardInfo(id);
+    const shardInfo = await this.getRelayShards(id);
     return !!shardInfo;
   }
 
@@ -69,8 +65,8 @@ export class ShardReader implements IShardReader {
     pubsubTopic: PubsubTopic
   ): Promise<boolean> {
     try {
-      const shardInfo = pubsubTopicToSingleShardInfo(pubsubTopic);
-      return await this.isPeerOnShard(id, shardInfo);
+      const { clusterId, shard } = pubsubTopicToSingleShardInfo(pubsubTopic);
+      return await this.isPeerOnShard(id, clusterId, shard);
     } catch (error) {
       log.error(
         `Error comparing pubsub topic ${pubsubTopic} with shard info for ${id}`,
@@ -82,21 +78,25 @@ export class ShardReader implements IShardReader {
 
   public async isPeerOnShard(
     id: PeerId,
-    shard: SingleShardInfo
+    clusterId: ClusterId,
+    shard: ShardId
   ): Promise<boolean> {
-    const peerShardInfo = await this.getShardInfo(id);
-
-    if (!peerShardInfo || shard.shard === undefined) {
+    const peerShardInfo = await this.getRelayShards(id);
+    log.info(
+      `Checking if peer on same shard: this { clusterId: ${clusterId}, shardId: ${shard} },` +
+        `${id} { clusterId: ${peerShardInfo?.clusterId}, shards: ${peerShardInfo?.shards} }`
+    );
+    if (!peerShardInfo) {
       return false;
     }
 
     return (
-      peerShardInfo.clusterId === shard.clusterId &&
-      peerShardInfo.shards.includes(shard.shard)
+      peerShardInfo.clusterId === clusterId &&
+      peerShardInfo.shards.includes(shard)
     );
   }
 
-  private async getShardInfo(id: PeerId): Promise<ShardInfo | undefined> {
+  private async getRelayShards(id: PeerId): Promise<RelayShards | undefined> {
     try {
       const peer = await this.libp2p.peerStore.get(id);
 
@@ -106,29 +106,10 @@ export class ShardReader implements IShardReader {
         return undefined;
       }
 
-      const decodedShardInfo = decodeRelayShard(shardInfoBytes);
-
-      return decodedShardInfo;
+      return decodeRelayShard(shardInfoBytes);
     } catch (error) {
       log.error(`Error getting shard info for ${id}`, error);
       return undefined;
     }
-  }
-
-  private getStaticShardFromNetworkConfig(
-    networkConfig: NetworkConfig
-  ): StaticSharding {
-    if ("shards" in networkConfig) {
-      return networkConfig;
-    }
-
-    const shards = networkConfig.contentTopics.map((topic) =>
-      contentTopicToShardIndex(topic)
-    );
-
-    return {
-      clusterId: networkConfig.clusterId!,
-      shards
-    };
   }
 }

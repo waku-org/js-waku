@@ -22,14 +22,14 @@ import {
   PubsubTopic,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
+import { isWireSizeUnderCap, RoutingInfo, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
 
 import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
-import { TopicOnlyDecoder } from "./topic_only_message.js";
+import { ContentTopicOnlyDecoder } from "./topic_only_message.js";
 
 const log = new Logger("relay");
 
@@ -38,7 +38,9 @@ export type Observer<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
+export type RelayCreateOptions = CreateNodeOptions & {
+  routingInfos: RoutingInfo[];
+} & Partial<GossipsubOpts>;
 export type ContentTopic = string;
 
 type ActiveSubscriptions = Map<PubsubTopic, ContentTopic[]>;
@@ -53,7 +55,7 @@ type RelayConstructorParams = {
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 export class Relay implements IRelay {
-  public readonly pubsubTopics: Set<PubsubTopic>;
+  public pubsubTopics: Set<PubsubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -73,6 +75,7 @@ export class Relay implements IRelay {
     }
 
     this.gossipSub = params.libp2p.services.pubsub as GossipSub;
+
     this.pubsubTopics = new Set(params.pubsubTopics);
 
     if (this.gossipSub.isStarted()) {
@@ -82,7 +85,7 @@ export class Relay implements IRelay {
     this.observers = new Map();
 
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-    this.defaultDecoder = new TopicOnlyDecoder(params.pubsubTopics[0]);
+    this.defaultDecoder = new ContentTopicOnlyDecoder();
   }
 
   /**
@@ -124,7 +127,7 @@ export class Relay implements IRelay {
     encoder: IEncoder,
     message: IMessage
   ): Promise<SDKProtocolResult> {
-    const { pubsubTopic } = encoder;
+    const { pubsubTopic } = encoder.routingInfo;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
@@ -176,7 +179,7 @@ export class Relay implements IRelay {
     const observers: Array<[PubsubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
-      const { pubsubTopic } = decoder;
+      const { pubsubTopic } = decoder.routingInfo;
       const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
         pubsubTopic
       ) ?? new Map();
@@ -240,8 +243,9 @@ export class Relay implements IRelay {
     pubsubTopic: string,
     bytes: Uint8Array
   ): Promise<void> {
-    const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
-    if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
+    const contentTopicOnlyMsg =
+      await this.defaultDecoder.fromWireToProtoObj(bytes);
+    if (!contentTopicOnlyMsg || !contentTopicOnlyMsg.contentTopic) {
       log.warn("Message does not have a content topic, skipping");
       return;
     }
@@ -253,9 +257,9 @@ export class Relay implements IRelay {
     }
 
     // Retrieve the set of observers for the given contentTopic
-    const observers = contentTopicMap.get(topicOnlyMsg.contentTopic) as Set<
-      Observer<T>
-    >;
+    const observers = contentTopicMap.get(
+      contentTopicOnlyMsg.contentTopic
+    ) as Set<Observer<T>>;
     if (!observers) {
       return;
     }
@@ -277,7 +281,7 @@ export class Relay implements IRelay {
             } else {
               log.error(
                 "Failed to decode messages on",
-                topicOnlyMsg.contentTopic
+                contentTopicOnlyMsg.contentTopic
               );
             }
           } catch (error) {

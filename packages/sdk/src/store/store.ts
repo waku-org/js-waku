@@ -12,7 +12,7 @@ import {
   StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
-import { isDefined, Logger } from "@waku/utils";
+import { isDefined, Logger, RoutingInfo } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
@@ -181,7 +181,7 @@ export class Store implements IStore {
   private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
     decoders: IDecoder<T>[]
   ): {
-    pubsubTopic: string;
+    routingInfo: RoutingInfo;
     contentTopics: string[];
     decodersAsMap: Map<string, IDecoder<T>>;
   } {
@@ -191,7 +191,7 @@ export class Store implements IStore {
     }
 
     const uniquePubsubTopicsInQuery = Array.from(
-      new Set(decoders.map((decoder) => decoder.pubsubTopic))
+      new Set(decoders.map((decoder) => decoder.routingInfo.pubsubTopic))
     );
     if (uniquePubsubTopicsInQuery.length > 1) {
       log.error("API does not support querying multiple pubsub topics at once");
@@ -214,7 +214,9 @@ export class Store implements IStore {
     });
 
     const contentTopics = decoders
-      .filter((decoder) => decoder.pubsubTopic === pubsubTopicForQuery)
+      .filter(
+        (decoder) => decoder.routingInfo.pubsubTopic === pubsubTopicForQuery
+      )
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {
@@ -223,16 +225,18 @@ export class Store implements IStore {
     }
 
     return {
-      pubsubTopic: pubsubTopicForQuery,
+      routingInfo: decoders[0].routingInfo,
       contentTopics,
       decodersAsMap
     };
   }
 
-  private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
+  private async getPeerToUse(
+    routingInfo: RoutingInfo
+  ): Promise<PeerId | undefined> {
     const peers = await this.peerManager.getPeers({
       protocol: Protocols.Store,
-      pubsubTopic
+      routingInfo
     });
 
     return this.options.peers

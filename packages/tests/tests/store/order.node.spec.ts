@@ -13,7 +13,8 @@ import {
   runStoreNodes,
   sendMessages,
   TestDecoder,
-  TestShardInfo,
+  TestNetworkConfig,
+  TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -23,7 +24,7 @@ describe("Waku Store, order", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -36,7 +37,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       const messages: IMessage[] = [];
@@ -64,7 +65,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       const messages: IMessage[] = [];
@@ -95,7 +96,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       const messages: IMessage[] = [];

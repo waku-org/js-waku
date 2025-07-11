@@ -10,7 +10,9 @@ import Sinon, { SinonSpy } from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
-  DefaultTestShardInfo,
+  DefaultTestClusterId,
+  DefaultTestNetworkConfig,
+  DefaultTestRelayShards,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -30,15 +32,15 @@ describe("Peer Exchange", function () {
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards,
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards,
       discv5Discovery: true,
       peerExchange: true,
       relay: true
     });
     await nwaku2.start({
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards,
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards,
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
@@ -52,7 +54,7 @@ describe("Peer Exchange", function () {
 
   it("peer exchange sets tag", async function () {
     waku = await createLightNode({
-      networkConfig: DefaultTestShardInfo,
+      networkConfig: DefaultTestNetworkConfig,
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
@@ -117,8 +119,8 @@ describe("Peer Exchange", function () {
 
     nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
     await nwaku3.start({
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards,
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards,
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,

@@ -42,9 +42,9 @@ export class StoreQueryRequest {
       }
     } else {
       if (
-        (params.pubsubTopic &&
+        (params.routingInfo &&
           (!params.contentTopics || params.contentTopics.length === 0)) ||
-        (!params.pubsubTopic &&
+        (!params.routingInfo &&
           params.contentTopics &&
           params.contentTopics.length > 0)
       ) {

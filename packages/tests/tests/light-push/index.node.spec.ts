@@ -14,14 +14,11 @@ import {
 } from "../../src/index.js";
 
 import {
-  ClusterId,
   messagePayload,
   messageText,
-  ShardIndex,
   TestContentTopic,
   TestEncoder,
-  TestPubsubTopic,
-  TestShardInfo
+  TestRoutingInfo
 } from "./utils.js";
 
 const runTests = (strictNodeCheck: boolean): void => {
@@ -35,7 +32,7 @@ const runTests = (strictNodeCheck: boolean): void => {
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
-        TestShardInfo,
+        TestRoutingInfo,
         { lightpush: true, filter: true },
         strictNodeCheck,
         numServiceNodes,
@@ -54,20 +51,18 @@ const runTests = (strictNodeCheck: boolean): void => {
         });
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestPubsubTopic
-          })
-        ).to.eq(true);
+        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+          true
+        );
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: testItem.value,
           expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
 
-    // TODO: skiped till https://github.com/waku-org/nwaku/issues/3369 resolved
+    // TODO: skipped till https://github.com/waku-org/nwaku/issues/3369 resolved
     it.skip("Push 30 different messages", async function () {
       const generateMessageText = (index: number): string => `M${index}`;
 
@@ -79,17 +74,15 @@ const runTests = (strictNodeCheck: boolean): void => {
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
       }
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(30, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(true);
+      expect(await serviceNodes.messageCollector.waitForMessages(30)).to.eq(
+        true
+      );
 
       for (let i = 0; i < 30; i++) {
         serviceNodes.messageCollector.verifyReceivedMessage(i, {
           expectedMessageText: generateMessageText(i),
           expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       }
     });
@@ -105,21 +98,16 @@ const runTests = (strictNodeCheck: boolean): void => {
         ProtocolError.EMPTY_PAYLOAD
       );
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(false);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
     });
 
-    TEST_STRING.forEach((testItem) => {
+    [{ description: "short", value: "hi" }].forEach((testItem) => {
       it(`Push message with content topic containing ${testItem.description}`, async function () {
+        const contentTopic = `/test/1/${testItem.value}/proto`;
         const customEncoder = waku.createEncoder({
-          contentTopic: testItem.value,
-          shardInfo: {
-            clusterId: ClusterId,
-            shard: ShardIndex
-          }
+          contentTopic
         });
         const pushResponse = await waku.lightPush.send(
           customEncoder,
@@ -129,13 +117,13 @@ const runTests = (strictNodeCheck: boolean): void => {
 
         expect(
           await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestPubsubTopic
+            contentTopic
           })
         ).to.eq(true);
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
-          expectedContentTopic: testItem.value,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedContentTopic: contentTopic,
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -144,7 +132,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       const customTestEncoder = createEncoder({
         contentTopic: TestContentTopic,
         metaSetter: () => new Uint8Array(10),
-        pubsubTopic: TestPubsubTopic
+        routingInfo: TestRoutingInfo
       });
 
       const pushResponse = await waku.lightPush.send(
@@ -153,22 +141,20 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
       expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(true);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        true
+      );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
 
     it("Fails to push message with large meta", async function () {
       const customTestEncoder = createEncoder({
         contentTopic: TestContentTopic,
-        pubsubTopic: TestPubsubTopic,
+        routingInfo: TestRoutingInfo,
         metaSetter: () => new Uint8Array(105024) // see the note below ***
       });
 
@@ -176,7 +162,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       // `nwaku` establishes the max lightpush msg size as `const MaxRpcSize* = MaxWakuMessageSize + 64 * 1024`
       // see: https://github.com/waku-org/nwaku/blob/07beea02095035f4f4c234ec2dec1f365e6955b8/waku/waku_lightpush/rpc_codec.nim#L15
       // In the PR https://github.com/waku-org/nwaku/pull/2298 we reduced the MaxWakuMessageSize
-      // from 1MiB to 150KiB. Therefore, the 105024 number comes from substracting ( 1*2^20 - 150*2^10 )
+      // from 1MiB to 150KiB. Therefore, the 105024 number comes from subtracting ( 1*2^20 - 150*2^10 )
       // to the original 10^6 that this test had when MaxWakuMessageSize == 1*2^20
 
       const pushResponse = await waku.lightPush.send(
@@ -188,11 +174,9 @@ const runTests = (strictNodeCheck: boolean): void => {
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
         ProtocolError.REMOTE_PEER_REJECTED
       );
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(false);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
     });
 
     it("Push message with rate limit", async function () {
@@ -212,15 +196,13 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
       expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(true);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        true
+      );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
 
@@ -236,16 +218,14 @@ const runTests = (strictNodeCheck: boolean): void => {
         });
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestPubsubTopic
-          })
-        ).to.eq(true);
+        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+          true
+        );
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           expectedTimestamp: testItem,
           expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -268,11 +248,9 @@ const runTests = (strictNodeCheck: boolean): void => {
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
         ProtocolError.SIZE_TOO_BIG
       );
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(false);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
     });
   });
 };

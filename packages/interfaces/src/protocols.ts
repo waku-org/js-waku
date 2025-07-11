@@ -6,7 +6,7 @@ import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { LightPushProtocolOptions } from "./light_push.js";
 import type { IDecodedMessage } from "./message.js";
 import type { ThisAndThat, ThisOrThat } from "./misc.js";
-import type { AutoSharding, StaticSharding } from "./sharding.js";
+import { NetworkConfig } from "./sharding.js";
 import type { StoreProtocolOptions } from "./store.js";
 
 export enum Protocols {
@@ -15,8 +15,6 @@ export enum Protocols {
   LightPush = "lightpush",
   Filter = "filter"
 }
-
-export type NetworkConfig = StaticSharding | AutoSharding;
 
 export type CreateNodeOptions = {
   /**

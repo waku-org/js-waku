@@ -2,9 +2,9 @@ import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopic,
   IDecodedMessage,
-  EncoderOptions as WakuEncoderOptions
+  IMetaSetter
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 import init from "@waku/zerokit-rln-wasm";
 import * as zerokitRLN from "@waku/zerokit-rln-wasm";
 
@@ -27,7 +27,27 @@ import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:rln");
 
-type WakuRLNEncoderOptions = WakuEncoderOptions & {
+type WakuRLNEncoderOptions = {
+  /**
+   * The routing information for messages to encode.
+   */
+  routingInfo: RoutingInfo;
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
+  /**
+   * RLN Credentials
+   */
   credentials: EncryptedCredentials | DecryptedCredentials;
 };
 
@@ -87,11 +107,12 @@ export class RLNInstance extends RLNCredentialsManager {
   }
 
   public createDecoder(
-    contentTopic: ContentTopic
+    contentTopic: ContentTopic,
+    routingInfo: RoutingInfo
   ): RLNDecoder<IDecodedMessage> {
     return createRLNDecoder({
       rlnInstance: this,
-      decoder: createDecoder(contentTopic)
+      decoder: createDecoder(contentTopic, routingInfo)
     });
   }
 

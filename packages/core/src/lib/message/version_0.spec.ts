@@ -1,30 +1,38 @@
-import type { IProtoMessage } from "@waku/interfaces";
-import { contentTopicToPubsubTopic } from "@waku/utils";
+import type { AutoSharding, IProtoMessage } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import fc from "fast-check";
 
 import { createDecoder, createEncoder, DecodedMessage } from "./version_0.js";
 
-const contentTopic = "/js-waku/1/tests/bytes";
-const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+const testContentTopic = "/js-waku/1/tests/bytes";
+
+const testNetworkConfig: AutoSharding = {
+  clusterId: 0,
+  numShardsInCluster: 8
+};
+const testRoutingInfo = createRoutingInfo(testNetworkConfig, {
+  contentTopic: testContentTopic
+});
 
 describe("Waku Message version 0", function () {
   it("Round trip binary serialization", async function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
         const encoder = createEncoder({
-          contentTopic
+          contentTopic: testContentTopic,
+          routingInfo: testRoutingInfo
         });
         const bytes = await encoder.toWire({ payload });
-        const decoder = createDecoder(contentTopic);
+        const decoder = createDecoder(testContentTopic, testRoutingInfo);
         const protoResult = await decoder.fromWireToProtoObj(bytes);
         const result = (await decoder.fromProtoObj(
-          pubsubTopic,
+          testRoutingInfo.pubsubTopic,
           protoResult!
         )) as DecodedMessage;
 
-        expect(result.contentTopic).to.eq(contentTopic);
-        expect(result.pubsubTopic).to.eq(pubsubTopic);
+        expect(result.contentTopic).to.eq(testContentTopic);
+        expect(result.pubsubTopic).to.eq(testRoutingInfo.pubsubTopic);
         expect(result.version).to.eq(0);
         expect(result.ephemeral).to.be.false;
         expect(result.payload).to.deep.eq(payload);
@@ -37,14 +45,15 @@ describe("Waku Message version 0", function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
         const encoder = createEncoder({
-          contentTopic,
+          contentTopic: testContentTopic,
+          routingInfo: testRoutingInfo,
           ephemeral: true
         });
         const bytes = await encoder.toWire({ payload });
-        const decoder = createDecoder(contentTopic);
+        const decoder = createDecoder(testContentTopic, testRoutingInfo);
         const protoResult = await decoder.fromWireToProtoObj(bytes);
         const result = (await decoder.fromProtoObj(
-          pubsubTopic,
+          testRoutingInfo.pubsubTopic,
           protoResult!
         )) as DecodedMessage;
 
@@ -68,15 +77,16 @@ describe("Waku Message version 0", function () {
         };
 
         const encoder = createEncoder({
-          contentTopic,
+          contentTopic: testContentTopic,
+          routingInfo: testRoutingInfo,
           ephemeral: true,
           metaSetter
         });
         const bytes = await encoder.toWire({ payload });
-        const decoder = createDecoder(contentTopic);
+        const decoder = createDecoder(testContentTopic, testRoutingInfo);
         const protoResult = await decoder.fromWireToProtoObj(bytes);
         const result = (await decoder.fromProtoObj(
-          pubsubTopic,
+          testRoutingInfo.pubsubTopic,
           protoResult!
         )) as DecodedMessage;
 
@@ -99,54 +109,73 @@ describe("Waku Message version 0", function () {
 describe("Ensures content topic is defined", () => {
   it("Encoder throws on undefined content topic", () => {
     const wrapper = function (): void {
-      createEncoder({ contentTopic: undefined as unknown as string });
+      createEncoder({
+        contentTopic: undefined as unknown as string,
+        routingInfo: testRoutingInfo
+      });
     };
 
-    expect(wrapper).to.throw("Content topic must be specified");
+    expect(wrapper).to.throw(
+      "Routing Info must have the same content topic as the encoder"
+    );
   });
   it("Encoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createEncoder({ contentTopic: "" });
+      createEncoder({
+        contentTopic: "",
+        routingInfo: createRoutingInfo(testNetworkConfig, { contentTopic: "" })
+      });
     };
 
-    expect(wrapper).to.throw("Content topic must be specified");
+    expect(wrapper).to.throw("AutoSharding requires contentTopic");
   });
   it("Decoder throws on undefined content topic", () => {
     const wrapper = function (): void {
-      createDecoder(undefined as unknown as string);
+      createDecoder(
+        undefined as unknown as string,
+        createRoutingInfo(testNetworkConfig, {
+          contentTopic: undefined as unknown as string
+        })
+      );
     };
 
-    expect(wrapper).to.throw("Content topic must be specified");
+    expect(wrapper).to.throw("AutoSharding requires contentTopic");
   });
   it("Decoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createDecoder("");
+      createDecoder(
+        "",
+        createRoutingInfo(testNetworkConfig, { contentTopic: "" })
+      );
     };
 
-    expect(wrapper).to.throw("Content topic must be specified");
+    expect(wrapper).to.throw("AutoSharding requires contentTopic");
   });
 });
 
 describe("Sets sharding configuration correctly", () => {
   it("uses static shard pubsub topic instead of autosharding when set", async () => {
     // Create an encoder setup to use autosharding
-    const ContentTopic = "/waku/2/content/test.js";
+    const contentTopic = "/myapp/1/test/proto";
     const autoshardingEncoder = createEncoder({
-      pubsubTopicShardInfo: { clusterId: 0 },
-      contentTopic: ContentTopic
+      contentTopic: contentTopic,
+      routingInfo: createRoutingInfo(testNetworkConfig, { contentTopic })
     });
 
     // When autosharding is enabled, we expect the shard index to be 1
-    expect(autoshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/1");
+    expect(autoshardingEncoder.routingInfo.pubsubTopic).to.be.eq(
+      "/waku/2/rs/0/0"
+    );
 
     // Create an encoder setup to use static sharding with the same content topic
-    const singleShardInfo = { clusterId: 0, shard: 0 };
     const staticshardingEncoder = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleShardInfo
+      contentTopic: contentTopic,
+      routingInfo: createRoutingInfo({ clusterId: 0 }, { shardId: 3 })
     });
 
     // When static sharding is enabled, we expect the shard index to be 0
-    expect(staticshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/0");
+    expect(staticshardingEncoder.routingInfo.pubsubTopic).to.be.eq(
+      "/waku/2/rs/0/3"
+    );
   });
 });

@@ -5,6 +5,7 @@ import type {
   IProtoMessage,
   Libp2p
 } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -13,8 +14,15 @@ import { PeerManager } from "../peer_manager/index.js";
 import { Filter } from "./filter.js";
 import { Subscription } from "./subscription.js";
 
-const PUBSUB_TOPIC = "/waku/2/rs/1/4";
-const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
+const testContentTopic = "/test/1/waku-filter/utf8";
+const testNetworkconfig = {
+  clusterId: 0,
+  numShardsInCluster: 9
+};
+const testRoutingInfo = createRoutingInfo(testNetworkconfig, {
+  contentTopic: testContentTopic
+});
+const testPubsubTopic = testRoutingInfo.pubsubTopic;
 
 describe("Filter SDK", () => {
   let libp2p: Libp2p;
@@ -29,7 +37,7 @@ describe("Filter SDK", () => {
     connectionManager = mockConnectionManager();
     peerManager = mockPeerManager();
     filter = mockFilter({ libp2p, connectionManager, peerManager });
-    decoder = createDecoder(CONTENT_TOPIC, PUBSUB_TOPIC);
+    decoder = createDecoder(testContentTopic, testRoutingInfo);
     callback = sinon.spy();
   });
 
@@ -80,10 +88,10 @@ describe("Filter SDK", () => {
 
     await filter.subscribe(decoder, callback);
 
-    const message = createMockMessage(CONTENT_TOPIC);
+    const message = createMockMessage(testContentTopic);
     const peerId = "peer1";
 
-    await (filter as any).onIncomingMessage(PUBSUB_TOPIC, message, peerId);
+    await (filter as any).onIncomingMessage(testPubsubTopic, message, peerId);
 
     expect(subscriptionInvokeStub.calledOnce).to.be.true;
     expect(subscriptionInvokeStub.firstCall.args[0]).to.equal(message);
@@ -91,7 +99,11 @@ describe("Filter SDK", () => {
   });
 
   it("should successfully stop", async () => {
-    const decoder2 = createDecoder("/another-content-topic", PUBSUB_TOPIC);
+    const contentTopic2 = "/test/1/waku-filter-2/utf8";
+    const decoder2 = createDecoder(
+      contentTopic2,
+      createRoutingInfo(testNetworkconfig, { contentTopic: contentTopic2 })
+    );
     const stopStub = sinon.stub(Subscription.prototype, "stop");
 
     sinon.stub(Subscription.prototype, "add").resolves(true);
@@ -129,7 +141,7 @@ function mockLibp2p(): Libp2p {
 function mockConnectionManager(): ConnectionManager {
   return {
     isTopicConfigured: sinon.stub().callsFake((topic: string) => {
-      return topic === PUBSUB_TOPIC;
+      return topic === testPubsubTopic;
     })
   } as unknown as ConnectionManager;
 }
