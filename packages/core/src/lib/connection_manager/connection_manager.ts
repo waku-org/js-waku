@@ -97,6 +97,7 @@ export class ConnectionManager implements IConnectionManager {
   }
 
   public start(): void {
+    this.dialer.start();
     this.networkMonitor.start();
     this.discoveryDialer.start();
     this.keepAliveManager.start();
@@ -104,6 +105,7 @@ export class ConnectionManager implements IConnectionManager {
   }
 
   public stop(): void {
+    this.dialer.stop();
     this.networkMonitor.stop();
     this.discoveryDialer.stop();
     this.keepAliveManager.stop();

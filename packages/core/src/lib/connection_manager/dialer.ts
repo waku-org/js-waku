@@ -24,7 +24,9 @@ export class Dialer implements IDialer {
   private dialingQueue: PeerId[] = [];
   private dialHistory: Map<string, number> = new Map();
   private dialingInterval: NodeJS.Timeout | null = null;
+
   private isProcessing = false;
+  private isImmediateDialing = false;
 
   public constructor(options: DialerConstructorOptions) {
     this.libp2p = options.libp2p;
@@ -32,6 +34,8 @@ export class Dialer implements IDialer {
   }
 
   public start(): void {
+    log.info("Starting dialer");
+
     if (!this.dialingInterval) {
       this.dialingInterval = setInterval(() => {
         void this.processQueue();
@@ -42,6 +46,8 @@ export class Dialer implements IDialer {
   }
 
   public stop(): void {
+    log.info("Stopping dialer");
+
     if (this.dialingInterval) {
       clearInterval(this.dialingInterval);
       this.dialingInterval = null;
@@ -58,11 +64,17 @@ export class Dialer implements IDialer {
       return;
     }
 
+    const isEmptyQueue = this.dialingQueue.length === 0;
+    const isNotDialing = !this.isProcessing && !this.isImmediateDialing;
+
     // If queue is empty and we're not currently processing, dial immediately
-    if (this.dialingQueue.length === 0 && !this.isProcessing) {
+    if (isEmptyQueue && isNotDialing) {
+      this.isImmediateDialing = true;
+      log.info("Dialed peer immediately");
       await this.dialPeer(peerId);
+      this.isImmediateDialing = false;
+      log.info("Released immediate dial lock");
     } else {
-      // Add to queue
       this.dialingQueue.push(peerId);
       log.info(
         `Added peer to dialing queue, queue size: ${this.dialingQueue.length}`
@@ -71,7 +83,9 @@ export class Dialer implements IDialer {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.dialingQueue.length === 0 || this.isProcessing) return;
+    if (this.dialingQueue.length === 0 || this.isProcessing) {
+      return;
+    }
 
     this.isProcessing = true;
 
