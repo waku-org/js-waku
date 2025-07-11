@@ -1,6 +1,6 @@
-import { Peer, PeerId, PeerInfo } from "@libp2p/interface";
+import { Libp2p, Peer, PeerId, PeerInfo } from "@libp2p/interface";
 import { Multiaddr } from "@multiformats/multiaddr";
-import { Libp2p, Libp2pEventHandler } from "@waku/interfaces";
+import { Libp2pEventHandler } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { Dialer } from "./dialer.js";
