@@ -1,11 +1,9 @@
 import { Peer, PeerId, PeerInfo } from "@libp2p/interface";
 import { Multiaddr } from "@multiformats/multiaddr";
+import { Libp2p, Libp2pEventHandler } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { Libp2p } from "libp2p";
 
 import { Dialer } from "./dialer.js";
-
-type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 type DiscoveryDialerConstructorOptions = {
   libp2p: Libp2p;
