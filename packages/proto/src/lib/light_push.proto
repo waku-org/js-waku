@@ -1,5 +1,6 @@
-// 19/WAKU2-LIGHTPUSH rfc: https://rfc.vac.dev/spec/19/
-// Protocol identifier: /vac/waku/lightpush/2.0.0-beta1
+// LightPush protocol definition supporting v1, v2, and v3
+// V1/V2: /vac/waku/lightpush/2.0.0-beta1
+// V3: /vac/waku/lightpush/3.0.0
 
 syntax = "proto3";
 
@@ -13,10 +14,29 @@ message PushRequest {
 message PushResponse {
   bool is_success = 1;
   optional string info = 2;
+  
+  // V3 extended fields
+  optional uint32 status_code = 10;
+  optional string status_desc = 11;
+  optional uint32 relay_peer_count = 12;
 }
 
 message PushRpc {
   string request_id = 1;
   optional PushRequest request = 2;
   optional PushResponse response = 3;
+}
+
+// V3 specific messages with different field numbering
+message LightPushRequestV3 {
+  string request_id = 1;
+  optional string pubsub_topic = 20;
+  WakuMessage message = 21;
+}
+
+message LightPushResponseV3 {
+  string request_id = 1;
+  uint32 status_code = 10;
+  optional string status_desc = 11;
+  optional uint32 relay_peer_count = 12;
 }
