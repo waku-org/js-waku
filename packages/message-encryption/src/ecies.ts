@@ -1,17 +1,14 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import {
-  type EncoderOptions as BaseEncoderOptions,
   type IDecoder,
   type IEncoder,
   type IEncryptedMessage,
   type IMessage,
   type IMetaSetter,
-  type IProtoMessage,
-  type PubsubTopic,
-  type SingleShardInfo
+  type IProtoMessage
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 
 import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -35,8 +32,8 @@ const log = new Logger("message-encryption:ecies");
 
 class Encoder implements IEncoder {
   public constructor(
-    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
+    public routingInfo: RoutingInfo,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
@@ -81,11 +78,24 @@ class Encoder implements IEncoder {
   }
 }
 
-export interface EncoderOptions extends BaseEncoderOptions {
+export interface EncoderOptions {
   /**
-   * @deprecated
+   * The routing information for messages to encode.
    */
-  pubsubTopic?: PubsubTopic;
+  routingInfo: RoutingInfo;
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
   /** The public key to encrypt the payload for. */
   publicKey: Uint8Array;
   /**  An optional private key to be used to sign the payload before encryption. */
@@ -105,17 +115,16 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
+  routingInfo,
   publicKey,
   sigPrivKey,
   ephemeral = false,
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
+    routingInfo,
     publicKey,
     sigPrivKey,
     ephemeral,
@@ -125,11 +134,11 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
-    pubsubTopic: PubsubTopic,
     contentTopic: string,
+    routingInfo: RoutingInfo,
     private privateKey: Uint8Array
   ) {
-    super(pubsubTopic, contentTopic);
+    super(contentTopic, routingInfo);
   }
 
   public async fromProtoObj(
@@ -201,12 +210,8 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  privateKey: Uint8Array,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  routingInfo: RoutingInfo,
+  privateKey: Uint8Array
 ): Decoder {
-  return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
-    contentTopic,
-    privateKey
-  );
+  return new Decoder(contentTopic, routingInfo, privateKey);
 }

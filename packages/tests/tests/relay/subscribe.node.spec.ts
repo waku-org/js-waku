@@ -1,6 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
+import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -20,9 +21,8 @@ import {
   TestDecoder,
   TestEncoder,
   TestExpectOptions,
-  TestPubsubTopic,
-  TestShardInfo,
-  TestWaitMessageOptions,
+  TestNetworkConfig,
+  TestRoutingInfo,
   waitForAllRemotePeers
 } from "./utils.js";
 
@@ -44,10 +44,10 @@ describe("Waku Relay, Subscribe", function () {
   it("Mutual subscription", async function () {
     await waitForAllRemotePeers(waku1, waku2);
     const subscribers1 = waku1.libp2p.services
-      .pubsub!.getSubscribers(TestPubsubTopic)
+      .pubsub!.getSubscribers(TestRoutingInfo.pubsubTopic)
       .map((p) => p.toString());
     const subscribers2 = waku2.libp2p.services
-      .pubsub!.getSubscribers(TestPubsubTopic)
+      .pubsub!.getSubscribers(TestRoutingInfo.pubsubTopic)
       .map((p) => p.toString());
 
     expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
@@ -65,7 +65,8 @@ describe("Waku Relay, Subscribe", function () {
     try {
       const waku = await createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: TestShardInfo
+        networkConfig: TestNetworkConfig,
+        routingInfos: [TestRoutingInfo]
       });
       await waku.start();
 
@@ -90,9 +91,7 @@ describe("Waku Relay, Subscribe", function () {
       messageCollector.callback
     );
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
-    expect(
-      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
-    ).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       ...TestExpectOptions,
       expectedMessageText: messageText
@@ -115,7 +114,6 @@ describe("Waku Relay, Subscribe", function () {
     // Verify that each message was received on the corresponding topic.
     expect(
       await messageCollector.waitForMessages(messageCount, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -130,12 +128,15 @@ describe("Waku Relay, Subscribe", function () {
   });
 
   it("Subscribe and publish messages on 2 different content topics", async function () {
-    const secondContentTopic = "/test/2/waku-relay/utf8";
+    const secondContentTopic = "/test/0/waku-relay-2/utf8";
+    const secondRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+      contentTopic: secondContentTopic
+    });
     const secondEncoder = createEncoder({
       contentTopic: secondContentTopic,
-      pubsubTopic: TestPubsubTopic
+      routingInfo: secondRoutingInfo
     });
-    const secondDecoder = createDecoder(secondContentTopic, TestPubsubTopic);
+    const secondDecoder = createDecoder(secondContentTopic, secondRoutingInfo);
 
     await waku2.relay.subscribeWithUnsubscribe(
       [TestDecoder],
@@ -149,7 +150,6 @@ describe("Waku Relay, Subscribe", function () {
     await waku1.relay.send(secondEncoder, { payload: utf8ToBytes("M2") });
     expect(
       await messageCollector.waitForMessages(2, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -166,7 +166,7 @@ describe("Waku Relay, Subscribe", function () {
 
   it("Subscribe one by one to 100 topics and publish messages", async function () {
     const topicCount = 100;
-    const td = generateTestData(topicCount, TestWaitMessageOptions);
+    const td = generateTestData(topicCount, TestNetworkConfig);
 
     // Subscribe to topics one by one
     for (let i = 0; i < topicCount; i++) {
@@ -186,7 +186,6 @@ describe("Waku Relay, Subscribe", function () {
     // Verify that each message was received on the corresponding topic.
     expect(
       await messageCollector.waitForMessages(topicCount, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -201,7 +200,7 @@ describe("Waku Relay, Subscribe", function () {
 
   it("Subscribe at once to 10000 topics and publish messages", async function () {
     const topicCount = 10000;
-    const td = generateTestData(topicCount, TestWaitMessageOptions);
+    const td = generateTestData(topicCount, TestNetworkConfig);
 
     // Subscribe to all topics at once
     await waku2.relay.subscribeWithUnsubscribe(
@@ -219,7 +218,6 @@ describe("Waku Relay, Subscribe", function () {
     // Verify that each message was received on the corresponding topic.
     expect(
       await messageCollector.waitForMessages(topicCount, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -248,7 +246,6 @@ describe("Waku Relay, Subscribe", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -258,9 +255,9 @@ describe("Waku Relay, Subscribe", function () {
   it.skip("Overlapping topic subscription", async function () {
     // Define two sets of test data with overlapping topics.
     const topicCount1 = 2;
-    const td1 = generateTestData(topicCount1, TestWaitMessageOptions);
+    const td1 = generateTestData(topicCount1, TestNetworkConfig);
     const topicCount2 = 4;
-    const td2 = generateTestData(topicCount2, TestWaitMessageOptions);
+    const td2 = generateTestData(topicCount2, TestNetworkConfig);
 
     // Subscribe to the first set of topics.
     await waku2.relay.subscribeWithUnsubscribe(
@@ -293,7 +290,6 @@ describe("Waku Relay, Subscribe", function () {
     // Since there are overlapping topics, there should be 6 messages in total (2 from the first set + 4 from the second set).
     expect(
       await messageCollector.waitForMessages(6, {
-        ...TestWaitMessageOptions,
         exact: true
       })
     ).to.eq(true);
@@ -301,29 +297,39 @@ describe("Waku Relay, Subscribe", function () {
 
   TEST_STRING.forEach((testItem) => {
     it(`Subscribe to topic containing ${testItem.description} and publish message`, async function () {
-      const newContentTopic = testItem.value;
-      const newEncoder = createEncoder({
-        contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
-      });
-      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+      const newContentTopic = `/test/0/${testItem.value}/null`;
 
-      await waku2.relay.subscribeWithUnsubscribe(
-        [newDecoder],
-        messageCollector.callback
-      );
-      await waku1.relay.send(newEncoder, {
-        payload: utf8ToBytes(messageText)
-      });
+      try {
+        const newRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+          contentTopic: newContentTopic
+        });
 
-      expect(
-        await messageCollector.waitForMessages(1, TestWaitMessageOptions)
-      ).to.eq(true);
-      messageCollector.verifyReceivedMessage(0, {
-        ...TestExpectOptions,
-        expectedMessageText: messageText,
-        expectedContentTopic: newContentTopic
-      });
+        const newEncoder = createEncoder({
+          contentTopic: newContentTopic,
+          routingInfo: newRoutingInfo
+        });
+        const newDecoder = createDecoder(newContentTopic, newRoutingInfo);
+
+        await waku2.relay.subscribeWithUnsubscribe(
+          [newDecoder],
+          messageCollector.callback
+        );
+        await waku1.relay.send(newEncoder, {
+          payload: utf8ToBytes(messageText)
+        });
+
+        expect(await messageCollector.waitForMessages(1)).to.eq(true);
+        messageCollector.verifyReceivedMessage(0, {
+          ...TestExpectOptions,
+          expectedMessageText: messageText,
+          expectedContentTopic: newContentTopic
+        });
+      } catch (err: unknown) {
+        if (testItem.invalidContentTopic) {
+          const e = err as Error;
+          expect(e.message).to.contain("Invalid generation field");
+        }
+      }
     });
   });
 });

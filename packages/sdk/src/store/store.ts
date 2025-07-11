@@ -12,7 +12,7 @@ import {
   StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
-import { isDefined, Logger } from "@waku/utils";
+import { isDefined, Logger, RoutingInfo } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
@@ -65,7 +65,7 @@ export class Store implements IStore {
     );
 
     for (const queryOption of queryOptions) {
-      const peer = await this.getPeerToUse(queryOption.pubsubTopic);
+      const peer = await this.getPeerToUse(queryOption.routingInfo);
 
       if (!peer) {
         log.error("No peers available to query");
@@ -181,7 +181,7 @@ export class Store implements IStore {
   private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
     decoders: IDecoder<T>[]
   ): {
-    pubsubTopic: string;
+    routingInfo: RoutingInfo;
     contentTopics: string[];
     decodersAsMap: Map<string, IDecoder<T>>;
   } {
@@ -191,7 +191,7 @@ export class Store implements IStore {
     }
 
     const uniquePubsubTopicsInQuery = Array.from(
-      new Set(decoders.map((decoder) => decoder.pubsubTopic))
+      new Set(decoders.map((decoder) => decoder.routingInfo.pubsubTopic))
     );
     if (uniquePubsubTopicsInQuery.length > 1) {
       log.error("API does not support querying multiple pubsub topics at once");
@@ -214,7 +214,9 @@ export class Store implements IStore {
     });
 
     const contentTopics = decoders
-      .filter((decoder) => decoder.pubsubTopic === pubsubTopicForQuery)
+      .filter(
+        (decoder) => decoder.routingInfo.pubsubTopic === pubsubTopicForQuery
+      )
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {
@@ -223,16 +225,18 @@ export class Store implements IStore {
     }
 
     return {
-      pubsubTopic: pubsubTopicForQuery,
+      routingInfo: decoders[0].routingInfo,
       contentTopics,
       decodersAsMap
     };
   }
 
-  private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
+  private async getPeerToUse(
+    routingInfo: RoutingInfo
+  ): Promise<PeerId | undefined> {
     const peers = await this.peerManager.getPeers({
       protocol: Protocols.Store,
-      pubsubTopic
+      routingInfo
     });
 
     return this.options.peers
@@ -297,15 +301,16 @@ export class Store implements IStore {
     const isHashQuery =
       options?.messageHashes && options.messageHashes.length > 0;
 
-    let pubsubTopic: string;
+    let routingInfo: RoutingInfo;
     let contentTopics: string[];
     let decodersAsMap: Map<string, IDecoder<T>>;
 
     if (isHashQuery) {
       // For hash queries, we still need decoders to decode messages
-      // but we don't validate pubsubTopic consistency
-      // Use pubsubTopic from options if provided, otherwise from first decoder
-      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
+      // but we don't validate routing info consistency
+      // Use routing info from options if provided, otherwise from first decoder
+      // Otherwise, throw
+      routingInfo = options?.routingInfo || decoders[0]?.routingInfo;
       contentTopics = [];
       decodersAsMap = new Map();
       decoders.forEach((dec) => {
@@ -313,7 +318,7 @@ export class Store implements IStore {
       });
     } else {
       const validated = this.validateDecodersAndPubsubTopic(decoders);
-      pubsubTopic = validated.pubsubTopic;
+      routingInfo = validated.routingInfo;
       contentTopics = validated.contentTopics;
       decodersAsMap = validated.decodersAsMap;
     }
@@ -340,7 +345,7 @@ export class Store implements IStore {
         decodersAsMap,
         queryOptions: [
           {
-            pubsubTopic,
+            routingInfo,
             contentTopics,
             includeData: true,
             paginationForward: true,
@@ -355,7 +360,7 @@ export class Store implements IStore {
     return {
       decodersAsMap,
       queryOptions: subTimeRanges.map(([start, end]) => ({
-        pubsubTopic,
+        routingInfo,
         contentTopics,
         includeData: true,
         paginationForward: true,

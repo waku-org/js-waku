@@ -14,9 +14,11 @@ import {
   runStoreNodes,
   sendMessages,
   startAndConnectLightNode,
+  TestContentTopic,
   TestDecoder,
   TestDecoder2,
-  TestShardInfo,
+  TestNetworkConfig,
+  TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -27,7 +29,12 @@ describe("Waku Store, cursor", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(
+      this.ctx,
+      TestNetworkConfig,
+      [],
+      [TestContentTopic]
+    );
   });
 
   afterEachCustom(this, async () => {
@@ -43,11 +50,12 @@ describe("Waku Store, cursor", function () {
     [110, 120]
   ].forEach(([cursorIndex, messageCount]) => {
     it(`Passing a valid cursor at ${cursorIndex} index when there are ${messageCount} messages`, async function () {
+      console.log(nwaku);
       await sendMessages(
         nwaku,
         messageCount,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       // messages in reversed order (first message at last index)
@@ -95,9 +103,9 @@ describe("Waku Store, cursor", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
-    waku2 = await startAndConnectLightNode(nwaku, TestShardInfo);
+    waku2 = await startAndConnectLightNode(nwaku, TestNetworkConfig);
 
     // messages in reversed order (first message at last index)
     const messages: DecodedMessage[] = [];
@@ -137,12 +145,7 @@ describe("Waku Store, cursor", function () {
       this.skip();
     }
 
-    await sendMessages(
-      nwaku,
-      totalMsgs,
-      TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
-    );
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, TestRoutingInfo);
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
@@ -170,7 +173,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
+          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found"
         )
       ) {
         throw err;
@@ -187,7 +190,7 @@ describe("Waku Store, cursor", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
 
     const messages: DecodedMessage[] = [];
@@ -196,7 +199,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubsubTopic = TestDecoder2.pubsubTopic;
+    messages[5].pubsubTopic = TestDecoder2.routingInfo.pubsubTopic;
     const cursor = waku.store.createCursor(messages[5]);
 
     try {
@@ -210,7 +213,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
+          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found"
         )
       ) {
         throw err;

@@ -27,7 +27,7 @@ import {
   HealthStatus,
   Protocols
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { createRoutingInfo, Logger, RoutingInfo } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -35,7 +35,6 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
-import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -260,40 +259,33 @@ export class WakuNode implements IWaku {
   }
 
   public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = getRoutingInfo(
+      this.networkConfig,
+      params.contentTopic,
+      params.shardId
     );
-
-    log.info(
-      `Creating Decoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create decoder: incompatible shard configuration.`);
-    }
-
-    return createDecoder(params.contentTopic, singleShardInfo);
+    return createDecoder(params.contentTopic, routingInfo);
   }
 
   public createEncoder(params: CreateEncoderParams): IEncoder {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = getRoutingInfo(
+      this.networkConfig,
+      params.contentTopic,
+      params.shardId
     );
-
-    log.info(
-      `Creating Encoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create encoder: incompatible shard configuration.`);
-    }
 
     return createEncoder({
       contentTopic: params.contentTopic,
       ephemeral: params.ephemeral,
-      pubsubTopicShardInfo: singleShardInfo
+      routingInfo: routingInfo
     });
   }
+}
+
+function getRoutingInfo(
+  networkConfig: NetworkConfig,
+  contentTopic?: string,
+  shardId?: number
+): RoutingInfo {
+  return createRoutingInfo(networkConfig, { contentTopic, shardId });
 }

@@ -16,7 +16,7 @@ import {
   Libp2pEventHandler,
   Protocols
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 
 const log = new Logger("peer-manager");
 
@@ -34,7 +34,7 @@ type PeerManagerParams = {
 
 type GetPeersParams = {
   protocol: Protocols;
-  pubsubTopic: string;
+  routingInfo: RoutingInfo;
 };
 
 export enum PeerManagerEventNames {
@@ -107,7 +107,9 @@ export class PeerManager {
 
   public async getPeers(params: GetPeersParams): Promise<PeerId[]> {
     log.info(
-      `Getting peers for protocol: ${params.protocol}, pubsubTopic: ${params.pubsubTopic}`
+      `Getting peers for protocol: ${params.protocol}, ` +
+        `clusterId: ${params.routingInfo.networkConfig.clusterId},` +
+        ` shard: ${params.routingInfo.shardId}`
     );
 
     const connectedPeers = await this.connectionManager.getConnectedPeers();
@@ -117,13 +119,19 @@ export class PeerManager {
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
+
+      const isOnSameShard = await this.connectionManager.isPeerOnShard(
         peer.id,
-        params.pubsubTopic
+        params.routingInfo.networkConfig.clusterId,
+        params.routingInfo.shardId
       );
+      if (!isOnSameShard) {
+        continue;
+      }
+
       const isPeerAvailableForUse = this.isPeerAvailableForUse(peer.id);
 
-      if (hasProtocol && hasSamePubsub && isPeerAvailableForUse) {
+      if (hasProtocol && isPeerAvailableForUse) {
         results.push(peer);
         log.info(`Peer ${peer.id} qualifies for protocol ${params.protocol}`);
       }
@@ -168,7 +176,7 @@ export class PeerManager {
 
   public async renewPeer(id: PeerId, params: GetPeersParams): Promise<void> {
     log.info(
-      `Renewing peer ${id} for protocol: ${params.protocol}, pubsubTopic: ${params.pubsubTopic}`
+      `Renewing peer ${id} for protocol: ${params.protocol}, routingInfo: ${params.routingInfo}`
     );
 
     const connectedPeers = await this.connectionManager.getConnectedPeers();
@@ -265,7 +273,7 @@ export class PeerManager {
     }
 
     const wasUnlocked = new Date(value).getTime();
-    return Date.now() - wasUnlocked >= 10_000 ? true : false;
+    return Date.now() - wasUnlocked >= 10_000;
   }
 
   private dispatchFilterPeerConnect(id: PeerId): void {

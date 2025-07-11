@@ -63,7 +63,7 @@ describe("ConnectionManager", () => {
     } as unknown as IWakuEventEmitter;
 
     networkConfig = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [0, 1]
     } as NetworkConfig;
 

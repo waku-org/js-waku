@@ -1,4 +1,5 @@
 import type { IDecodedMessage, IDecoder } from "./message.js";
+import { IRoutingInfo } from "./sharding.js";
 
 export type StoreCursor = Uint8Array;
 
@@ -15,10 +16,10 @@ export type QueryRequestParams = {
   includeData: boolean;
 
   /**
-   * The pubsub topic to query. This field is mandatory.
-   * The query will only return messages that were published on this specific pubsub topic.
+   * The routing information to query. This field is mandatory.
+   * The query will only return messages that were published on this specific route (cluster and shard).
    */
-  pubsubTopic: string;
+  routingInfo: IRoutingInfo;
 
   /**
    * The content topics to filter the messages.
