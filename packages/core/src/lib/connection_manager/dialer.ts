@@ -23,6 +23,7 @@ export class Dialer implements IDialer {
 
   private dialingQueue: PeerId[] = [];
   private dialHistory: Map<string, number> = new Map();
+  private failedDials: Map<string, number> = new Map();
   private dialingInterval: NodeJS.Timeout | null = null;
 
   private isProcessing = false;
@@ -43,6 +44,7 @@ export class Dialer implements IDialer {
     }
 
     this.dialHistory.clear();
+    this.failedDials.clear();
   }
 
   public stop(): void {
@@ -54,6 +56,7 @@ export class Dialer implements IDialer {
     }
 
     this.dialHistory.clear();
+    this.failedDials.clear();
   }
 
   public async dial(peerId: PeerId): Promise<void> {
@@ -109,10 +112,12 @@ export class Dialer implements IDialer {
 
       await this.libp2p.dial(peerId);
       this.dialHistory.set(peerId.toString(), Date.now());
+      this.failedDials.delete(peerId.toString());
 
       log.info(`Successfully dialed peer from queue: ${peerId}`);
     } catch (error) {
       log.error(`Error dialing peer ${peerId}`, error);
+      this.failedDials.set(peerId.toString(), Date.now());
     }
   }
 
@@ -123,11 +128,15 @@ export class Dialer implements IDialer {
       return true;
     }
 
-    const lastDialed = this.dialHistory.get(peerId.toString());
-    if (lastDialed && Date.now() - lastDialed < 10_000) {
+    if (this.isRecentlyDialed(peerId)) {
       log.info(
         `Skipping peer ${peerId} - already dialed in the last 10 seconds`
       );
+      return true;
+    }
+
+    if (this.isRecentlyFailed(peerId)) {
+      log.info(`Skipping peer ${peerId} - recently failed to dial`);
       return true;
     }
 
@@ -149,5 +158,23 @@ export class Dialer implements IDialer {
       log.error(`Error checking shard info for peer ${peerId}`, error);
       return true; // Skip peer when there's an error
     }
+  }
+
+  private isRecentlyDialed(peerId: PeerId): boolean {
+    const lastDialed = this.dialHistory.get(peerId.toString());
+    if (lastDialed && Date.now() - lastDialed < 10_000) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private isRecentlyFailed(peerId: PeerId): boolean {
+    const lastFailed = this.failedDials.get(peerId.toString());
+    if (lastFailed && Date.now() - lastFailed < 60_000) {
+      return true;
+    }
+
+    return false;
   }
 }
