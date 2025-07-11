@@ -8,6 +8,7 @@ import {
   symmetric
 } from "@waku/message-encryption";
 import { Protocols, utf8ToBytes } from "@waku/sdk";
+import { RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -34,8 +35,8 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
-  TestPubsubTopic,
-  TestShardInfo
+  TestNetworkConfig,
+  TestRoutingInfo
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -47,7 +48,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
-        TestShardInfo,
+        TestNetworkConfig,
         undefined,
         strictCheckNodes
       );
@@ -84,12 +85,12 @@ const runTests = (strictCheckNodes: boolean): void => {
       const encoder = ecies.createEncoder({
         contentTopic: TestContentTopic,
         publicKey,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: TestRoutingInfo
       });
       const decoder = ecies.createDecoder(
         TestContentTopic,
-        privateKey,
-        TestPubsubTopic
+        TestRoutingInfo,
+        privateKey
       );
 
       await waku.filter.subscribe(
@@ -106,7 +107,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
         expectedVersion: 1,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(2);
@@ -117,12 +118,12 @@ const runTests = (strictCheckNodes: boolean): void => {
       const encoder = symmetric.createEncoder({
         contentTopic: TestContentTopic,
         symKey,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: TestRoutingInfo
       });
       const decoder = symmetric.createDecoder(
         TestContentTopic,
-        symKey,
-        TestPubsubTopic
+        TestRoutingInfo,
+        symKey
       );
 
       await waku.filter.subscribe(
@@ -139,7 +140,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
         expectedVersion: 1,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(2);
@@ -158,7 +159,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       });
-      await serviceNodes.sendRelayMessage(relayMessage, TestPubsubTopic);
+      await serviceNodes.sendRelayMessage(relayMessage, TestRoutingInfo);
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
@@ -166,7 +167,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(1);
@@ -219,7 +220,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       // Modify subscription to include a new content topic and send a message.
@@ -228,9 +229,9 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter/default";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: TestRoutingInfo
       });
-      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+      const newDecoder = createDecoder(newContentTopic, TestRoutingInfo);
       await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
@@ -244,7 +245,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedContentTopic: newContentTopic,
         expectedMessageText: newMessageText,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       // Send another message on the initial content topic to verify it still works.
@@ -255,7 +256,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(2, {
         expectedMessageText: newMessageText,
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(3);
@@ -263,7 +264,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     it("Subscribe and receives messages on 20 topics", async function () {
       const topicCount = 20;
-      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+      const td = generateTestData(topicCount, TestRoutingInfo);
 
       // Subscribe to all 20 topics.
       for (let i = 0; i < topicCount; i++) {
@@ -288,7 +289,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
           expectedMessageText: `Message for Topic ${index + 1}`,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -297,7 +298,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it.skip("Subscribe to 30 topics in separate streams (30 streams for Filter is limit) at once and receives messages", async function () {
       this.timeout(100_000);
       const topicCount = 30;
-      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+      const td = generateTestData(topicCount, TestRoutingInfo);
 
       for (let i = 0; i < topicCount; i++) {
         await waku.filter.subscribe(
@@ -321,7 +322,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
           expectedMessageText: `Message for Topic ${index + 1}`,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -329,7 +330,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
       this.timeout(100_000);
       const topicCount = 100;
-      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+      const td = generateTestData(topicCount, TestRoutingInfo);
 
       await waku.filter.subscribe(
         td.decoders,
@@ -351,14 +352,14 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
           expectedMessageText: `Message for Topic ${index + 1}`,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
 
     it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
       const topicCount = 101;
-      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+      const td = generateTestData(topicCount, TestRoutingInfo);
 
       try {
         await waku.filter.subscribe(
@@ -382,14 +383,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Overlapping topic subscription", async function () {
       // Define two sets of test data with overlapping topics.
       const topicCount1 = 2;
-      const td1 = generateTestData(topicCount1, {
-        pubsubTopic: TestPubsubTopic
-      });
+      const td1 = generateTestData(topicCount1, TestRoutingInfo);
 
       const topicCount2 = 4;
-      const td2 = generateTestData(topicCount2, {
-        pubsubTopic: TestPubsubTopic
-      });
+      const td2 = generateTestData(topicCount2, TestRoutingInfo);
 
       await waku.filter.subscribe(
         td1.decoders,
@@ -445,12 +442,12 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
 
@@ -459,17 +456,11 @@ const runTests = (strictCheckNodes: boolean): void => {
         const newContentTopic = testItem.value;
         const newEncoder = waku.createEncoder({
           contentTopic: newContentTopic,
-          shardInfo: {
-            clusterId: ClusterId,
-            shard: ShardIndex
-          }
+          shardOrPubsubTopic: ShardIndex
         });
         const newDecoder = waku.createDecoder({
           contentTopic: newContentTopic,
-          shardInfo: {
-            clusterId: ClusterId,
-            shard: ShardIndex
-          }
+          shardOrPubsubTopic: ShardIndex
         });
 
         await waku.filter.subscribe(
@@ -484,7 +475,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           expectedContentTopic: newContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -499,9 +490,9 @@ const runTests = (strictCheckNodes: boolean): void => {
       const newContentTopic = "/test/2/waku-filter/default";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: TestRoutingInfo
       });
-      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+      const newDecoder = createDecoder(newContentTopic, TestRoutingInfo);
       await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
@@ -516,12 +507,12 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedContentTopic: newContentTopic,
         expectedMessageText: "M2",
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
 
@@ -571,7 +562,46 @@ const runTests = (strictCheckNodes: boolean): void => {
       });
     });
 
-    it("Subscribe and receive messages from 2 nwaku nodes each with different pubsubtopics", async function () {
+    it("Should fail to subscribe with decoder with wrong shard", async function () {
+      const wrongDecoder = createDecoder(
+        TestDecoder.contentTopic,
+        RoutingInfo.fromShard(5, TestNetworkConfig)
+      );
+
+      // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
+      try {
+        await waku.filter.subscribe(
+          wrongDecoder,
+          serviceNodes.messageCollector.callback
+        );
+      } catch (error) {
+        expect((error as Error).message).to.include(
+          `Pubsub topic ${wrongDecoder.routingInfo.pubsubTopic} has not been configured on this instance.`
+        );
+      }
+    });
+  });
+
+  describe("Filter subscribe test with static sharding", function () {
+    this.timeout(100000);
+    let waku: LightNode;
+    let serviceNodes: ServiceNodesFleet;
+    const networkConfig = { clusterId: ClusterId };
+
+    beforeEachCustom(this, async () => {
+      [serviceNodes, waku] = await runMultipleNodes(
+        this.ctx,
+        networkConfig,
+        { shard: [3] },
+        strictCheckNodes
+      );
+    });
+
+    afterEachCustom(this, async () => {
+      await teardownNodesWithRedundancy(serviceNodes, waku);
+    });
+
+    it("Subscribe and receive messages from 2 nwaku nodes each with different static shards", async function () {
       await waku.filter.subscribe(
         TestDecoder,
         serviceNodes.messageCollector.callback
@@ -581,14 +611,16 @@ const runTests = (strictCheckNodes: boolean): void => {
       const nwaku2 = new ServiceNode(makeLogFileName(this) + "3");
 
       try {
+        const customShard = 4;
+        const customRoutingInfo = RoutingInfo.fromShard(4, networkConfig);
         const customContentTopic = "/test/4/waku-filter/default";
-        const customDecoder = createDecoder(customContentTopic, {
-          clusterId: ClusterId,
-          shard: 4
-        });
+        const customDecoder = createDecoder(
+          customContentTopic,
+          customRoutingInfo
+        );
         const customEncoder = createEncoder({
           contentTopic: customContentTopic,
-          pubsubTopicShardInfo: { clusterId: ClusterId, shard: 4 }
+          routingInfo: customRoutingInfo
         });
 
         await nwaku2.start({
@@ -596,12 +628,13 @@ const runTests = (strictCheckNodes: boolean): void => {
           lightpush: true,
           relay: true,
           clusterId: ClusterId,
-          shard: [4]
+          shard: [customShard]
         });
         await waku.dial(await nwaku2.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
-        await nwaku2.ensureSubscriptions([customDecoder.pubsubTopic]);
+        // TODO
+        // await nwaku2.ensureSubscriptions([customDecoder.pubsubTopic]);
 
         const messageCollector2 = new MessageCollector();
 
@@ -610,12 +643,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         // Making sure that messages are send and reveiced for both subscriptions
         // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
         while (
-          !(await serviceNodes.messageCollector.waitForMessages(1, {
-            pubsubTopic: TestDecoder.pubsubTopic
-          })) ||
-          !(await messageCollector2.waitForMessages(1, {
-            pubsubTopic: customDecoder.pubsubTopic
-          }))
+          !(await serviceNodes.messageCollector.waitForMessages(1)) ||
+          !(await messageCollector2.waitForMessages(1))
         ) {
           await waku.lightPush.send(TestEncoder, {
             payload: utf8ToBytes("M1")
@@ -627,36 +656,17 @@ const runTests = (strictCheckNodes: boolean): void => {
 
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedContentTopic: TestDecoder.contentTopic,
-          expectedPubsubTopic: TestDecoder.pubsubTopic,
+          expectedPubsubTopic: TestDecoder.routingInfo.pubsubTopic,
           expectedMessageText: "M1"
         });
 
         messageCollector2.verifyReceivedMessage(0, {
           expectedContentTopic: customDecoder.contentTopic,
-          expectedPubsubTopic: customDecoder.pubsubTopic,
+          expectedPubsubTopic: customDecoder.routingInfo.pubsubTopic,
           expectedMessageText: "M2"
         });
       } catch (e) {
         await tearDownNodes([nwaku2], []);
-      }
-    });
-
-    it("Should fail to subscribe with decoder with wrong shard", async function () {
-      const wrongDecoder = createDecoder(TestDecoder.contentTopic, {
-        clusterId: ClusterId,
-        shard: 5
-      });
-
-      // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
-      try {
-        await waku.filter.subscribe(
-          wrongDecoder,
-          serviceNodes.messageCollector.callback
-        );
-      } catch (error) {
-        expect((error as Error).message).to.include(
-          `Pubsub topic ${wrongDecoder.pubsubTopic} has not been configured on this instance.`
-        );
       }
     });
   });

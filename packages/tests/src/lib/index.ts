@@ -1,13 +1,7 @@
-import {
-  AutoSharding,
-  IDecodedMessage,
-  NetworkConfig,
-  StaticSharding
-} from "@waku/interfaces";
-import { contentTopicToShardIndex, Logger } from "@waku/utils";
+import { AutoSharding, IDecodedMessage, NetworkConfig } from "@waku/interfaces";
+import { Logger, RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
-import { DefaultTestPubsubTopic } from "../constants.js";
 import { Args, MessageRpcQuery, MessageRpcResponse } from "../types.js";
 import { delay, makeLogFileName } from "../utils/index.js";
 
@@ -40,7 +34,7 @@ export class ServiceNodesFleet {
         makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
       );
 
-      const args = getArgs(networkConfig, _args);
+      const args = applyDefaultArgs(networkConfig, _args);
 
       if (nodes[0]) {
         const addr = await nodes[0].getExternalMultiaddr();
@@ -93,10 +87,10 @@ export class ServiceNodesFleet {
 
   public async sendRelayMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultTestPubsubTopic
+    routingInfo: RoutingInfo
   ): Promise<boolean> {
     const relayMessagePromises: Promise<boolean>[] = this.nodes.map((node) =>
-      node.sendMessage(message, pubsubTopic)
+      node.sendMessage(message, routingInfo)
     );
     const relayMessages = await Promise.all(relayMessagePromises);
     return relayMessages.every((message) => message);
@@ -203,13 +197,13 @@ class MultipleNodesMessageCollector {
   public async waitForMessages(
     numMessages: number,
     options?: {
-      pubsubTopic?: string;
+      // pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
+    // const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
@@ -218,7 +212,7 @@ class MultipleNodesMessageCollector {
         if (this.strictChecking) {
           const results = await Promise.all(
             this.relayNodes.map(async (node) => {
-              const msgs = await node.messages(pubsubTopic);
+              const msgs = await node.messages();
               return msgs.length >= numMessages;
             })
           );
@@ -226,7 +220,7 @@ class MultipleNodesMessageCollector {
         } else {
           const results = await Promise.all(
             this.relayNodes.map(async (node) => {
-              const msgs = await node.messages(pubsubTopic);
+              const msgs = await node.messages();
               return msgs.length >= numMessages;
             })
           );
@@ -257,23 +251,20 @@ class MultipleNodesMessageCollector {
   }
 }
 
-function getArgs(networkConfig: NetworkConfig, args?: Args): Args {
-  const defaultArgs = {
+function applyDefaultArgs(networkConfig: NetworkConfig, args?: Args): Args {
+  const defaultArgs: Args = {
     lightpush: true,
     filter: true,
     discv5Discovery: true,
     peerExchange: true,
     relay: true,
     clusterId: networkConfig.clusterId
-  } as Args;
+  };
 
-  if ((networkConfig as StaticSharding).shards) {
-    defaultArgs.shard = (networkConfig as StaticSharding).shards;
-  } else if ((networkConfig as AutoSharding).contentTopics) {
-    defaultArgs.contentTopic = (networkConfig as AutoSharding).contentTopics;
-    defaultArgs.shard = (networkConfig as AutoSharding).contentTopics.map(
-      (topic) => contentTopicToShardIndex(topic)
-    );
+  if ((networkConfig as AutoSharding).numShardsInCluster) {
+    defaultArgs.numShardsInNetwork = (
+      networkConfig as AutoSharding
+    ).numShardsInCluster;
   }
 
   return { ...defaultArgs, ...args };

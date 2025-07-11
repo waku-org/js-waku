@@ -6,12 +6,14 @@ import { expect } from "chai";
 
 import {
   afterEachCustom,
+  DefaultTestClusterId,
+  DefaultTestNetworkConfig,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
-import { DefaultTestShardInfo } from "../src/index.js";
+import { DefaultTestRelayShards } from "../src/index.js";
 
 describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
@@ -29,14 +31,15 @@ describe("ENR Interop: ServiceNode", function () {
       store: false,
       filter: false,
       lightpush: false,
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestShardInfo
+      networkConfig: DefaultTestNetworkConfig,
+      relayShards: DefaultTestRelayShards
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -64,14 +67,15 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: false,
       lightpush: false,
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestShardInfo
+      networkConfig: DefaultTestNetworkConfig,
+      relayShards: DefaultTestRelayShards
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -99,14 +103,15 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: true,
       lightpush: true,
-      clusterId: DefaultTestShardInfo.clusterId,
-      shard: DefaultTestShardInfo.shards
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestRelayShards.shards
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestShardInfo
+      networkConfig: DefaultTestNetworkConfig,
+      relayShards: DefaultTestRelayShards
     });
     await waku.start();
     await waku.dial(multiAddrWithId);

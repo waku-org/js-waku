@@ -7,7 +7,7 @@ import {
   type MetadataQueryResult,
   type PeerIdStr,
   ProtocolError,
-  type ShardInfo
+  type RelayShards
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
 import { encodeRelayShard, Logger } from "@waku/utils";
@@ -25,7 +25,7 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 class Metadata implements IMetadata {
   private readonly streamManager: StreamManager;
   private readonly libp2pComponents: Libp2pComponents;
-  protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
+  protected handshakesConfirmed: Map<PeerIdStr, RelayShards> = new Map();
 
   public readonly multicodec = MetadataCodec;
 
@@ -148,7 +148,7 @@ class Metadata implements IMetadata {
     });
     const response = proto_metadata.WakuMetadataResponse.decode(
       bytes
-    ) as ShardInfo;
+    ) as RelayShards;
 
     if (!response) {
       log.error("Error decoding metadata response");
@@ -166,16 +166,16 @@ class Metadata implements IMetadata {
 
   private async savePeerShardInfo(
     peerId: PeerId,
-    shardInfo: ShardInfo
+    relayShards: RelayShards
   ): Promise<void> {
-    // add or update the shardInfo to peer store
+    // add or update the relayShards to peer store
     await this.libp2pComponents.peerStore.merge(peerId, {
       metadata: {
-        shardInfo: encodeRelayShard(shardInfo)
+        shardInfo: encodeRelayShard(relayShards)
       }
     });
 
-    this.handshakesConfirmed.set(peerId.toString(), shardInfo);
+    this.handshakesConfirmed.set(peerId.toString(), relayShards);
   }
 }
 

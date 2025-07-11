@@ -1,5 +1,5 @@
 import type {
-  ContentTopicInfo,
+  AutoSharding,
   CreateNodeOptions,
   StaticSharding
 } from "@waku/interfaces";
@@ -7,13 +7,11 @@ import type {
 export function isStaticSharding(
   config: NonNullable<CreateNodeOptions["networkConfig"]>
 ): config is StaticSharding {
-  return (
-    "clusterId" in config && "shards" in config && !("contentTopics" in config)
-  );
+  return "clusterId" in config && !("numShardsInCluster" in config);
 }
 
 export function isAutoSharding(
   config: NonNullable<CreateNodeOptions["networkConfig"]>
-): config is ContentTopicInfo {
-  return "contentTopics" in config;
+): config is AutoSharding {
+  return "clusterId" in config && "numShardsInCluster" in config;
 }

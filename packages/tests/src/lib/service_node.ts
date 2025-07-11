@@ -1,12 +1,22 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
+import { PubsubTopic } from "@waku/interfaces";
+import {
+  formatPubsubTopic,
+  isAutoSharding,
+  isDefined,
+  isStaticSharding,
+  RoutingInfo
+} from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
-import { DefaultTestPubsubTopic } from "../constants.js";
+import {
+  DefaultTestNetworkConfig,
+  DefaultTestPubsubTopic
+} from "../constants.js";
 import {
   Args,
   LogLevel,
@@ -256,15 +266,26 @@ export class ServiceNode {
     );
   }
 
-  public async messages(_pubsubTopic?: string): Promise<MessageRpcResponse[]> {
-    const pubsubTopic =
-      _pubsubTopic ??
-      shardInfoToPubsubTopics({
-        clusterId: this.args?.clusterId,
-        shards: this.args?.shard
-      })[0];
+  public async messages(): Promise<MessageRpcResponse[]> {
+    let topic: string = "";
+
+    if (this.args?.contentTopic) {
+      if (this.args?.contentTopic.length > 1)
+        throw "More that one content topic passed, not supported";
+      topic = this.args?.contentTopic[0];
+    } else if (this.args?.shard) {
+      if (this.args?.shard.length > 1)
+        throw "More that one shard passed, not supported";
+      topic = formatPubsubTopic(
+        this.args.clusterId ?? DefaultTestNetworkConfig.clusterId,
+        this.args?.shard[0]
+      );
+    } else {
+      throw "internal error todo";
+    }
+
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(topic)}`,
       "GET",
       null,
       async (response) => {
@@ -289,7 +310,20 @@ export class ServiceNode {
 
   public async sendMessage(
     message: MessageRpcQuery,
-    _pubsubTopic?: string
+    routingInfo: RoutingInfo
+  ): Promise<boolean> {
+    if (isAutoSharding(routingInfo.networkConfig)) {
+      return this.sendMessageAutoSharding(message);
+    }
+    if (isStaticSharding(routingInfo.networkConfig)) {
+      return this.sendMessageStaticSharding(message, routingInfo.pubsubTopic);
+    }
+    throw "Invalid network config";
+  }
+
+  private async sendMessageStaticSharding(
+    message: MessageRpcQuery,
+    pubsubTopic: PubsubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -297,21 +331,15 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    const pubsubTopic =
-      _pubsubTopic ??
-      shardInfoToPubsubTopics({
-        clusterId: this.args?.clusterId,
-        shards: this.args?.shard
-      })[0];
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
     );
   }
 
-  public async sendMessageAutosharding(
+  private async sendMessageAutoSharding(
     message: MessageRpcQuery
   ): Promise<boolean> {
     this.checkProcess();

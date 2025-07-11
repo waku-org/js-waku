@@ -1,13 +1,10 @@
 import { createDecoder, createEncoder, Decoder, Encoder } from "@waku/core";
-
-type TestDataOptions = {
-  pubsubTopic: string;
-};
+import { RoutingInfo } from "@waku/utils";
 
 // Utility to generate test data for multiple topics tests.
 export function generateTestData(
   topicCount: number,
-  options?: TestDataOptions
+  routingInfo: RoutingInfo
 ): {
   contentTopics: string[];
   encoders: Encoder[];
@@ -18,10 +15,10 @@ export function generateTestData(
     (_, i) => `/test/${i + 1}/waku-multi/default`
   );
   const encoders = contentTopics.map((topic) =>
-    createEncoder({ contentTopic: topic, pubsubTopic: options?.pubsubTopic })
+    createEncoder({ contentTopic: topic, routingInfo })
   );
   const decoders = contentTopics.map((topic) =>
-    createDecoder(topic, options?.pubsubTopic)
+    createDecoder(topic, routingInfo)
   );
   return {
     contentTopics,

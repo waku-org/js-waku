@@ -71,7 +71,8 @@ export class Store implements IStore {
       // For hash queries, we still need decoders to decode messages
       // but we don't validate pubsubTopic consistency
       // Use pubsubTopic from options if provided, otherwise from first decoder
-      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
+      pubsubTopic =
+        options.pubsubTopic || decoders[0]?.routingInfo.pubsubTopic || "";
       contentTopics = [];
       decodersAsMap = new Map();
       decoders.forEach((dec) => {
@@ -216,7 +217,7 @@ export class Store implements IStore {
     }
 
     const uniquePubsubTopicsInQuery = Array.from(
-      new Set(decoders.map((decoder) => decoder.pubsubTopic))
+      new Set(decoders.map((decoder) => decoder.routingInfo.pubsubTopic))
     );
     if (uniquePubsubTopicsInQuery.length > 1) {
       log.error("API does not support querying multiple pubsub topics at once");
@@ -239,7 +240,9 @@ export class Store implements IStore {
     });
 
     const contentTopics = decoders
-      .filter((decoder) => decoder.pubsubTopic === pubsubTopicForQuery)
+      .filter(
+        (decoder) => decoder.routingInfo.pubsubTopic === pubsubTopicForQuery
+      )
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {

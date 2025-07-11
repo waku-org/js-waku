@@ -193,7 +193,7 @@ export class Subscription {
 
     if (this.callbacks.has(decoder)) {
       log.warn(
-        `Replacing callback associated associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `Replacing callback associated associated with decoder with pubsubTopic:${decoder.routingInfo.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
 
       const callback = this.callbacks.get(decoder);
@@ -205,7 +205,7 @@ export class Subscription {
       void (async (): Promise<void> => {
         try {
           const message = await decoder.fromProtoObj(
-            decoder.pubsubTopic,
+            decoder.routingInfo.pubsubTopic,
             event.detail as IProtoMessage
           );
           void callback(message!);
@@ -230,7 +230,7 @@ export class Subscription {
 
     if (!callback) {
       log.warn(
-        `No callback associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `No callback associated with decoder with pubsubTopic:${decoder.routingInfo.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
     }
 

@@ -7,7 +7,6 @@ import {
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
@@ -57,9 +56,10 @@ export async function runMultipleNodes(
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    await node.ensureSubscriptions(
-      derivePubsubTopicsFromNetworkConfig(networkConfig)
-    );
+    // TODO
+    // await node.ensureSubscriptions(
+    //   derivePubsubTopicsFromNetworkConfig(networkConfig)
+    // );
 
     const wakuConnections = waku.libp2p.getConnections();
 
