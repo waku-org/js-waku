@@ -36,3 +36,5 @@ export type CreateLibp2pOptions = Libp2pOptions & {
    */
   filterMultiaddrs?: boolean;
 };
+
+export type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;

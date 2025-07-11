@@ -3,6 +3,7 @@ import {
   ConnectionManagerOptions,
   IWakuEventEmitter,
   Libp2p,
+  Libp2pEventHandler,
   Tags
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -11,8 +12,6 @@ import { Dialer } from "./dialer.js";
 import { NetworkMonitor } from "./network_monitor.js";
 
 const log = new Logger("connection-limiter");
-
-type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 type ConnectionLimiterConstructorOptions = {
   libp2p: Libp2p;

@@ -7,7 +7,7 @@ import type {
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { IFilter } from "./filter.js";
-import type { IHealthIndicator } from "./health_indicator.js";
+import type { HealthStatus } from "./health_status.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
 import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
@@ -35,7 +35,27 @@ export type CreateEncoderParams = CreateDecoderParams & {
 };
 
 export interface IWakuEvents {
+  /**
+   * Emitted when a connection is established or lost.
+   *
+   * @example
+   * ```typescript
+   * waku.addEventListener("waku:connection", (event) => {
+   *   console.log(event.detail); // true if connected, false if disconnected
+   * });
+   */
   "waku:connection": CustomEvent<boolean>;
+
+  /**
+   * Emitted when the health status changes.
+   *
+   * @example
+   * ```typescript
+   * waku.addEventListener("waku:health", (event) => {
+   *   console.log(event.detail); // 'Unhealthy', 'MinimallyHealthy', or 'SufficientlyHealthy'
+   * });
+   */
+  "waku:health": CustomEvent<HealthStatus>;
 }
 
 export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
@@ -47,7 +67,19 @@ export interface IWaku {
   filter?: IFilter;
   lightPush?: ILightPush;
 
-  health: IHealthIndicator;
+  /**
+   * Emits events related to the Waku node.
+   * Those are:
+   * - "waku:connection"
+   * - "waku:health"
+   *
+   * @example
+   * ```typescript
+   * waku.events.addEventListener("waku:connection", (event) => {
+   *   console.log(event.detail); // true if connected, false if disconnected
+   * });
+   * ```
+   */
   events: IWakuEventEmitter;
 
   /**
@@ -59,6 +91,19 @@ export interface IWaku {
    * ```
    */
   peerId: PeerId;
+
+  /**
+   * The health status can be one of three states:
+   * - Unhealthy: No peer connections
+   * - MinimallyHealthy: At least 1 peer supporting both Filter and LightPush protocols
+   * - SufficientlyHealthy: At least 2 peers supporting both Filter and LightPush protocols
+   *
+   * @example
+   * ```typescript
+   * console.log(waku.health); // 'Unhealthy'
+   * ```
+   */
+  health: HealthStatus;
 
   /**
    * Returns a list of supported protocols.

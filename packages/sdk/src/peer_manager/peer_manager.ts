@@ -10,7 +10,7 @@ import {
   LightPushCodec,
   StoreCodec
 } from "@waku/core";
-import { Libp2p, Protocols } from "@waku/interfaces";
+import { Libp2p, Libp2pEventHandler, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("peer-manager");
@@ -48,8 +48,6 @@ interface IPeerManagerEvents {
    */
   [PeerManagerEventNames.Disconnect]: CustomEvent<PeerId>;
 }
-
-type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
 
 /**
  * @description

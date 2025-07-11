@@ -23,7 +23,11 @@ import type {
   NetworkConfig,
   PubsubTopic
 } from "@waku/interfaces";
-import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
+import {
+  DefaultNetworkConfig,
+  HealthStatus,
+  Protocols
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
@@ -50,7 +54,6 @@ export class WakuNode implements IWaku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
 
-  public readonly health: HealthIndicator;
   public readonly events: IWakuEventEmitter = new TypedEventEmitter();
 
   private readonly networkConfig: NetworkConfig;
@@ -61,6 +64,7 @@ export class WakuNode implements IWaku {
 
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
+  private readonly healthIndicator: HealthIndicator;
 
   public constructor(
     pubsubTopics: PubsubTopic[],
@@ -99,7 +103,7 @@ export class WakuNode implements IWaku {
       connectionManager: this.connectionManager
     });
 
-    this.health = new HealthIndicator({ libp2p });
+    this.healthIndicator = new HealthIndicator({ libp2p, events: this.events });
 
     if (protocolsEnabled.store) {
       this.store = new Store({
@@ -142,6 +146,10 @@ export class WakuNode implements IWaku {
 
   public get protocols(): string[] {
     return this.libp2p.getProtocols();
+  }
+
+  public get health(): HealthStatus {
+    return this.healthIndicator.toValue();
   }
 
   public async dial(
@@ -216,7 +224,7 @@ export class WakuNode implements IWaku {
     await this.libp2p.start();
     this.connectionManager.start();
     this.peerManager.start();
-    this.health.start();
+    this.healthIndicator.start();
     this.lightPush?.start();
 
     this._nodeStateLock = false;
@@ -229,7 +237,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     this.lightPush?.stop();
-    this.health.stop();
+    this.healthIndicator.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();
