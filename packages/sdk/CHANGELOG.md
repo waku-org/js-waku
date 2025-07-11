@@ -47,6 +47,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.33](https://github.com/waku-org/js-waku/compare/sdk-v0.0.32...sdk-v0.0.33) (2025-07-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445))
+* remove deprecated filter implementation ([#2433](https://github.com/waku-org/js-waku/issues/2433))
+
+### Features
+
+* Make peer manager aware of codec and shard, fix retry manager and shut down subscriptions ([#2425](https://github.com/waku-org/js-waku/issues/2425)) ([058f2ff](https://github.com/waku-org/js-waku/commit/058f2ff620a4a9a6f465a1498c05fb85df369941))
+* Re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445)) ([c7682ea](https://github.com/waku-org/js-waku/commit/c7682ea67c54d2c26a68ce96208003fb1ffc915c))
+
+
+### Miscellaneous Chores
+
+* Remove deprecated filter implementation ([#2433](https://github.com/waku-org/js-waku/issues/2433)) ([981248e](https://github.com/waku-org/js-waku/commit/981248eedd2192e0a160939e5ff0d7133b12db59))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.36 to 0.0.37
+    * @waku/discovery bumped from 0.0.9 to 0.0.10
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+    * @waku/utils bumped from 0.0.24 to 0.0.25
+
 ## [0.0.32](https://github.com/waku-org/js-waku/compare/sdk-v0.0.31...sdk-v0.0.32) (2025-06-23)
 
 
