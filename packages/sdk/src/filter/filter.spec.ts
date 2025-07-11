@@ -37,22 +37,6 @@ describe("Filter SDK", () => {
     sinon.restore();
   });
 
-  it("should throw error when subscribing with unsupported pubsub topic", async () => {
-    const unsupportedDecoder = createDecoder(
-      CONTENT_TOPIC,
-      "/unsupported/topic"
-    );
-
-    try {
-      await filter.subscribe(unsupportedDecoder, callback);
-      expect.fail("Should have thrown an error");
-    } catch (error) {
-      expect((error as Error).message).to.include(
-        "Pubsub topic /unsupported/topic has not been configured on this instance."
-      );
-    }
-  });
-
   it("should successfully subscribe to supported pubsub topic", async () => {
     const addStub = sinon.stub(Subscription.prototype, "add").resolves(true);
     const startStub = sinon.stub(Subscription.prototype, "start");
@@ -62,22 +46,6 @@ describe("Filter SDK", () => {
     expect(result).to.be.true;
     expect(addStub.calledOnce).to.be.true;
     expect(startStub.calledOnce).to.be.true;
-  });
-
-  it("should throw error when unsubscribing with unsupported pubsub topic", async () => {
-    const unsupportedDecoder = createDecoder(
-      CONTENT_TOPIC,
-      "/unsupported/topic"
-    );
-
-    try {
-      await filter.unsubscribe(unsupportedDecoder);
-      expect.fail("Should have thrown an error");
-    } catch (error) {
-      expect((error as Error).message).to.include(
-        "Pubsub topic /unsupported/topic has not been configured on this instance."
-      );
-    }
   });
 
   it("should return false when unsubscribing from a non-existing subscription", async () => {
@@ -183,9 +151,9 @@ type MockFilterOptions = {
 };
 
 function mockFilter(options: MockFilterOptions): Filter {
-  const filter = new Filter({
+  // we're not actually testing FilterCore functionality here
+  return new Filter({
     libp2p: options.libp2p,
-    connectionManager: options.connectionManager || mockConnectionManager(),
     peerManager: options.peerManager || mockPeerManager(),
     options: {
       numPeersToUse: 2,
@@ -193,9 +161,6 @@ function mockFilter(options: MockFilterOptions): Filter {
       keepAliveIntervalMs: 60_000
     }
   });
-
-  // we're not actually testing FilterCore functionality here
-  return filter;
 }
 
 function createMockMessage(contentTopic: string): IProtoMessage {

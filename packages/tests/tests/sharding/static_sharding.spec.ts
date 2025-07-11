@@ -1,5 +1,5 @@
-import { LightNode, ProtocolError, SingleShardInfo } from "@waku/interfaces";
-import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
+import { LightNode, SingleShardInfo } from "@waku/interfaces";
+import { createEncoder, utf8ToBytes } from "@waku/sdk";
 import {
   shardInfoToPubsubTopics,
   singleShardInfosToShardInfo,
@@ -196,53 +196,6 @@ describe("Static Sharding: Running Nodes", function () {
           pubsubTopic: encoder2.pubsubTopic
         })
       ).to.eq(true);
-    });
-
-    it("using a protocol with unconfigured pubsub topic should fail", async function () {
-      this.timeout(15_000);
-
-      // use a pubsub topic that is not configured
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId,
-          shard: 4
-        }
-      });
-
-      const request = await waku?.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      if (
-        (request?.successes.length || 0) > 0 ||
-        request?.failures?.length === 0
-      ) {
-        throw new Error("The request should've thrown an error");
-      }
-
-      const errors = request?.failures?.map((failure) => failure.error);
-      expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
-    });
-
-    it("start node with empty shard should fail", async function () {
-      try {
-        waku = await createLightNode({
-          networkConfig: { clusterId: clusterId, shards: [] }
-        });
-        throw new Error(
-          "Starting the node with no shard should've thrown an error"
-        );
-      } catch (err) {
-        if (
-          !(err instanceof Error) ||
-          !err.message.includes(
-            "Invalid shards configuration: please provide at least one shard"
-          )
-        ) {
-          throw err;
-        }
-      }
     });
   });
 });

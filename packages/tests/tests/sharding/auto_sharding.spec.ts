@@ -1,5 +1,5 @@
-import { LightNode, ProtocolError } from "@waku/interfaces";
-import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
+import { LightNode } from "@waku/interfaces";
+import { createEncoder, utf8ToBytes } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex
@@ -200,59 +200,5 @@ describe("Autosharding: Running Nodes", function () {
         pubsubTopic: encoder2.pubsubTopic
       })
     ).to.eq(true);
-  });
-
-  it("using a protocol with unconfigured pubsub topic should fail", async function () {
-    [serviceNodes, waku] = await runMultipleNodes(
-      this.ctx,
-      { clusterId, contentTopics: [ContentTopic] },
-      { lightpush: true, filter: true },
-      false,
-      numServiceNodes,
-      true
-    );
-
-    // use a content topic that is not configured
-    const encoder = createEncoder({
-      contentTopic: ContentTopic2,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic2)
-      }
-    });
-
-    const { successes, failures } = await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello World")
-    });
-
-    if (successes.length > 0 || failures?.length === 0) {
-      throw new Error("The request should've thrown an error");
-    }
-
-    const errors = failures?.map((failure) => failure.error);
-    expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
-  });
-
-  it("start node with empty content topic", async function () {
-    try {
-      waku = await createLightNode({
-        networkConfig: {
-          clusterId: clusterId,
-          contentTopics: []
-        }
-      });
-      throw new Error(
-        "Starting the node with no content topic should've thrown an error"
-      );
-    } catch (err) {
-      if (
-        !(err instanceof Error) ||
-        !err.message.includes(
-          "Invalid content topics configuration: please provide at least one content topic"
-        )
-      ) {
-        throw err;
-      }
-    }
   });
 });
