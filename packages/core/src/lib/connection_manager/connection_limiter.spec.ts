@@ -48,7 +48,10 @@ describe("ConnectionLimiter", () => {
   const defaultOptions = {
     maxBootstrapPeers: 2,
     pingKeepAlive: 300,
-    relayKeepAlive: 300
+    relayKeepAlive: 300,
+    maxDialingPeers: 3,
+    failedDialCooldown: 60,
+    dialCooldown: 10
   };
 
   beforeEach(() => {
@@ -761,7 +764,10 @@ describe("ConnectionLimiter", () => {
       const customOptions = {
         maxBootstrapPeers: 1,
         pingKeepAlive: 300,
-        relayKeepAlive: 300
+        relayKeepAlive: 300,
+        maxDialingPeers: 3,
+        failedDialCooldown: 60,
+        dialCooldown: 10
       };
 
       connectionLimiter = new ConnectionLimiter({
@@ -834,7 +840,10 @@ describe("ConnectionLimiter", () => {
       const customOptions = {
         maxBootstrapPeers: 1,
         pingKeepAlive: 300,
-        relayKeepAlive: 300
+        relayKeepAlive: 300,
+        maxDialingPeers: 3,
+        failedDialCooldown: 60,
+        dialCooldown: 10
       };
 
       connectionLimiter = new ConnectionLimiter({
@@ -882,7 +891,10 @@ describe("ConnectionLimiter", () => {
       const customOptions = {
         maxBootstrapPeers: 1,
         pingKeepAlive: 300,
-        relayKeepAlive: 300
+        relayKeepAlive: 300,
+        maxDialingPeers: 3,
+        failedDialCooldown: 60,
+        dialCooldown: 10
       };
 
       connectionLimiter = new ConnectionLimiter({
@@ -928,7 +940,10 @@ describe("ConnectionLimiter", () => {
       const customOptions = {
         maxBootstrapPeers: 10,
         pingKeepAlive: 300,
-        relayKeepAlive: 300
+        relayKeepAlive: 300,
+        maxDialingPeers: 3,
+        failedDialCooldown: 60,
+        dialCooldown: 10
       };
 
       connectionLimiter = new ConnectionLimiter({

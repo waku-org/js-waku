@@ -1,5 +1,5 @@
 import { PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { ConnectionManagerOptions, Libp2p } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -13,6 +13,7 @@ describe("Dialer", () => {
   let mockPeerId: PeerId;
   let mockPeerId2: PeerId;
   let clock: sinon.SinonFakeTimers;
+  let mockOptions: ConnectionManagerOptions;
 
   const createMockPeerId = (id: string): PeerId =>
     ({
@@ -30,6 +31,15 @@ describe("Dialer", () => {
       hasShardInfo: sinon.stub().resolves(false),
       isPeerOnNetwork: sinon.stub().resolves(true)
     } as unknown as sinon.SinonStubbedInstance<ShardReader>;
+
+    mockOptions = {
+      maxBootstrapPeers: 1,
+      pingKeepAlive: 300,
+      relayKeepAlive: 300,
+      maxDialingPeers: 3,
+      failedDialCooldown: 60,
+      dialCooldown: 10
+    };
 
     mockPeerId = createMockPeerId("12D3KooWTest1");
     mockPeerId2 = createMockPeerId("12D3KooWTest2");
@@ -51,7 +61,8 @@ describe("Dialer", () => {
     it("should create dialer with libp2p and shardReader", () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
 
       expect(dialer).to.be.instanceOf(Dialer);
@@ -62,7 +73,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
     });
 
@@ -100,7 +112,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -137,7 +150,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -321,7 +335,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -397,7 +412,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -431,7 +447,8 @@ describe("Dialer", () => {
     it("should handle complete dial lifecycle", async () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
 
@@ -449,7 +466,8 @@ describe("Dialer", () => {
     it("should handle multiple peers with different shard configurations", async () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
 
