@@ -1,4 +1,4 @@
-import { RLN_ABI } from "./abi.js";
+import { RLN_ABI } from "./abi/rln.js";
 
 export const LINEA_CONTRACT = {
   chainId: 59141,

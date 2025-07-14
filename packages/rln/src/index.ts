@@ -1,5 +1,5 @@
 import { RLNDecoder, RLNEncoder } from "./codec.js";
-import { RLN_ABI } from "./contract/abi.js";
+import { RLN_ABI } from "./contract/abi/rln.js";
 import { LINEA_CONTRACT, RLNContract } from "./contract/index.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { createRLN } from "./create.js";

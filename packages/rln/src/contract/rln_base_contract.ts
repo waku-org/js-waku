@@ -5,7 +5,7 @@ import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
 import { BytesUtils } from "../utils/bytes.js";
 
-import { RLN_ABI } from "./abi.js";
+import { RLN_ABI } from "./abi/rln.js";
 import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 import {
   CustomQueryOptions,
