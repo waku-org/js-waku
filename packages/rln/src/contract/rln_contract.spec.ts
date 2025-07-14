@@ -4,13 +4,13 @@ import chaiAsPromised from "chai-as-promised";
 import * as ethers from "ethers";
 import sinon, { SinonSandbox } from "sinon";
 
-import { createTestRLNInstance, initializeRLNContract } from "./test-setup.js";
+import { createTestRLNInstance, initializeRLNContract } from "./test_setup.js";
 import {
   createMockRegistryContract,
   createRegisterStub,
   mockRLNRegisteredEvent,
   verifyRegistration
-} from "./test-utils.js";
+} from "./test_utils.js";
 
 use(chaiAsPromised);
 

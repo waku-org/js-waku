@@ -8,7 +8,7 @@ use(deepEqualInAnyOrder);
 use(chaiAsPromised);
 
 import { IdentityCredential } from "../identity.js";
-import { buildBigIntFromUint8Array } from "../utils/bytes.js";
+import { BytesUtils } from "../utils/bytes.js";
 
 import { Keystore } from "./keystore.js";
 import type { KeystoreMembershipInfo } from "./types.js";
@@ -219,15 +219,12 @@ describe("Keystore", () => {
       IDCommitment: new Uint8Array([
         112, 216, 27, 89, 188, 135, 203, 19, 168, 211, 117, 13, 231, 135, 229,
         58, 94, 20, 246, 8, 33, 65, 238, 37, 112, 97, 65, 241, 255, 93, 171, 15
-      ]),
-      IDCommitmentBigInt: buildBigIntFromUint8Array(
-        new Uint8Array([
-          112, 216, 27, 89, 188, 135, 203, 19, 168, 211, 117, 13, 231, 135, 229,
-          58, 94, 20, 246, 8, 33, 65, 238, 37, 112, 97, 65, 241, 255, 93, 171,
-          15
-        ])
-      )
+      ])
     } as unknown as IdentityCredential;
+    // Add the missing property for test correctness
+    identity.IDCommitmentBigInt = BytesUtils.buildBigIntFromUint8ArrayBE(
+      identity.IDCommitment
+    );
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
@@ -279,6 +276,9 @@ describe("Keystore", () => {
         58, 94, 20, 246, 8, 33, 65, 238, 37, 112, 97, 65, 241, 255, 93, 171, 15
       ]
     } as unknown as IdentityCredential;
+    identity.IDCommitmentBigInt = BytesUtils.buildBigIntFromUint8ArrayBE(
+      identity.IDCommitment
+    );
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
