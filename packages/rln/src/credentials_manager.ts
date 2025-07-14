@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { DEFAULT_Q, LINEA_CONTRACT } from "./contract/constants.js";
+import { LINEA_CONTRACT, RLN_Q } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -288,7 +288,7 @@ export class RLNCredentialsManager {
    */
   private reduceIdCommitment(
     bytesBE: Uint8Array,
-    limit: bigint = DEFAULT_Q
+    limit: bigint = RLN_Q
   ): Uint8Array {
     const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
 

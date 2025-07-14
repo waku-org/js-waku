@@ -30,7 +30,7 @@ export const RATE_LIMIT_PARAMS = {
  * This is the upper bound for the ID commitment
  * @see https://github.com/waku-org/specs/blob/master/standards/core/rln-contract.md#implementation-suggestions
  */
-export const DEFAULT_Q = BigInt(
+export const RLN_Q = BigInt(
   "21888242871839275222246405745257275088548364400416034343698204186575808495617"
 );
 
