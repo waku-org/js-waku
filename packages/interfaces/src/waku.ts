@@ -1,7 +1,11 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
+import type {
+  Peer,
+  PeerId,
+  Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import type { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
 import type { IHealthIndicator } from "./health_indicator.js";
 import type { Libp2p } from "./libp2p.js";
@@ -30,15 +34,21 @@ export type CreateEncoderParams = CreateDecoderParams & {
   ephemeral?: boolean;
 };
 
+export interface IWakuEvents {
+  "waku:connection": CustomEvent<boolean>;
+}
+
+export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
+
 export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;
-
   filter?: IFilter;
   lightPush?: ILightPush;
-  connectionManager: IConnectionManager;
+
   health: IHealthIndicator;
+  events: IWakuEventEmitter;
 
   /**
    * Returns a unique identifier for a node on the network.
@@ -66,7 +76,7 @@ export interface IWaku {
    * @param {PeerId | MultiaddrInput} peer information to use for dialing
    * @param {Protocols[]} [protocols] array of Waku protocols to be used for dialing. If no provided - will be derived from mounted protocols.
    *
-   * @returns {Promise<Stream>} `Promise` that will resolve to a `Stream` to a dialed peer
+   * @returns {Promise<Stream>} `Promise` that will resolve to a `Stream` to a dialed peer and will reject if the connection fails
    *
    * @example
    * ```typescript
@@ -76,6 +86,15 @@ export interface IWaku {
    * ```
    */
   dial(peer: PeerId | MultiaddrInput, protocols?: Protocols[]): Promise<Stream>;
+
+  /**
+   * Hang up a connection to a peer
+   *
+   * @param {PeerId | MultiaddrInput} peer information to use for hanging up
+   *
+   * @returns {Promise<boolean>} `Promise` that will resolve to `true` if the connection is hung up, `false` otherwise
+   */
+  hangUp(peer: PeerId | MultiaddrInput): Promise<boolean>;
 
   /**
    * Starts all services and components related to functionality of Waku node.

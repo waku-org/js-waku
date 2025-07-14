@@ -1,5 +1,10 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
-import { MultiaddrInput } from "@multiformats/multiaddr";
+import {
+  type Peer,
+  type PeerId,
+  type Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
+import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
   CreateDecoderParams,
@@ -13,6 +18,7 @@ import type {
   IRelay,
   IStore,
   IWaku,
+  IWakuEventEmitter,
   Libp2p,
   NetworkConfig,
   PubsubTopic
@@ -26,11 +32,7 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
-import {
-  decoderParamsToShardInfo,
-  isShardCompatible,
-  mapToPeerIdOrMultiaddr
-} from "./utils.js";
+import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -47,19 +49,21 @@ export class WakuNode implements IWaku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
-  public connectionManager: ConnectionManager;
-  public health: HealthIndicator;
 
-  public readonly networkConfig: NetworkConfig;
+  public readonly health: HealthIndicator;
+  public readonly events: IWakuEventEmitter = new TypedEventEmitter();
+
+  private readonly networkConfig: NetworkConfig;
 
   // needed to create a lock for async operations
   private _nodeStateLock = false;
   private _nodeStarted = false;
 
+  private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
 
   public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
+    pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
@@ -81,7 +85,9 @@ export class WakuNode implements IWaku {
     this.connectionManager = new ConnectionManager({
       libp2p,
       relay: this.relay,
-      pubsubTopics: this.pubsubTopics,
+      events: this.events,
+      pubsubTopics: pubsubTopics,
+      networkConfig: this.networkConfig,
       config: options?.connectionManager
     });
 
@@ -191,9 +197,15 @@ export class WakuNode implements IWaku {
       }
     }
 
-    const peerId = mapToPeerIdOrMultiaddr(peer);
-    log.info(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
-    return await this.connectionManager.rawDialPeerWithProtocols(peer, codecs);
+    log.info(`Dialing to ${peer?.toString()} with protocols ${_protocols}`);
+
+    return await this.connectionManager.dial(peer, codecs);
+  }
+
+  public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
+    log.info(`Hanging up peer:${peer?.toString()}.`);
+
+    return this.connectionManager.hangUp(peer);
   }
 
   public async start(): Promise<void> {
@@ -202,6 +214,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     await this.libp2p.start();
+    this.connectionManager.start();
     this.peerManager.start();
     this.health.start();
     this.lightPush?.start();
