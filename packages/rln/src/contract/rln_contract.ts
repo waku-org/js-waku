@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 
 import type { RLNInstance } from "../rln.js";
 import { MerkleRootTracker } from "../root_tracker.js";
-import { zeroPadLE } from "../utils/bytes.js";
+import { BytesUtils } from "../utils/bytes.js";
 
 import { RLNBaseContract } from "./rln_base_contract.js";
 import { RLNContractInitOptions } from "./types.js";
@@ -110,7 +110,10 @@ export class RLNContract extends RLNBaseContract {
           index = ethers.BigNumber.from(index);
         }
 
-        const idCommitment = zeroPadLE(hexToBytes(_idCommitment), 32);
+        const idCommitment = BytesUtils.zeroPadLE(
+          hexToBytes(_idCommitment),
+          32
+        );
         rlnInstance.zerokit.insertMember(idCommitment);
 
         const numericIndex = index.toNumber();

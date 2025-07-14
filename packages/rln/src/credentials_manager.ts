@@ -1,9 +1,9 @@
 import { hmac } from "@noble/hashes/hmac";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { LINEA_CONTRACT } from "./contract/constants.js";
+import { LINEA_CONTRACT, RLN_Q } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -13,10 +13,8 @@ import type {
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
-import {
-  buildBigIntFromUint8Array,
-  extractMetaMaskSigner
-} from "./utils/index.js";
+import { BytesUtils } from "./utils/bytes.js";
+import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("waku:credentials");
@@ -116,7 +114,9 @@ export class RLNCredentialsManager {
         );
       } else {
         log.info("Using local implementation to generate identity");
-        identity = this.generateSeededIdentityCredential(options.signature);
+        identity = await this.generateSeededIdentityCredential(
+          options.signature
+        );
       }
     }
 
@@ -249,7 +249,9 @@ export class RLNCredentialsManager {
    * @param seed A string seed to generate the identity from
    * @returns IdentityCredential
    */
-  private generateSeededIdentityCredential(seed: string): IdentityCredential {
+  private async generateSeededIdentityCredential(
+    seed: string
+  ): Promise<IdentityCredential> {
     log.info("Generating seeded identity credential");
     // Convert the seed to bytes
     const encoder = new TextEncoder();
@@ -257,26 +259,38 @@ export class RLNCredentialsManager {
 
     // Generate deterministic values using HMAC-SHA256
     // We use different context strings for each component to ensure they're different
-    const idTrapdoor = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
-    const idNullifier = hmac(sha256, seedBytes, encoder.encode("IDNullifier"));
-
-    // Generate IDSecretHash as a hash of IDTrapdoor and IDNullifier
-    const combinedBytes = new Uint8Array([...idTrapdoor, ...idNullifier]);
-    const idSecretHash = sha256(combinedBytes);
-
-    // Generate IDCommitment as a hash of IDSecretHash
-    const idCommitment = sha256(idSecretHash);
-
-    // Convert IDCommitment to BigInt
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment);
-
-    log.info("Successfully generated identity credential");
-    return new IdentityCredential(
-      idTrapdoor,
-      idNullifier,
-      idSecretHash,
-      idCommitment,
-      idCommitmentBigInt
+    const idTrapdoorBE = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
+    const idNullifierBE = hmac(
+      sha256,
+      seedBytes,
+      encoder.encode("IDNullifier")
     );
+
+    const combinedBytes = new Uint8Array([...idTrapdoorBE, ...idNullifierBE]);
+    const idSecretHashBE = sha256(combinedBytes);
+
+    const idCommitmentRawBE = sha256(idSecretHashBE);
+    const idCommitmentBE = this.reduceIdCommitment(idCommitmentRawBE);
+
+    log.info(
+      "Successfully generated identity credential, storing in Big Endian format"
+    );
+    return new IdentityCredential(
+      idTrapdoorBE,
+      idNullifierBE,
+      idSecretHashBE,
+      idCommitmentBE
+    );
+  }
+
+  /**
+   * Helper: take 32-byte BE, reduce mod Q, return 32-byte BE
+   */
+  private reduceIdCommitment(
+    bytesBE: Uint8Array,
+    limit: bigint = RLN_Q
+  ): Uint8Array {
+    const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
+    return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
   }
 }
