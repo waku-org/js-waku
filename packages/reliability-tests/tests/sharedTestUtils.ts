@@ -49,8 +49,6 @@ export interface RunTestOptions {
   testContext: TestContext;
   testDurationMs: number;
   testName: string;
-  networkSetup?: () => Promise<void> | void;
-  networkTeardown?: () => Promise<void> | void;
   messageGenerator?: (messageId: number) => string;
   messageTimeoutMs?: number;
   delayBetweenMessagesMs?: number;
@@ -61,26 +59,12 @@ export function runTest(options: RunTestOptions): void {
     testContext,
     testDurationMs,
     testName,
-    networkSetup,
-    networkTeardown,
     messageGenerator,
     delayBetweenMessagesMs = 400
   } = options;
 
   describe(testName, function () {
     this.timeout(testDurationMs * 1.1);
-
-    beforeEach(async () => {
-      if (networkSetup) {
-        await networkSetup();
-      }
-    });
-
-    afterEach(async () => {
-      if (networkTeardown) {
-        await networkTeardown();
-      }
-    });
 
     it(testName, async function () {
       const singleShardInfo = { clusterId: 0, shard: 0 };

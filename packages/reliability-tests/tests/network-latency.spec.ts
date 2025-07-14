@@ -6,19 +6,20 @@ describe("Network Latency and Jitter Test", function () {
 
   setupTest(this, testContext);
 
-  const networkSetup = (): void =>
+  beforeEach(async () => {
     execCommand(
-      `sudo tc qdisc add dev eth0 root netem delay 300ms 50ms distribution normal`
+      "sudo tc qdisc add dev eth0 root netem delay 300ms 50ms distribution normal"
     );
-  const networkTeardown = (): void =>
+  });
+
+  afterEach(async () => {
     execCommand("sudo tc qdisc del dev eth0 root netem");
+  });
 
   runTest({
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "Network Latency and Jitter Test",
-    networkSetup,
-    networkTeardown,
     messageGenerator: (messageId: number) => `ping-${messageId}`,
     delayBetweenMessagesMs: 400
   });

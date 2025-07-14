@@ -6,19 +6,20 @@ describe("Low Bandwith Test", function () {
 
   setupTest(this, testContext);
 
-  const networkSetup = (): void =>
+  beforeEach(async () => {
     execCommand(
-      `sudo tc qdisc add dev eth0 root tbf rate 1mbit burst 32kbit limit 12500`
+      "sudo tc qdisc add dev eth0 root tbf rate 1mbit burst 32kbit limit 12500"
     );
-  const networkTeardown = (): void =>
+  });
+
+  afterEach(async () => {
     execCommand("sudo tc qdisc del dev eth0 root");
+  });
 
   runTest({
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "Low Bandwith Test",
-    networkSetup,
-    networkTeardown,
     messageGenerator: (messageId: number) => `ping-${messageId}`,
     delayBetweenMessagesMs: 400
   });
