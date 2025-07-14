@@ -291,14 +291,6 @@ export class RLNCredentialsManager {
     limit: bigint = RLN_Q
   ): Uint8Array {
     const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
-
-    if (nBE >= limit) {
-      log.warn(
-        `ID commitment is greater than Q, reducing it by Q: ${nBE} % ${limit}`
-      );
-      return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
-    }
-
-    return bytesBE;
+    return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
   }
 }
