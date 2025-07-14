@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { LINEA_CONTRACT, RLN_Q } from "./contract/constants.js";
+import { RLN_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -152,10 +152,10 @@ export class RLNCredentialsManager {
     const address =
       credentials?.membership.address ||
       options.address ||
-      LINEA_CONTRACT.address;
+      RLN_CONTRACT.address;
 
-    if (address === LINEA_CONTRACT.address) {
-      chainId = LINEA_CONTRACT.chainId.toString();
+    if (address === RLN_CONTRACT.address) {
+      chainId = RLN_CONTRACT.chainId.toString();
       log.info(`Using Linea contract with chainId: ${chainId}`);
     }
 

@@ -1,9 +1,16 @@
+import { PRICE_CALCULATOR_ABI } from "./abi/price_calculator.js";
 import { RLN_ABI } from "./abi/rln.js";
 
-export const LINEA_CONTRACT = {
+export const RLN_CONTRACT = {
   chainId: 59141,
   address: "0xb9cd878c90e49f797b4431fbf4fb333108cb90e6",
   abi: RLN_ABI
+};
+
+export const PRICE_CALCULATOR_CONTRACT = {
+  chainId: 59141,
+  address: "0xBcfC0660Df69f53ab409F32bb18A3fb625fcE644",
+  abi: PRICE_CALCULATOR_ABI
 };
 
 /**
