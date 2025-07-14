@@ -9,7 +9,7 @@ import {
 } from "@waku/sdk";
 import {
   delay,
-  shardInfoToPubsubTopics,
+  derivePubsubTopicsFromNetworkConfig,
   singleShardInfosToShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
@@ -43,7 +43,7 @@ export interface TestContext {
 export function setupTest(ctx: Mocha.Suite, testContext: TestContext): void {
   beforeEachCustom(ctx, async () => {
     testContext.nwaku = new ServiceNode(makeLogFileName(ctx.ctx));
-    testContext.messageCollector = new MessageCollector(testContext.nwaku);
+    testContext.messageCollector = new MessageCollector();
   });
 
   afterEachCustom(ctx, async () => {
@@ -139,7 +139,7 @@ export function runTest(options: RunTestOptions): void {
       await delay(1000);
 
       await testContext.nwaku!.ensureSubscriptions(
-        shardInfoToPubsubTopics(shardInfo)
+        derivePubsubTopicsFromNetworkConfig(shardInfo)
       );
 
       testContext.waku = await createLightNode({ networkConfig: shardInfo });
@@ -168,6 +168,8 @@ export function runTest(options: RunTestOptions): void {
 
       let messageId = 0;
 
+      console.log("Received messages via filter:");
+
       while (Date.now() < testEnd) {
         const now = new Date();
         const message = messageGenerator
@@ -194,12 +196,18 @@ export function runTest(options: RunTestOptions): void {
             testContext.messageCollector!.verifyReceivedMessage(0, {
               expectedMessageText: message,
               expectedContentTopic: contentTopic,
-              expectedPubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
+              expectedPubsubTopic:
+                derivePubsubTopicsFromNetworkConfig(shardInfo)[0]
             });
           }
+
+          console.log(
+            JSON.stringify(testContext.messageCollector!.getMessage(0))
+          );
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
           err = e.message || String(e);
+          console.log(`Issue/Error/Failure for message: ${String(e)}`);
         }
 
         report.push({
