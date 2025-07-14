@@ -80,7 +80,7 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-replace": "^6.0.2",
     "@types/mocha": "^10.0.9",
     "@waku/build-utils": "*",
     "chai": "^5.1.1",
