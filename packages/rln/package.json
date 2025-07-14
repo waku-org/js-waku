@@ -75,7 +75,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@chainsafe/bls-keystore": "3.0.0",
+    "@chainsafe/bls-keystore": "3.1.0",
     "@waku/core": "^0.0.36",
     "@waku/utils": "^0.0.24",
     "@noble/hashes": "^1.2.0",
