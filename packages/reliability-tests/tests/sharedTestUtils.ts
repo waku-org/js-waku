@@ -30,6 +30,8 @@ export interface TestContext {
   messageCollector?: MessageCollector;
 }
 
+/* eslint-disable no-console */
+
 export function setupTest(ctx: Mocha.Suite, testContext: TestContext): void {
   beforeEachCustom(ctx, async () => {
     testContext.nwaku = new ServiceNode(makeLogFileName(ctx.ctx));
@@ -181,7 +183,6 @@ export function runTest(
         (m) => !m.sent || !m.received || m.error
       );
 
-      /* eslint-disable no-console */
       console.log(`\n=== ${testName} Summary ===`);
       console.log("Start time:", testStart.toISOString());
       console.log("End time:", new Date().toISOString());
