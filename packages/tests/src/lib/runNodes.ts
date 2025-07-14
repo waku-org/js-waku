@@ -16,9 +16,9 @@ import { ServiceNode } from "./service_node.js";
 export const log = new Logger("test:runNodes");
 
 export const DEFAULT_DISCOVERIES_ENABLED = {
-  dns: true,
+  dns: false,
   peerExchange: true,
-  localPeerCache: true
+  localPeerCache: false
 };
 
 type RunNodesOptions = {

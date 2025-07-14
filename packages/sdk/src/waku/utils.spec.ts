@@ -1,38 +1,12 @@
-import { peerIdFromString } from "@libp2p/peer-id";
 import { DEFAULT_NUM_SHARDS, DefaultNetworkConfig } from "@waku/interfaces";
 import { contentTopicToShardIndex } from "@waku/utils";
 import { expect } from "chai";
 
-import {
-  decoderParamsToShardInfo,
-  isShardCompatible,
-  mapToPeerIdOrMultiaddr
-} from "./utils.js";
+import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 
 const TestContentTopic = "/test/1/waku-sdk/utf8";
 
 describe("IWaku utils", () => {
-  describe("mapToPeerIdOrMultiaddr", () => {
-    it("should return PeerId when PeerId is provided", async () => {
-      const peerId = peerIdFromString(
-        "12D3KooWHFJGwBXD7ukXqKaQZYmV1U3xxN1XCNrgriSEyvkxf6nE"
-      );
-
-      const result = mapToPeerIdOrMultiaddr(peerId);
-
-      expect(result).to.equal(peerId);
-    });
-
-    it("should return Multiaddr when Multiaddr input is provided", () => {
-      const multiAddr =
-        "/ip4/127.0.0.1/tcp/8000/p2p/12D3KooWHFJGwBXD7ukXqKaQZYmV1U3xxN1XCNrgriSEyvkxf6nE";
-
-      const result = mapToPeerIdOrMultiaddr(multiAddr);
-
-      expect(result.toString()).to.equal(multiAddr);
-    });
-  });
-
   describe("decoderParamsToShardInfo", () => {
     it("should use provided shard info when available", () => {
       const params = {

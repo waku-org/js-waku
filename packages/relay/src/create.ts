@@ -32,11 +32,18 @@ export async function createRelayNode(
     libp2p
   });
 
-  return new WakuNode(
+  const node = new WakuNode(
     pubsubTopics,
     options as CreateNodeOptions,
     libp2p,
     {},
     relay
   ) as RelayNode;
+
+  // only if `false` is passed explicitly
+  if (options?.autoStart !== false) {
+    await node.start();
+  }
+
+  return node;
 }

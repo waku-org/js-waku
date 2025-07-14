@@ -169,8 +169,9 @@ type MockLightPushOptions = {
 function mockLightPush(options: MockLightPushOptions): LightPush {
   const lightPush = new LightPush({
     connectionManager: {
-      pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
-    } as ConnectionManager,
+      isTopicConfigured: (topic: string) =>
+        (options.pubsubTopics || [PUBSUB_TOPIC]).includes(topic)
+    } as unknown as ConnectionManager,
     peerManager: {
       getPeers: () =>
         options.libp2p

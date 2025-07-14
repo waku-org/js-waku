@@ -61,7 +61,7 @@ describe("PeerManager", () => {
       pubsubTopics: [TEST_PUBSUB_TOPIC],
       getConnectedPeers: async () => peers,
       getPeers: async () => peers,
-      isPeerOnPubsubTopic: async (_id: PeerId, _topic: string) => true
+      isPeerOnTopic: async (_id: PeerId, _topic: string) => true
     } as unknown as IConnectionManager;
     peerManager = new PeerManager({
       libp2p,

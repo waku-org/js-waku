@@ -37,42 +37,17 @@ type IncomingMessageHandler = (
 
 export class FilterCore {
   private streamManager: StreamManager;
-  private static handleIncomingMessage?: IncomingMessageHandler;
 
   public readonly multicodec = FilterCodecs.SUBSCRIBE;
 
   public constructor(
-    handleIncomingMessage: IncomingMessageHandler,
-    public readonly pubsubTopics: PubsubTopic[],
+    private handleIncomingMessage: IncomingMessageHandler,
     libp2p: Libp2p
   ) {
     this.streamManager = new StreamManager(
       FilterCodecs.SUBSCRIBE,
       libp2p.components
     );
-
-    // TODO(weboko): remove when @waku/sdk 0.0.33 is released
-    const prevHandler = FilterCore.handleIncomingMessage;
-    FilterCore.handleIncomingMessage = !prevHandler
-      ? handleIncomingMessage
-      : async (pubsubTopic, message, peerIdStr): Promise<void> => {
-          try {
-            await prevHandler(pubsubTopic, message, peerIdStr);
-          } catch (e) {
-            log.error(
-              "Previous FilterCore incoming message handler failed ",
-              e
-            );
-          }
-
-          try {
-            await handleIncomingMessage(pubsubTopic, message, peerIdStr);
-          } catch (e) {
-            log.error("Present FilterCore incoming message handler failed ", e);
-          }
-
-          return;
-        };
 
     libp2p
       .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
@@ -327,7 +302,7 @@ export class FilterCore {
             return;
           }
 
-          await FilterCore.handleIncomingMessage?.(
+          await this.handleIncomingMessage(
             pubsubTopic,
             wakuMessage,
             connection.remotePeer.toString()
