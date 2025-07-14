@@ -3,7 +3,7 @@ import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { RLN_CONTRACT } from "./contract/constants.js";
+import { RLN_CONTRACT, RLN_Q } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
