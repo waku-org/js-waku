@@ -6,7 +6,11 @@ import { DecryptedCredentials } from "../keystore/types.js";
 import { BytesUtils } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi/rln.js";
-import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
+import {
+  DEFAULT_RATE_LIMIT,
+  PRICE_CALCULATOR_CONTRACT,
+  RATE_LIMIT_PARAMS
+} from "./constants.js";
 import {
   CustomQueryOptions,
   FetchMembersOptions,
@@ -769,5 +773,21 @@ export class RLNBaseContract {
       log.error("Error in isInGracePeriod:", error);
       return false;
     }
+  }
+
+  /**
+   * Calculates the price for a given rate limit using the PriceCalculator contract
+   */
+  public async getPriceForRateLimit(
+    rateLimit: number
+  ): Promise<{ token: string; price: ethers.BigNumber }> {
+    const provider = this.contract.provider;
+    const priceCalculator = new ethers.Contract(
+      PRICE_CALCULATOR_CONTRACT.address,
+      PRICE_CALCULATOR_CONTRACT.abi,
+      provider
+    );
+    const [token, price] = await priceCalculator.calculate(rateLimit);
+    return { token, price };
   }
 }
