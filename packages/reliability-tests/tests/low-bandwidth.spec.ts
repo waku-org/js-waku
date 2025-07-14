@@ -20,7 +20,7 @@ describe("Low Bandwith Test", function () {
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "Low Bandwith Test",
-    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    messageGenerator: (messageId: number) => `Low-Bandwith-${messageId}`,
     delayBetweenMessagesMs: 400
   });
 });

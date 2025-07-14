@@ -10,7 +10,7 @@ describe("High Throughput Messaging", function () {
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "High Throughput Messaging",
-    messageGenerator: (messageId: number) => `msg-${messageId}`,
+    messageGenerator: (messageId: number) => `High-Throughput-${messageId}`,
     delayBetweenMessagesMs: 0
   });
 });

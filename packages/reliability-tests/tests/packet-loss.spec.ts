@@ -18,7 +18,7 @@ describe("Packet Loss Test", function () {
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "Packet Loss Test",
-    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    messageGenerator: (messageId: number) => `Packet-Loss-${messageId}`,
     delayBetweenMessagesMs: 400
   });
 });

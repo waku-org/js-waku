@@ -20,7 +20,7 @@ describe("Network Latency and Jitter Test", function () {
     testContext: testContext,
     testDurationMs: testDurationMs,
     testName: "Network Latency and Jitter Test",
-    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    messageGenerator: (messageId: number) => `Network-Latency-${messageId}`,
     delayBetweenMessagesMs: 400
   });
 });
