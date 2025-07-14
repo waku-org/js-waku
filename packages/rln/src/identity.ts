@@ -1,13 +1,19 @@
-import { buildBigIntFromUint8Array } from "./utils/index.js";
+import { BytesUtils } from "./utils/bytes.js";
 
 export class IdentityCredential {
+  public IDCommitmentBigInt: bigint;
+  /**
+   * All variables are in little-endian format
+   */
   public constructor(
     public readonly IDTrapdoor: Uint8Array,
     public readonly IDNullifier: Uint8Array,
     public readonly IDSecretHash: Uint8Array,
-    public readonly IDCommitment: Uint8Array,
-    public readonly IDCommitmentBigInt: bigint
-  ) {}
+    public readonly IDCommitment: Uint8Array
+  ) {
+    this.IDCommitmentBigInt =
+      BytesUtils.buildBigIntFromUint8ArrayBE(IDCommitment);
+  }
 
   public static fromBytes(memKeys: Uint8Array): IdentityCredential {
     if (memKeys.length < 128) {
@@ -18,14 +24,12 @@ export class IdentityCredential {
     const idNullifier = memKeys.subarray(32, 64);
     const idSecretHash = memKeys.subarray(64, 96);
     const idCommitment = memKeys.subarray(96, 128);
-    const idCommitmentBigInt = buildBigIntFromUint8Array(idCommitment, 32);
 
     return new IdentityCredential(
       idTrapdoor,
       idNullifier,
       idSecretHash,
-      idCommitment,
-      idCommitmentBigInt
+      idCommitment
     );
   }
 }
