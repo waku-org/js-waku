@@ -1,7 +1,5 @@
 import { execCommand, runTest, setupTest } from "./sharedTestUtils.js";
 
-const ContentTopic = "/waku/2/content/test.js";
-
 describe("Packet Loss Test", function () {
   const testDurationMs = 10 * 60 * 1000; // 10 mins
   const testContext = {};
@@ -13,15 +11,13 @@ describe("Packet Loss Test", function () {
   const networkTeardown = (): void =>
     execCommand("sudo tc qdisc del dev eth0 root netem");
 
-  runTest(
-    testContext,
-    ContentTopic,
-    testDurationMs,
-    "Packet Loss Test",
+  runTest({
+    testContext: testContext,
+    testDurationMs: testDurationMs,
+    testName: "Packet Loss Test",
     networkSetup,
     networkTeardown,
-    (messageId) => `ping-${messageId}`,
-    5000,
-    400
-  );
+    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    delayBetweenMessagesMs: 400
+  });
 });

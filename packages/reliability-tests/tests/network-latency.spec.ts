@@ -1,7 +1,5 @@
 import { execCommand, runTest, setupTest } from "./sharedTestUtils.js";
 
-const ContentTopic = "/waku/2/content/test.js";
-
 describe("Network Latency and Jitter Test", function () {
   const testDurationMs = 10 * 60 * 1000; // 10 mins
   const testContext = {};
@@ -15,15 +13,13 @@ describe("Network Latency and Jitter Test", function () {
   const networkTeardown = (): void =>
     execCommand("sudo tc qdisc del dev eth0 root netem");
 
-  runTest(
-    testContext,
-    ContentTopic,
-    testDurationMs,
-    "Network Latency and Jitter Test",
+  runTest({
+    testContext: testContext,
+    testDurationMs: testDurationMs,
+    testName: "Network Latency and Jitter Test",
     networkSetup,
     networkTeardown,
-    (messageId) => `ping-${messageId}`,
-    5000,
-    400
-  );
+    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    delayBetweenMessagesMs: 400
+  });
 });

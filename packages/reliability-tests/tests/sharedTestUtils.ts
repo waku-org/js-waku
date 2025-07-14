@@ -45,17 +45,28 @@ export function setupTest(ctx: Mocha.Suite, testContext: TestContext): void {
   });
 }
 
-export function runTest(
-  testContext: TestContext,
-  contentTopic: string,
-  testDurationMs: number,
-  testName: string,
-  networkSetup?: () => Promise<void> | void,
-  networkTeardown?: () => Promise<void> | void,
-  messageGenerator?: (messageId: number) => string,
-  messageTimeoutMs = 5000,
-  delayBetweenMessagesMs = 400
-): void {
+export interface RunTestOptions {
+  testContext: TestContext;
+  testDurationMs: number;
+  testName: string;
+  networkSetup?: () => Promise<void> | void;
+  networkTeardown?: () => Promise<void> | void;
+  messageGenerator?: (messageId: number) => string;
+  messageTimeoutMs?: number;
+  delayBetweenMessagesMs?: number;
+}
+
+export function runTest(options: RunTestOptions): void {
+  const {
+    testContext,
+    testDurationMs,
+    testName,
+    networkSetup,
+    networkTeardown,
+    messageGenerator,
+    delayBetweenMessagesMs = 400
+  } = options;
+
   describe(testName, function () {
     this.timeout(testDurationMs * 1.1);
 
@@ -74,6 +85,8 @@ export function runTest(
     it(testName, async function () {
       const singleShardInfo = { clusterId: 0, shard: 0 };
       const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+
+      const contentTopic = "/waku/2/content/test.js";
 
       const testStart = new Date();
       const testEnd = Date.now() + testDurationMs;
@@ -150,7 +163,7 @@ export function runTest(
           sent = true;
 
           received = await testContext.messageCollector!.waitForMessages(1, {
-            timeoutDuration: messageTimeoutMs
+            timeoutDuration: 5000
           });
 
           if (received) {

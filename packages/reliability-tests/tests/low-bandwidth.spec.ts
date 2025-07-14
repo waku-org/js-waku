@@ -1,7 +1,5 @@
 import { execCommand, runTest, setupTest } from "./sharedTestUtils.js";
 
-const ContentTopic = "/waku/2/content/test.js";
-
 describe("Low Bandwith Test", function () {
   const testDurationMs = 10 * 60 * 1000; // 10 mins
   const testContext = {};
@@ -15,15 +13,13 @@ describe("Low Bandwith Test", function () {
   const networkTeardown = (): void =>
     execCommand("sudo tc qdisc del dev eth0 root");
 
-  runTest(
-    testContext,
-    ContentTopic,
-    testDurationMs,
-    "Low Bandwith Test",
+  runTest({
+    testContext: testContext,
+    testDurationMs: testDurationMs,
+    testName: "Low Bandwith Test",
     networkSetup,
     networkTeardown,
-    (messageId) => `ping-${messageId}`,
-    5000,
-    400
-  );
+    messageGenerator: (messageId: number) => `ping-${messageId}`,
+    delayBetweenMessagesMs: 400
+  });
 });
