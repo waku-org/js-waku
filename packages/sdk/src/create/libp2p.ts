@@ -1,10 +1,10 @@
 import { noise } from "@chainsafe/libp2p-noise";
 import { bootstrap } from "@libp2p/bootstrap";
 import { identify } from "@libp2p/identify";
+import type { ConnectionGater } from "@libp2p/interface";
 import { mplex } from "@libp2p/mplex";
 import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
-import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
@@ -53,16 +53,22 @@ export async function defaultLibp2p(
     ? { metadata: wakuMetadata(pubsubTopics) }
     : {};
 
-  const filter =
-    options?.filterMultiaddrs === false || isTestEnvironment()
-      ? filterAll
-      : wss;
+  const connectionGater: ConnectionGater = {
+    denyDialMultiaddr: async (multiaddr) => {
+      if (options?.filterMultiaddrs === false || isTestEnvironment()) {
+        return false;
+      }
+      const protocols = multiaddr.protos().map((proto) => proto.name);
+      return protocols.includes("ws") && !protocols.includes("wss");
+    }
+  };
 
   return createLibp2p({
-    transports: [webSockets({ filter: filter })],
+    transports: [webSockets()],
     streamMuxers: [mplex()],
     connectionEncrypters: [noise()],
     ...options,
+    connectionGater,
     services: {
       identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent

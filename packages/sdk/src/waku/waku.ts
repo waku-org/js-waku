@@ -4,6 +4,7 @@ import {
   type Stream,
   TypedEventEmitter
 } from "@libp2p/interface";
+import { peerIdFromString } from "@libp2p/peer-id";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
@@ -88,8 +89,8 @@ export class WakuNode implements IWaku {
 
     this.connectionManager = new ConnectionManager({
       libp2p,
-      relay: this.relay,
       events: this.events,
+      relay: this.relay,
       pubsubTopics: pubsubTopics,
       networkConfig: this.networkConfig,
       config: options?.connectionManager
@@ -213,7 +214,22 @@ export class WakuNode implements IWaku {
   public async hangUp(peer: PeerId | MultiaddrInput): Promise<boolean> {
     log.info(`Hanging up peer:${peer?.toString()}.`);
 
-    return this.connectionManager.hangUp(peer);
+    let peerId: PeerId;
+    if (typeof peer === "string") {
+      peerId = peerIdFromString(peer);
+    } else if (peer && "getPeerId" in peer) {
+      // MultiaddrInput case
+      const peerIdStr = peer.getPeerId?.();
+      if (!peerIdStr) {
+        throw new Error("No peer ID in multiaddr");
+      }
+      peerId = peerIdFromString(peerIdStr);
+    } else {
+      // PeerId case
+      peerId = peer as PeerId;
+    }
+
+    return await this.connectionManager.hangUp(peerId);
   }
 
   public async start(): Promise<void> {
@@ -222,7 +238,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     await this.libp2p.start();
-    this.connectionManager.start();
+    // Connection manager starts automatically
     this.peerManager.start();
     this.healthIndicator.start();
     this.lightPush?.start();
