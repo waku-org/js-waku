@@ -28,6 +28,14 @@ export interface TestContext {
   waku?: LightNode;
   nwaku?: ServiceNode;
   messageCollector?: MessageCollector;
+  report?: Array<{
+    messageId: number;
+    size?: number;
+    timestamp: string;
+    sent: boolean;
+    received: boolean;
+    error?: string;
+  }>;
 }
 
 /* eslint-disable no-console */
@@ -43,6 +51,38 @@ export function setupTest(ctx: Mocha.Suite, testContext: TestContext): void {
       await tearDownNodes(testContext.nwaku, testContext.waku);
     }
   });
+}
+
+export function printSizeDistributionReport(
+  report: TestContext["report"]
+): void {
+  if (!report) return;
+
+  const sizes = report.map((r) => r.size ?? 0);
+  const sizesSet = new Set(sizes);
+  if (sizesSet.size <= 1) return; // Only one size, no need to print distribution
+
+  const buckets = [10, 100, 1000, 10000, 100000];
+  const sizeCounts: Record<number, number> = {};
+  for (const entry of report) {
+    if (entry.size !== undefined) {
+      // Find closest bucket
+      let closest = buckets[0];
+      let minDiff = Math.abs(entry.size - buckets[0]);
+      for (const b of buckets) {
+        const diff = Math.abs(entry.size - b);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = b;
+        }
+      }
+      sizeCounts[closest] = (sizeCounts[closest] || 0) + 1;
+    }
+  }
+  console.log("\nMessage size distribution (mapped to fixed buckets):");
+  for (const size of buckets) {
+    console.log(`Size ${size} bytes: ${sizeCounts[size] || 0} messages`);
+  }
 }
 
 export interface RunTestOptions {
@@ -64,7 +104,7 @@ export function runTest(options: RunTestOptions): void {
   } = options;
 
   describe(testName, function () {
-    this.timeout(testDurationMs * 1.1);
+    this.timeout(testDurationMs * 1.1); // Timing out if test runs for 10% more than expected. Used to avoid hangs and freezes
 
     it(testName, async function () {
       const singleShardInfo = { clusterId: 0, shard: 0 };
@@ -175,6 +215,8 @@ export function runTest(options: RunTestOptions): void {
         testContext.messageCollector!.list = []; // clearing the message collector
         await delay(delayBetweenMessagesMs);
       }
+
+      testContext.report = report;
 
       const failedMessages = report.filter(
         (m) => !m.sent || !m.received || m.error
