@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { type CoreProtocolResult, Protocols } from "@waku/interfaces";
+import { type LightPushCoreResult, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import type { PeerManager } from "../peer_manager/index.js";
@@ -11,7 +11,7 @@ type RetryManagerConfig = {
   peerManager: PeerManager;
 };
 
-type AttemptCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
+type AttemptCallback = (peerId: PeerId) => Promise<LightPushCoreResult>;
 
 export type ScheduledTask = {
   maxAttempts: number;
@@ -119,7 +119,13 @@ export class RetryManager {
         task.callback(peerId)
       ]);
 
-      if (response?.failure) {
+      // If timeout resolves first, response will be void (undefined)
+      // In this case, we should treat it as a timeout error
+      if (response === undefined) {
+        throw new Error("Task timeout");
+      }
+
+      if (response.failure) {
         throw Error(response.failure.error);
       }
 

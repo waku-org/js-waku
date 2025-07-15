@@ -1,6 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import {
-  type CoreProtocolResult,
+  type LightPushCoreResult,
+  LightPushError,
   ProtocolError,
   Protocols
 } from "@waku/interfaces";
@@ -53,7 +54,7 @@ describe("RetryManager", () => {
 
   it("should process tasks in queue", async () => {
     const successCallback = sinon.spy(
-      async (peerId: PeerId): Promise<CoreProtocolResult> => ({
+      async (peerId: PeerId): Promise<LightPushCoreResult> => ({
         success: peerId,
         failure: null
       })
@@ -106,9 +107,9 @@ describe("RetryManager", () => {
 
   it("should retry failed tasks", async () => {
     const failingCallback = sinon.spy(
-      async (): Promise<CoreProtocolResult> => ({
+      async (): Promise<LightPushCoreResult> => ({
         success: null,
-        failure: { error: "test error" as any }
+        failure: { error: LightPushError.GENERIC_FAIL }
       })
     );
 
@@ -129,7 +130,7 @@ describe("RetryManager", () => {
   });
 
   it("should request peer renewal on specific errors", async () => {
-    const errorCallback = sinon.spy(async (): Promise<CoreProtocolResult> => {
+    const errorCallback = sinon.spy(async (): Promise<LightPushCoreResult> => {
       throw new Error(ProtocolError.NO_PEER_AVAILABLE);
     });
 
@@ -149,7 +150,7 @@ describe("RetryManager", () => {
   });
 
   it("should handle task timeouts", async () => {
-    const slowCallback = sinon.spy(async (): Promise<CoreProtocolResult> => {
+    const slowCallback = sinon.spy(async (): Promise<LightPushCoreResult> => {
       await new Promise((resolve) => setTimeout(resolve, 15000));
       return { success: mockPeerId, failure: null };
     });
@@ -168,9 +169,11 @@ describe("RetryManager", () => {
   });
 
   it("should not execute task if max attempts is 0", async () => {
-    const failingCallback = sinon.spy(async (): Promise<CoreProtocolResult> => {
-      throw new Error("test error" as any);
-    });
+    const failingCallback = sinon.spy(
+      async (): Promise<LightPushCoreResult> => {
+        throw new Error("test error" as any);
+      }
+    );
 
     const task = {
       callback: failingCallback,
@@ -203,7 +206,7 @@ describe("RetryManager", () => {
       called++;
       return Promise.resolve({
         success: null,
-        failure: { error: ProtocolError.GENERIC_FAIL }
+        failure: { error: LightPushError.GENERIC_FAIL }
       });
     });
     retryManager.push(failCallback, 2, "test-topic");
