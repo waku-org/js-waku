@@ -31,6 +31,16 @@ export type ConnectionManagerOptions = {
    * @default 300 seconds
    */
   relayKeepAlive: number;
+
+  /**
+   * Enable auto recovery of connections if has not enough:
+   * - bootstrap peers
+   * - LightPush and Filter peers
+   * - number of connected peers
+   *
+   * @default true
+   */
+  enableAutoRecovery: boolean;
 };
 
 export interface IConnectionManager {
