@@ -1,10 +1,6 @@
 import { Connection, Peer } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec } from "@waku/core";
-import {
-  HealthStatus,
-  HealthStatusChangeEvents,
-  Libp2p
-} from "@waku/interfaces";
+import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -12,11 +8,13 @@ import { HealthIndicator } from "./health_indicator.js";
 
 describe("HealthIndicator", () => {
   let libp2p: Libp2p;
+  let events: IWakuEventEmitter;
   let healthIndicator: HealthIndicator;
 
   beforeEach(() => {
     libp2p = mockLibp2p();
-    healthIndicator = new HealthIndicator({ libp2p });
+    events = mockEvents();
+    healthIndicator = new HealthIndicator({ libp2p, events });
     healthIndicator.start();
   });
 
@@ -26,14 +24,13 @@ describe("HealthIndicator", () => {
   });
 
   it("should initialize with Unhealthy status", () => {
-    expect(healthIndicator.toString()).to.equal(HealthStatus.Unhealthy);
+    expect(healthIndicator.toValue()).to.equal(HealthStatus.Unhealthy);
   });
 
   it("should transition to Unhealthy when no connections", async () => {
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      healthIndicator.addEventListener(
-        HealthStatusChangeEvents.StatusChange,
-        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
+      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
+        resolve(e.detail)
       );
     });
 
@@ -44,14 +41,13 @@ describe("HealthIndicator", () => {
 
     const changedStatus = await statusChangePromise;
     expect(changedStatus).to.equal(HealthStatus.Unhealthy);
-    expect(healthIndicator.toString()).to.equal(HealthStatus.Unhealthy);
+    expect(healthIndicator.toValue()).to.equal(HealthStatus.Unhealthy);
   });
 
   it("should transition to MinimallyHealthy with one compatible peer", async () => {
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      healthIndicator.addEventListener(
-        HealthStatusChangeEvents.StatusChange,
-        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
+      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
+        resolve(e.detail)
       );
     });
 
@@ -66,14 +62,13 @@ describe("HealthIndicator", () => {
 
     const changedStatus = await statusChangePromise;
     expect(changedStatus).to.equal(HealthStatus.MinimallyHealthy);
-    expect(healthIndicator.toString()).to.equal(HealthStatus.MinimallyHealthy);
+    expect(healthIndicator.toValue()).to.equal(HealthStatus.MinimallyHealthy);
   });
 
   it("should transition to SufficientlyHealthy with multiple compatible peers", async () => {
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      healthIndicator.addEventListener(
-        HealthStatusChangeEvents.StatusChange,
-        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
+      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
+        resolve(e.detail)
       );
     });
 
@@ -92,7 +87,7 @@ describe("HealthIndicator", () => {
 
     const changedStatus = await statusChangePromise;
     expect(changedStatus).to.equal(HealthStatus.SufficientlyHealthy);
-    expect(healthIndicator.toString()).to.equal(
+    expect(healthIndicator.toValue()).to.equal(
       HealthStatus.SufficientlyHealthy
     );
   });
@@ -133,6 +128,18 @@ function mockLibp2p(): Libp2p {
       peerStore
     }
   } as unknown as Libp2p;
+}
+
+function mockEvents(): IWakuEventEmitter {
+  const events = new EventTarget();
+
+  return {
+    addEventListener: (event: string, handler: EventListener) =>
+      events.addEventListener(event, handler),
+    removeEventListener: (event: string, handler: EventListener) =>
+      events.removeEventListener(event, handler),
+    dispatchEvent: (event: Event) => events.dispatchEvent(event)
+  } as unknown as IWakuEventEmitter;
 }
 
 function mockPeer(id: string, protocols: string[]): Peer {
