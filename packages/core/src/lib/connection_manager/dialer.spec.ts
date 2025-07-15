@@ -329,6 +329,41 @@ describe("Dialer", () => {
       expect(dialStub.calledOnce).to.be.true;
       expect(dialStub.calledWith(mockPeerId)).to.be.true;
     });
+
+    it("should allow redial after failed dial cooldown expires", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.onFirstCall().rejects(new Error("Dial failed"));
+      dialStub.onSecondCall().resolves();
+      await dialer.dial(mockPeerId);
+      expect(dialStub.calledOnce).to.be.true;
+      clock.tick(60001);
+      await dialer.dial(mockPeerId);
+      expect(dialStub.calledTwice).to.be.true;
+    });
+
+    it("should handle queue overflow by adding peers to queue", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      const peers = [];
+      for (let i = 0; i < 100; i++) {
+        peers.push(createMockPeerId(`12D3KooWTest${i}`));
+      }
+      let resolveFirstDial: () => void;
+      const firstDialPromise = new Promise<void>((resolve) => {
+        resolveFirstDial = resolve;
+      });
+      dialStub.onFirstCall().returns(firstDialPromise);
+      dialStub.resolves();
+      const firstDialCall = dialer.dial(peers[0]);
+      for (let i = 1; i < 100; i++) {
+        await dialer.dial(peers[i]);
+      }
+      expect(dialStub.calledOnce).to.be.true;
+      resolveFirstDial!();
+      await firstDialCall;
+      clock.tick(500);
+      await Promise.resolve();
+      expect(dialStub.callCount).to.be.greaterThan(1);
+    });
   });
 
   describe("queue processing", () => {
