@@ -1,13 +1,13 @@
 import type { PeerId, Stream } from "@libp2p/interface";
 import {
-  type CoreProtocolResult,
   type IEncoder,
   type IMessage,
   isSuccess as isV3Success,
   type Libp2p,
-  ProtocolError,
+  type LightPushCoreResult,
+  LightPushError,
   type ThisOrThat,
-  toProtocolError
+  toLightPushError
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
@@ -30,7 +30,12 @@ export const LightPushCodecV3 = "/vac/waku/lightpush/3.0.0";
 export const LightPushCodecs = [LightPushCodecV3, LightPushCodec];
 export { PushResponse };
 
-type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
+type PreparePushMessageResult = ThisOrThat<
+  "query",
+  PushRpc,
+  "error",
+  LightPushError
+>;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
@@ -89,12 +94,12 @@ export class LightPushCore {
     try {
       if (!message.payload || message.payload.length === 0) {
         log.error("Failed to send waku light push: payload is empty");
-        return { query: null, error: ProtocolError.EMPTY_PAYLOAD };
+        return { query: null, error: LightPushError.EMPTY_PAYLOAD };
       }
 
       if (!(await isMessageSizeUnderCap(encoder, message))) {
         log.error("Failed to send waku light push: message is bigger than 1MB");
-        return { query: null, error: ProtocolError.SIZE_TOO_BIG };
+        return { query: null, error: LightPushError.SIZE_TOO_BIG };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
@@ -102,7 +107,7 @@ export class LightPushCore {
         log.error("Failed to encode to protoMessage, aborting push");
         return {
           query: null,
-          error: ProtocolError.ENCODE_FAILED
+          error: LightPushError.ENCODE_FAILED
         };
       }
 
@@ -113,7 +118,7 @@ export class LightPushCore {
 
       return {
         query: null,
-        error: ProtocolError.GENERIC_FAIL
+        error: LightPushError.GENERIC_FAIL
       };
     }
   }
@@ -122,7 +127,7 @@ export class LightPushCore {
     encoder: IEncoder,
     message: IMessage,
     peerId: PeerId
-  ): Promise<CoreProtocolResult> {
+  ): Promise<LightPushCoreResult> {
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message
@@ -154,7 +159,7 @@ export class LightPushCore {
         return {
           success: null,
           failure: {
-            error: ProtocolError.NO_STREAM_AVAILABLE,
+            error: LightPushError.NO_STREAM_AVAILABLE,
             peerId: peerId
           }
         };
@@ -176,7 +181,7 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.STREAM_ABORTED,
+          error: LightPushError.STREAM_ABORTED,
           peerId: peerId
         }
       };
@@ -195,7 +200,7 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.DECODE_FAILED,
+          error: LightPushError.DECODE_FAILED,
           peerId: peerId
         }
       };
@@ -206,7 +211,7 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_RESPONSE,
+          error: LightPushError.NO_RESPONSE,
           peerId: peerId
         }
       };
@@ -214,7 +219,7 @@ export class LightPushCore {
 
     if (protocol === LightPushCodecV3 && response.statusCode !== undefined) {
       if (!isV3Success(response.statusCode)) {
-        const error = toProtocolError(response.statusCode);
+        const error = toLightPushError(response.statusCode);
         log.error(
           `Remote peer rejected with v3 status code ${response.statusCode}: ${response.statusDesc || response.info}`
         );
@@ -222,7 +227,9 @@ export class LightPushCore {
           success: null,
           failure: {
             error,
-            peerId: peerId
+            peerId: peerId,
+            statusCode: response.statusCode,
+            statusDesc: response.statusDesc || response.info
           }
         };
       }
@@ -239,7 +246,7 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.RLN_PROOF_GENERATION,
+          error: LightPushError.RLN_PROOF_GENERATION,
           peerId: peerId
         }
       };
@@ -250,8 +257,9 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_REJECTED,
-          peerId: peerId
+          error: LightPushError.REMOTE_PEER_REJECTED,
+          peerId: peerId,
+          statusDesc: response.info
         }
       };
     }

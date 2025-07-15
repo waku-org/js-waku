@@ -1,5 +1,5 @@
-import { ProtocolError } from "./protocols.js";
-import type { ISender, ISendOptions } from "./sender.js";
+import { LightPushError } from "./protocols.js";
+import type { ILightPushSender, ISendOptions } from "./sender.js";
 
 export type LightPushProtocolOptions = ISendOptions & {
   /**
@@ -16,7 +16,7 @@ export type LightPushProtocolOptions = ISendOptions & {
   numPeersToUse?: number;
 };
 
-export type ILightPush = ISender & {
+export type ILightPush = ILightPushSender & {
   readonly multicodec: string;
   start: () => void;
   stop: () => void;
@@ -53,33 +53,46 @@ export function isSuccess(statusCode: number | undefined): boolean {
   return statusCode === LightPushStatusCode.SUCCESS;
 }
 
-export function toProtocolError(
+export function toLightPushError(
   statusCode: LightPushStatusCode | number | undefined
-): ProtocolError {
+): LightPushError {
   if (!statusCode) {
-    return ProtocolError.GENERIC_FAIL;
+    return LightPushError.GENERIC_FAIL;
   }
 
   switch (statusCode) {
     case LightPushStatusCode.SUCCESS:
-      return ProtocolError.GENERIC_FAIL;
+      return LightPushError.GENERIC_FAIL;
     case LightPushStatusCode.BAD_REQUEST:
+      return LightPushError.BAD_REQUEST;
     case LightPushStatusCode.INVALID_MESSAGE:
+      return LightPushError.INVALID_MESSAGE;
     case LightPushStatusCode.TOO_MANY_REQUESTS:
-      return ProtocolError.REMOTE_PEER_REJECTED;
+      return LightPushError.TOO_MANY_REQUESTS;
     case LightPushStatusCode.PAYLOAD_TOO_LARGE:
-      return ProtocolError.SIZE_TOO_BIG;
+      return LightPushError.PAYLOAD_TOO_LARGE;
     case LightPushStatusCode.UNSUPPORTED_TOPIC:
-      return ProtocolError.TOPIC_NOT_CONFIGURED;
+      return LightPushError.UNSUPPORTED_TOPIC;
     case LightPushStatusCode.UNAVAILABLE:
+      return LightPushError.UNAVAILABLE;
     case LightPushStatusCode.NO_PEERS:
-      return ProtocolError.NO_PEER_AVAILABLE;
+      return LightPushError.NO_PEERS;
     case LightPushStatusCode.NO_RLN_PROOF:
-      return ProtocolError.RLN_PROOF_GENERATION;
+      return LightPushError.NO_RLN_PROOF;
     case LightPushStatusCode.INTERNAL_ERROR:
     default:
-      return ProtocolError.GENERIC_FAIL;
+      return LightPushError.INTERNAL_ERROR;
   }
+}
+
+// Legacy function for backward compatibility
+/**
+ * @deprecated Use toLightPushError instead
+ */
+export function toProtocolError(
+  statusCode: LightPushStatusCode | number | undefined
+): LightPushError {
+  return toLightPushError(statusCode);
 }
 
 export function getStatusDescription(
