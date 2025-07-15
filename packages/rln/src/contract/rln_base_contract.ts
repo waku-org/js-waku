@@ -777,17 +777,28 @@ export class RLNBaseContract {
 
   /**
    * Calculates the price for a given rate limit using the PriceCalculator contract
+   * @param rateLimit The rate limit to calculate the price for
+   * @param contractFactory Optional factory for creating the contract (for testing)
    */
   public async getPriceForRateLimit(
-    rateLimit: number
-  ): Promise<{ token: string; price: ethers.BigNumber }> {
+    rateLimit: number,
+    contractFactory?: typeof import("ethers").Contract
+  ): Promise<{
+    token: string | null;
+    price: import("ethers").BigNumber | null;
+  }> {
     const provider = this.contract.provider;
-    const priceCalculator = new ethers.Contract(
+    const ContractCtor = contractFactory || ethers.Contract;
+    const priceCalculator = new ContractCtor(
       PRICE_CALCULATOR_CONTRACT.address,
       PRICE_CALCULATOR_CONTRACT.abi,
       provider
     );
     const [token, price] = await priceCalculator.calculate(rateLimit);
+    // Defensive: if token or price is null/undefined, return nulls
+    if (!token || !price) {
+      return { token: null, price: null };
+    }
     return { token, price };
   }
 }

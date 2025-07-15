@@ -14,15 +14,16 @@ function createMockRLNBaseContract(provider: any): RLNBaseContract {
 }
 
 describe("RLNBaseContract.getPriceForRateLimit (unit)", function () {
-  let contractStub: sinon.SinonStub;
   let provider: any;
   let calculateStub: sinon.SinonStub;
+  let mockContractFactory: any;
 
   beforeEach(() => {
     provider = {};
-    contractStub = sinon.stub(ethers, "Contract");
     calculateStub = sinon.stub();
-    contractStub.returns({ calculate: calculateStub });
+    mockContractFactory = function () {
+      return { calculate: calculateStub };
+    };
   });
 
   afterEach(() => {
@@ -35,9 +36,12 @@ describe("RLNBaseContract.getPriceForRateLimit (unit)", function () {
     calculateStub.resolves([fakeToken, fakePrice]);
 
     const rlnBase = createMockRLNBaseContract(provider);
-    const result = await rlnBase.getPriceForRateLimit(20);
+    const result = await rlnBase.getPriceForRateLimit(20, mockContractFactory);
     expect(result.token).to.equal(fakeToken);
-    expect(result.price.eq(fakePrice)).to.be.true;
+    expect(result.price).to.not.be.null;
+    if (result.price) {
+      expect(result.price.eq(fakePrice)).to.be.true;
+    }
     expect(calculateStub.calledOnceWith(20)).to.be.true;
   });
 
@@ -45,7 +49,9 @@ describe("RLNBaseContract.getPriceForRateLimit (unit)", function () {
     calculateStub.rejects(new Error("fail"));
 
     const rlnBase = createMockRLNBaseContract(provider);
-    await expect(rlnBase.getPriceForRateLimit(20)).to.be.rejectedWith("fail");
+    await expect(
+      rlnBase.getPriceForRateLimit(20, mockContractFactory)
+    ).to.be.rejectedWith("fail");
     expect(calculateStub.calledOnceWith(20)).to.be.true;
   });
 
@@ -53,7 +59,7 @@ describe("RLNBaseContract.getPriceForRateLimit (unit)", function () {
     calculateStub.resolves([null, null]);
 
     const rlnBase = createMockRLNBaseContract(provider);
-    const result = await rlnBase.getPriceForRateLimit(20);
+    const result = await rlnBase.getPriceForRateLimit(20, mockContractFactory);
     expect(result.token).to.be.null;
     expect(result.price).to.be.null;
   });
