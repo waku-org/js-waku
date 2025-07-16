@@ -14,6 +14,8 @@ import { NetworkMonitor } from "./network_monitor.js";
 
 const log = new Logger("connection-limiter");
 
+const DEFAULT_CONNECTION_MONITOR_INTERVAL = 5 * 1_000;
+
 type ConnectionLimiterConstructorOptions = {
   libp2p: Libp2p;
   events: IWakuEventEmitter;
@@ -63,7 +65,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
     ) {
       this.connectionMonitorInterval = setInterval(
         () => void this.maintainConnections(),
-        1000
+        DEFAULT_CONNECTION_MONITOR_INTERVAL
       );
     }
 
