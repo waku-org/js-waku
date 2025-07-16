@@ -10,7 +10,12 @@ import {
   LightPushCodec,
   StoreCodec
 } from "@waku/core";
-import { Libp2p, Libp2pEventHandler, Protocols } from "@waku/interfaces";
+import {
+  CONNECTION_LOCKED_TAG,
+  Libp2p,
+  Libp2pEventHandler,
+  Protocols
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("peer-manager");
@@ -229,6 +234,10 @@ export class PeerManager {
   private lockPeer(id: PeerId): void {
     log.info(`Locking peer ${id}`);
     this.lockedPeers.add(id.toString());
+    this.libp2p
+      .getConnections()
+      .filter((c) => c.remotePeer.equals(id))
+      .forEach((c) => c.tags.push(CONNECTION_LOCKED_TAG));
     this.unlockedPeers.delete(id.toString());
   }
 
@@ -239,6 +248,12 @@ export class PeerManager {
   private unlockPeer(id: PeerId): void {
     log.info(`Unlocking peer ${id}`);
     this.lockedPeers.delete(id.toString());
+    this.libp2p
+      .getConnections()
+      .filter((c) => c.remotePeer.equals(id))
+      .forEach((c) => {
+        c.tags = c.tags.filter((t) => t !== CONNECTION_LOCKED_TAG);
+      });
     this.unlockedPeers.set(id.toString(), Date.now());
   }
 

@@ -3,20 +3,31 @@ import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { PubsubTopic } from "./misc.js";
 
+// Peer tags
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
   LOCAL = "local-peer-cache"
 }
 
+// Connection tag
+export const CONNECTION_LOCKED_TAG = "locked";
+
 export type ConnectionManagerOptions = {
   /**
    * Max number of bootstrap peers allowed to be connected to initially.
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange).
    *
-   * @default 1
+   * @default 3
    */
   maxBootstrapPeers: number;
+
+  /**
+   * Max number of connections allowed to be connected to.
+   *
+   * @default 10
+   */
+  maxConnections: number;
 
   /**
    * Keep alive libp2p pings interval in seconds.
@@ -37,6 +48,7 @@ export type ConnectionManagerOptions = {
    * - bootstrap peers
    * - LightPush and Filter peers
    * - number of connected peers
+   * - dial known peers on reconnect to Internet
    *
    * @default true
    */
