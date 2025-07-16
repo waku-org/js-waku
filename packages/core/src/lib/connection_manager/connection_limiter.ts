@@ -156,7 +156,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
     try {
       const connectionsToDrop = connections
-        .filter((c) => c.tags.includes(CONNECTION_LOCKED_TAG))
+        .filter((c) => !c.tags.includes(CONNECTION_LOCKED_TAG))
         .slice(this.options.maxConnections);
 
       if (connectionsToDrop.length === 0) {
