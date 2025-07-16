@@ -1,5 +1,5 @@
 import { PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { ConnectionManagerOptions, Libp2p } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -13,6 +13,7 @@ describe("Dialer", () => {
   let mockPeerId: PeerId;
   let mockPeerId2: PeerId;
   let clock: sinon.SinonFakeTimers;
+  let mockOptions: ConnectionManagerOptions;
 
   const createMockPeerId = (id: string): PeerId =>
     ({
@@ -31,10 +32,23 @@ describe("Dialer", () => {
       isPeerOnNetwork: sinon.stub().resolves(true)
     } as unknown as sinon.SinonStubbedInstance<ShardReader>;
 
+    mockOptions = {
+      maxBootstrapPeers: 1,
+      pingKeepAlive: 300,
+      relayKeepAlive: 300,
+      maxDialingPeers: 3,
+      failedDialCooldown: 60,
+      dialCooldown: 10,
+      maxConnections: 10,
+      enableAutoRecovery: true
+    };
+
     mockPeerId = createMockPeerId("12D3KooWTest1");
     mockPeerId2 = createMockPeerId("12D3KooWTest2");
 
-    clock = sinon.useFakeTimers();
+    clock = sinon.useFakeTimers({
+      now: 1000000000000
+    });
   });
 
   afterEach(() => {
@@ -49,7 +63,8 @@ describe("Dialer", () => {
     it("should create dialer with libp2p and shardReader", () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
 
       expect(dialer).to.be.instanceOf(Dialer);
@@ -60,7 +75,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
     });
 
@@ -98,7 +114,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -135,7 +152,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -152,14 +170,28 @@ describe("Dialer", () => {
 
     it("should add peer to queue when queue is not empty", async () => {
       const dialStub = libp2p.dial as sinon.SinonStub;
-      dialStub.resolves();
 
-      void dialer.dial(mockPeerId);
+      let resolveFirstDial: () => void;
+      const firstDialPromise = new Promise<void>((resolve) => {
+        resolveFirstDial = resolve;
+      });
+      dialStub.onFirstCall().returns(firstDialPromise);
+      dialStub.onSecondCall().resolves();
 
-      dialStub.resetHistory();
+      const firstDialCall = dialer.dial(mockPeerId);
+
       await dialer.dial(mockPeerId2);
 
-      expect(dialStub.called).to.be.true;
+      expect(dialStub.calledOnce).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+
+      resolveFirstDial!();
+      await firstDialCall;
+
+      clock.tick(500);
+      await Promise.resolve();
+
+      expect(dialStub.calledTwice).to.be.true;
       expect(dialStub.calledWith(mockPeerId2)).to.be.true;
     });
 
@@ -186,7 +218,54 @@ describe("Dialer", () => {
       clock.tick(5000);
       await dialer.dial(mockPeerId);
 
-      expect(dialStub.called).to.be.true;
+      expect(dialStub.called).to.be.false;
+    });
+
+    it("should skip peer when failed to dial recently", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.rejects(new Error("Dial failed"));
+
+      await dialer.dial(mockPeerId);
+      expect(dialStub.calledOnce).to.be.true;
+
+      dialStub.resetHistory();
+      dialStub.resolves();
+
+      clock.tick(30000);
+
+      await dialer.dial(mockPeerId);
+      expect(dialStub.called).to.be.false;
+    });
+
+    it("should populate queue if has active dial", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      const mockPeerId3 = createMockPeerId("12D3KooWTest3");
+
+      let resolveFirstDial: () => void;
+      const firstDialPromise = new Promise<void>((resolve) => {
+        resolveFirstDial = resolve;
+      });
+      dialStub.onFirstCall().returns(firstDialPromise);
+      dialStub.onSecondCall().resolves();
+      dialStub.onThirdCall().resolves();
+
+      const firstDialCall = dialer.dial(mockPeerId);
+
+      await dialer.dial(mockPeerId2);
+      await dialer.dial(mockPeerId3);
+
+      expect(dialStub.calledOnce).to.be.true;
+      expect(dialStub.calledWith(mockPeerId)).to.be.true;
+
+      resolveFirstDial!();
+      await firstDialCall;
+
+      clock.tick(500);
+      await Promise.resolve();
+
+      expect(dialStub.callCount).to.equal(3);
+      expect(dialStub.calledWith(mockPeerId2)).to.be.true;
+      expect(dialStub.calledWith(mockPeerId3)).to.be.true;
     });
 
     it("should allow redial after cooldown period", async () => {
@@ -252,13 +331,49 @@ describe("Dialer", () => {
       expect(dialStub.calledOnce).to.be.true;
       expect(dialStub.calledWith(mockPeerId)).to.be.true;
     });
+
+    it("should allow redial after failed dial cooldown expires", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      dialStub.onFirstCall().rejects(new Error("Dial failed"));
+      dialStub.onSecondCall().resolves();
+      await dialer.dial(mockPeerId);
+      expect(dialStub.calledOnce).to.be.true;
+      clock.tick(60001);
+      await dialer.dial(mockPeerId);
+      expect(dialStub.calledTwice).to.be.true;
+    });
+
+    it("should handle queue overflow by adding peers to queue", async () => {
+      const dialStub = libp2p.dial as sinon.SinonStub;
+      const peers = [];
+      for (let i = 0; i < 100; i++) {
+        peers.push(createMockPeerId(`12D3KooWTest${i}`));
+      }
+      let resolveFirstDial: () => void;
+      const firstDialPromise = new Promise<void>((resolve) => {
+        resolveFirstDial = resolve;
+      });
+      dialStub.onFirstCall().returns(firstDialPromise);
+      dialStub.resolves();
+      const firstDialCall = dialer.dial(peers[0]);
+      for (let i = 1; i < 100; i++) {
+        await dialer.dial(peers[i]);
+      }
+      expect(dialStub.calledOnce).to.be.true;
+      resolveFirstDial!();
+      await firstDialCall;
+      clock.tick(500);
+      await Promise.resolve();
+      expect(dialStub.callCount).to.be.greaterThan(1);
+    });
   });
 
   describe("queue processing", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -334,7 +449,8 @@ describe("Dialer", () => {
     beforeEach(() => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
     });
@@ -368,7 +484,8 @@ describe("Dialer", () => {
     it("should handle complete dial lifecycle", async () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
 
@@ -386,7 +503,8 @@ describe("Dialer", () => {
     it("should handle multiple peers with different shard configurations", async () => {
       dialer = new Dialer({
         libp2p,
-        shardReader: mockShardReader
+        shardReader: mockShardReader,
+        options: mockOptions
       });
       dialer.start();
 

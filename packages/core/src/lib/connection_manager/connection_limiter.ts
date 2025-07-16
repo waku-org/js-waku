@@ -105,6 +105,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
   private onWakuConnectionEvent(): void {
     if (!this.options.enableAutoRecovery) {
+      log.info(`Auto recovery is disabled, skipping`);
       return;
     }
 

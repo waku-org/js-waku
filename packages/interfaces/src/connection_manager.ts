@@ -53,6 +53,27 @@ export type ConnectionManagerOptions = {
    * @default true
    */
   enableAutoRecovery: boolean;
+
+  /**
+   * Max number of peers to dial at once.
+   *
+   * @default 3
+   */
+  maxDialingPeers: number;
+
+  /**
+   * Time to wait before dialing failed peers again.
+   *
+   * @default 60 seconds
+   */
+  failedDialCooldown: number;
+
+  /**
+   * Time to wait before dialing a peer again.
+   *
+   * @default 10 seconds
+   */
+  dialCooldown: number;
 };
 
 export interface IConnectionManager {

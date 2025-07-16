@@ -61,8 +61,23 @@ describe("ConnectionLimiter", () => {
     maxBootstrapPeers: 2,
     pingKeepAlive: 300,
     relayKeepAlive: 300,
-    enableAutoRecovery: true
+    enableAutoRecovery: true,
+    maxDialingPeers: 3,
+    failedDialCooldown: 60,
+    dialCooldown: 10
   };
+
+  function createLimiter(
+    opts: Partial<typeof defaultOptions> = {}
+  ): ConnectionLimiter {
+    return new ConnectionLimiter({
+      libp2p,
+      events,
+      dialer,
+      networkMonitor,
+      options: { ...defaultOptions, ...opts }
+    });
+  }
 
   beforeEach(() => {
     mockPeerId = createMockPeerId("12D3KooWTest1");
@@ -105,42 +120,9 @@ describe("ConnectionLimiter", () => {
     sinon.restore();
   });
 
-  describe("constructor", () => {
-    it("should create ConnectionLimiter with required options", () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-
-      expect(connectionLimiter).to.be.instanceOf(ConnectionLimiter);
-    });
-
-    it("should store libp2p and options references", () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-
-      expect(connectionLimiter).to.have.property("libp2p");
-      expect(connectionLimiter).to.have.property("options");
-    });
-  });
-
   describe("start", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
     });
 
     it("should dial peers from store on start", async () => {
@@ -185,13 +167,7 @@ describe("ConnectionLimiter", () => {
 
   describe("stop", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
     });
 
@@ -231,13 +207,7 @@ describe("ConnectionLimiter", () => {
     let eventHandler: () => void;
 
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
 
       const addEventListenerStub = events.addEventListener as sinon.SinonStub;
@@ -273,15 +243,9 @@ describe("ConnectionLimiter", () => {
     let eventHandler: () => Promise<void>;
 
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
-      // Only one event handler is registered (peer:disconnect)
+
       const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
       eventHandler = addEventListenerStub.getCall(0).args[1];
     });
@@ -309,21 +273,13 @@ describe("ConnectionLimiter", () => {
 
   describe("dialPeersFromStore", () => {
     beforeEach(() => {
-      // Set up stubs before creating the instance
       dialer = {
         start: sinon.stub(),
         stop: sinon.stub(),
         dial: sinon.stub().resolves()
       } as unknown as sinon.SinonStubbedInstance<Dialer>;
       libp2p.hangUp = sinon.stub().resolves();
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-      // Add ws addresses using real multiaddr objects
+      connectionLimiter = createLimiter();
       mockPeer.addresses = [
         {
           multiaddr: multiaddr("/dns4/mockpeer/tcp/443/wss"),
@@ -349,8 +305,7 @@ describe("ConnectionLimiter", () => {
       dialer.dial.resetHistory();
       libp2p.hangUp.resetHistory();
       libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
-      // mockPeer is already connected, mockPeer2 is not
-      libp2p.getConnections.returns([createMockConnection(mockPeer.id, [])]); // remotePeer matches mockPeer.id
+      libp2p.getConnections.returns([createMockConnection(mockPeer.id, [])]);
       await (connectionLimiter as any).dialPeersFromStore();
       expect(dialer.dial.calledOnce).to.be.true;
       expect(dialer.dial.calledWith(mockPeer2.id)).to.be.true;
@@ -361,7 +316,6 @@ describe("ConnectionLimiter", () => {
       dialer.dial.resetHistory();
       libp2p.hangUp.resetHistory();
       libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
-      // No connections, so both peers should be dialed
       libp2p.getConnections.returns([]);
       await (connectionLimiter as any).dialPeersFromStore();
       expect(dialer.dial.callCount).to.equal(2);
@@ -394,13 +348,7 @@ describe("ConnectionLimiter", () => {
 
   describe("getPeer", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
     });
 
     it("should return peer for existing peer", async () => {
@@ -429,41 +377,25 @@ describe("ConnectionLimiter", () => {
 
   describe("autoRecovery flag", () => {
     it("should not dial on waku:connection if enableAutoRecovery is false, but should dial on start", () => {
-      const options = { ...defaultOptions, enableAutoRecovery: false };
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options
-      });
+      connectionLimiter = createLimiter({ enableAutoRecovery: false });
       const dialPeersStub = sinon.stub(
         connectionLimiter as any,
         "dialPeersFromStore"
       );
       connectionLimiter.start();
       expect(connectionLimiter["connectionMonitorInterval"]).to.be.null;
-      // Simulate waku:connection event
       connectionLimiter["onWakuConnectionEvent"]();
-      // Should not dial on waku:connection event
-      expect(dialPeersStub.calledOnce).to.be.true; // Only from start, not from event
+      expect(dialPeersStub.calledOnce).to.be.true;
     });
+
     it("should start connection monitor interval and dial on waku:connection if enableAutoRecovery is true", () => {
-      const options = { ...defaultOptions, enableAutoRecovery: true };
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options
-      });
+      connectionLimiter = createLimiter({ enableAutoRecovery: true });
       const dialPeersStub = sinon.stub(
         connectionLimiter as any,
         "dialPeersFromStore"
       );
       connectionLimiter.start();
       expect(connectionLimiter["connectionMonitorInterval"]).to.not.be.null;
-      // Simulate waku:connection event
       connectionLimiter["onWakuConnectionEvent"]();
       expect(dialPeersStub.calledTwice).to.be.true;
     });
@@ -471,21 +403,13 @@ describe("ConnectionLimiter", () => {
 
   describe("maintainConnectionsCount", () => {
     beforeEach(() => {
-      // Set up stubs before creating the instance
       dialer = {
         start: sinon.stub(),
         stop: sinon.stub(),
         dial: sinon.stub().resolves()
       } as unknown as sinon.SinonStubbedInstance<Dialer>;
       libp2p.hangUp = sinon.stub().resolves();
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: { ...defaultOptions, maxConnections: 2 }
-      });
-      // Add ws addresses using real multiaddr objects
+      connectionLimiter = createLimiter({ maxConnections: 2 });
       mockPeer.addresses = [
         {
           multiaddr: multiaddr("/dns4/mockpeer/tcp/443/wss"),
@@ -499,6 +423,7 @@ describe("ConnectionLimiter", () => {
         }
       ];
     });
+
     it("should dial more peers if under maxConnections", async () => {
       libp2p.getConnections.returns([]);
       sinon
@@ -507,6 +432,7 @@ describe("ConnectionLimiter", () => {
       await (connectionLimiter as any).maintainConnectionsCount();
       expect(dialer.dial.calledTwice).to.be.true;
     });
+
     it("should drop only non-locked connections when over maxConnections", async () => {
       dialer.dial.resetHistory();
       libp2p.hangUp.resetHistory();
@@ -516,28 +442,23 @@ describe("ConnectionLimiter", () => {
       const normalConn1 = createMockConnection(createMockPeerId("p2"), []);
       const normalConn2 = createMockConnection(createMockPeerId("p3"), []);
       const normalConn3 = createMockConnection(createMockPeerId("p4"), []);
-      // 4 connections: 1 locked, 3 normal; maxConnections = 2
       const connections = [lockedConn, normalConn1, normalConn2, normalConn3];
       libp2p.getConnections.returns(connections);
       sinon.stub(connectionLimiter as any, "getPrioritizedPeers").resolves([]);
       await (connectionLimiter as any).maintainConnectionsCount();
       const nonLocked = [normalConn1, normalConn2, normalConn3];
       const maxConnections = 2;
-      // Implementation: connectionsToDrop = nonLocked.slice(maxConnections)
-      // So, it drops Math.max(0, nonLocked.length - Math.max(0, maxConnections))
       const expectedToDrop = Math.max(
         0,
         nonLocked.length - Math.max(0, maxConnections)
       );
       expect(libp2p.hangUp.callCount).to.equal(expectedToDrop);
-      // It should only drop non-locked connections
       for (const conn of nonLocked) {
-        if (libp2p.hangUp.calledWith(conn.remotePeer)) {
-          // ok
-        }
+        expect(libp2p.hangUp.calledWith(conn.remotePeer)).to.be.true;
       }
       expect(libp2p.hangUp.calledWith(lockedConn.remotePeer)).to.be.false;
     });
+
     it("should do nothing if no non-locked connections to drop", async () => {
       const lockedConn1 = createMockConnection(createMockPeerId("p1"), [
         CONNECTION_LOCKED_TAG
@@ -554,14 +475,9 @@ describe("ConnectionLimiter", () => {
 
   describe("maintainBootstrapConnections", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: { ...defaultOptions, maxBootstrapPeers: 2 }
-      });
+      connectionLimiter = createLimiter({ maxBootstrapPeers: 2 });
     });
+
     it("should do nothing if at or below maxBootstrapPeers", async () => {
       sinon
         .stub(connectionLimiter as any, "getBootstrapPeers")
@@ -569,6 +485,7 @@ describe("ConnectionLimiter", () => {
       await (connectionLimiter as any).maintainBootstrapConnections();
       expect(libp2p.hangUp.called).to.be.false;
     });
+
     it("should drop excess bootstrap peers if over maxBootstrapPeers", async () => {
       const p1 = createMockPeer("p1", [Tags.BOOTSTRAP]);
       const p2 = createMockPeer("p2", [Tags.BOOTSTRAP]);
@@ -584,14 +501,9 @@ describe("ConnectionLimiter", () => {
 
   describe("dialPeersFromStore prioritization", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
     });
+
     it("should prioritize bootstrap, then peer exchange, then local peers", async () => {
       const bootstrapPeer = createMockPeer("b", [Tags.BOOTSTRAP]);
       bootstrapPeer.addresses = [
