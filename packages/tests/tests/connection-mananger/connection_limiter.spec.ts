@@ -61,7 +61,21 @@ describe("Connection Limiter", function () {
     );
   });
 
-  it("should discard bootstrap peers when has more than 1 (default limit)", async function () {
+  it("should discard bootstrap peers when has more than set limit", async function () {
+    this.timeout(15_000); // increase due to additional initialization
+
+    await teardownNodesWithRedundancy(serviceNodes, [waku]);
+
+    [serviceNodes, waku] = await runMultipleNodes(
+      this.ctx,
+      TestShardInfo,
+      { lightpush: true, filter: true, peerExchange: true },
+      false,
+      2,
+      true,
+      { connectionManager: { maxBootstrapPeers: 1 } }
+    );
+
     let peers = await waku.getConnectedPeers();
     expect(peers.length).to.equal(
       serviceNodes.nodes.length,

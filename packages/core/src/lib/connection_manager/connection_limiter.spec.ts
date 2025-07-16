@@ -446,8 +446,7 @@ describe("ConnectionLimiter", () => {
       libp2p.getConnections.returns(connections);
       sinon.stub(connectionLimiter as any, "getPrioritizedPeers").resolves([]);
       await (connectionLimiter as any).maintainConnectionsCount();
-      // Only the last non-locked connection(s) should be dropped
-      // According to the implementation, .slice(maxConnections) drops normalConn3
+
       expect(libp2p.hangUp.callCount).to.equal(1);
       expect(libp2p.hangUp.calledWith(normalConn3.remotePeer)).to.be.true;
       expect(libp2p.hangUp.calledWith(normalConn1.remotePeer)).to.be.false;
