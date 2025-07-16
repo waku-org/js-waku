@@ -38,7 +38,9 @@ describe("Dialer", () => {
       relayKeepAlive: 300,
       maxDialingPeers: 3,
       failedDialCooldown: 60,
-      dialCooldown: 10
+      dialCooldown: 10,
+      maxConnections: 10,
+      enableAutoRecovery: true
     };
 
     mockPeerId = createMockPeerId("12D3KooWTest1");

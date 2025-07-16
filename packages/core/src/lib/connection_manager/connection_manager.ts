@@ -21,9 +21,11 @@ import { getPeerPing, mapToPeerId, mapToPeerIdOrMultiaddr } from "./utils.js";
 
 const log = new Logger("connection-manager");
 
-const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 3;
 const DEFAULT_PING_KEEP_ALIVE_SEC = 5 * 60;
 const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
+const DEFAULT_ENABLE_AUTO_RECOVERY = true;
+const DEFAULT_MAX_CONNECTIONS = 10;
 const DEFAULT_MAX_DIALING_PEERS = 3;
 const DEFAULT_FAILED_DIAL_COOLDOWN_SEC = 60;
 const DEFAULT_DIAL_COOLDOWN_SEC = 10;
@@ -56,8 +58,10 @@ export class ConnectionManager implements IConnectionManager {
 
     this.options = {
       maxBootstrapPeers: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+      maxConnections: DEFAULT_MAX_CONNECTIONS,
       pingKeepAlive: DEFAULT_PING_KEEP_ALIVE_SEC,
       relayKeepAlive: DEFAULT_RELAY_KEEP_ALIVE_SEC,
+      enableAutoRecovery: DEFAULT_ENABLE_AUTO_RECOVERY,
       maxDialingPeers: DEFAULT_MAX_DIALING_PEERS,
       failedDialCooldown: DEFAULT_FAILED_DIAL_COOLDOWN_SEC,
       dialCooldown: DEFAULT_DIAL_COOLDOWN_SEC,

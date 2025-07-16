@@ -1,5 +1,10 @@
 import { PeerId } from "@libp2p/interface";
-import { IConnectionManager, Libp2p, Protocols } from "@waku/interfaces";
+import {
+  CONNECTION_LOCKED_TAG,
+  IConnectionManager,
+  Libp2p,
+  Protocols
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -10,6 +15,7 @@ describe("PeerManager", () => {
   let peerManager: PeerManager;
   let connectionManager: IConnectionManager;
   let peers: any[];
+  let mockConnections: any[];
 
   const TEST_PUBSUB_TOPIC = "/test/1/waku-light-push/utf8";
   const TEST_PROTOCOL = Protocols.LightPush;
@@ -42,7 +48,6 @@ describe("PeerManager", () => {
   };
 
   beforeEach(() => {
-    libp2p = mockLibp2p();
     peers = [
       {
         id: makePeerId("peer-1"),
@@ -57,6 +62,21 @@ describe("PeerManager", () => {
         protocols: [Protocols.LightPush, Protocols.Filter, Protocols.Store]
       }
     ];
+    mockConnections = [
+      {
+        remotePeer: makePeerId("peer-1"),
+        tags: [] as string[]
+      },
+      {
+        remotePeer: makePeerId("peer-2"),
+        tags: [] as string[]
+      },
+      {
+        remotePeer: makePeerId("peer-3"),
+        tags: [] as string[]
+      }
+    ];
+    libp2p = mockLibp2p(mockConnections);
     connectionManager = {
       pubsubTopics: [TEST_PUBSUB_TOPIC],
       getConnectedPeers: async () => peers,
@@ -222,11 +242,58 @@ describe("PeerManager", () => {
     });
     expect(true).to.be.true;
   });
+
+  it("should add CONNECTION_LOCKED_TAG to peer connections when locking", async () => {
+    clearPeerState();
+    const result = await getPeersForTest();
+    if (skipIfNoPeers(result)) return;
+
+    const peerId = result[0];
+    const connection = mockConnections.find((c) => c.remotePeer.equals(peerId));
+
+    expect(connection).to.exist;
+    expect(connection.tags).to.include(CONNECTION_LOCKED_TAG);
+  });
+
+  it("should remove CONNECTION_LOCKED_TAG from peer connections when unlocking", async () => {
+    clearPeerState();
+    const result = await getPeersForTest();
+    if (skipIfNoPeers(result)) return;
+
+    const peerId = result[0];
+    await peerManager.renewPeer(peerId, {
+      protocol: TEST_PROTOCOL,
+      pubsubTopic: TEST_PUBSUB_TOPIC
+    });
+
+    const connection = mockConnections.find((c) => c.remotePeer.equals(peerId));
+
+    expect(connection).to.exist;
+    expect(connection.tags).to.not.include(CONNECTION_LOCKED_TAG);
+  });
+
+  it("should not modify tags of connections for different peers", async () => {
+    clearPeerState();
+    const result = await getPeersForTest();
+    if (skipIfNoPeers(result)) return;
+
+    const lockedPeerId = result[0];
+    const otherPeerId = peers.find((p) => !p.id.equals(lockedPeerId))?.id;
+
+    if (!otherPeerId) return;
+
+    const otherConnection = mockConnections.find((c) =>
+      c.remotePeer.equals(otherPeerId)
+    );
+
+    expect(otherConnection).to.exist;
+    expect(otherConnection.tags).to.not.include(CONNECTION_LOCKED_TAG);
+  });
 });
 
-function mockLibp2p(): Libp2p {
+function mockLibp2p(connections: any[]): Libp2p {
   return {
-    getConnections: sinon.stub(),
+    getConnections: sinon.stub().returns(connections),
     getPeers: sinon
       .stub()
       .returns([
