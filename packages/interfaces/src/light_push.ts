@@ -112,3 +112,28 @@ export function getStatusDescription(
     `Unknown status code: ${statusCode}`
   );
 }
+
+/**
+ * Maps a protocol codec string to a version identifier
+ * @param codec - The protocol codec string (e.g., "/vac/waku/lightpush/3.0.0")
+ * @returns Version string (e.g., "v3", "v2") or "unknown" if not recognized
+ */
+export function getProtocolVersion(codec: string): string {
+  if (codec.includes("3.0.0")) {
+    return "v3";
+  }
+  if (codec.includes("2.0.0")) {
+    return "v2";
+  }
+  return "unknown";
+}
+
+/**
+ * Determines protocol version from status code presence
+ * v3 protocols include statusCode, v2 protocols do not
+ * @param hasStatusCode - Whether the response includes a status code
+ * @returns Version string ("v3" or "v2")
+ */
+export function inferProtocolVersion(hasStatusCode: boolean): string {
+  return hasStatusCode ? "v3" : "v2";
+}

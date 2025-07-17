@@ -1,6 +1,5 @@
 import { Peer, PeerId } from "@libp2p/interface";
 import {
-  ConnectionManager,
   createEncoder,
   Encoder,
   LightPushCodec,
@@ -11,7 +10,7 @@ import {
   Libp2p,
   LightPushError,
   LightPushStatusCode,
-  ProtocolError,
+  toLightPushError,
   toProtocolError
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -138,8 +137,13 @@ describe("LightPush SDK", () => {
 
       expect(isSuccess(LightPushStatusCode.SUCCESS)).to.be.true;
       expect(isSuccess(LightPushStatusCode.BAD_REQUEST)).to.be.false;
+      // Test the new v3 error mapping function
+      expect(toLightPushError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
+        LightPushError.PAYLOAD_TOO_LARGE
+      );
+      // Test backward compatibility with the deprecated function
       expect(toProtocolError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
-        ProtocolError.SIZE_TOO_BIG
+        LightPushError.PAYLOAD_TOO_LARGE
       );
     });
 
@@ -189,9 +193,18 @@ describe("LightPush SDK", () => {
       ];
 
       statusCodes.forEach((code) => {
-        const protocolError = toProtocolError(code);
-        expect(protocolError).to.be.a("string");
-        expect(Object.values(ProtocolError)).to.include(protocolError);
+        // Test the new v3 mapping function
+        const lightPushError = toLightPushError(code);
+        expect(lightPushError).to.be.a("string");
+        expect(Object.values(LightPushError)).to.include(lightPushError);
+
+        // Test backward compatibility - deprecated function now returns LightPushError values
+        const deprecatedError = toProtocolError(code);
+        expect(deprecatedError).to.be.a("string");
+        expect(Object.values(LightPushError)).to.include(deprecatedError);
+
+        // Both functions should return the same value for consistency
+        expect(lightPushError).to.eq(deprecatedError);
       });
     });
   });

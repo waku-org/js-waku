@@ -188,6 +188,8 @@ export interface LightPushFailure {
   peerId?: PeerId;
   statusCode?: number;
   statusDesc?: string;
+  /** Protocol version used when the failure occurred (v2, v3, etc.) */
+  protocolVersion?: string;
 }
 
 export interface FilterFailure {
@@ -218,7 +220,13 @@ export type LightPushSDKResult = ThisAndThat<
   PeerId[],
   "failures",
   LightPushFailure[]
->;
+> & {
+  /**
+   * Protocol versions used per peer during this send operation
+   * Key: peer ID string, Value: protocol version (e.g., "v2", "v3")
+   */
+  protocolVersions?: Record<string, string>;
+};
 
 export type FilterSDKResult = ThisAndThat<
   "successes",

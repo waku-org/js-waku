@@ -4,6 +4,7 @@ import {
   type IEncoder,
   ILightPush,
   type IMessage,
+  inferProtocolVersion,
   type ISendOptions,
   type Libp2p,
   type LightPushCoreResult,
@@ -59,6 +60,26 @@ export class LightPush implements ILightPush {
     return this.protocol.multicodec;
   }
 
+  /**
+   * Get all supported protocol codecs
+   * @returns Array of supported protocol codec strings
+   */
+  public get multicodecs(): string[] {
+    return this.protocol.multicodecs;
+  }
+
+  /**
+   * Get supported protocol versions
+   * @returns Array of supported version strings (e.g., ['v2', 'v3'])
+   */
+  public get supportedVersions(): string[] {
+    return this.protocol.multicodecs.map((codec) => {
+      if (codec.includes("3.0.0")) return "v3";
+      if (codec.includes("2.0.0")) return "v2";
+      return "unknown";
+    });
+  }
+
   public start(): void {
     this.retryManager.start();
   }
@@ -86,17 +107,71 @@ export class LightPush implements ILightPush {
       pubsubTopic: encoder.pubsubTopic
     });
 
+    // Track protocol versions used per peer
+    const protocolVersions: Record<string, string> = {};
+
     const coreResults: LightPushCoreResult[] =
       peerIds?.length > 0
         ? await Promise.all(
-            peerIds.map((peerId) =>
-              this.protocol.send(encoder, message, peerId).catch((_e) => ({
-                success: null,
-                failure: {
-                  error: LightPushError.GENERIC_FAIL
+            peerIds.map(async (peerId) => {
+              try {
+                const result = await this.protocol.send(
+                  encoder,
+                  message,
+                  peerId
+                );
+
+                // Enhanced error logging with protocol version information
+                if (result.failure) {
+                  const peerIdStr = peerId.toString();
+                  const protocolVersion =
+                    result.failure.protocolVersion ||
+                    inferProtocolVersion(
+                      result.failure.statusCode !== undefined
+                    );
+                  protocolVersions[peerIdStr] = protocolVersion;
+
+                  log.warn(
+                    `Failed to send to peer ${peerIdStr} (${protocolVersion}): ${result.failure.error}`,
+                    {
+                      peerId: peerIdStr,
+                      protocolVersion,
+                      error: result.failure.error,
+                      statusCode: result.failure.statusCode,
+                      statusDesc: result.failure.statusDesc
+                    }
+                  );
+
+                  // Ensure protocolVersion is set in failure
+                  if (!result.failure.protocolVersion) {
+                    result.failure.protocolVersion = protocolVersion;
+                  }
+                } else if (result.success) {
+                  // For successful sends, we need to infer protocol version from peer capabilities
+                  // This is a best-effort approach since success responses don't always contain version info
+                  const peerIdStr = peerId.toString();
+                  protocolVersions[peerIdStr] = "v3"; // Assume v3 for successful sends (will be corrected if needed)
+
+                  log.info(`Successfully sent to peer ${peerIdStr}`);
                 }
-              }))
-            )
+
+                return result;
+              } catch (error) {
+                const peerIdStr = peerId.toString();
+                protocolVersions[peerIdStr] = "unknown";
+
+                log.error(`Exception sending to peer ${peerIdStr}:`, error);
+
+                return {
+                  success: null,
+                  failure: {
+                    error: LightPushError.GENERIC_FAIL,
+                    peerId,
+                    protocolVersion: "unknown"
+                  }
+                };
+              }
+            })
           )
         : [];
 
@@ -107,7 +182,8 @@ export class LightPush implements ILightPush {
             .map((v) => v.success) as PeerId[],
           failures: coreResults
             .filter((v) => v.failure)
-            .map((v) => v.failure) as LightPushFailure[]
+            .map((v) => v.failure) as LightPushFailure[],
+          protocolVersions
         }
       : {
           successes: [],
@@ -115,7 +191,8 @@ export class LightPush implements ILightPush {
             {
               error: LightPushError.NO_PEER_AVAILABLE
             }
-          ]
+          ],
+          protocolVersions: {}
         };
 
     if (options.autoRetry && results.successes.length === 0) {

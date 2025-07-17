@@ -2,6 +2,7 @@ import type { PeerId, Stream } from "@libp2p/interface";
 import {
   type IEncoder,
   type IMessage,
+  inferProtocolVersion,
   isSuccess as isV3Success,
   type Libp2p,
   type LightPushCoreResult,
@@ -217,6 +218,11 @@ export class LightPushCore {
       };
     }
 
+    // Determine protocol version for response handling
+    const protocolVersion = inferProtocolVersion(
+      response.statusCode !== undefined
+    );
+
     if (protocol === LightPushCodecV3 && response.statusCode !== undefined) {
       if (!isV3Success(response.statusCode)) {
         const error = toLightPushError(response.statusCode);
@@ -229,7 +235,8 @@ export class LightPushCore {
             error,
             peerId: peerId,
             statusCode: response.statusCode,
-            statusDesc: response.statusDesc || response.info
+            statusDesc: response.statusDesc || response.info,
+            protocolVersion
           }
         };
       }
@@ -247,7 +254,8 @@ export class LightPushCore {
         success: null,
         failure: {
           error: LightPushError.RLN_PROOF_GENERATION,
-          peerId: peerId
+          peerId: peerId,
+          protocolVersion
         }
       };
     }
@@ -259,7 +267,8 @@ export class LightPushCore {
         failure: {
           error: LightPushError.REMOTE_PEER_REJECTED,
           peerId: peerId,
-          statusDesc: response.info
+          statusDesc: response.info,
+          protocolVersion
         }
       };
     }
