@@ -1,5 +1,7 @@
 import type { CreateNodeOptions, RelayNode } from "@waku/interfaces";
+import { DefaultNetworkConfig } from "@waku/interfaces";
 import { createLibp2pAndUpdateOptions, WakuNode } from "@waku/sdk";
+import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 
 import { Relay, RelayCreateOptions, wakuGossipSub } from "./relay.js";
 
@@ -26,14 +28,16 @@ export async function createRelayNode(
     }
   };
 
-  const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
+  const libp2p = await createLibp2pAndUpdateOptions(options);
+  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(
+    options.networkConfig ?? DefaultNetworkConfig
+  );
   const relay = new Relay({
-    pubsubTopics: pubsubTopics || [],
+    pubsubTopics,
     libp2p
   });
 
   const node = new WakuNode(
-    pubsubTopics,
     options as CreateNodeOptions,
     libp2p,
     {},

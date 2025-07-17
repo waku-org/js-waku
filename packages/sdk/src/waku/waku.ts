@@ -20,8 +20,7 @@ import type {
   IWaku,
   IWakuEventEmitter,
   Libp2p,
-  NetworkConfig,
-  PubsubTopic
+  NetworkConfig
 } from "@waku/interfaces";
 import {
   DefaultNetworkConfig,
@@ -67,7 +66,6 @@ export class WakuNode implements IWaku {
   private readonly healthIndicator: HealthIndicator;
 
   public constructor(
-    pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
@@ -90,7 +88,6 @@ export class WakuNode implements IWaku {
       libp2p,
       relay: this.relay,
       events: this.events,
-      pubsubTopics: pubsubTopics,
       networkConfig: this.networkConfig,
       config: options?.connectionManager
     });
@@ -108,7 +105,6 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.store) {
       this.store = new Store({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options?.store
       });
@@ -118,7 +114,6 @@ export class WakuNode implements IWaku {
       this.lightPush = new LightPush({
         libp2p,
         peerManager: this.peerManager,
-        connectionManager: this.connectionManager,
         options: options?.lightPush
       });
     }
@@ -126,7 +121,6 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.filter) {
       this.filter = new Filter({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options.filter
       });

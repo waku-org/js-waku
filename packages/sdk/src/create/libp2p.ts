@@ -7,24 +7,19 @@ import { webSockets } from "@libp2p/websockets";
 import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
+  type ClusterId,
   type CreateLibp2pOptions,
   type CreateNodeOptions,
+  DEFAULT_CLUSTER_ID,
   DefaultNetworkConfig,
-  type IMetadata,
-  type Libp2p,
-  type Libp2pComponents,
-  PubsubTopic
+  type Libp2p
 } from "@waku/interfaces";
-import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
 
 import { getPeerDiscoveries } from "./discovery.js";
-
-type MetadataService = {
-  metadata?: (components: Libp2pComponents) => IMetadata;
-};
 
 const log = new Logger("sdk:create");
 
@@ -32,7 +27,7 @@ const DefaultUserAgent = "js-waku";
 const DefaultPingMaxInboundStreams = 10;
 
 export async function defaultLibp2p(
-  pubsubTopics: PubsubTopic[],
+  clusterId: ClusterId,
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -48,10 +43,6 @@ export async function defaultLibp2p(
     );
     /* eslint-enable no-console */
   }
-
-  const metadataService: MetadataService = pubsubTopics
-    ? { metadata: wakuMetadata(pubsubTopics) }
-    : {};
 
   const filter =
     options?.filterMultiaddrs === false || isTestEnvironment()
@@ -71,7 +62,7 @@ export async function defaultLibp2p(
         maxInboundStreams:
           options?.pingMaxInboundStreams ?? DefaultPingMaxInboundStreams
       }),
-      ...metadataService,
+      metadata: wakuMetadata(clusterId),
       ...options?.services
     }
   }) as any as Libp2p; // TODO: make libp2p include it;
@@ -85,12 +76,11 @@ const DEFAULT_DISCOVERIES_ENABLED = {
 
 export async function createLibp2pAndUpdateOptions(
   options: CreateNodeOptions
-): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
-  const { networkConfig } = options;
-  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(
-    networkConfig ?? DefaultNetworkConfig
-  );
-  log.info("Creating Waku node with pubsub topics", pubsubTopics);
+): Promise<Libp2p> {
+  const networkConfig = options.networkConfig ?? DefaultNetworkConfig;
+  const clusterId = networkConfig.clusterId ?? DEFAULT_CLUSTER_ID;
+
+  log.info("Creating Waku node with cluster id: ", clusterId);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -117,11 +107,5 @@ export async function createLibp2pAndUpdateOptions(
 
   libp2pOptions.peerDiscovery = peerDiscovery;
 
-  const libp2p = await defaultLibp2p(
-    pubsubTopics,
-    libp2pOptions,
-    options?.userAgent
-  );
-
-  return { libp2p, pubsubTopics };
+  return defaultLibp2p(clusterId, libp2pOptions, options?.userAgent);
 }
