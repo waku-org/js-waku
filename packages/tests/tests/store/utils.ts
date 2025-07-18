@@ -10,11 +10,11 @@ import {
   LightNode,
   type NetworkConfig,
   Protocols,
-  RelayShards,
-  ShardId
+  type RelayShards,
+  type ShardId
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { createRoutingInfo, Logger, RoutingInfo } from "@waku/utils";
+import { createRoutingInfo, Logger, type RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import { Context } from "mocha";
 

@@ -149,7 +149,11 @@ describe("contentTopicsByPubsubTopic", () => {
     const contentTopics = ["/toychat/2/huilong/proto", "/myapp/1/latest/proto"];
     const grouped = contentTopicsByPubsubTopic(contentTopics);
     for (const contentTopic of contentTopics) {
-      const pubsubTopic = contentTopicToPubsubTopic(contentTopic, 0, 8);
+      const pubsubTopic = contentTopicToPubsubTopic(
+        contentTopic,
+        DEFAULT_CLUSTER_ID,
+        8
+      );
       expect(grouped.get(pubsubTopic)?.includes(contentTopic)).to.be.true;
     }
   });
@@ -161,7 +165,11 @@ describe("contentTopicsByPubsubTopic", () => {
     ];
     const grouped = contentTopicsByPubsubTopic(contentTopics);
     expect(grouped.size).to.eq(1); // Only one pubsub topic expected
-    const pubsubTopic = contentTopicToPubsubTopic(contentTopics[0], 0, 8);
+    const pubsubTopic = contentTopicToPubsubTopic(
+      contentTopics[0],
+      DEFAULT_CLUSTER_ID,
+      8
+    );
     expect(grouped.get(pubsubTopic)?.length).to.eq(2); // Both topics should be grouped under the same pubsub topic
   });
 

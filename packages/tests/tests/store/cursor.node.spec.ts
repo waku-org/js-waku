@@ -16,9 +16,9 @@ import {
   startAndConnectLightNode,
   TestContentTopic,
   TestDecoder,
-  TestDecoder2,
   TestNetworkConfig,
   TestRoutingInfo,
+  TestRoutingInfo2,
   totalMsgs
 } from "./utils.js";
 
@@ -199,7 +199,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubsubTopic = TestDecoder2.routingInfo.pubsubTopic;
+    messages[5].pubsubTopic = TestRoutingInfo2.pubsubTopic;
     const cursor = waku.store.createCursor(messages[5]);
 
     try {

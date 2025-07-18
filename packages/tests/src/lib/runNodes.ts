@@ -1,11 +1,10 @@
 import {
   ContentTopic,
-  type CreateNodeOptions,
   type NetworkConfig,
   Protocols,
   type ShardId
 } from "@waku/interfaces";
-import { createRelayNode, RelayCreateOptions } from "@waku/relay";
+import { createRelayNode } from "@waku/relay";
 import { createLightNode, WakuNode } from "@waku/sdk";
 import {
   createRoutingInfo,
@@ -54,14 +53,6 @@ export async function runNodes<T>(
     clusterId: networkConfig.clusterId
   };
 
-  const jswakuArgs: CreateNodeOptions = {
-    staticNoiseKey: NOISE_KEY_1,
-    libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    networkConfig,
-    lightPush: { numPeersToUse: 2 },
-    discovery: DEFAULT_DISCOVERIES_ENABLED
-  };
-
   const routingInfos: RoutingInfo[] = [];
   if (isAutoSharding(networkConfig)) {
     nwakuArgs.numShardsInNetwork = networkConfig.numShardsInCluster;
@@ -87,8 +78,13 @@ export async function runNodes<T>(
     throw "Invalid Network Config";
   }
 
-  const jswakuRelayCreateOptions: RelayCreateOptions = {
-    routingInfos
+  const jswakuArgs = {
+    staticNoiseKey: NOISE_KEY_1,
+    libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+    networkConfig,
+    lightPush: { numPeersToUse: 2 },
+    discovery: DEFAULT_DISCOVERIES_ENABLED,
+    ...(createNode === createRelayNode && { routingInfos })
   };
 
   await nwaku.start(nwakuArgs, { retries: 3 });
@@ -96,10 +92,7 @@ export async function runNodes<T>(
   log.info("Starting js waku node with :", JSON.stringify(jswakuArgs));
   let waku: WakuNode | undefined;
   try {
-    waku = (await createNode({
-      ...jswakuArgs,
-      ...jswakuRelayCreateOptions
-    })) as unknown as WakuNode;
+    waku = (await createNode(jswakuArgs as any)) as unknown as WakuNode;
     await waku.start();
   } catch (error) {
     log.error("jswaku node failed to start:", error);

@@ -65,7 +65,7 @@ export class Store implements IStore {
     );
 
     for (const queryOption of queryOptions) {
-      const peer = await this.getPeerToUse(queryOption.pubsubTopic);
+      const peer = await this.getPeerToUse(queryOption.routingInfo);
 
       if (!peer) {
         log.error("No peers available to query");
@@ -301,7 +301,6 @@ export class Store implements IStore {
     const isHashQuery =
       options?.messageHashes && options.messageHashes.length > 0;
 
-    let pubsubTopic: string;
     let contentTopics: string[];
     let decodersAsMap: Map<string, IDecoder<T>>;
 
@@ -309,7 +308,6 @@ export class Store implements IStore {
       // For hash queries, we still need decoders to decode messages
       // but we don't validate pubsubTopic consistency
       // Use pubsubTopic from options if provided, otherwise from first decoder
-      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
       contentTopics = [];
       decodersAsMap = new Map();
       decoders.forEach((dec) => {
@@ -317,7 +315,6 @@ export class Store implements IStore {
       });
     } else {
       const validated = this.validateDecodersAndPubsubTopic(decoders);
-      pubsubTopic = validated.pubsubTopic;
       contentTopics = validated.contentTopics;
       decodersAsMap = validated.decodersAsMap;
     }
@@ -344,7 +341,7 @@ export class Store implements IStore {
         decodersAsMap,
         queryOptions: [
           {
-            pubsubTopic,
+            routingInfo: options?.routingInfo || decoders[0]?.routingInfo,
             contentTopics,
             includeData: true,
             paginationForward: true,
@@ -359,7 +356,7 @@ export class Store implements IStore {
     return {
       decodersAsMap,
       queryOptions: subTimeRanges.map(([start, end]) => ({
-        pubsubTopic,
+        routingInfo: options?.routingInfo || decoders[0]?.routingInfo,
         contentTopics,
         includeData: true,
         paginationForward: true,

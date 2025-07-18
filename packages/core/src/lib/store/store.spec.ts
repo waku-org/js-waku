@@ -5,6 +5,7 @@ import {
   Libp2p,
   QueryRequestParams
 } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -77,10 +78,18 @@ describe("StoreCore", () => {
     let queryOpts: QueryRequestParams;
     let mockStoreQueryRequest: any;
     let mockStoreQueryResponse: any;
+    const testContentTopic = "/test/1/waku-light-push/utf8";
+    const testRoutingInfo = createRoutingInfo(
+      {
+        clusterId: 0,
+        numShardsInCluster: 7
+      },
+      { contentTopic: testContentTopic }
+    );
 
     beforeEach(() => {
       queryOpts = {
-        pubsubTopic: "test-topic",
+        routingInfo: testRoutingInfo,
         contentTopics: ["test-topic"],
         paginationLimit: 10,
         includeData: true,

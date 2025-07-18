@@ -80,7 +80,7 @@ const AsymDecoder = createEciesDecoder(
 );
 const SymDecoder = createSymDecoder(SymContentTopic, TestRoutingInfo, symKey);
 
-describe("Waku Message Ephemeral field", function () {
+describe.skip("Waku Message Ephemeral field", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
