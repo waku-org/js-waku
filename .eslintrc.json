@@ -67,7 +67,8 @@
           "**/rollup.config.js",
           "**/playwright.config.ts",
           "**/.eslintrc.cjs",
-          "**/karma.conf.cjs"
+          "**/karma.conf.cjs",
+          "**/wagmi.config.ts"
         ]
       }
     ],
