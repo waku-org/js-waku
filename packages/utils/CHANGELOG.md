@@ -12,6 +12,25 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/utils-v0.0.24...utils-v0.0.25) (2025-07-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445))
+
+### Features
+
+* Re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445)) ([c7682ea](https://github.com/waku-org/js-waku/commit/c7682ea67c54d2c26a68ce96208003fb1ffc915c))
+* Update logger format ([#2472](https://github.com/waku-org/js-waku/issues/2472)) ([f75634d](https://github.com/waku-org/js-waku/commit/f75634d9c561e980c5eabf19335acb560ff9974c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/utils-v0.0.23...utils-v0.0.24) (2025-06-23)
 
 

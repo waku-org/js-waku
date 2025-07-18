@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/proto-v0.0.11...proto-v0.0.12) (2025-07-18)
+
+
+### Features
+
+* **proto:** Add light push v3 definition ([14085de](https://github.com/waku-org/js-waku/commit/14085de3c4079c5d5c45e36a93168e0d67306c76))
+* **proto:** Add light push v3 definition ([94788d0](https://github.com/waku-org/js-waku/commit/94788d0dfc616a4321ec6ec73121ead8cc1808b7))
+
 ## [0.0.11](https://github.com/waku-org/js-waku/compare/proto-v0.0.10...proto-v0.0.11) (2025-06-23)
 
 
