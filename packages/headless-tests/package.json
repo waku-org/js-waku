@@ -14,7 +14,7 @@
         "node-polyfill-webpack-plugin": "^2.0.1",
         "serve": "^14.1.2",
         "webpack": "^5.99.5",
-        "webpack-cli": "^5.1.4"
+        "webpack-cli": "^6.0.1"
     },
     "dependencies": {
         "@waku/sdk": "^0.0.30"
