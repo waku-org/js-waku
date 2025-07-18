@@ -115,11 +115,13 @@ export class LightPush implements ILightPush {
         ? await Promise.all(
             peerIds.map(async (peerId) => {
               try {
+                console.log(`🔧 LightPush SDK: Calling protocol.send for peer ${peerId.toString()}`);
                 const result = await this.protocol.send(
                   encoder,
                   message,
                   peerId
                 );
+                console.log(`🔧 LightPush SDK: Result from protocol.send:`, result);
 
                 // Enhanced error logging with protocol version information
                 if (result.failure) {

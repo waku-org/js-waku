@@ -64,9 +64,8 @@ export class LightPushCore {
       throw new Error("Peer does not support any Light Push protocol");
     }
 
-    // TODO: Remove forced v2 fallback - currently disabled to test v3 protocol communication
-    // Prefer v3 protocol when available, fallback to v2
-    const protocol = supportsV3 ? LightPushCodecV3 : LightPushCodec;
+    // Force v2 protocol for compatibility with nwaku v0.35.1
+    const protocol = supportsV2 ? LightPushCodec : LightPushCodecV3;
 
     let stream: Stream;
     try {
@@ -80,7 +79,6 @@ export class LightPushCore {
       stream = await connection.newStream(protocol);
     } catch (error) {
       if (supportsV3 && supportsV2) {
-        // TODO: This fallback should be evaluated for v3 compatibility
         log.warn("Failed to create v3 stream, falling back to v2", error);
         stream = await this.streamManager.getStream(peerId);
         return { stream, protocol: LightPushCodec };
