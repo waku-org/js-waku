@@ -66,7 +66,7 @@
   "dependencies": {
     "@waku/enr": "^0.0.30",
     "@waku/interfaces": "0.0.31",
-    "@libp2p/ping": "2.0.35",
+    "@libp2p/ping": "2.0.36",
     "@waku/proto": "0.0.11",
     "@waku/utils": "0.0.24",
     "debug": "^4.3.4",
