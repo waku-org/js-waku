@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.35.1";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.36.0";
 
 const LOG_DIR = "./log";
 
