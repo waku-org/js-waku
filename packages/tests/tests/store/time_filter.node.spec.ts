@@ -35,7 +35,9 @@ describe("Waku Store, time filter", function () {
     [-19000, 0, 1000],
     [-19000, -1000, 0],
     [19000, -10, 10], // message in the future
-    [-19000, 10, -10] // startTime is newer than endTime
+    [-19000, 10, -10], // startTime is newer than endTime
+    [0, Date.now() - 3 * 24 * 60 * 60 * 1000, Date.now()], // range longer than 24 hours
+    [0, Date.now() - 24 * 60 * 60 * 1000, Date.now()] // range is 24 hours
   ].forEach(([msgTime, startTime, endTime]) => {
     it(`msgTime: ${msgTime} ms from now, startTime: ${
       msgTime + startTime
