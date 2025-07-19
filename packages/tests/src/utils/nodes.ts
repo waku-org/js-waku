@@ -1,13 +1,11 @@
 import {
   CreateNodeOptions,
-  DefaultNetworkConfig,
   IWaku,
   LightNode,
-  NetworkConfig,
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
+import { RoutingInfo } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
@@ -18,9 +16,20 @@ import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";
 
+/**
+ * Runs both js-waku and nwaku nodes.
+ *
+ * @param context
+ * @param routingInfo
+ * @param customArgs passed to nwaku service nodes
+ * @param strictChecking
+ * @param numServiceNodes
+ * @param withoutFilter
+ * @param jsWakuParams
+ */
 export async function runMultipleNodes(
   context: Context,
-  networkConfig: NetworkConfig = DefaultNetworkConfig,
+  routingInfo: RoutingInfo,
   customArgs?: Args,
   strictChecking: boolean = false,
   numServiceNodes = 2,
@@ -32,7 +41,7 @@ export async function runMultipleNodes(
     context,
     numServiceNodes,
     strictChecking,
-    networkConfig,
+    routingInfo,
     customArgs,
     withoutFilter
   );
@@ -42,7 +51,7 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    networkConfig,
+    networkConfig: routingInfo.networkConfig,
     lightPush: { numPeersToUse: numServiceNodes },
     discovery: DEFAULT_DISCOVERIES_ENABLED,
     ...jsWakuParams
@@ -57,9 +66,10 @@ export async function runMultipleNodes(
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    await node.ensureSubscriptions(
-      derivePubsubTopicsFromNetworkConfig(networkConfig)
-    );
+    // TODO
+    // await node.ensureSubscriptions(
+    //   derivePubsubTopicsFromNetworkConfig(networkConfig)
+    // );
 
     const wakuConnections = waku.libp2p.getConnections();
 

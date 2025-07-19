@@ -1,6 +1,7 @@
 import { StoreCore } from "@waku/core";
 import type { IDecodedMessage, IDecoder, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -14,6 +15,14 @@ describe("Store", () => {
   let mockPeerManager: sinon.SinonStubbedInstance<PeerManager>;
   let mockStoreCore: sinon.SinonStubbedInstance<StoreCore>;
   let mockPeerId: any;
+  const testContentTopic = "/test/1/waku-light-push/utf8";
+  const testRoutingInfo = createRoutingInfo(
+    {
+      clusterId: 0,
+      numShardsInCluster: 7
+    },
+    { contentTopic: testContentTopic }
+  );
 
   beforeEach(() => {
     mockPeerId = {
@@ -62,8 +71,8 @@ describe("Store", () => {
 
   describe("queryGenerator", () => {
     const mockDecoder: IDecoder<IDecodedMessage> = {
-      pubsubTopic: "/waku/2/default-waku/proto",
-      contentTopic: "/test/1/test/proto",
+      routingInfo: testRoutingInfo,
+      contentTopic: testContentTopic,
       fromWireToProtoObj: sinon.stub(),
       fromProtoObj: sinon.stub()
     };
@@ -89,7 +98,7 @@ describe("Store", () => {
       mockStoreCore.queryPerPage.returns(mockResponseGenerator);
 
       const generator = store.queryGenerator([mockDecoder]);
-      const results = [];
+      const results: any = [];
 
       for await (const messages of generator) {
         results.push(messages);
@@ -98,7 +107,7 @@ describe("Store", () => {
       expect(
         mockPeerManager.getPeers.calledWith({
           protocol: Protocols.Store,
-          pubsubTopic: "/waku/2/default-waku/proto"
+          routingInfo: testRoutingInfo
         })
       ).to.be.true;
 
@@ -153,7 +162,7 @@ describe("Store", () => {
         timeEnd
       });
 
-      const results = [];
+      const results: any = [];
       for await (const messages of generator) {
         results.push(messages);
       }
@@ -202,7 +211,7 @@ describe("Store", () => {
         timeEnd
       });
 
-      const results = [];
+      const results: any = [];
       for await (const messages of generator) {
         results.push(messages);
       }
@@ -252,10 +261,10 @@ describe("Store", () => {
 
       const generator = store.queryGenerator([mockDecoder], {
         messageHashes: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
-        pubsubTopic: "/custom/topic"
+        routingInfo: testRoutingInfo
       });
 
-      const results = [];
+      const results: any = [];
       for await (const messages of generator) {
         results.push(messages);
       }

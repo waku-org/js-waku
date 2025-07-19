@@ -153,9 +153,9 @@ export class Dialer implements IDialer {
         return false;
       }
 
-      const isOnSameShard = await this.shardReader.isPeerOnNetwork(peerId);
-      if (!isOnSameShard) {
-        log.info(`Skipping peer ${peerId} - not on same shard`);
+      const isOnSameCluster = await this.shardReader.isPeerOnCluster(peerId);
+      if (!isOnSameCluster) {
+        log.info(`Skipping peer ${peerId} - not on same cluster`);
         return true;
       }
 

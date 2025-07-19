@@ -4,12 +4,18 @@ import {
   ProtocolError,
   Protocols
 } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
 import { PeerManager } from "../peer_manager/index.js";
 
 import { RetryManager, ScheduledTask } from "./retry_manager.js";
+
+const TestRoutingInfo = createRoutingInfo(
+  { clusterId: 0 },
+  { pubsubTopic: "/waku/2/rs/0/0" }
+);
 
 describe("RetryManager", () => {
   let retryManager: RetryManager;
@@ -59,7 +65,7 @@ describe("RetryManager", () => {
       })
     );
 
-    retryManager.push(successCallback, 3, "test-topic");
+    retryManager.push(successCallback, 3, TestRoutingInfo);
     retryManager.start();
 
     await clock.tickAsync(200);
@@ -74,7 +80,7 @@ describe("RetryManager", () => {
     (peerManager as any).getPeers = () => [];
     const callback = sinon.spy();
 
-    retryManager.push(callback, 2, "test-topic");
+    retryManager.push(callback, 2, TestRoutingInfo);
     retryManager.start();
 
     const queue = (retryManager as any)["queue"] as ScheduledTask[];
@@ -92,7 +98,7 @@ describe("RetryManager", () => {
     (peerManager as any).getPeers = () => [];
     const callback = sinon.spy();
 
-    retryManager.push(callback, 1, "test-topic");
+    retryManager.push(callback, 1, TestRoutingInfo);
     retryManager.start();
     const queue = (retryManager as any)["queue"] as ScheduledTask[];
     expect(queue.length).to.equal(1);
@@ -117,7 +123,7 @@ describe("RetryManager", () => {
     const task = {
       callback: failingCallback,
       maxAttempts: 2,
-      pubsubTopic: "test-topic"
+      routingInfo: TestRoutingInfo
     };
     await (retryManager as any)["taskExecutor"](task);
 
@@ -136,14 +142,14 @@ describe("RetryManager", () => {
     await (retryManager as any)["taskExecutor"]({
       callback: errorCallback,
       maxAttempts: 1,
-      pubsubTopic: "test-topic"
+      routingInfo: TestRoutingInfo
     });
 
     expect((peerManager.renewPeer as sinon.SinonSpy).calledOnce).to.be.true;
     expect(
       (peerManager.renewPeer as sinon.SinonSpy).calledWith(mockPeerId, {
         protocol: Protocols.LightPush,
-        pubsubTopic: "test-topic"
+        routingInfo: TestRoutingInfo
       })
     ).to.be.true;
   });
@@ -157,7 +163,7 @@ describe("RetryManager", () => {
     const task = {
       callback: slowCallback,
       maxAttempts: 1,
-      pubsubTopic: "test-topic"
+      routingInfo: TestRoutingInfo
     };
     const executionPromise = (retryManager as any)["taskExecutor"](task);
 
@@ -175,7 +181,7 @@ describe("RetryManager", () => {
     const task = {
       callback: failingCallback,
       maxAttempts: 0,
-      pubsubTopic: "test-topic"
+      routingInfo: TestRoutingInfo
     };
     await (retryManager as any)["taskExecutor"](task);
 
@@ -190,7 +196,7 @@ describe("RetryManager", () => {
       if (called === 1) retryManager.stop();
       return Promise.resolve({ success: mockPeerId, failure: null });
     });
-    retryManager.push(successCallback, 2, "test-topic");
+    retryManager.push(successCallback, 2, TestRoutingInfo);
     retryManager.start();
     await clock.tickAsync(500);
     expect(called).to.equal(1);
@@ -206,7 +212,7 @@ describe("RetryManager", () => {
         failure: { error: ProtocolError.GENERIC_FAIL }
       });
     });
-    retryManager.push(failCallback, 2, "test-topic");
+    retryManager.push(failCallback, 2, TestRoutingInfo);
     retryManager.start();
     await clock.tickAsync(1000);
     retryManager.stop();

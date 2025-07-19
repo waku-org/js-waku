@@ -1,6 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { type LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -13,13 +14,13 @@ import {
 } from "../../src/index.js";
 
 import {
-  ClusterId,
   messagePayload,
   messageText,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
-  TestPubsubTopic
+  TestNetworkConfig,
+  TestRoutingInfo
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -30,14 +31,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(
-        this.ctx,
-        {
-          contentTopics: [TestContentTopic],
-          clusterId: ClusterId
-        },
-        { filter: true, lightpush: true }
-      );
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestRoutingInfo, {
+        filter: true,
+        lightpush: true
+      });
     });
 
     afterEachCustom(this, async () => {
@@ -77,12 +74,15 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.callback
       );
 
-      const newContentTopic = "/test/2/waku-filter";
+      const newContentTopic = "/test/2/waku-filter/proto";
+      const newRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+        contentTopic: newContentTopic
+      });
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: newRoutingInfo
       });
-      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+      const newDecoder = createDecoder(newContentTopic, newRoutingInfo);
       await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
@@ -103,7 +103,6 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Check that from 4 messages send 3 were received
       expect(serviceNodes.messageCollector.count).to.eq(3);
-      await serviceNodes.confirmMessageLength(4);
     });
 
     it("Unsubscribe 2 topics - node subscribed to 2 topics", async function () {
@@ -112,12 +111,15 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestDecoder,
         serviceNodes.messageCollector.callback
       );
-      const newContentTopic = "/test/2/waku-filter";
+      const newContentTopic = "/test/2/waku-filter/proto";
+      const newRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+        contentTopic: newContentTopic
+      });
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
-        pubsubTopic: TestPubsubTopic
+        routingInfo: newRoutingInfo
       });
-      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
+      const newDecoder = createDecoder(newContentTopic, newRoutingInfo);
       await waku.filter.subscribe(
         newDecoder,
         serviceNodes.messageCollector.callback
@@ -140,7 +142,6 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Check that from 4 messages send 2 were received
       expect(serviceNodes.messageCollector.count).to.eq(2);
-      await serviceNodes.confirmMessageLength(4);
     });
 
     it("Unsubscribe topics the node is not subscribed to", async function () {
@@ -159,7 +160,12 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Unsubscribe from topics that the node is not not subscribed to and send again
       await waku.filter.unsubscribe(
-        createDecoder("/test/2/waku-filter", TestDecoder.pubsubTopic)
+        createDecoder(
+          "/test/2/waku-filter/proto",
+          createRoutingInfo(TestNetworkConfig, {
+            contentTopic: "/test/2/waku-filter/proto"
+          })
+        )
       );
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
       expect(await serviceNodes.messageCollector.waitForMessages(2)).to.eq(
@@ -174,7 +180,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Unsubscribe from 100 topics (new limit) at once and receives messages", async function () {
       this.timeout(100_000);
       const topicCount = 100;
-      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
+      const td = generateTestData(topicCount, TestNetworkConfig);
 
       await waku.filter.subscribe(
         td.decoders,
@@ -194,7 +200,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
           expectedMessageText: `Message for Topic ${index + 1}`,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
 

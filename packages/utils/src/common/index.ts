@@ -8,6 +8,11 @@ export * from "./sharding/index.js";
 export * from "./push_or_init_map.js";
 export * from "./relay_shard_codec.js";
 export * from "./delay.js";
+export {
+  createRoutingInfo,
+  type RoutingInfo,
+  isAutoShardingRoutingInfo
+} from "./sharding/routing_info.js";
 
 export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
   const index = arr.indexOf(value);

@@ -13,7 +13,8 @@ import {
   runStoreNodes,
   sendMessages,
   TestDecoder,
-  TestShardInfo,
+  TestNetworkConfig,
+  TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -23,7 +24,7 @@ describe("Waku Store, message hash query", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -35,7 +36,7 @@ describe("Waku Store, message hash query", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic,
+      TestDecoder.routingInfo,
       true
     );
 
@@ -54,11 +55,11 @@ describe("Waku Store, message hash query", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic,
+      TestRoutingInfo,
       true
     );
     const messageHashes = sentMessages.map((msg) =>
-      messageHash(TestDecoder.pubsubTopic, {
+      messageHash(TestRoutingInfo.pubsubTopic, {
         payload: Buffer.from(msg.payload, "base64"),
         contentTopic: msg.contentTopic || TestDecoder.contentTopic,
         timestamp: msg.timestamp || undefined,
@@ -72,7 +73,7 @@ describe("Waku Store, message hash query", function () {
     const messages: IDecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
       messageHashes,
-      pubsubTopic: TestDecoder.pubsubTopic
+      routingInfo: TestRoutingInfo
     })) {
       for await (const msg of page) {
         messages.push(msg as IDecodedMessage);

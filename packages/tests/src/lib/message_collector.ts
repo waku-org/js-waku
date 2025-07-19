@@ -4,7 +4,6 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
-import { DefaultTestPubsubTopic } from "../constants.js";
 import { MessageRpcResponse } from "../types.js";
 import { base64ToUtf8 } from "../utils/base64_utf8.js";
 import { delay } from "../utils/delay.js";
@@ -67,20 +66,19 @@ export class MessageCollector {
   public async waitForMessages(
     numMessages: number,
     options?: {
-      pubsubTopic?: string;
+      // pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = this.getPubsubTopicToUse(options?.pubsubTopic);
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
     while (this.count < numMessages) {
       if (this.nwaku) {
         try {
-          this.list = await this.nwaku.messages(pubsubTopic);
+          this.list = await this.nwaku.messages();
         } catch (error) {
           log.error(`Can't retrieve messages because of ${error}`);
           await delay(10);
@@ -237,15 +235,13 @@ export class MessageCollector {
         `Message text mismatch. Expected: ${options.expectedMessageText}. Got: ${receivedMessageText}`
       );
     } else {
-      const pubsubTopicToUse = this.getPubsubTopicToUse(
-        options.expectedPubsubTopic
-      );
-      // js-waku message specific assertions
-      expect(message.pubsubTopic).to.eq(
-        pubsubTopicToUse,
-        `Message pub/sub topic mismatch. Expected: ${pubsubTopicToUse}. Got: ${message.pubsubTopic}`
-      );
-
+      if (options.expectedPubsubTopic) {
+        // js-waku message specific assertions
+        expect(message.pubsubTopic).to.eq(
+          options.expectedPubsubTopic,
+          `Message pub/sub topic mismatch. Expected: ${options.expectedPubsubTopic}. Got: ${message.pubsubTopic}`
+        );
+      }
       expect(bytesToUtf8(message.payload)).to.eq(
         options.expectedMessageText,
         `Message text mismatch. Expected: ${
@@ -266,9 +262,5 @@ export class MessageCollector {
         }. Got: ${JSON.stringify(message.meta)}`
       );
     }
-  }
-
-  private getPubsubTopicToUse(pubsubTopic: string | undefined): string {
-    return pubsubTopic || DefaultTestPubsubTopic;
   }
 }

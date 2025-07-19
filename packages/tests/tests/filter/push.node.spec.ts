@@ -1,5 +1,6 @@
 import { LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -18,8 +19,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
-  TestPubsubTopic,
-  TestShardInfo
+  TestRoutingInfo
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -32,7 +32,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     beforeEachCustom(this, async () => {
       ctx = this.ctx;
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo, {
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestRoutingInfo, {
         lightpush: true,
         filter: true
       });
@@ -59,7 +59,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: testItem.value,
           expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
       });
     });
@@ -78,7 +78,7 @@ const runTests = (strictCheckNodes: boolean): void => {
             payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
             timestamp: testItem as any
           },
-          TestPubsubTopic
+          TestRoutingInfo
         );
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -88,7 +88,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           expectedMessageText: messageText,
           checkTimestamp: false,
           expectedContentTopic: TestContentTopic,
-          expectedPubsubTopic: TestPubsubTopic
+          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
         });
 
         // Check if the timestamp matches
@@ -117,7 +117,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: "2023-09-06T12:05:38.609Z" as any
         },
-        TestPubsubTopic
+        TestRoutingInfo
       );
 
       // Verify that no message was received
@@ -133,20 +133,21 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       await delay(400);
 
+      const wrongContentTopic = "/wrong/1/ContentTopic/proto";
       await serviceNodes.sendRelayMessage(
         {
-          contentTopic: TestContentTopic,
+          contentTopic: wrongContentTopic,
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        "WrongContentTopic"
+        createRoutingInfo(TestRoutingInfo.networkConfig, {
+          contentTopic: "/wrong/1/ContentTopic/proto"
+        })
       );
 
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: TestPubsubTopic
-        })
-      ).to.eq(false);
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        false
+      );
     });
 
     it("Check message with no pubsub topic is not received", async function () {
@@ -184,7 +185,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        TestPubsubTopic
+        TestRoutingInfo
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -205,7 +206,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           timestamp: BigInt(Date.now()) * BigInt(1000000),
           payload: undefined as any
         },
-        TestPubsubTopic
+        TestRoutingInfo
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -226,7 +227,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: 12345 as unknown as string,
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        TestPubsubTopic
+        TestRoutingInfo
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -267,12 +268,12 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
 
@@ -289,7 +290,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
 
       await teardownNodesWithRedundancy(serviceNodes, []);
@@ -297,7 +298,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         ctx,
         2,
         false,
-        TestShardInfo,
+        TestRoutingInfo,
         {
           lightpush: true,
           filter: true,
@@ -334,7 +335,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
         expectedContentTopic: TestContentTopic,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
   });

@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface";
-import type { IEncoder, IRelay, Libp2p } from "@waku/interfaces";
-import { Logger, pubsubTopicToSingleShardInfo } from "@waku/utils";
+import type { IEncoder, IRelay, Libp2p, NetworkConfig } from "@waku/interfaces";
+import { createRoutingInfo, Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
 import { createEncoder } from "../message/version_0.js";
@@ -15,6 +15,7 @@ type KeepAliveOptions = {
 
 type CreateKeepAliveManagerOptions = {
   options: KeepAliveOptions;
+  networkConfig: NetworkConfig;
   libp2p: Libp2p;
   relay?: IRelay;
 };
@@ -26,6 +27,7 @@ interface IKeepAliveManager {
 
 export class KeepAliveManager implements IKeepAliveManager {
   private readonly relay?: IRelay;
+  private readonly networkConfig: NetworkConfig;
   private readonly libp2p: Libp2p;
 
   private readonly options: KeepAliveOptions;
@@ -38,10 +40,12 @@ export class KeepAliveManager implements IKeepAliveManager {
   public constructor({
     options,
     relay,
+    networkConfig,
     libp2p
   }: CreateKeepAliveManagerOptions) {
     this.options = options;
     this.relay = relay;
+    this.networkConfig = networkConfig;
     this.libp2p = libp2p;
 
     this.onPeerConnect = this.onPeerConnect.bind(this);
@@ -163,8 +167,13 @@ export class KeepAliveManager implements IKeepAliveManager {
         continue;
       }
 
+      const routingInfo = createRoutingInfo(this.networkConfig, {
+        contentTopic: RelayPingContentTopic,
+        pubsubTopic: topic
+      });
+
       const encoder = createEncoder({
-        pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(topic),
+        routingInfo: routingInfo,
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });

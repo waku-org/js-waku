@@ -76,7 +76,7 @@ export class StoreCore {
       log.info("Sending store query request:", {
         hasMessageHashes: !!queryOpts.messageHashes?.length,
         messageHashCount: queryOpts.messageHashes?.length,
-        pubsubTopic: queryOpts.pubsubTopic,
+        routingInfo: queryOpts.routingInfo,
         contentTopics: queryOpts.contentTopics
       });
 

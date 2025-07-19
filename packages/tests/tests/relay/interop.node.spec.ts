@@ -19,8 +19,8 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
-  TestPubsubTopic,
-  TestShardInfo
+  TestNetworkConfig,
+  TestRoutingInfo
 } from "./utils.js";
 import { runRelayNodes } from "./utils.js";
 
@@ -30,7 +30,12 @@ describe("Waku Relay, Interop", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runRelayNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runRelayNodes(
+      this.ctx,
+      TestNetworkConfig,
+      undefined,
+      [TestContentTopic]
+    );
   });
 
   afterEachCustom(this, async () => {
@@ -42,8 +47,9 @@ describe("Waku Relay, Interop", function () {
 
     while (subscribers.length === 0) {
       await delay(200);
-      subscribers =
-        waku.libp2p.services.pubsub!.getSubscribers(TestPubsubTopic);
+      subscribers = waku.libp2p.services.pubsub!.getSubscribers(
+        TestRoutingInfo.pubsubTopic
+      );
     }
 
     const nimPeerId = await nwaku.getPeerId();
@@ -86,7 +92,8 @@ describe("Waku Relay, Interop", function () {
       ServiceNode.toMessageRpcQuery({
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
-      })
+      }),
+      TestRoutingInfo
     );
 
     const receivedMsg = await receivedMsgPromise;
@@ -98,9 +105,10 @@ describe("Waku Relay, Interop", function () {
 
   it("Js publishes, other Js receives", async function () {
     const waku2 = await createRelayNode({
+      routingInfos: [TestRoutingInfo],
       staticNoiseKey: NOISE_KEY_2,
       emitSelf: true,
-      networkConfig: TestShardInfo
+      networkConfig: TestNetworkConfig
     });
     await waku2.start();
 

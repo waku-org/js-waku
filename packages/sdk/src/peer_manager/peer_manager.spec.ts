@@ -5,6 +5,7 @@ import {
   Libp2p,
   Protocols
 } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -17,8 +18,12 @@ describe("PeerManager", () => {
   let peers: any[];
   let mockConnections: any[];
 
-  const TEST_PUBSUB_TOPIC = "/test/1/waku-light-push/utf8";
+  const TEST_PUBSUB_TOPIC = "/waku/2/rs/0/0";
   const TEST_PROTOCOL = Protocols.LightPush;
+  const TEST_ROUTING_INFO = createRoutingInfo(
+    { clusterId: 0 },
+    { pubsubTopic: TEST_PUBSUB_TOPIC }
+  );
 
   const clearPeerState = (): void => {
     (peerManager as any).lockedPeers.clear();
@@ -36,7 +41,7 @@ describe("PeerManager", () => {
   const getPeersForTest = async (): Promise<PeerId[]> => {
     return await peerManager.getPeers({
       protocol: TEST_PROTOCOL,
-      pubsubTopic: TEST_PUBSUB_TOPIC
+      routingInfo: TEST_ROUTING_INFO
     });
   };
 
@@ -81,7 +86,7 @@ describe("PeerManager", () => {
       pubsubTopics: [TEST_PUBSUB_TOPIC],
       getConnectedPeers: async () => peers,
       getPeers: async () => peers,
-      isPeerOnTopic: async (_id: PeerId, _topic: string) => true
+      isPeerOnShard: async (_id: PeerId, _topic: string) => true
     } as unknown as IConnectionManager;
     peerManager = new PeerManager({
       libp2p,
@@ -126,7 +131,7 @@ describe("PeerManager", () => {
     const peerId = ids[0];
     await peerManager.renewPeer(peerId, {
       protocol: TEST_PROTOCOL,
-      pubsubTopic: TEST_PUBSUB_TOPIC
+      routingInfo: TEST_ROUTING_INFO
     });
     expect((peerManager as any).lockedPeers.has(peerId.toString())).to.be.false;
     expect((peerManager as any).unlockedPeers.has(peerId.toString())).to.be
@@ -224,7 +229,7 @@ describe("PeerManager", () => {
     if (skipIfNoPeers(first)) return;
     await peerManager.renewPeer(first[0], {
       protocol: TEST_PROTOCOL,
-      pubsubTopic: TEST_PUBSUB_TOPIC
+      routingInfo: TEST_ROUTING_INFO
     });
     const second = await getPeersForTest();
     if (skipIfNoPeers(second)) return;
@@ -238,7 +243,7 @@ describe("PeerManager", () => {
     } as any;
     await peerManager.renewPeer(fakePeerId, {
       protocol: TEST_PROTOCOL,
-      pubsubTopic: TEST_PUBSUB_TOPIC
+      routingInfo: TEST_ROUTING_INFO
     });
     expect(true).to.be.true;
   });
@@ -263,7 +268,7 @@ describe("PeerManager", () => {
     const peerId = result[0];
     await peerManager.renewPeer(peerId, {
       protocol: TEST_PROTOCOL,
-      pubsubTopic: TEST_PUBSUB_TOPIC
+      routingInfo: TEST_ROUTING_INFO
     });
 
     const connection = mockConnections.find((c) => c.remotePeer.equals(peerId));

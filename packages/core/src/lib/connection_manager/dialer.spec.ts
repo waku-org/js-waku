@@ -29,7 +29,7 @@ describe("Dialer", () => {
 
     mockShardReader = {
       hasShardInfo: sinon.stub().resolves(false),
-      isPeerOnNetwork: sinon.stub().resolves(true)
+      isPeerOnCluster: sinon.stub().resolves(true)
     } as unknown as sinon.SinonStubbedInstance<ShardReader>;
 
     mockOptions = {
@@ -280,9 +280,9 @@ describe("Dialer", () => {
       expect(dialStub.calledTwice).to.be.true;
     });
 
-    it("should skip peer when not on same shard", async () => {
+    it("should skip peer when not on same cluster", async () => {
       mockShardReader.hasShardInfo.resolves(true);
-      mockShardReader.isPeerOnNetwork.resolves(false);
+      mockShardReader.isPeerOnCluster.resolves(false);
 
       const dialStub = libp2p.dial as sinon.SinonStub;
 
@@ -290,12 +290,12 @@ describe("Dialer", () => {
 
       expect(dialStub.called).to.be.false;
       expect(mockShardReader.hasShardInfo.calledWith(mockPeerId)).to.be.true;
-      expect(mockShardReader.isPeerOnNetwork.calledWith(mockPeerId)).to.be.true;
+      expect(mockShardReader.isPeerOnCluster.calledWith(mockPeerId)).to.be.true;
     });
 
     it("should dial peer when on same shard", async () => {
       mockShardReader.hasShardInfo.resolves(true);
-      mockShardReader.isPeerOnNetwork.resolves(true);
+      mockShardReader.isPeerOnCluster.resolves(true);
 
       const dialStub = libp2p.dial as sinon.SinonStub;
       dialStub.resolves();
@@ -305,7 +305,7 @@ describe("Dialer", () => {
       expect(dialStub.calledOnce).to.be.true;
       expect(dialStub.calledWith(mockPeerId)).to.be.true;
       expect(mockShardReader.hasShardInfo.calledWith(mockPeerId)).to.be.true;
-      expect(mockShardReader.isPeerOnNetwork.calledWith(mockPeerId)).to.be.true;
+      expect(mockShardReader.isPeerOnCluster.calledWith(mockPeerId)).to.be.true;
     });
 
     it("should dial peer when no shard info available", async () => {
@@ -319,7 +319,7 @@ describe("Dialer", () => {
       expect(dialStub.calledOnce).to.be.true;
       expect(dialStub.calledWith(mockPeerId)).to.be.true;
       expect(mockShardReader.hasShardInfo.calledWith(mockPeerId)).to.be.true;
-      expect(mockShardReader.isPeerOnNetwork.called).to.be.false;
+      expect(mockShardReader.isPeerOnCluster.called).to.be.false;
     });
 
     it("should handle dial errors gracefully", async () => {
@@ -468,7 +468,7 @@ describe("Dialer", () => {
 
     it("should handle network check errors gracefully", async () => {
       mockShardReader.hasShardInfo.resolves(true);
-      mockShardReader.isPeerOnNetwork.rejects(new Error("Network check error"));
+      mockShardReader.isPeerOnCluster.rejects(new Error("Network check error"));
 
       const dialStub = libp2p.dial as sinon.SinonStub;
 
@@ -476,7 +476,7 @@ describe("Dialer", () => {
 
       expect(dialStub.called).to.be.false;
       expect(mockShardReader.hasShardInfo.calledWith(mockPeerId)).to.be.true;
-      expect(mockShardReader.isPeerOnNetwork.calledWith(mockPeerId)).to.be.true;
+      expect(mockShardReader.isPeerOnCluster.calledWith(mockPeerId)).to.be.true;
     });
   });
 
@@ -512,7 +512,7 @@ describe("Dialer", () => {
       dialStub.resolves();
 
       mockShardReader.hasShardInfo.withArgs(mockPeerId).resolves(true);
-      mockShardReader.isPeerOnNetwork.withArgs(mockPeerId).resolves(true);
+      mockShardReader.isPeerOnCluster.withArgs(mockPeerId).resolves(true);
 
       mockShardReader.hasShardInfo.withArgs(mockPeerId2).resolves(false);
 

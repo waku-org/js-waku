@@ -1,4 +1,5 @@
 import type { IProtoMessage } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import { createRLN } from "./create.js";
@@ -11,14 +12,21 @@ export interface TestRLNCodecSetup {
   payload: Uint8Array;
 }
 
-export const TEST_CONSTANTS = {
+export const TestConstants = {
   contentTopic: "/test/1/waku-message/utf8",
   emptyPubsubTopic: "",
   defaultIndex: 0,
-  defaultPayload: new Uint8Array([1, 2, 3, 4, 5])
+  defaultPayload: new Uint8Array([1, 2, 3, 4, 5]),
+  routingInfo: createRoutingInfo(
+    {
+      clusterId: 0,
+      numShardsInCluster: 2
+    },
+    { contentTopic: "/test/1/waku-message/utf8" }
+  )
 } as const;
 
-export const EMPTY_PROTO_MESSAGE = {
+export const EmptyProtoMessage = {
   timestamp: undefined,
   contentTopic: "",
   ephemeral: undefined,
@@ -38,8 +46,8 @@ export async function createTestRLNCodecSetup(): Promise<TestRLNCodecSetup> {
   return {
     rlnInstance,
     credential,
-    index: TEST_CONSTANTS.defaultIndex,
-    payload: TEST_CONSTANTS.defaultPayload
+    index: TestConstants.defaultIndex,
+    payload: TestConstants.defaultPayload
   };
 }
 

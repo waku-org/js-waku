@@ -10,11 +10,12 @@ import type {
   IDecodedMessage,
   IDecoder,
   IProtoMessage,
-  PeerIdStr
+  PeerIdStr,
+  PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { Logger, RoutingInfo } from "@waku/utils";
 
 import { PeerManager, PeerManagerEventNames } from "../peer_manager/index.js";
 
@@ -35,7 +36,8 @@ type AttemptUnsubscribeParams = {
 type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
 
 export class Subscription {
-  private readonly pubsubTopic: string;
+  private readonly routingInfo: RoutingInfo;
+  private readonly pubsubTopic: PubsubTopic;
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;
 
@@ -73,7 +75,8 @@ export class Subscription {
 
   public constructor(params: SubscriptionParams) {
     this.config = params.config;
-    this.pubsubTopic = params.pubsubTopic;
+    this.routingInfo = params.routingInfo;
+    this.pubsubTopic = params.routingInfo.pubsubTopic;
 
     this.protocol = params.protocol;
     this.peerManager = params.peerManager;
@@ -193,7 +196,7 @@ export class Subscription {
 
     if (this.callbacks.has(decoder)) {
       log.warn(
-        `Replacing callback associated associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `Replacing callback associated associated with decoder with pubsubTopic:${decoder.routingInfo.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
 
       const callback = this.callbacks.get(decoder);
@@ -205,7 +208,7 @@ export class Subscription {
       void (async (): Promise<void> => {
         try {
           const message = await decoder.fromProtoObj(
-            decoder.pubsubTopic,
+            decoder.routingInfo.pubsubTopic,
             event.detail as IProtoMessage
           );
           void callback(message!);
@@ -230,7 +233,7 @@ export class Subscription {
 
     if (!callback) {
       log.warn(
-        `No callback associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `No callback associated with decoder with pubsubTopic:${decoder.routingInfo.pubsubTopic} and contentTopic:${decoder.contentTopic}`
       );
     }
 
@@ -413,11 +416,13 @@ export class Subscription {
 
     const usablePeer = await this.peerManager.isPeerOnPubsub(
       event.detail,
-      this.pubsubTopic
+      this.routingInfo.pubsubTopic
     );
 
     if (!usablePeer) {
-      log.info(`Peer ${id} doesn't support pubsubTopic:${this.pubsubTopic}`);
+      log.info(
+        `Peer ${id} doesn't support pubsubTopic:${this.routingInfo.pubsubTopic}`
+      );
       return;
     }
 
@@ -483,7 +488,7 @@ export class Subscription {
     const prevPeers = new Set<PeerIdStr>(this.peers.keys());
     const peersToAdd = await this.peerManager.getPeers({
       protocol: Protocols.Filter,
-      pubsubTopic: this.pubsubTopic
+      routingInfo: this.routingInfo
     });
 
     for (const peer of peersToAdd) {

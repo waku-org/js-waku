@@ -1,43 +1,22 @@
 import { createEncoder } from "@waku/core";
-import { LightNode, NetworkConfig, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
-import { createLightNode } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  contentTopicToShardIndex,
-  Logger
-} from "@waku/utils";
-import { Context } from "mocha";
-
-import { runNodes as runNodesBuilder, ServiceNode } from "../../src/index.js";
+import { createRoutingInfo, Logger } from "@waku/utils";
 
 // Constants for test configuration.
 export const log = new Logger("test:lightpush");
 export const TestContentTopic = "/test/1/waku-light-push/utf8";
-export const ClusterId = 3;
-export const ShardIndex = contentTopicToShardIndex(TestContentTopic);
-export const TestPubsubTopic = contentTopicToPubsubTopic(
-  TestContentTopic,
-  ClusterId
-);
-export const TestShardInfo = {
-  contentTopics: [TestContentTopic],
-  clusterId: ClusterId
+export const TestClusterId = 3;
+export const TestNumShardsInCluster = 8;
+export const TestNetworkConfig = {
+  clusterId: TestClusterId,
+  numShardsInCluster: TestNumShardsInCluster
 };
+export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+  contentTopic: TestContentTopic
+});
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: TestPubsubTopic
+  routingInfo: TestRoutingInfo
 });
 export const messageText = "Light Push works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
-
-export const runNodes = (
-  context: Context,
-  shardInfo: NetworkConfig
-): Promise<[ServiceNode, LightNode]> =>
-  runNodesBuilder<LightNode>({
-    context,
-    createNode: createLightNode,
-    protocols: [Protocols.LightPush, Protocols.Filter],
-    networkConfig: shardInfo
-  });

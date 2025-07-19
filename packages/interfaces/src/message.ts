@@ -1,13 +1,5 @@
 import type { ContentTopic, PubsubTopic } from "./misc.js";
-
-export interface SingleShardInfo {
-  clusterId: number;
-  /**
-   * TODO: make shard required
-   * Specifying this field indicates to the encoder/decoder that static sharding must be used.
-   */
-  shard?: number;
-}
+import type { IRoutingInfo } from "./sharding.js";
 
 export interface IRateLimitProof {
   proof: Uint8Array;
@@ -79,38 +71,17 @@ export interface IMetaSetter {
   (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }
 
-export interface EncoderOptions {
-  /**
-   * @deprecated
-   */
-  pubsubTopic?: PubsubTopic;
-  pubsubTopicShardInfo?: SingleShardInfo;
-  /** The content topic to set on outgoing messages. */
-  contentTopic: string;
-  /**
-   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
-   * @defaultValue `false`
-   */
-  ephemeral?: boolean;
-  /**
-   * A function called when encoding messages to set the meta field.
-   * @param IProtoMessage The message encoded for wire, without the meta field.
-   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
-   */
-  metaSetter?: IMetaSetter;
-}
-
 export interface IEncoder {
-  pubsubTopic: PubsubTopic;
   contentTopic: string;
   ephemeral: boolean;
+  routingInfo: IRoutingInfo;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
-  pubsubTopic: PubsubTopic;
   contentTopic: string;
+  routingInfo: IRoutingInfo;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,

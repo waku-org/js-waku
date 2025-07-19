@@ -17,14 +17,15 @@ import {
   createLightNode,
   createEncoder as createPlainEncoder
 } from "@waku/sdk";
+import { createRoutingInfo } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
   beforeEachCustom,
-  DefaultTestShardInfo,
-  DefaultTestSingleShardInfo,
+  DefaultTestNetworkConfig,
+  DefaultTestRoutingInfo,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -33,8 +34,13 @@ import {
 } from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
-
-const TestEncoder = createPlainEncoder({ contentTopic: TestContentTopic });
+const TestRoutingInfo = createRoutingInfo(DefaultTestNetworkConfig, {
+  contentTopic: TestContentTopic
+});
+const TestEncoder = createPlainEncoder({
+  contentTopic: TestContentTopic,
+  routingInfo: TestRoutingInfo
+});
 
 describe("Waku Dial [node only]", function () {
   describe("Interop: ServiceNode", function () {
@@ -57,7 +63,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestShardInfo
+        networkConfig: DefaultTestNetworkConfig
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -91,7 +97,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestShardInfo
+        networkConfig: DefaultTestNetworkConfig
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -119,7 +125,7 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestShardInfo,
+        networkConfig: DefaultTestNetworkConfig,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })]
         }
@@ -145,7 +151,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestShardInfo,
+        networkConfig: DefaultTestNetworkConfig,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })]
         }
@@ -177,11 +183,13 @@ describe("Decryption Keys", function () {
     [waku1, waku2] = await Promise.all([
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestShardInfo
+        networkConfig: DefaultTestNetworkConfig,
+        routingInfos: [DefaultTestRoutingInfo]
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        networkConfig: DefaultTestShardInfo,
+        networkConfig: DefaultTestNetworkConfig,
+        routingInfos: [DefaultTestRoutingInfo],
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
@@ -205,15 +213,11 @@ describe("Decryption Keys", function () {
     this.timeout(10000);
 
     const symKey = generateSymmetricKey();
-    const decoder = createDecoder(
-      TestContentTopic,
-      symKey,
-      DefaultTestSingleShardInfo
-    );
+    const decoder = createDecoder(TestContentTopic, TestRoutingInfo, symKey);
 
     const encoder = createEncoder({
       contentTopic: TestContentTopic,
-      pubsubTopicShardInfo: DefaultTestSingleShardInfo,
+      routingInfo: TestRoutingInfo,
       symKey
     });
 
@@ -257,11 +261,13 @@ describe("User Agent", function () {
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
         userAgent: waku1UserAgent,
-        networkConfig: DefaultTestShardInfo
+        networkConfig: DefaultTestNetworkConfig,
+        routingInfos: [DefaultTestRoutingInfo]
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        networkConfig: DefaultTestShardInfo,
+        networkConfig: DefaultTestNetworkConfig,
+        routingInfos: [DefaultTestRoutingInfo],
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
