@@ -5,6 +5,7 @@ import { messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
+  type IRoutingInfo,
   IStore,
   Libp2p,
   Protocols,
@@ -12,7 +13,7 @@ import {
   StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
-import { isDefined, Logger, RoutingInfo } from "@waku/utils";
+import { isDefined, Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
@@ -181,7 +182,7 @@ export class Store implements IStore {
   private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
     decoders: IDecoder<T>[]
   ): {
-    routingInfo: RoutingInfo;
+    routingInfo: IRoutingInfo;
     contentTopics: string[];
     decodersAsMap: Map<string, IDecoder<T>>;
   } {
@@ -232,7 +233,7 @@ export class Store implements IStore {
   }
 
   private async getPeerToUse(
-    routingInfo: RoutingInfo
+    routingInfo: IRoutingInfo
   ): Promise<PeerId | undefined> {
     const peers = await this.peerManager.getPeers({
       protocol: Protocols.Store,
@@ -301,7 +302,7 @@ export class Store implements IStore {
     const isHashQuery =
       options?.messageHashes && options.messageHashes.length > 0;
 
-    let routingInfo: RoutingInfo;
+    let routingInfo: IRoutingInfo;
     let contentTopics: string[];
     let decodersAsMap: Map<string, IDecoder<T>>;
 

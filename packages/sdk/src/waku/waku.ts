@@ -16,6 +16,7 @@ import type {
   IFilter,
   ILightPush,
   IRelay,
+  IRoutingInfo,
   IStore,
   IWaku,
   IWakuEventEmitter,
@@ -27,7 +28,7 @@ import {
   HealthStatus,
   Protocols
 } from "@waku/interfaces";
-import { createRoutingInfo, Logger, RoutingInfo } from "@waku/utils";
+import { createRoutingInfo, Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -286,6 +287,6 @@ function getRoutingInfo(
   networkConfig: NetworkConfig,
   contentTopic?: string,
   shardId?: number
-): RoutingInfo {
+): IRoutingInfo {
   return createRoutingInfo(networkConfig, { contentTopic, shardId });
 }

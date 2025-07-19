@@ -5,10 +5,11 @@ import type {
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  IRateLimitProof
+  IRateLimitProof,
+  IRoutingInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { isAutoShardingRoutingInfo, Logger, RoutingInfo } from "@waku/utils";
+import { isAutoShardingRoutingInfo, Logger } from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -68,7 +69,7 @@ export type EncoderOptions = {
   /**
    * The routing information for messages to encode.
    */
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -88,7 +89,7 @@ export class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public routingInfo: RoutingInfo,
+    public routingInfo: IRoutingInfo,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -146,7 +147,7 @@ export function createEncoder({
 export class Decoder implements IDecoder<IDecodedMessage> {
   public constructor(
     public contentTopic: string,
-    public routingInfo: RoutingInfo
+    public routingInfo: IRoutingInfo
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -201,7 +202,7 @@ export class Decoder implements IDecoder<IDecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  routingInfo: RoutingInfo
+  routingInfo: IRoutingInfo
 ): Decoder {
   if (isAutoShardingRoutingInfo(routingInfo)) {
     if (routingInfo.contentTopic !== contentTopic)

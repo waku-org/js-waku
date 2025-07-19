@@ -17,12 +17,13 @@ import {
   IEncoder,
   IMessage,
   IRelay,
+  type IRoutingInfo,
   Libp2p,
   ProtocolError,
   PubsubTopic,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { isWireSizeUnderCap, RoutingInfo, toAsyncIterator } from "@waku/utils";
+import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
@@ -39,7 +40,7 @@ export type Observer<T extends IDecodedMessage> = {
 };
 
 export type RelayCreateOptions = CreateNodeOptions & {
-  routingInfos: RoutingInfo[];
+  routingInfos: IRoutingInfo[];
 } & Partial<GossipsubOpts>;
 export type ContentTopic = string;
 

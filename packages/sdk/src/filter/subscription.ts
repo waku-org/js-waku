@@ -10,12 +10,13 @@ import type {
   IDecodedMessage,
   IDecoder,
   IProtoMessage,
+  IRoutingInfo,
   PeerIdStr,
   PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger, RoutingInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { PeerManager, PeerManagerEventNames } from "../peer_manager/index.js";
 
@@ -36,7 +37,7 @@ type AttemptUnsubscribeParams = {
 type Libp2pEventHandler = (e: CustomEvent<PeerId>) => void;
 
 export class Subscription {
-  private readonly routingInfo: RoutingInfo;
+  private readonly routingInfo: IRoutingInfo;
   private readonly pubsubTopic: PubsubTopic;
   private readonly protocol: FilterCore;
   private readonly peerManager: PeerManager;

@@ -5,10 +5,11 @@ import {
   type IEncryptedMessage,
   type IMessage,
   type IMetaSetter,
-  type IProtoMessage
+  type IProtoMessage,
+  type IRoutingInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger, RoutingInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -33,7 +34,7 @@ const log = new Logger("message-encryption:ecies");
 class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
-    public routingInfo: RoutingInfo,
+    public routingInfo: IRoutingInfo,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
@@ -82,7 +83,7 @@ export interface EncoderOptions {
   /**
    * The routing information for messages to encode.
    */
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -135,7 +136,7 @@ export function createEncoder({
 class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
     contentTopic: string,
-    routingInfo: RoutingInfo,
+    routingInfo: IRoutingInfo,
     private privateKey: Uint8Array
   ) {
     super(contentTopic, routingInfo);
@@ -206,11 +207,12 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
  * decode incoming messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param routingInfo
  * @param privateKey The private key used to decrypt the message.
  */
 export function createDecoder(
   contentTopic: string,
-  routingInfo: RoutingInfo,
+  routingInfo: IRoutingInfo,
   privateKey: Uint8Array
 ): Decoder {
   return new Decoder(contentTopic, routingInfo, privateKey);

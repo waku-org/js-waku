@@ -2,9 +2,10 @@ import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopic,
   IDecodedMessage,
-  IMetaSetter
+  IMetaSetter,
+  IRoutingInfo
 } from "@waku/interfaces";
-import { Logger, RoutingInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import init from "@waku/zerokit-rln-wasm";
 import * as zerokitRLN from "@waku/zerokit-rln-wasm";
 
@@ -31,7 +32,7 @@ type WakuRLNEncoderOptions = {
   /**
    * The routing information for messages to encode.
    */
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -108,7 +109,7 @@ export class RLNInstance extends RLNCredentialsManager {
 
   public createDecoder(
     contentTopic: ContentTopic,
-    routingInfo: RoutingInfo
+    routingInfo: IRoutingInfo
   ): RLNDecoder<IDecodedMessage> {
     return createRLNDecoder({
       rlnInstance: this,

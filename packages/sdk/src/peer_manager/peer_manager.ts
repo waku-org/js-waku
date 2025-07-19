@@ -12,11 +12,12 @@ import {
 } from "@waku/core";
 import {
   CONNECTION_LOCKED_TAG,
+  type IRoutingInfo,
   Libp2p,
   Libp2pEventHandler,
   Protocols
 } from "@waku/interfaces";
-import { Logger, RoutingInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 const log = new Logger("peer-manager");
 
@@ -34,7 +35,7 @@ type PeerManagerParams = {
 
 type GetPeersParams = {
   protocol: Protocols;
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
 };
 
 export enum PeerManagerEventNames {

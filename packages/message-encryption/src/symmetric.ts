@@ -9,7 +9,7 @@ import type {
   IRoutingInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger, RoutingInfo } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -83,7 +83,7 @@ export interface EncoderOptions {
   /**
    * The routing information for messages to encode.
    */
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -136,7 +136,7 @@ export function createEncoder({
 class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
     contentTopic: string,
-    routingInfo: RoutingInfo,
+    routingInfo: IRoutingInfo,
     private symKey: Uint8Array
   ) {
     super(contentTopic, routingInfo);
@@ -212,7 +212,7 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  routingInfo: RoutingInfo,
+  routingInfo: IRoutingInfo,
   symKey: Uint8Array
 ): Decoder {
   return new Decoder(contentTopic, routingInfo, symKey);

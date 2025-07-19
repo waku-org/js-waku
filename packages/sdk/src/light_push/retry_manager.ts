@@ -1,6 +1,10 @@
 import type { PeerId } from "@libp2p/interface";
-import { type CoreProtocolResult, Protocols } from "@waku/interfaces";
-import { Logger, RoutingInfo } from "@waku/utils";
+import {
+  type CoreProtocolResult,
+  type IRoutingInfo,
+  Protocols
+} from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 
 import type { PeerManager } from "../peer_manager/index.js";
 
@@ -15,7 +19,7 @@ type AttemptCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
 export type ScheduledTask = {
   maxAttempts: number;
-  routingInfo: RoutingInfo;
+  routingInfo: IRoutingInfo;
   callback: AttemptCallback;
 };
 
@@ -54,7 +58,7 @@ export class RetryManager {
   public push(
     callback: AttemptCallback,
     maxAttempts: number,
-    routingInfo: RoutingInfo
+    routingInfo: IRoutingInfo
   ): void {
     this.queue.push({
       maxAttempts,
