@@ -75,9 +75,7 @@ export async function runMultipleNodes(
   if (customArgs?.shard) {
     const shards = customArgs?.shard ?? [];
     for (const s of shards) {
-      pubsubTopics.push(
-        formatPubsubTopic(routingInfo.networkConfig.clusterId, s)
-      );
+      pubsubTopics.push(formatPubsubTopic(routingInfo.clusterId, s));
     }
   }
 
@@ -87,7 +85,7 @@ export async function runMultipleNodes(
       pubsubTopics.push(
         contentTopicToPubsubTopic(
           ct,
-          routingInfo.networkConfig.clusterId,
+          routingInfo.clusterId,
           routingInfo.networkConfig.numShardsInCluster
         )
       );

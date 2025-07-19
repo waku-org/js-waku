@@ -9,7 +9,7 @@ import type {
   IRoutingInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { isAutoShardingRoutingInfo, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -130,6 +130,8 @@ export class Encoder implements IEncoder {
  * format to be sent over the Waku network. The resulting encoder can then be
  * pass to { @link @waku/interfaces!ISender.send } to automatically encode outgoing
  * messages.
+ *
+ * Note that a routing info may be tied to a given content topic, this is not checked by the encoder.
  */
 export function createEncoder({
   contentTopic,
@@ -137,10 +139,6 @@ export function createEncoder({
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  if (isAutoShardingRoutingInfo(routingInfo)) {
-    if (routingInfo.contentTopic !== contentTopic)
-      throw "Routing Info must have the same content topic as the encoder";
-  }
   return new Encoder(contentTopic, ephemeral, routingInfo, metaSetter);
 }
 
@@ -198,15 +196,13 @@ export class Decoder implements IDecoder<IDecodedMessage> {
  * messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
- * @param routingInfo
+ * @param routingInfo Routing information such as cluster id and shard id on which the message is expected to be received.
+ *
+ * Note that a routing info may be tied to a given content topic, this is not checked by the encoder.
  */
 export function createDecoder(
   contentTopic: string,
   routingInfo: IRoutingInfo
 ): Decoder {
-  if (isAutoShardingRoutingInfo(routingInfo)) {
-    if (routingInfo.contentTopic !== contentTopic)
-      throw "Routing Info must have the same content topic as the encoder";
-  }
   return new Decoder(contentTopic, routingInfo);
 }

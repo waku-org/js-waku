@@ -1,7 +1,7 @@
 import { createDecoder } from "@waku/core";
 import { IMessage, LightNode, ShardId, StaticSharding } from "@waku/interfaces";
 import { Protocols } from "@waku/sdk";
-import { createRoutingInfo } from "@waku/utils";
+import { createRoutingInfo, RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -155,13 +155,13 @@ describe("Waku Store, different static shards", function () {
       nwaku,
       totalMsgs,
       TestDecoderShardOne.contentTopic,
-      TestDecoderShardOne.routingInfo
+      TestDecoderShardOne.routingInfo as RoutingInfo
     );
     await sendMessages(
       nwaku2,
       totalMsgs,
       TestDecoderShardTwo.contentTopic,
-      TestDecoderShardTwo.routingInfo
+      TestDecoderShardTwo.routingInfo as RoutingInfo
     );
 
     await waku.dial(await nwaku.getMultiaddrWithId());

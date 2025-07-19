@@ -18,9 +18,7 @@ const TestNetworkingInfo = { clusterId: 0, numShardsInCluster: 8 };
 const MockRoutingInfo: IRoutingInfo = {
   pubsubTopic: "/custom/topic",
   shardId: 1,
-  networkConfig: TestNetworkingInfo,
-  isAutoSharding: false,
-  isStaticSharding: false
+  clusterId: TestNetworkingInfo.clusterId
 };
 
 describe("Store", () => {

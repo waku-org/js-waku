@@ -1,8 +1,8 @@
 import type {
   AutoSharding,
+  ClusterId,
   ContentTopic,
-  IRoutingInfoAutoSharding,
-  IRoutingInfoStaticSharding,
+  IRoutingInfo,
   NetworkConfig,
   PubsubTopic,
   ShardId,
@@ -32,7 +32,7 @@ export abstract class BaseRoutingInfo {
 
 export class AutoShardingRoutingInfo
   extends BaseRoutingInfo
-  implements IRoutingInfoAutoSharding
+  implements IRoutingInfo
 {
   public static fromContentTopic(
     contentTopic: ContentTopic,
@@ -68,6 +68,10 @@ export class AutoShardingRoutingInfo
     super(networkConfig, pubsubTopic, shardId);
   }
 
+  public get clusterId(): number {
+    return this.networkConfig.clusterId;
+  }
+
   public get isAutoSharding(): boolean {
     return true;
   }
@@ -79,7 +83,7 @@ export class AutoShardingRoutingInfo
 
 export class StaticShardingRoutingInfo
   extends BaseRoutingInfo
-  implements IRoutingInfoStaticSharding
+  implements IRoutingInfo
 {
   /**
    * Create Routing Info for static sharding network, using shard
@@ -127,6 +131,10 @@ export class StaticShardingRoutingInfo
     public shardId: ShardId
   ) {
     super(networkConfig, pubsubTopic, shardId);
+  }
+
+  public get clusterId(): ClusterId {
+    return this.networkConfig.clusterId;
   }
 
   public get isAutoSharding(): boolean {

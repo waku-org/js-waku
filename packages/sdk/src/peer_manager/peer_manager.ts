@@ -109,7 +109,7 @@ export class PeerManager {
   public async getPeers(params: GetPeersParams): Promise<PeerId[]> {
     log.info(
       `Getting peers for protocol: ${params.protocol}, ` +
-        `clusterId: ${params.routingInfo.networkConfig.clusterId},` +
+        `clusterId: ${params.routingInfo.clusterId},` +
         ` shard: ${params.routingInfo.shardId}`
     );
 
@@ -123,7 +123,7 @@ export class PeerManager {
 
       const isOnSameShard = await this.connectionManager.isPeerOnShard(
         peer.id,
-        params.routingInfo.networkConfig.clusterId,
+        params.routingInfo.clusterId,
         params.routingInfo.shardId
       );
       if (!isOnSameShard) {

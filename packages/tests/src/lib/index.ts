@@ -263,7 +263,7 @@ function applyDefaultArgs(routingInfo: RoutingInfo, args?: Args): Args {
     relay: true
   };
 
-  defaultArgs.clusterId = routingInfo.networkConfig.clusterId;
+  defaultArgs.clusterId = routingInfo.clusterId;
 
   if (isAutoShardingRoutingInfo(routingInfo)) {
     defaultArgs.numShardsInNetwork =

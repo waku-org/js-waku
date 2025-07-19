@@ -1,5 +1,6 @@
 import { messageHash } from "@waku/core";
 import type { IDecodedMessage, LightNode } from "@waku/interfaces";
+import { RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -36,7 +37,7 @@ describe("Waku Store, message hash query", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.routingInfo,
+      TestDecoder.routingInfo as RoutingInfo,
       true
     );
 
