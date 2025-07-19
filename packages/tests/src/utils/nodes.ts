@@ -1,13 +1,16 @@
 import {
   CreateNodeOptions,
-  DefaultNetworkConfig,
   IWaku,
   LightNode,
-  NetworkConfig,
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  formatPubsubTopic,
+  isAutoShardingRoutingInfo,
+  RoutingInfo
+} from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
@@ -18,9 +21,20 @@ import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";
 
+/**
+ * Runs both js-waku and nwaku nodes.
+ *
+ * @param context
+ * @param routingInfo
+ * @param customArgs passed to nwaku service nodes
+ * @param strictChecking
+ * @param numServiceNodes
+ * @param withoutFilter
+ * @param jsWakuParams
+ */
 export async function runMultipleNodes(
   context: Context,
-  networkConfig: NetworkConfig = DefaultNetworkConfig,
+  routingInfo: RoutingInfo,
   customArgs?: Args,
   strictChecking: boolean = false,
   numServiceNodes = 2,
@@ -32,7 +46,7 @@ export async function runMultipleNodes(
     context,
     numServiceNodes,
     strictChecking,
-    networkConfig,
+    routingInfo,
     customArgs,
     withoutFilter
   );
@@ -42,7 +56,7 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    networkConfig,
+    networkConfig: routingInfo.networkConfig,
     lightPush: { numPeersToUse: numServiceNodes },
     discovery: DEFAULT_DISCOVERIES_ENABLED,
     ...jsWakuParams
@@ -54,12 +68,37 @@ export async function runMultipleNodes(
     throw new Error("Failed to initialize waku");
   }
 
+  const pubsubTopics = [];
+
+  pubsubTopics.push(routingInfo.pubsubTopic);
+
+  if (customArgs?.shard) {
+    const shards = customArgs?.shard ?? [];
+    for (const s of shards) {
+      pubsubTopics.push(formatPubsubTopic(routingInfo.clusterId, s));
+    }
+  }
+
+  if (customArgs?.contentTopic && isAutoShardingRoutingInfo(routingInfo)) {
+    const contentTopics = customArgs?.contentTopic ?? [];
+    for (const ct of contentTopics) {
+      pubsubTopics.push(
+        contentTopicToPubsubTopic(
+          ct,
+          routingInfo.clusterId,
+          routingInfo.networkConfig.numShardsInCluster
+        )
+      );
+    }
+  }
+
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    await node.ensureSubscriptions(
-      derivePubsubTopicsFromNetworkConfig(networkConfig)
-    );
+
+    if (pubsubTopics.length > 0) {
+      await node.ensureSubscriptions(pubsubTopics);
+    }
 
     const wakuConnections = waku.libp2p.getConnections();
 

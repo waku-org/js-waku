@@ -13,21 +13,12 @@ import type { ILightPush } from "./light_push.js";
 import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
+import type { ShardId } from "./sharding.js";
 import type { IStore } from "./store.js";
-
-type AutoShardSingle = {
-  clusterId: number;
-  shardsUnderCluster: number;
-};
-
-type StaticShardSingle = {
-  clusterId: number;
-  shard: number;
-};
 
 export type CreateDecoderParams = {
   contentTopic: string;
-  shardInfo?: AutoShardSingle | StaticShardSingle;
+  shardId?: ShardId;
 };
 
 export type CreateEncoderParams = CreateDecoderParams & {

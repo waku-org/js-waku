@@ -5,7 +5,8 @@
  * @module
  */
 
-import { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
+import { AutoSharding, ShardInfo } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 
 export const NOISE_KEY_1 = new Uint8Array(
   ((): number[] => {
@@ -46,11 +47,27 @@ export const TEST_STRING = [
   { description: "Arabic", value: "مرحبا" },
   { description: "Russian", value: "Привет" },
   { description: "SQL Injection", value: "'; DROP TABLE users; --" },
-  { description: "Script", value: '<script>alert("hacked");</script>' },
-  { description: "XML", value: "<element>Some content</element>" },
-  { description: "Basic HTML tag", value: "<h1>Heading</h1>" },
+  {
+    description: "Script",
+    value: '<script>alert("hacked");</script>',
+    invalidContentTopic: true
+  },
+  {
+    description: "XML",
+    value: "<element>Some content</element>",
+    invalidContentTopic: true
+  },
+  {
+    description: "Basic HTML tag",
+    value: "<h1>Heading</h1>",
+    invalidContentTopic: true
+  },
   { description: "JSON", value: '{"user":"admin","password":"123456"}' },
-  { description: "shell command", value: "`rm -rf /`" },
+  {
+    description: "shell command",
+    value: "`rm -rf /`",
+    invalidContentTopic: true
+  },
   { description: "escaped characters", value: "\\n\\t\\0" },
   { description: "unicode special characters", value: "\u202Ereverse" },
   { description: "emoji", value: "🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫨 🫠 🙄 😯 😦 😧 😮" }
@@ -68,12 +85,18 @@ export const MOCHA_HOOK_MAX_TIMEOUT = 50_000;
 export const SEPOLIA_RPC_URL =
   process.env.SEPOLIA_RPC_URL || "https://sepolia.gateway.tenderly.co";
 
-export const DefaultTestPubsubTopic: PubsubTopic = "/waku/2/rs/0/0";
+export const DefaultTestClusterId = 0;
+export const DefaultTestNumShardsInCluster = 10;
+export const DefaultTestNetworkConfig: AutoSharding = {
+  clusterId: DefaultTestClusterId,
+  numShardsInCluster: DefaultTestNumShardsInCluster
+};
 export const DefaultTestShardInfo: ShardInfo = {
-  clusterId: 0,
+  clusterId: DefaultTestClusterId,
   shards: [0]
 };
-export const DefaultTestSingleShardInfo: SingleShardInfo = {
-  clusterId: 0,
-  shard: 0
-};
+export const DefaultTestContentTopic = "/test/1/content-topic/proto";
+export const DefaultTestRoutingInfo = createRoutingInfo(
+  DefaultTestNetworkConfig,
+  { contentTopic: DefaultTestContentTopic }
+);

@@ -16,7 +16,7 @@ describe("Peer Exchange Continuous Discovery", () => {
   let randomPeerId: PeerId;
   let waku: LightNode;
   const shardInfo: ShardInfo = {
-    clusterId: 1,
+    clusterId: 2,
     shards: [1, 2]
   };
   const multiaddrs = [multiaddr("/ip4/127.0.0.1/udp/1234")];

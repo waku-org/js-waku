@@ -1,6 +1,7 @@
 import { Peer, PeerId } from "@libp2p/interface";
 import { createEncoder, Encoder, LightPushCodec } from "@waku/core";
 import { Libp2p, ProtocolError } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import sinon, { SinonSpy } from "sinon";
@@ -9,7 +10,14 @@ import { PeerManager } from "../peer_manager/index.js";
 
 import { LightPush } from "./light_push.js";
 
-const CONTENT_TOPIC = "/test/1/waku-light-push/utf8";
+const testContentTopic = "/test/1/waku-light-push/utf8";
+const testRoutingInfo = createRoutingInfo(
+  {
+    clusterId: 0,
+    numShardsInCluster: 7
+  },
+  { contentTopic: testContentTopic }
+);
 
 describe("LightPush SDK", () => {
   let libp2p: Libp2p;
@@ -18,7 +26,10 @@ describe("LightPush SDK", () => {
 
   beforeEach(() => {
     libp2p = mockLibp2p();
-    encoder = createEncoder({ contentTopic: CONTENT_TOPIC });
+    encoder = createEncoder({
+      contentTopic: testContentTopic,
+      routingInfo: testRoutingInfo
+    });
     lightPush = mockLightPush({ libp2p });
   });
 

@@ -6,7 +6,6 @@ import {
 } from "@waku/discovery";
 import type { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { singleShardInfosToShardInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import { afterEachCustom, tearDownNodes } from "../../src/index.js";
@@ -36,8 +35,7 @@ describe("Peer Exchange", () => {
         )
         .filter((ma) => ma.includes("wss"));
 
-      const singleShardInfo = { clusterId: 1, shard: 1 };
-      const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+      const networkConfig = { clusterId: 2, numShardsInCluster: 0 };
       waku = await createLightNode({
         libp2p: {
           peerDiscovery: [
@@ -45,7 +43,7 @@ describe("Peer Exchange", () => {
             wakuPeerExchangeDiscovery()
           ]
         },
-        networkConfig: shardInfo
+        networkConfig
       });
 
       await waku.start();

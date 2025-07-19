@@ -37,14 +37,20 @@ describe("RLN codec with version 0", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = createRLNEncoder({
-      encoder: createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      encoder: createEncoder({
+        contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     });
     const rlnDecoder = createRLNDecoder({
       rlnInstance,
-      decoder: createDecoder(TEST_CONSTANTS.contentTopic)
+      decoder: createDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo
+      )
     });
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -65,14 +71,17 @@ describe("RLN codec with version 0", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      createEncoder({
+        contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TEST_CONSTANTS.contentTopic, TEST_CONSTANTS.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
@@ -96,6 +105,7 @@ describe("RLN codec with version 1", () => {
     const rlnEncoder = new RLNEncoder(
       createSymEncoder({
         contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
         symKey
       }),
       rlnInstance,
@@ -104,7 +114,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createSymDecoder(TEST_CONSTANTS.contentTopic, symKey)
+      createSymDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo,
+        symKey
+      )
     );
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -128,6 +142,7 @@ describe("RLN codec with version 1", () => {
     const rlnEncoder = new RLNEncoder(
       createSymEncoder({
         contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
         symKey
       }),
       rlnInstance,
@@ -136,7 +151,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createSymDecoder(TEST_CONSTANTS.contentTopic, symKey)
+      createSymDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo,
+        symKey
+      )
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
@@ -159,6 +178,7 @@ describe("RLN codec with version 1", () => {
     const rlnEncoder = new RLNEncoder(
       createAsymEncoder({
         contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
         publicKey
       }),
       rlnInstance,
@@ -167,7 +187,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createAsymDecoder(TEST_CONSTANTS.contentTopic, privateKey)
+      createAsymDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo,
+        privateKey
+      )
     );
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -192,6 +216,7 @@ describe("RLN codec with version 1", () => {
     const rlnEncoder = new RLNEncoder(
       createAsymEncoder({
         contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
         publicKey
       }),
       rlnInstance,
@@ -200,7 +225,11 @@ describe("RLN codec with version 1", () => {
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createAsymDecoder(TEST_CONSTANTS.contentTopic, privateKey)
+      createAsymDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo,
+        privateKey
+      )
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
@@ -221,14 +250,17 @@ describe("RLN Codec - epoch", () => {
       await createTestRLNCodecSetup();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic }),
+      createEncoder({
+        contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TEST_CONSTANTS.contentTopic, TEST_CONSTANTS.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });
@@ -258,6 +290,7 @@ describe("RLN codec with version 0 and meta setter", () => {
     const rlnEncoder = createRLNEncoder({
       encoder: createEncoder({
         contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
         metaSetter
       }),
       rlnInstance,
@@ -266,7 +299,10 @@ describe("RLN codec with version 0 and meta setter", () => {
     });
     const rlnDecoder = createRLNDecoder({
       rlnInstance,
-      decoder: createDecoder(TEST_CONSTANTS.contentTopic)
+      decoder: createDecoder(
+        TEST_CONSTANTS.contentTopic,
+        TEST_CONSTANTS.routingInfo
+      )
     });
 
     const bytes = await rlnEncoder.toWire({ payload });
@@ -294,14 +330,18 @@ describe("RLN codec with version 0 and meta setter", () => {
     const metaSetter = createTestMetaSetter();
 
     const rlnEncoder = new RLNEncoder(
-      createEncoder({ contentTopic: TEST_CONSTANTS.contentTopic, metaSetter }),
+      createEncoder({
+        contentTopic: TEST_CONSTANTS.contentTopic,
+        routingInfo: TEST_CONSTANTS.routingInfo,
+        metaSetter
+      }),
       rlnInstance,
       index,
       credential
     );
     const rlnDecoder = new RLNDecoder(
       rlnInstance,
-      createDecoder(TEST_CONSTANTS.contentTopic)
+      createDecoder(TEST_CONSTANTS.contentTopic, TEST_CONSTANTS.routingInfo)
     );
 
     const proto = await rlnEncoder.toProtoObj({ payload });

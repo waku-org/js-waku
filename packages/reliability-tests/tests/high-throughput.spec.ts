@@ -1,15 +1,9 @@
 import { LightNode, Protocols } from "@waku/interfaces";
+import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import {
-  createDecoder,
-  createEncoder,
-  createLightNode,
-  utf8ToBytes
-} from "@waku/sdk";
-import {
-  delay,
-  shardInfoToPubsubTopics,
-  singleShardInfosToShardInfo,
-  singleShardInfoToPubsubTopic
+  contentTopicToPubsubTopic,
+  createRoutingInfo,
+  delay
 } from "@waku/utils";
 import { expect } from "chai";
 
@@ -41,8 +35,7 @@ describe("High Throughput Messaging", function () {
   });
 
   it("Send/Receive thousands of messages quickly", async function () {
-    const singleShardInfo = { clusterId: 0, shard: 0 };
-    const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+    const networkConfig = { clusterId: 0, numShardsInCluster: 8 };
 
     const testStart = new Date();
     const testEnd = Date.now() + testDurationMs;
@@ -60,8 +53,8 @@ describe("High Throughput Messaging", function () {
         store: true,
         filter: true,
         relay: true,
-        clusterId: 0,
-        shard: [0],
+        clusterId: networkConfig.clusterId,
+        numShardsInNetwork: networkConfig.numShardsInCluster,
         contentTopic: [ContentTopic]
       },
       { retries: 3 }
@@ -69,28 +62,28 @@ describe("High Throughput Messaging", function () {
 
     await delay(1000);
 
-    await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
+    await nwaku.ensureSubscriptions([
+      contentTopicToPubsubTopic(
+        ContentTopic,
+        networkConfig.clusterId,
+        networkConfig.numShardsInCluster
+      )
+    ]);
 
-    waku = await createLightNode({ networkConfig: shardInfo });
+    waku = await createLightNode({ networkConfig });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter]);
 
-    const decoder = createDecoder(ContentTopic, singleShardInfo);
+    const routingInfo = createRoutingInfo(networkConfig, {
+      contentTopic: ContentTopic
+    });
+    const decoder = createDecoder(ContentTopic, routingInfo);
     const hasSubscribed = await waku.filter.subscribe(
       [decoder],
       messageCollector.callback
     );
     if (!hasSubscribed) throw new Error("Failed to subscribe from the start.");
-
-    const encoder = createEncoder({
-      contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleShardInfo
-    });
-
-    expect(encoder.pubsubTopic).to.eq(
-      singleShardInfoToPubsubTopic(singleShardInfo)
-    );
 
     let messageId = 0;
 
@@ -107,7 +100,8 @@ describe("High Throughput Messaging", function () {
           ServiceNode.toMessageRpcQuery({
             contentTopic: ContentTopic,
             payload: utf8ToBytes(message)
-          })
+          }),
+          routingInfo
         );
         sent = true;
 
@@ -119,7 +113,7 @@ describe("High Throughput Messaging", function () {
           messageCollector.verifyReceivedMessage(0, {
             expectedMessageText: message,
             expectedContentTopic: ContentTopic,
-            expectedPubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
+            expectedPubsubTopic: routingInfo.pubsubTopic
           });
         }
       } catch (e: any) {

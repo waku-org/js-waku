@@ -5,7 +5,7 @@ import { createLightNode } from "@waku/sdk";
 
 import {
   beforeEachCustom,
-  DefaultTestShardInfo,
+  DefaultTestNetworkConfig,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -40,7 +40,9 @@ describe("Peer Exchange", function () {
 
     tests({
       async setup() {
-        waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
+        waku = await createLightNode({
+          networkConfig: DefaultTestNetworkConfig
+        });
         await waku.start();
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();

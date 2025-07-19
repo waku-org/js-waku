@@ -1,3 +1,5 @@
+import type { ClusterId, ShardId } from "@waku/interfaces";
+
 export interface Args {
   staticnode?: string;
   nat?: "none";
@@ -21,8 +23,9 @@ export interface Args {
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
-  clusterId?: number;
-  shard?: Array<number>;
+  clusterId?: ClusterId;
+  shard?: Array<ShardId>;
+  numShardsInNetwork?: number;
   rlnRelayEthClientAddress?: string;
 }
 

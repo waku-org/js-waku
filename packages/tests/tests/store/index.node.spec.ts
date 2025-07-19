@@ -14,6 +14,7 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
+import { createRoutingInfo } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
@@ -35,12 +36,11 @@ import {
   runStoreNodes,
   sendMessages,
   startAndConnectLightNode,
-  TestContentTopic1,
+  TestContentTopic,
   TestDecoder,
-  TestDecoder2,
   TestEncoder,
-  TestPubsubTopic1,
-  TestShardInfo,
+  TestNetworkConfig,
+  TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -51,7 +51,7 @@ describe("Waku Store, general", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -63,13 +63,13 @@ describe("Waku Store, general", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
 
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      TestDecoder.pubsubTopic
+      TestRoutingInfo.pubsubTopic
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -89,7 +89,7 @@ describe("Waku Store, general", function () {
             payload: utf8ToBytes(testItem["value"]),
             contentTopic: TestDecoder.contentTopic
           }),
-          TestDecoder.pubsubTopic
+          TestRoutingInfo
         )
       ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
@@ -99,7 +99,7 @@ describe("Waku Store, general", function () {
     messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder],
-      TestDecoder.pubsubTopic
+      TestRoutingInfo.pubsubTopic
     );
 
     // checking that all message sent were retrieved
@@ -111,57 +111,69 @@ describe("Waku Store, general", function () {
   });
 
   it("Query generator for multiple messages with multiple decoders", async function () {
-    const SecondDecoder = createDecoder(
-      TestDecoder2.contentTopic,
-      TestDecoder.pubsubTopic
-    );
+    const secondContentTopic = "/test/1/waku-store-two/utf8";
+    const secondRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+      contentTopic: secondContentTopic
+    });
+    const secondDecoder = createDecoder(secondContentTopic, secondRoutingInfo);
 
     await nwaku.sendMessage(
       ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M1"),
-        contentTopic: TestDecoder.contentTopic
+        contentTopic: TestContentTopic
       }),
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
     await nwaku.sendMessage(
       ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M2"),
-        contentTopic: SecondDecoder.contentTopic
+        contentTopic: secondContentTopic
       }),
-      SecondDecoder.pubsubTopic
+      secondRoutingInfo
     );
 
     const messageCollector = new MessageCollector(nwaku);
     messageCollector.list = await processQueriedMessages(
       waku,
-      [TestDecoder, SecondDecoder],
-      TestDecoder.pubsubTopic
+      [TestDecoder, secondDecoder],
+      TestRoutingInfo.pubsubTopic
     );
     expect(messageCollector.hasMessage(TestDecoder.contentTopic, "M1")).to.eq(
       true
     );
-    expect(messageCollector.hasMessage(SecondDecoder.contentTopic, "M2")).to.eq(
-      true
-    );
+    expect(messageCollector.hasMessage(secondContentTopic, "M2")).to.eq(true);
   });
 
   it("Query generator for multiple messages with different content topic format", async function () {
     for (const testItem of TEST_STRING) {
+      if (testItem.invalidContentTopic) continue;
+
+      const contentTopic = `/test/1/${testItem.value}/proto`;
+      const routingInfo = createRoutingInfo(TestNetworkConfig, {
+        contentTopic
+      });
       expect(
         await nwaku.sendMessage(
           ServiceNode.toMessageRpcQuery({
             payload: utf8ToBytes(messageText),
-            contentTopic: testItem["value"]
+            contentTopic
           }),
-          TestDecoder.pubsubTopic
+          routingInfo
         )
       ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
     for (const testItem of TEST_STRING) {
+      if (testItem.invalidContentTopic) continue;
+
+      const contentTopic = `/test/1/${testItem.value}/proto`;
+      const routingInfo = createRoutingInfo(TestNetworkConfig, {
+        contentTopic
+      });
+
       for await (const query of waku.store.queryGenerator([
-        createDecoder(testItem["value"], TestDecoder.pubsubTopic)
+        createDecoder(contentTopic, routingInfo)
       ])) {
         for await (const msg of query) {
           expect(equals(msg!.payload, utf8ToBytes(messageText))).to.eq(true);
@@ -175,7 +187,7 @@ describe("Waku Store, general", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
 
     const messages: IMessage[] = [];
@@ -201,7 +213,7 @@ describe("Waku Store, general", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
 
     const desiredMsgs = 14;
@@ -254,32 +266,28 @@ describe("Waku Store, general", function () {
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
       publicKey,
-      pubsubTopic: TestPubsubTopic1
+      routingInfo: TestRoutingInfo
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
       symKey,
-      pubsubTopic: TestPubsubTopic1
+      routingInfo: TestRoutingInfo
     });
 
     const otherEncoder = createEciesEncoder({
-      contentTopic: TestContentTopic1,
-      pubsubTopic: TestPubsubTopic1,
+      contentTopic: TestContentTopic,
+      routingInfo: TestRoutingInfo,
       publicKey: getPublicKey(generatePrivateKey())
     });
 
     const eciesDecoder = createEciesDecoder(
       asymTopic,
-      privateKey,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo,
+      privateKey
     );
-    const symDecoder = createSymDecoder(
-      symTopic,
-      symKey,
-      TestDecoder.pubsubTopic
-    );
+    const symDecoder = createSymDecoder(symTopic, TestRoutingInfo, symKey);
 
-    waku2 = await startAndConnectLightNode(nwaku, TestShardInfo);
+    waku2 = await startAndConnectLightNode(nwaku, TestNetworkConfig);
     const nimWakuMultiaddr = await nwaku.getMultiaddrWithId();
     await waku2.dial(nimWakuMultiaddr);
 
@@ -320,7 +328,7 @@ describe("Waku Store, general", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
 
     const desiredMsgs = 14;
@@ -339,17 +347,12 @@ describe("Waku Store, general", function () {
 
   it("Query generator for 2000 messages", async function () {
     this.timeout(40000);
-    await sendMessages(
-      nwaku,
-      2000,
-      TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
-    );
+    await sendMessages(nwaku, 2000, TestDecoder.contentTopic, TestRoutingInfo);
 
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      TestDecoder.pubsubTopic
+      TestRoutingInfo.pubsubTopic
     );
 
     expect(messages?.length).eq(2000);

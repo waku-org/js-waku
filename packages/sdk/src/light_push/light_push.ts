@@ -124,7 +124,7 @@ export class LightPush implements ILightPush {
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS,
-        encoder.pubsubTopic
+        encoder.routingInfo
       );
     }
 

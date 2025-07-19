@@ -12,7 +12,8 @@ import {
   runStoreNodes,
   sendMessages,
   TestDecoder,
-  TestShardInfo
+  TestNetworkConfig,
+  TestRoutingInfo
 } from "./utils.js";
 
 describe("Waku Store, page size", function () {
@@ -21,7 +22,7 @@ describe("Waku Store, page size", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -42,7 +43,7 @@ describe("Waku Store, page size", function () {
         nwaku,
         messageCount,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       // Determine effectivePageSize for test expectations
@@ -77,12 +78,7 @@ describe("Waku Store, page size", function () {
 
   // Possible issue here because pageSize differs across implementations
   it("Default pageSize", async function () {
-    await sendMessages(
-      nwaku,
-      20,
-      TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
-    );
+    await sendMessages(nwaku, 20, TestDecoder.contentTopic, TestRoutingInfo);
 
     let messagesRetrieved = 0;
     for await (const query of waku.store.queryGenerator([TestDecoder])) {

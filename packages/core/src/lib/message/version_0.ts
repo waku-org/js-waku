@@ -7,11 +7,11 @@ import type {
   IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
-  PubsubTopic,
-  SingleShardInfo
+  IRoutingInfo,
+  PubsubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -71,12 +71,16 @@ export class Encoder implements IEncoder {
   public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubsubTopic: PubsubTopic,
+    public routingInfo: IRoutingInfo,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
   }
 
   public async toWire(message: IMessage): Promise<Uint8Array> {
@@ -112,30 +116,30 @@ export class Encoder implements IEncoder {
  * format to be sent over the Waku network. The resulting encoder can then be
  * pass to { @link @waku/interfaces!ISender.send } to automatically encode outgoing
  * messages.
+ *
+ * Note that a routing info may be tied to a given content topic, this is not checked by the encoder.
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
+  routingInfo,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(
-    contentTopic,
-    ephemeral,
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
-    metaSetter
-  );
+  return new Encoder(contentTopic, ephemeral, routingInfo, metaSetter);
 }
 
 export class Decoder implements IDecoder<IDecodedMessage> {
   public constructor(
-    public pubsubTopic: PubsubTopic,
-    public contentTopic: string
+    public contentTopic: string,
+    public routingInfo: IRoutingInfo
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
   }
 
   public fromWireToProtoObj(
@@ -182,13 +186,13 @@ export class Decoder implements IDecoder<IDecodedMessage> {
  * messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param routingInfo Routing information such as cluster id and shard id on which the message is expected to be received.
+ *
+ * Note that a routing info may be tied to a given content topic, this is not checked by the encoder.
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  routingInfo: IRoutingInfo
 ): Decoder {
-  return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
-    contentTopic
-  );
+  return new Decoder(contentTopic, routingInfo);
 }
