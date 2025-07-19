@@ -1,12 +1,10 @@
 import { FilterCore } from "@waku/core";
 import type {
-  AutoSharding,
   FilterProtocolOptions,
   IDecodedMessage,
   IDecoder
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -16,13 +14,7 @@ import { Subscription } from "./subscription.js";
 
 const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
-const NETWORK_CONFIG: AutoSharding = {
-  clusterId: 2,
-  numShardsInCluster: 3
-};
-const ROUTING_INFO = createRoutingInfo(NETWORK_CONFIG, {
-  contentTopic: CONTENT_TOPIC
-});
+
 describe("Filter Subscription", () => {
   let filterCore: FilterCore;
   let peerManager: PeerManager;
@@ -40,7 +32,7 @@ describe("Filter Subscription", () => {
     };
 
     subscription = new Subscription({
-      routingInfo: ROUTING_INFO,
+      pubsubTopic: PUBSUB_TOPIC,
       protocol: filterCore,
       config,
       peerManager
@@ -87,11 +79,9 @@ describe("Filter Subscription", () => {
   });
 
   it("should invoke callbacks when receiving a message", async () => {
-    const testContentTopic = "/custom/0/content/proto";
+    const testContentTopic = "/custom/content/topic";
     const testDecoder = {
-      routingInfo: createRoutingInfo(NETWORK_CONFIG, {
-        contentTopic: testContentTopic
-      }),
+      pubsubTopic: PUBSUB_TOPIC,
       contentTopic: testContentTopic,
       fromProtoObj: sinon.stub().callsFake(() => {
         return Promise.resolve({ payload: new Uint8Array([1, 2, 3]) });
@@ -116,11 +106,9 @@ describe("Filter Subscription", () => {
   });
 
   it("should invoke callbacks only when newly receiving message is given", async () => {
-    const testContentTopic = "/custom/0/content/topic";
+    const testContentTopic = "/custom/content/topic";
     const testDecoder = {
-      routingInfo: createRoutingInfo(NETWORK_CONFIG, {
-        contentTopic: testContentTopic
-      }),
+      pubsubTopic: PUBSUB_TOPIC,
       contentTopic: testContentTopic,
       fromProtoObj: sinon.stub().callsFake(() => {
         return Promise.resolve({ payload: new Uint8Array([1, 2, 3]) });

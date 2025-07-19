@@ -95,13 +95,14 @@ export interface IEncoder {
   contentTopic: string;
   ephemeral: boolean;
   routingInfo: IRoutingInfo;
+  pubsubTopic: PubsubTopic;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
-  routingInfo: IRoutingInfo;
+  pubsubTopic: PubsubTopic;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,

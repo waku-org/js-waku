@@ -77,13 +77,13 @@ export class LightPush implements ILightPush {
       ...options
     };
 
-    const { pubsubTopic } = encoder.routingInfo;
+    const { pubsubTopic } = encoder;
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
     const peerIds = await this.peerManager.getPeers({
       protocol: Protocols.LightPush,
-      routingInfo: encoder.routingInfo
+      pubsubTopic: encoder.pubsubTopic
     });
 
     const coreResults: CoreProtocolResult[] =

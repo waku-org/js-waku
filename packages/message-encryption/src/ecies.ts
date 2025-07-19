@@ -7,7 +7,8 @@ import {
   type IMessage,
   type IMetaSetter,
   type IProtoMessage,
-  type IRoutingInfo
+  type IRoutingInfo,
+  type PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -44,6 +45,10 @@ class Encoder implements IEncoder {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
   }
 
   public async toWire(message: IMessage): Promise<Uint8Array | undefined> {

@@ -153,9 +153,7 @@ describe("Sets sharding configuration correctly", () => {
     });
 
     // When autosharding is enabled, we expect the shard index to be 1
-    expect(autoshardingEncoder.routingInfo.pubsubTopic).to.be.eq(
-      "/waku/2/rs/0/0"
-    );
+    expect(autoshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/0");
 
     // Create an encoder setup to use static sharding with the same content topic
     const staticshardingEncoder = createEncoder({
@@ -164,8 +162,6 @@ describe("Sets sharding configuration correctly", () => {
     });
 
     // When static sharding is enabled, we expect the shard index to be 0
-    expect(staticshardingEncoder.routingInfo.pubsubTopic).to.be.eq(
-      "/waku/2/rs/0/3"
-    );
+    expect(staticshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/3");
   });
 });

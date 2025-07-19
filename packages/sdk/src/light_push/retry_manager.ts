@@ -100,7 +100,7 @@ export class RetryManager {
     const peerId = (
       await this.peerManager.getPeers({
         protocol: Protocols.LightPush,
-        routingInfo: task.routingInfo
+        pubsubTopic: task.routingInfo.pubsubTopic
       })
     )[0];
 
@@ -146,7 +146,7 @@ export class RetryManager {
       if (shouldPeerBeChanged(error.message)) {
         await this.peerManager.renewPeer(peerId, {
           protocol: Protocols.LightPush,
-          routingInfo: task.routingInfo
+          pubsubTopic: task.routingInfo.pubsubTopic
         });
       }
 

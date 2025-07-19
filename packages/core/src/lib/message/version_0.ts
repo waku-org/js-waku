@@ -7,7 +7,8 @@ import type {
   IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
-  IRoutingInfo
+  IRoutingInfo,
+  PubsubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -78,6 +79,10 @@ export class Encoder implements IEncoder {
     }
   }
 
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
+  }
+
   public async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
@@ -131,6 +136,10 @@ export class Decoder implements IDecoder<IDecodedMessage> {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
   }
 
   public fromWireToProtoObj(

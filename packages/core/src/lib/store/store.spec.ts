@@ -2,7 +2,6 @@ import type { PeerId } from "@libp2p/interface";
 import {
   IDecodedMessage,
   IDecoder,
-  IRoutingInfo,
   Libp2p,
   QueryRequestParams
 } from "@waku/interfaces";
@@ -79,15 +78,9 @@ describe("StoreCore", () => {
     let mockStoreQueryRequest: any;
     let mockStoreQueryResponse: any;
 
-    const routingInfo: IRoutingInfo = {
-      pubsubTopic: "test-topic",
-      shardId: 1,
-      clusterId: 0
-    };
-
     beforeEach(() => {
       queryOpts = {
-        routingInfo,
+        pubsubTopic: "test-topic",
         contentTopics: ["test-topic"],
         paginationLimit: 10,
         includeData: true,

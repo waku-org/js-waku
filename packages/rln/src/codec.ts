@@ -5,7 +5,8 @@ import type {
   IMessage,
   IProtoMessage,
   IRateLimitProof,
-  IRoutingInfo
+  IRoutingInfo,
+  PubsubTopic
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -26,6 +27,10 @@ export class RLNEncoder implements IEncoder {
   ) {
     if (index < 0) throw new Error("Invalid membership index");
     this.idSecretHash = identityCredential.IDSecretHash;
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.encoder.pubsubTopic;
   }
 
   public async toWire(message: IMessage): Promise<Uint8Array | undefined> {
@@ -93,8 +98,8 @@ export class RLNDecoder<T extends IDecodedMessage>
     private readonly decoder: IDecoder<T>
   ) {}
 
-  public get routingInfo(): IRoutingInfo {
-    return this.decoder.routingInfo;
+  public get pubsubTopic(): PubsubTopic {
+    return this.decoder.pubsubTopic;
   }
 
   public get contentTopic(): string {

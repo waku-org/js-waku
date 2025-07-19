@@ -128,7 +128,7 @@ export class Relay implements IRelay {
     encoder: IEncoder,
     message: IMessage
   ): Promise<SDKProtocolResult> {
-    const { pubsubTopic } = encoder.routingInfo;
+    const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
@@ -180,7 +180,7 @@ export class Relay implements IRelay {
     const observers: Array<[PubsubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
-      const { pubsubTopic } = decoder.routingInfo;
+      const { pubsubTopic } = decoder;
       const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
         pubsubTopic
       ) ?? new Map();

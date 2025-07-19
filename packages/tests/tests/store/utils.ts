@@ -10,7 +10,6 @@ import {
   LightNode,
   type NetworkConfig,
   Protocols,
-  RelayShards,
   ShardId
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
@@ -34,10 +33,7 @@ export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
   contentTopic: TestContentTopic
 });
 
-export const TestRelayShards: RelayShards = {
-  clusterId: TestClusterId,
-  shards: [TestRoutingInfo.shardId]
-};
+export const TestPubsubTopic = TestRoutingInfo.pubsubTopic;
 
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,

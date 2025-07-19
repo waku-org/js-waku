@@ -15,6 +15,7 @@ import {
   sendMessages,
   TestDecoder,
   TestNetworkConfig,
+  TestPubsubTopic,
   TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
@@ -74,7 +75,7 @@ describe("Waku Store, message hash query", function () {
     const messages: IDecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
       messageHashes,
-      routingInfo: TestRoutingInfo
+      pubsubTopic: TestPubsubTopic
     })) {
       for await (const msg of page) {
         messages.push(msg as IDecodedMessage);

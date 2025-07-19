@@ -5,7 +5,6 @@ import { messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
-  type IRoutingInfo,
   IStore,
   Libp2p,
   Protocols,
@@ -66,7 +65,7 @@ export class Store implements IStore {
     );
 
     for (const queryOption of queryOptions) {
-      const peer = await this.getPeerToUse(queryOption.routingInfo);
+      const peer = await this.getPeerToUse(queryOption.pubsubTopic);
 
       if (!peer) {
         log.error("No peers available to query");
@@ -182,7 +181,7 @@ export class Store implements IStore {
   private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
     decoders: IDecoder<T>[]
   ): {
-    routingInfo: IRoutingInfo;
+    pubsubTopic: string;
     contentTopics: string[];
     decodersAsMap: Map<string, IDecoder<T>>;
   } {
@@ -192,7 +191,7 @@ export class Store implements IStore {
     }
 
     const uniquePubsubTopicsInQuery = Array.from(
-      new Set(decoders.map((decoder) => decoder.routingInfo.pubsubTopic))
+      new Set(decoders.map((decoder) => decoder.pubsubTopic))
     );
     if (uniquePubsubTopicsInQuery.length > 1) {
       log.error("API does not support querying multiple pubsub topics at once");
@@ -215,9 +214,7 @@ export class Store implements IStore {
     });
 
     const contentTopics = decoders
-      .filter(
-        (decoder) => decoder.routingInfo.pubsubTopic === pubsubTopicForQuery
-      )
+      .filter((decoder) => decoder.pubsubTopic === pubsubTopicForQuery)
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {
@@ -226,18 +223,16 @@ export class Store implements IStore {
     }
 
     return {
-      routingInfo: decoders[0].routingInfo,
+      pubsubTopic: pubsubTopicForQuery,
       contentTopics,
       decodersAsMap
     };
   }
 
-  private async getPeerToUse(
-    routingInfo: IRoutingInfo
-  ): Promise<PeerId | undefined> {
+  private async getPeerToUse(pubsubTopic: string): Promise<PeerId | undefined> {
     const peers = await this.peerManager.getPeers({
       protocol: Protocols.Store,
-      routingInfo
+      pubsubTopic
     });
 
     return this.options.peers
@@ -302,16 +297,15 @@ export class Store implements IStore {
     const isHashQuery =
       options?.messageHashes && options.messageHashes.length > 0;
 
-    let routingInfo: IRoutingInfo;
+    let pubsubTopic: string;
     let contentTopics: string[];
     let decodersAsMap: Map<string, IDecoder<T>>;
 
     if (isHashQuery) {
       // For hash queries, we still need decoders to decode messages
-      // but we don't validate routing info consistency
-      // Use routing info from options if provided, otherwise from first decoder
-      // Otherwise, throw
-      routingInfo = options?.routingInfo || decoders[0]?.routingInfo;
+      // but we don't validate pubsubTopic consistency
+      // Use pubsubTopic from options if provided, otherwise from first decoder
+      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
       contentTopics = [];
       decodersAsMap = new Map();
       decoders.forEach((dec) => {
@@ -319,7 +313,7 @@ export class Store implements IStore {
       });
     } else {
       const validated = this.validateDecodersAndPubsubTopic(decoders);
-      routingInfo = validated.routingInfo;
+      pubsubTopic = validated.pubsubTopic;
       contentTopics = validated.contentTopics;
       decodersAsMap = validated.decodersAsMap;
     }
@@ -346,7 +340,7 @@ export class Store implements IStore {
         decodersAsMap,
         queryOptions: [
           {
-            routingInfo,
+            pubsubTopic,
             contentTopics,
             includeData: true,
             paginationForward: true,
@@ -361,7 +355,7 @@ export class Store implements IStore {
     return {
       decodersAsMap,
       queryOptions: subTimeRanges.map(([start, end]) => ({
-        routingInfo,
+        pubsubTopic,
         contentTopics,
         includeData: true,
         paginationForward: true,

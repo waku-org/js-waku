@@ -1,25 +1,12 @@
 import { StoreCore } from "@waku/core";
-import {
-  IDecodedMessage,
-  IDecoder,
-  IRoutingInfo,
-  Libp2p
-} from "@waku/interfaces";
+import type { IDecodedMessage, IDecoder, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
 import { PeerManager } from "../peer_manager/index.js";
 
 import { Store } from "./store.js";
-
-const TestNetworkingInfo = { clusterId: 0, numShardsInCluster: 8 };
-const MockRoutingInfo: IRoutingInfo = {
-  pubsubTopic: "/custom/topic",
-  shardId: 1,
-  clusterId: TestNetworkingInfo.clusterId
-};
 
 describe("Store", () => {
   let store: Store;
@@ -74,11 +61,9 @@ describe("Store", () => {
   });
 
   describe("queryGenerator", () => {
-    const contentTopic = "/test/1/test/proto";
-    const routingInfo = createRoutingInfo(TestNetworkingInfo, { contentTopic });
     const mockDecoder: IDecoder<IDecodedMessage> = {
-      routingInfo,
-      contentTopic,
+      pubsubTopic: "/waku/2/default-waku/proto",
+      contentTopic: "/test/1/test/proto",
       fromWireToProtoObj: sinon.stub(),
       fromProtoObj: sinon.stub()
     };
@@ -86,7 +71,7 @@ describe("Store", () => {
     const mockMessage: IDecodedMessage = {
       version: 1,
       pubsubTopic: "/waku/2/default-waku/proto",
-      contentTopic,
+      contentTopic: "/test/1/test/proto",
       payload: new Uint8Array([1, 2, 3]),
       timestamp: new Date(),
       rateLimitProof: undefined,
@@ -113,7 +98,7 @@ describe("Store", () => {
       expect(
         mockPeerManager.getPeers.calledWith({
           protocol: Protocols.Store,
-          routingInfo
+          pubsubTopic: "/waku/2/default-waku/proto"
         })
       ).to.be.true;
 
@@ -265,11 +250,9 @@ describe("Store", () => {
       mockPeerManager.getPeers.resolves([mockPeerId]);
       mockStoreCore.queryPerPage.returns(mockResponseGenerator);
 
-      const routingInfo: IRoutingInfo = structuredClone(MockRoutingInfo);
-      routingInfo.pubsubTopic = "/custom/topic";
       const generator = store.queryGenerator([mockDecoder], {
         messageHashes: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
-        routingInfo
+        pubsubTopic: "/custom/topic"
       });
 
       const results = [];

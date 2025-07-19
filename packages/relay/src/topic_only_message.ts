@@ -2,7 +2,8 @@ import type {
   IDecoder,
   IProtoMessage,
   IRoutingInfo,
-  ITopicOnlyMessage
+  ITopicOnlyMessage,
+  PubsubTopic
 } from "@waku/interfaces";
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
 
@@ -31,6 +32,10 @@ export class TopicOnlyMessage implements ITopicOnlyMessage {
 // This decoder is used only for reading `contentTopic` from the WakuMessage
 export class ContentTopicOnlyDecoder implements IDecoder<ITopicOnlyMessage> {
   public constructor() {}
+
+  public get pubsubTopic(): PubsubTopic {
+    throw "Pubsub Topic is not available on this decoder, it is only meant to decode the content topic for any message";
+  }
 
   public get contentTopic(): string {
     throw "ContentTopic is not available on this decoder, it is only meant to decode the content topic for any message";

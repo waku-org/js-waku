@@ -63,21 +63,21 @@ export class Filter implements IFilter {
       throw Error("Cannot subscribe with 0 decoders.");
     }
 
-    const routingInfos = decoders.map((v) => v.routingInfo);
-    const routingInfo = routingInfos[0];
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
+    const singlePubsubTopic = pubsubTopics[0];
 
     const contentTopics = decoders.map((v) => v.contentTopic);
 
     log.info(
-      `Subscribing to contentTopics: ${contentTopics}, pubsubTopic: ${routingInfo.pubsubTopic}`
+      `Subscribing to contentTopics: ${contentTopics}, pubsubTopic: ${singlePubsubTopic}`
     );
 
-    this.throwIfTopicNotSame(routingInfos.map((r) => r.pubsubTopic));
+    this.throwIfTopicNotSame(pubsubTopics);
 
-    let subscription = this.subscriptions.get(routingInfo.pubsubTopic);
+    let subscription = this.subscriptions.get(singlePubsubTopic);
     if (!subscription) {
       subscription = new Subscription({
-        routingInfo: routingInfo,
+        pubsubTopic: singlePubsubTopic,
         protocol: this.protocol,
         config: this.config,
         peerManager: this.peerManager
@@ -86,7 +86,7 @@ export class Filter implements IFilter {
     }
 
     const result = await subscription.add(decoders, callback);
-    this.subscriptions.set(routingInfo.pubsubTopic, subscription);
+    this.subscriptions.set(singlePubsubTopic, subscription);
 
     log.info(
       `Subscription ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
@@ -104,7 +104,7 @@ export class Filter implements IFilter {
       throw Error("Cannot unsubscribe with 0 decoders.");
     }
 
-    const pubsubTopics = decoders.map((v) => v.routingInfo.pubsubTopic);
+    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
     const singlePubsubTopic = pubsubTopics[0];
 
     const contentTopics = decoders.map((v) => v.contentTopic);

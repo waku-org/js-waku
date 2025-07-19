@@ -8,7 +8,8 @@ import {
   type ThisOrThat
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import { isMessageSizeUnderCap, Logger } from "@waku/utils";
+import { isMessageSizeUnderCap } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -62,10 +63,7 @@ export class LightPushCore {
         };
       }
 
-      const query = PushRpc.createRequest(
-        protoMessage,
-        encoder.routingInfo.pubsubTopic
-      );
+      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);

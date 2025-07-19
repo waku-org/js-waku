@@ -1,17 +1,11 @@
-import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import { StoreQueryRequest } from "./rpc.js";
 
-const routingInfo = createRoutingInfo(
-  { clusterId: 0 },
-  { pubsubTopic: "/waku/2/rs/0/0" }
-);
-
 describe("StoreQueryRequest validation", () => {
   it("accepts valid content-filtered query", () => {
     const request = StoreQueryRequest.create({
-      routingInfo,
+      pubsubTopic: "/waku/2/default-waku/proto",
       contentTopics: ["/test/1/content/proto"],
       includeData: true,
       paginationForward: true
@@ -22,8 +16,21 @@ describe("StoreQueryRequest validation", () => {
   it("rejects content-filtered query with only pubsubTopic", () => {
     expect(() =>
       StoreQueryRequest.create({
-        routingInfo,
+        pubsubTopic: "/waku/2/default-waku/proto",
         contentTopics: [],
+        includeData: true,
+        paginationForward: true
+      })
+    ).to.throw(
+      "Both pubsubTopic and contentTopics must be set together for content-filtered queries"
+    );
+  });
+
+  it("rejects content-filtered query with only contentTopics", () => {
+    expect(() =>
+      StoreQueryRequest.create({
+        pubsubTopic: "",
+        contentTopics: ["/test/1/content/proto"],
         includeData: true,
         paginationForward: true
       })
@@ -34,7 +41,7 @@ describe("StoreQueryRequest validation", () => {
 
   it("accepts valid message hash query", () => {
     const request = StoreQueryRequest.create({
-      routingInfo,
+      pubsubTopic: "",
       contentTopics: [],
       messageHashes: [new Uint8Array([1, 2, 3, 4])],
       includeData: true,
@@ -47,7 +54,7 @@ describe("StoreQueryRequest validation", () => {
     expect(() =>
       StoreQueryRequest.create({
         messageHashes: [new Uint8Array([1, 2, 3, 4])],
-        routingInfo,
+        pubsubTopic: "/waku/2/default-waku/proto",
         contentTopics: ["/test/1/content/proto"],
         includeData: true,
         paginationForward: true
@@ -60,7 +67,7 @@ describe("StoreQueryRequest validation", () => {
   it("rejects hash query with time filter", () => {
     expect(() =>
       StoreQueryRequest.create({
-        routingInfo,
+        pubsubTopic: "",
         contentTopics: [],
         messageHashes: [new Uint8Array([1, 2, 3, 4])],
         timeStart: new Date(),
@@ -74,7 +81,7 @@ describe("StoreQueryRequest validation", () => {
 
   it("accepts time-filtered query with content filter", () => {
     const request = StoreQueryRequest.create({
-      routingInfo,
+      pubsubTopic: "/waku/2/default-waku/proto",
       contentTopics: ["/test/1/content/proto"],
       timeStart: new Date(Date.now() - 3600000),
       timeEnd: new Date(),
