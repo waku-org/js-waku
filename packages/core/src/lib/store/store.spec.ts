@@ -82,9 +82,7 @@ describe("StoreCore", () => {
     const routingInfo: IRoutingInfo = {
       pubsubTopic: "test-topic",
       shardId: 1,
-      networkConfig: { clusterId: 0 },
-      isAutoSharding: false,
-      isStaticSharding: false
+      clusterId: 0
     };
 
     beforeEach(() => {

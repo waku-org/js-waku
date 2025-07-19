@@ -66,7 +66,6 @@ export class MessageCollector {
   public async waitForMessages(
     numMessages: number,
     options?: {
-      // pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
