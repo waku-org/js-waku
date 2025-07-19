@@ -6,8 +6,8 @@ import {
 import type {
   ENRKey,
   ENRValue,
-  RelayShards,
   SequenceNumber,
+  ShardInfo,
   Waku2
 } from "@waku/interfaces";
 import { decodeRelayShard } from "@waku/utils";
@@ -52,13 +52,13 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
     }
   }
 
-  public get rs(): RelayShards | undefined {
+  public get rs(): ShardInfo | undefined {
     const rs = this.get("rs");
     if (!rs) return undefined;
     return decodeRelayShard(rs);
   }
 
-  public get rsv(): RelayShards | undefined {
+  public get rsv(): ShardInfo | undefined {
     const rsv = this.get("rsv");
     if (!rsv) return undefined;
     return decodeRelayShard(rsv);

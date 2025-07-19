@@ -3,8 +3,8 @@ import type {
   ClusterId,
   NetworkConfig,
   PubsubTopic,
-  RelayShards,
-  ShardId
+  ShardId,
+  ShardInfo
 } from "@waku/interfaces";
 import {
   decodeRelayShard,
@@ -96,7 +96,7 @@ export class ShardReader implements IShardReader {
     );
   }
 
-  private async getRelayShards(id: PeerId): Promise<RelayShards | undefined> {
+  private async getRelayShards(id: PeerId): Promise<ShardInfo | undefined> {
     try {
       const peer = await this.libp2p.peerStore.get(id);
 

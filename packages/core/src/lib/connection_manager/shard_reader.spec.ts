@@ -4,7 +4,7 @@ import {
   DEFAULT_NUM_SHARDS,
   NetworkConfig,
   PubsubTopic,
-  RelayShards
+  ShardInfo
 } from "@waku/interfaces";
 import { contentTopicToShardIndex, encodeRelayShard } from "@waku/utils";
 import { expect } from "chai";
@@ -39,7 +39,7 @@ describe("ShardReader", function () {
     numShardsInCluster: DEFAULT_NUM_SHARDS
   };
 
-  const testRelayShards: RelayShards = {
+  const testShardInfo: ShardInfo = {
     clusterId: testClusterId,
     shards: [testShardIndex]
   };
@@ -98,7 +98,7 @@ describe("ShardReader", function () {
 
   describe("isPeerOnNetwork", function () {
     it("should return true when peer is on the same cluster", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -112,7 +112,7 @@ describe("ShardReader", function () {
     });
 
     it("should return false when peer is on different cluster", async function () {
-      const differentClusterShardInfo: RelayShards = {
+      const differentClusterShardInfo: ShardInfo = {
         clusterId: 5,
         shards: [1, 2]
       };
@@ -129,7 +129,7 @@ describe("ShardReader", function () {
     });
 
     it("should return true even if peer has no overlapping shards", async function () {
-      const noOverlapShardInfo: RelayShards = {
+      const noOverlapShardInfo: ShardInfo = {
         clusterId: testClusterId,
         shards: [testShardIndex + 100, testShardIndex + 200] // Use different shards
       };
@@ -168,7 +168,7 @@ describe("ShardReader", function () {
 
   describe("isPeerOnShard", function () {
     it("should return true when peer is on the specified shard", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -185,7 +185,7 @@ describe("ShardReader", function () {
     });
 
     it("should return false when peer is on different cluster", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -202,7 +202,7 @@ describe("ShardReader", function () {
     });
 
     it("should return false when peer is not on the specified shard", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -233,7 +233,7 @@ describe("ShardReader", function () {
 
   describe("isPeerOnTopic", function () {
     it("should return true when peer is on the pubsub topic shard", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -248,7 +248,7 @@ describe("ShardReader", function () {
     });
 
     it("should return false when peer is not on the pubsub topic shard", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };
@@ -263,7 +263,7 @@ describe("ShardReader", function () {
     });
 
     it("should return false when pubsub topic parsing fails", async function () {
-      const shardInfoBytes = encodeRelayShard(testRelayShards);
+      const shardInfoBytes = encodeRelayShard(testShardInfo);
       const mockPeer = {
         metadata: new Map([["shardInfo", shardInfoBytes]])
       };

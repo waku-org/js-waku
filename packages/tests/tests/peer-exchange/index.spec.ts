@@ -12,7 +12,7 @@ import {
   beforeEachCustom,
   DefaultTestClusterId,
   DefaultTestNetworkConfig,
-  DefaultTestRelayShards,
+  DefaultTestShardInfo,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -33,14 +33,14 @@ describe("Peer Exchange", function () {
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({
       clusterId: DefaultTestClusterId,
-      shard: DefaultTestRelayShards.shards,
+      shard: DefaultTestShardInfo.shards,
       discv5Discovery: true,
       peerExchange: true,
       relay: true
     });
     await nwaku2.start({
       clusterId: DefaultTestClusterId,
-      shard: DefaultTestRelayShards.shards,
+      shard: DefaultTestShardInfo.shards,
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
@@ -120,7 +120,7 @@ describe("Peer Exchange", function () {
     nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
     await nwaku3.start({
       clusterId: DefaultTestClusterId,
-      shard: DefaultTestRelayShards.shards,
+      shard: DefaultTestShardInfo.shards,
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,

@@ -10,7 +10,7 @@ import type {
 import {
   type Libp2pComponents,
   type PeerExchangeQueryResult,
-  type RelayShards,
+  ShardInfo,
   Tags
 } from "@waku/interfaces";
 import { decodeRelayShard, encodeRelayShard, Logger } from "@waku/utils";
@@ -279,7 +279,7 @@ export class PeerExchangeDiscovery
 
   private async checkPeerInfoDiff(
     peerInfo: PeerInfo,
-    shardInfo?: RelayShards
+    shardInfo?: ShardInfo
   ): Promise<{ hasMultiaddrDiff: boolean; hasShardDiff: boolean }> {
     const { id: peerId } = peerInfo;
     const peer = await this.components.peerStore.get(peerId);

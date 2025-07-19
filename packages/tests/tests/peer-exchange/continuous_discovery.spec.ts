@@ -3,8 +3,8 @@ import { type PeerId } from "@libp2p/interface";
 import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import { PeerExchangeDiscovery } from "@waku/discovery";
-import { IEnr, LightNode, RelayShards } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { IEnr, LightNode } from "@waku/interfaces";
+import { createLightNode, ShardInfo } from "@waku/sdk";
 import { decodeRelayShard } from "@waku/utils";
 import { expect } from "chai";
 import Sinon from "sinon";
@@ -15,7 +15,7 @@ describe("Peer Exchange Continuous Discovery", () => {
   let peerId: PeerId;
   let randomPeerId: PeerId;
   let waku: LightNode;
-  const relayShards: RelayShards = {
+  const shardInfo: ShardInfo = {
     clusterId: 2,
     shards: [1, 2]
   };
@@ -38,7 +38,7 @@ describe("Peer Exchange Continuous Discovery", () => {
     const newPeerInfo = {
       ENR: {
         peerId,
-        shardInfo: relayShards,
+        shardInfo,
         peerInfo: {
           multiaddrs: newMultiaddrs,
           id: peerId
@@ -59,14 +59,14 @@ describe("Peer Exchange Continuous Discovery", () => {
   });
 
   it("Should update shard info", async () => {
-    const newRelayShards: RelayShards = {
+    const newShardInfo: ShardInfo = {
       clusterId: 2,
       shards: [1, 2, 3]
     };
     const newPeerInfo = {
       ENR: {
         peerId,
-        shardInfo: newRelayShards,
+        shardInfo: newShardInfo,
         peerInfo: {
           multiaddrs: multiaddrs,
           id: peerId
@@ -86,7 +86,7 @@ describe("Peer Exchange Continuous Discovery", () => {
     );
 
     const _shardInfo = decodeRelayShard(newPeer.metadata.get("shardInfo")!);
-    expect(_shardInfo).to.deep.equal(newRelayShards);
+    expect(_shardInfo).to.deep.equal(newShardInfo);
   });
 
   async function discoverPeerOnce(): Promise<void> {
@@ -95,7 +95,7 @@ describe("Peer Exchange Continuous Discovery", () => {
 
     const enr: IEnr = {
       peerId,
-      shardInfo: relayShards,
+      shardInfo,
       peerInfo: {
         multiaddrs: multiaddrs,
         id: peerId
@@ -122,6 +122,6 @@ describe("Peer Exchange Continuous Discovery", () => {
       multiaddrs[0].toString()
     );
     const _shardInfo = decodeRelayShard(peer.metadata.get("shardInfo")!);
-    expect(_shardInfo).to.deep.equal(relayShards);
+    expect(_shardInfo).to.deep.equal(shardInfo);
   }
 });

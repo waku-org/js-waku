@@ -2,7 +2,7 @@ import type { PeerId } from "@libp2p/interface";
 import type { PeerInfo } from "@libp2p/interface";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
-import { RelayShards } from "./sharding.js";
+import { ShardInfo } from "./sharding.js";
 
 export type ENRKey = string;
 export type ENRValue = Uint8Array;
@@ -36,7 +36,7 @@ export interface IEnr extends Map<ENRKey, ENRValue> {
   multiaddrs?: Multiaddr[];
   waku2?: Waku2;
   peerInfo: PeerInfo | undefined;
-  shardInfo?: RelayShards;
+  shardInfo?: ShardInfo;
 
   /**
    * @deprecated: use { @link IEnr.peerInfo } instead.

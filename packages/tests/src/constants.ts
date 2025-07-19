@@ -5,7 +5,7 @@
  * @module
  */
 
-import { AutoSharding, RelayShards } from "@waku/interfaces";
+import { AutoSharding, ShardInfo } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 
 export const NOISE_KEY_1 = new Uint8Array(
@@ -91,7 +91,7 @@ export const DefaultTestNetworkConfig: AutoSharding = {
   clusterId: DefaultTestClusterId,
   numShardsInCluster: DefaultTestNumShardsInCluster
 };
-export const DefaultTestRelayShards: RelayShards = {
+export const DefaultTestShardInfo: ShardInfo = {
   clusterId: DefaultTestClusterId,
   shards: [0]
 };

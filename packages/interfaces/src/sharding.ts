@@ -4,7 +4,7 @@
  */
 export type NetworkConfig = StaticSharding | AutoSharding;
 
-export type RelayShards = {
+export type ShardInfo = {
   clusterId: ClusterId;
   shards: ShardId[];
 };
