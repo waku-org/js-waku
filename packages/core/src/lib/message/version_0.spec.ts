@@ -115,41 +115,31 @@ describe("Ensures content topic is defined", () => {
       });
     };
 
-    expect(wrapper).to.throw(
-      "Routing Info must have the same content topic as the encoder"
-    );
+    expect(wrapper).to.throw("Content topic must be specified");
   });
   it("Encoder throws on empty string content topic", () => {
     const wrapper = function (): void {
       createEncoder({
         contentTopic: "",
-        routingInfo: createRoutingInfo(testNetworkConfig, { contentTopic: "" })
+        routingInfo: testRoutingInfo
       });
     };
 
-    expect(wrapper).to.throw("AutoSharding requires contentTopic");
+    expect(wrapper).to.throw("Content topic must be specified");
   });
   it("Decoder throws on undefined content topic", () => {
     const wrapper = function (): void {
-      createDecoder(
-        undefined as unknown as string,
-        createRoutingInfo(testNetworkConfig, {
-          contentTopic: undefined as unknown as string
-        })
-      );
+      createDecoder(undefined as unknown as string, testRoutingInfo);
     };
 
-    expect(wrapper).to.throw("AutoSharding requires contentTopic");
+    expect(wrapper).to.throw("Content topic must be specified");
   });
   it("Decoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createDecoder(
-        "",
-        createRoutingInfo(testNetworkConfig, { contentTopic: "" })
-      );
+      createDecoder("", testRoutingInfo);
     };
 
-    expect(wrapper).to.throw("AutoSharding requires contentTopic");
+    expect(wrapper).to.throw("Content topic must be specified");
   });
 });
 
