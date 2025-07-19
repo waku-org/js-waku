@@ -12,7 +12,7 @@ export interface TestRLNCodecSetup {
   payload: Uint8Array;
 }
 
-export const TestConstants = {
+export const TEST_CONSTANTS = {
   contentTopic: "/test/1/waku-message/utf8",
   emptyPubsubTopic: "",
   defaultIndex: 0,
@@ -26,7 +26,7 @@ export const TestConstants = {
   )
 } as const;
 
-export const EmptyProtoMessage = {
+export const EMPTY_PROTO_MESSAGE = {
   timestamp: undefined,
   contentTopic: "",
   ephemeral: undefined,
@@ -46,8 +46,8 @@ export async function createTestRLNCodecSetup(): Promise<TestRLNCodecSetup> {
   return {
     rlnInstance,
     credential,
-    index: TestConstants.defaultIndex,
-    payload: TestConstants.defaultPayload
+    index: TEST_CONSTANTS.defaultIndex,
+    payload: TEST_CONSTANTS.defaultPayload
   };
 }
 
