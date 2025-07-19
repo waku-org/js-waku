@@ -1,6 +1,10 @@
 import { LightNode, Protocols } from "@waku/interfaces";
 import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import { createRoutingInfo, delay } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  createRoutingInfo,
+  delay
+} from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -63,7 +67,13 @@ describe("Throughput Sanity Checks - Different Message Sizes", function () {
 
     await delay(1000);
 
-    // TODO await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
+    await nwaku.ensureSubscriptions([
+      contentTopicToPubsubTopic(
+        ContentTopic,
+        networkConfig.clusterId,
+        networkConfig.numShardsInCluster
+      )
+    ]);
 
     waku = await createLightNode({ networkConfig });
     await waku.start();

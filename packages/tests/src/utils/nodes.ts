@@ -5,7 +5,12 @@ import {
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { RoutingInfo } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  formatPubsubTopic,
+  isAutoShardingRoutingInfo,
+  RoutingInfo
+} from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
@@ -63,13 +68,39 @@ export async function runMultipleNodes(
     throw new Error("Failed to initialize waku");
   }
 
+  const pubsubTopics = [];
+
+  pubsubTopics.push(routingInfo.pubsubTopic);
+
+  if (customArgs?.shard) {
+    const shards = customArgs?.shard ?? [];
+    for (const s of shards) {
+      pubsubTopics.push(
+        formatPubsubTopic(routingInfo.networkConfig.clusterId, s)
+      );
+    }
+  }
+
+  if (customArgs?.contentTopic && isAutoShardingRoutingInfo(routingInfo)) {
+    const contentTopics = customArgs?.contentTopic ?? [];
+    for (const ct of contentTopics) {
+      pubsubTopics.push(
+        contentTopicToPubsubTopic(
+          ct,
+          routingInfo.networkConfig.clusterId,
+          routingInfo.networkConfig.numShardsInCluster
+        )
+      );
+    }
+  }
+
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    // TODO
-    // await node.ensureSubscriptions(
-    //   derivePubsubTopicsFromNetworkConfig(networkConfig)
-    // );
+
+    if (pubsubTopics.length > 0) {
+      await node.ensureSubscriptions(pubsubTopics);
+    }
 
     const wakuConnections = waku.libp2p.getConnections();
 

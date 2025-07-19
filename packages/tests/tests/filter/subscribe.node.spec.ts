@@ -8,7 +8,7 @@ import {
   symmetric
 } from "@waku/message-encryption";
 import { Protocols, utf8ToBytes } from "@waku/sdk";
-import { createRoutingInfo } from "@waku/utils";
+import { createRoutingInfo, formatPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -645,18 +645,20 @@ const runTestsStatic = (strictCheckNodes: boolean): void => {
           routingInfo: routingInfoShard2
         });
 
+        const shardId = 2;
         await nwaku2.start({
           filter: true,
           lightpush: true,
           relay: true,
           clusterId: TestClusterId,
-          shard: [2]
+          shard: [shardId]
         });
         await waku.dial(await nwaku2.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
-        // TODO
-        // await nwaku2.ensureSubscriptions([customDecoder.pubsubTopic]);
+        await nwaku2.ensureSubscriptions([
+          formatPubsubTopic(TestClusterId, shardId)
+        ]);
 
         const messageCollector2 = new MessageCollector();
 

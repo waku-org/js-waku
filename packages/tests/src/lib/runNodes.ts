@@ -109,16 +109,7 @@ export async function runNodes<T>(
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForPeers(protocols);
 
-    // TODO
-
-    // const clusterId = networkConfig.clusterId;
-
-    // await nwaku.ensureSubscriptions(
-    //   relayShardsToPubsubTopics({
-    //     clusterId,
-    //     shards: options.relayShards ?? []
-    //   })
-    // );
+    await nwaku.ensureSubscriptions(routingInfos.map((r) => r.pubsubTopic));
 
     return [nwaku, waku as T];
   } else {

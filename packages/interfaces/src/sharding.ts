@@ -25,10 +25,18 @@ export type ShardId = number;
 export interface IRoutingInfoAutoSharding {
   pubsubTopic: string;
   shardId: ShardId;
+
+  // Is the network config really needed for exposure?
+  // we should probably aim to only expose the above + Cluster Id
   networkConfig: AutoSharding;
-  contentTopic: string;
+
+  // This is actually a property of network config, should probably be removed
   isAutoSharding: boolean;
   isStaticSharding: boolean;
+
+  // This is only needed for tests, to setup nwaku node
+  // might be a cleaner way to handle it
+  contentTopic: string;
 }
 
 export interface IRoutingInfoStaticSharding {
