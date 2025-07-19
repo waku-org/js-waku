@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.1.7](https://github.com/waku-org/js-waku/compare/rln-v0.1.6...rln-v0.1.7) (2025-07-18)
+
+
+### Features
+
+* **rln:** Price calculator for rate limits ([#2480](https://github.com/waku-org/js-waku/issues/2480)) ([7f7f772](https://github.com/waku-org/js-waku/commit/7f7f772d9331075b57ad76eca6f803cd600c401e))
+
+
+### Bug Fixes
+
+* `idCommitmentBigInt` must always be less than the contract `Q` ([#2394](https://github.com/waku-org/js-waku/issues/2394)) ([9b0c5e8](https://github.com/waku-org/js-waku/commit/9b0c5e831140159c82a88ad9e9fe5e8ca306d909))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.36 to ^0.0.37
+    * @waku/utils bumped from ^0.0.24 to ^0.0.25
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+    * @waku/message-encryption bumped from ^0.0.34 to ^0.0.35
+
 ## [0.1.6](https://github.com/waku-org/js-waku/compare/rln-v0.1.5...rln-v0.1.6) (2025-06-23)
 
 
