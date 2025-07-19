@@ -103,29 +103,31 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
     });
 
-    [{ description: "short", value: "hi" }].forEach((testItem) => {
-      it(`Push message with content topic containing ${testItem.description}`, async function () {
-        const contentTopic = `/test/1/${testItem.value}/proto`;
-        const customEncoder = waku.createEncoder({
-          contentTopic
-        });
-        const pushResponse = await waku.lightPush.send(
-          customEncoder,
-          messagePayload
-        );
-        expect(pushResponse.successes.length).to.eq(numServiceNodes);
-
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(1, {
+    TEST_STRING.forEach((testItem) => {
+      if (!testItem.invalidContentTopic) {
+        it(`Push message with content topic containing ${testItem.description}`, async function () {
+          const contentTopic = `/test/1/${testItem.value}/proto`;
+          const customEncoder = waku.createEncoder({
             contentTopic
-          })
-        ).to.eq(true);
-        serviceNodes.messageCollector.verifyReceivedMessage(0, {
-          expectedMessageText: messageText,
-          expectedContentTopic: contentTopic,
-          expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+          });
+          const pushResponse = await waku.lightPush.send(
+            customEncoder,
+            messagePayload
+          );
+          expect(pushResponse.successes.length).to.eq(numServiceNodes);
+
+          expect(
+            await serviceNodes.messageCollector.waitForMessages(1, {
+              contentTopic
+            })
+          ).to.eq(true);
+          serviceNodes.messageCollector.verifyReceivedMessage(0, {
+            expectedMessageText: messageText,
+            expectedContentTopic: contentTopic,
+            expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+          });
         });
-      });
+      }
     });
 
     it("Push message with meta", async function () {
