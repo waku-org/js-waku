@@ -200,7 +200,8 @@ describe("Static Sharding: Peer Management", function () {
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = 8;
-  const Shard = [contentTopicToShardIndex(ContentTopic)];
+  const numShardsInCluster = 8;
+  const Shard = [contentTopicToShardIndex(ContentTopic, numShardsInCluster)];
 
   describe("Peer Exchange", function () {
     let waku: LightNode;

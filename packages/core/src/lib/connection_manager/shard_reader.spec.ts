@@ -29,7 +29,10 @@ describe("ShardReader", function () {
 
   const testContentTopic = "/test/1/waku-light-push/utf8";
   const testClusterId = 3;
-  const testShardIndex = contentTopicToShardIndex(testContentTopic);
+  const testShardIndex = contentTopicToShardIndex(
+    testContentTopic,
+    DEFAULT_NUM_SHARDS
+  );
 
   const testNetworkConfig: AutoSharding = {
     clusterId: testClusterId,

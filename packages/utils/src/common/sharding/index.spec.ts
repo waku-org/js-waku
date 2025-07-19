@@ -9,6 +9,9 @@ import {
   pubsubTopicToSingleShardInfo
 } from "./index.js";
 
+const ClusterId = 0;
+const NumShardsInCluster = 8;
+
 const testInvalidCases = (
   contentTopics: string[],
   expectedError: string
@@ -112,7 +115,9 @@ describe("contentTopicToShardIndex", () => {
   ];
   contentTopicsWithExpectedShards.forEach(([topic, expectedShard]) => {
     it(`should correctly map ${topic} to shard index ${expectedShard}`, () => {
-      expect(contentTopicToShardIndex(topic)).to.eq(expectedShard);
+      expect(contentTopicToShardIndex(topic, NumShardsInCluster)).to.eq(
+        expectedShard
+      );
     });
   });
 
@@ -137,8 +142,8 @@ describe("contentTopicToShardIndex", () => {
       ["/waku/2/content/test.js", "/waku/2/users/proto"]
     ];
     for (const [topic1, topic2] of contentTopics) {
-      expect(contentTopicToShardIndex(topic1)).to.eq(
-        contentTopicToShardIndex(topic2)
+      expect(contentTopicToShardIndex(topic1, NumShardsInCluster)).to.eq(
+        contentTopicToShardIndex(topic2, NumShardsInCluster)
       );
     }
   });
@@ -147,9 +152,15 @@ describe("contentTopicToShardIndex", () => {
 describe("contentTopicsByPubsubTopic", () => {
   it("groups content topics by expected pubsub topic", () => {
     const contentTopics = ["/toychat/2/huilong/proto", "/myapp/1/latest/proto"];
-    const grouped = contentTopicsByPubsubTopic(contentTopics);
+    const grouped = contentTopicsByPubsubTopic(
+      contentTopics,
+      ClusterId,
+      NumShardsInCluster
+    );
+
     for (const contentTopic of contentTopics) {
       const pubsubTopic = contentTopicToPubsubTopic(contentTopic, 0, 8);
+
       expect(grouped.get(pubsubTopic)?.includes(contentTopic)).to.be.true;
     }
   });
@@ -159,7 +170,11 @@ describe("contentTopicsByPubsubTopic", () => {
       "/app/22/sometopic/someencoding",
       "/app/22/anothertopic/otherencoding"
     ];
-    const grouped = contentTopicsByPubsubTopic(contentTopics);
+    const grouped = contentTopicsByPubsubTopic(
+      contentTopics,
+      ClusterId,
+      NumShardsInCluster
+    );
     expect(grouped.size).to.eq(1); // Only one pubsub topic expected
     const pubsubTopic = contentTopicToPubsubTopic(contentTopics[0], 0, 8);
     expect(grouped.get(pubsubTopic)?.length).to.eq(2); // Both topics should be grouped under the same pubsub topic
@@ -169,8 +184,16 @@ describe("contentTopicsByPubsubTopic", () => {
     const contentTopics = ["/app/22/sometopic/someencoding"];
     const clusterId1 = 3;
     const clusterId2 = 2;
-    const grouped1 = contentTopicsByPubsubTopic(contentTopics, clusterId1);
-    const grouped2 = contentTopicsByPubsubTopic(contentTopics, clusterId2);
+    const grouped1 = contentTopicsByPubsubTopic(
+      contentTopics,
+      clusterId1,
+      NumShardsInCluster
+    );
+    const grouped2 = contentTopicsByPubsubTopic(
+      contentTopics,
+      clusterId2,
+      NumShardsInCluster
+    );
     const pubsubTopic1 = contentTopicToPubsubTopic(
       contentTopics[0],
       clusterId1,
@@ -221,7 +244,13 @@ describe("contentTopicsByPubsubTopic", () => {
 
   it("throws an error for improperly formatted content topics", () => {
     const invalidContentTopics = ["/invalid/format"];
-    expect(() => contentTopicsByPubsubTopic(invalidContentTopics)).to.throw();
+    expect(() =>
+      contentTopicsByPubsubTopic(
+        invalidContentTopics,
+        ClusterId,
+        NumShardsInCluster
+      )
+    ).to.throw();
   });
 });
 

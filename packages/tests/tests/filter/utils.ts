@@ -10,10 +10,14 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter/default";
 export const TestClusterId = 2;
-export const TestShardIndex = contentTopicToShardIndex(TestContentTopic);
+export const TestNumShardsInCluster = 8;
+export const TestShardIndex = contentTopicToShardIndex(
+  TestContentTopic,
+  TestNumShardsInCluster
+);
 export const TestNetworkConfig = {
   clusterId: TestClusterId,
-  numShardsInCluster: 8
+  numShardsInCluster: TestNumShardsInCluster
 };
 export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
   contentTopic: TestContentTopic

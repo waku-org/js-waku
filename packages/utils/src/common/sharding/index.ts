@@ -2,7 +2,6 @@ import { sha256 } from "@noble/hashes/sha256";
 import {
   type ClusterId,
   ContentTopic,
-  DEFAULT_CLUSTER_ID,
   PubsubTopic,
   type ShardId
 } from "@waku/interfaces";
@@ -116,7 +115,7 @@ export function ensureValidContentTopic(
  */
 export function contentTopicToShardIndex(
   contentTopic: ContentTopic,
-  numShardsInCluster: number = 8
+  numShardsInCluster: number
 ): number {
   const { application, version } = ensureValidContentTopic(contentTopic);
   const digest = sha256(
@@ -145,8 +144,8 @@ export function contentTopicToPubsubTopic(
  */
 export function contentTopicsByPubsubTopic(
   contentTopics: ContentTopic[],
-  clusterId: number = DEFAULT_CLUSTER_ID,
-  networkShards: number = 8
+  clusterId: number,
+  networkShards: number
 ): Map<string, Array<string>> {
   const groupedContentTopics = new Map();
   for (const contentTopic of contentTopics) {
