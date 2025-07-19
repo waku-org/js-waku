@@ -260,8 +260,7 @@ export class WakuNode implements IWaku {
   }
 
   public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
-    const routingInfo = getRoutingInfo(
-      this.networkConfig,
+    const routingInfo = this.createRoutingInfo(
       params.contentTopic,
       params.shardId
     );
@@ -269,8 +268,7 @@ export class WakuNode implements IWaku {
   }
 
   public createEncoder(params: CreateEncoderParams): IEncoder {
-    const routingInfo = getRoutingInfo(
-      this.networkConfig,
+    const routingInfo = this.createRoutingInfo(
       params.contentTopic,
       params.shardId
     );
@@ -281,12 +279,11 @@ export class WakuNode implements IWaku {
       routingInfo: routingInfo
     });
   }
-}
 
-function getRoutingInfo(
-  networkConfig: NetworkConfig,
-  contentTopic?: string,
-  shardId?: number
-): IRoutingInfo {
-  return createRoutingInfo(networkConfig, { contentTopic, shardId });
+  private createRoutingInfo(
+    contentTopic?: string,
+    shardId?: number
+  ): IRoutingInfo {
+    return createRoutingInfo(this.networkConfig, { contentTopic, shardId });
+  }
 }
