@@ -2,6 +2,7 @@ import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
+import { formatPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -255,12 +256,12 @@ describe("Wait for remote peer", function () {
     expect(peers.includes(nimPeerId as string)).to.be.true;
   });
 
-  it("Privacy Node - default protocol", async function () {
+  it("Relay Node - default protocol", async function () {
     this.timeout(20_000);
-    [nwaku, waku1] = await runRelayNodes(this, DefaultTestNetworkConfig);
+    [nwaku, waku1] = await runRelayNodes(this, { clusterId: 0 }, [0]);
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    const peers = waku1.relay.getMeshPeers(DefaultTestRoutingInfo.pubsubTopic);
+    const peers = waku1.relay.getMeshPeers(formatPubsubTopic(0, 0));
 
     const nimPeerId = multiAddrWithId.getPeerId();
 
