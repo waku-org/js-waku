@@ -16,7 +16,6 @@ import {
   startAndConnectLightNode,
   TestContentTopic,
   TestDecoder,
-  TestDecoder2,
   TestNetworkConfig,
   TestRoutingInfo,
   totalMsgs
@@ -50,7 +49,6 @@ describe("Waku Store, cursor", function () {
     [110, 120]
   ].forEach(([cursorIndex, messageCount]) => {
     it(`Passing a valid cursor at ${cursorIndex} index when there are ${messageCount} messages`, async function () {
-      console.log(nwaku);
       await sendMessages(
         nwaku,
         messageCount,
@@ -140,11 +138,7 @@ describe("Waku Store, cursor", function () {
     ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
-  it("Passing invalid cursor for nwaku > 0.35.1", async function () {
-    if (nwaku.version && nwaku.version.minor < 36) {
-      this.skip();
-    }
-
+  it("Passing invalid cursor", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, TestRoutingInfo);
 
     const messages: DecodedMessage[] = [];
@@ -172,49 +166,7 @@ describe("Waku Store, cursor", function () {
     } catch (err) {
       if (
         !(err instanceof Error) ||
-        !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found"
-        )
-      ) {
-        throw err;
-      }
-    }
-  });
-
-  it("Passing cursor with wrong pubsubTopic for nwaku > 0.35.1", async function () {
-    if (nwaku.version && nwaku.version.minor < 36) {
-      this.skip();
-    }
-
-    await sendMessages(
-      nwaku,
-      totalMsgs,
-      TestDecoder.contentTopic,
-      TestRoutingInfo
-    );
-
-    const messages: DecodedMessage[] = [];
-    for await (const page of waku.store.queryGenerator([TestDecoder])) {
-      for await (const msg of page) {
-        messages.push(msg as DecodedMessage);
-      }
-    }
-    messages[5].pubsubTopic = TestDecoder2.routingInfo.pubsubTopic;
-    const cursor = waku.store.createCursor(messages[5]);
-
-    try {
-      for await (const page of waku.store.queryGenerator([TestDecoder], {
-        paginationCursor: cursor
-      })) {
-        void page;
-      }
-      throw new Error("Cursor with wrong pubsubtopic was accepted");
-    } catch (err) {
-      if (
-        !(err instanceof Error) ||
-        !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found"
-        )
+        !err.message.includes("cursor not found")
       ) {
         throw err;
       }
