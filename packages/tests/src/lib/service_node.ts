@@ -448,11 +448,7 @@ export class ServiceNode {
       if (body) options.body = JSON.stringify(body);
 
       const response = await fetch(`${this.httpUrl}${endpoint}`, options);
-      log.info(
-        `Received REST Response: `,
-        response.status,
-        response.statusText
-      );
+      log.info(`Received REST Response: `, response.status);
       return await processResponse(response);
     } catch (error) {
       log.error(`${this.httpUrl} failed with error:`, error);
