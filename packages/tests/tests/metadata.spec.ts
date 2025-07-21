@@ -151,14 +151,15 @@ describe("Metadata Protocol", function () {
     it("receiving a ping from a peer does not overwrite shard info", async function () {
       const clusterId = 2;
       const shards = [1];
-      const numShardsInCluster = 8;
+      const numShardsInCluster = 0; //static sharding
 
       await nwaku1.start({
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
         clusterId,
-        shard: shards
+        shard: shards,
+        numShardsInNetwork: numShardsInCluster
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();

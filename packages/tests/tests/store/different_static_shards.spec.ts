@@ -138,7 +138,8 @@ describe("Waku Store, different static shards", function () {
       store: true,
       clusterId: StaticTestClusterId,
       shard: [1],
-      relay: true
+      relay: true,
+      numShardsInNetwork: 0 // static sharding
     });
 
     // Set up and start a new nwaku node with Default Pubsubtopic
@@ -147,7 +148,8 @@ describe("Waku Store, different static shards", function () {
       store: true,
       clusterId: StaticTestClusterId,
       shard: [2],
-      relay: true
+      relay: true,
+      numShardsInNetwork: 0 // static sharding
     });
 
     const totalMsgs = 10;

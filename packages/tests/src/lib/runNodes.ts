@@ -76,6 +76,7 @@ export async function runNodes<T>(
   } else if (isStaticSharding(networkConfig) && options.relayShards) {
     const shards = options.relayShards;
     nwakuArgs.shard = shards;
+    nwakuArgs.numShardsInNetwork = 0;
 
     shards.map((shardId) =>
       routingInfos.push(createRoutingInfo(networkConfig, { shardId }))
