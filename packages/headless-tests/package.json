@@ -13,7 +13,7 @@
         "it-first": "^3.0.9",
         "node-polyfill-webpack-plugin": "^2.0.1",
         "serve": "^14.1.2",
-        "webpack": "^5.99.5",
+        "webpack": "^5.100.2",
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
