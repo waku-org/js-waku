@@ -63,6 +63,12 @@ Commit messages should never contain any `@` mentions (usernames prefixed with "
 Please refer to the [Git manual](https://git-scm.com/doc) for more information
 about Git.
 
+### Structuring Large PRs for Efficient Review
+
+Pull requests should be as atomic as possible, but sometimes we need to make large changes across the entire codebase. For these cases it's best to maintain a commit history as you make changes, giving the reviewer the option to read changes all at once or per commit.
+
+If a code change is focused on one or two files but introduces coalescing changes across the rest of the codebase, it's best to point out the core changes as a starting point for reviewers to properly understand the other changes. This can be part of the PR description.
+
 ### Releasing
 
 `js-waku` has two types of releases:
