@@ -177,7 +177,6 @@ describe("ShardReader", function () {
 
       const result = await shardReader.isPeerOnShard(
         testPeerId,
-        testClusterId,
         testShardIndex
       );
 
@@ -192,9 +191,13 @@ describe("ShardReader", function () {
 
       mockPeerStore.get.resolves(mockPeer);
 
-      const result = await shardReader.isPeerOnShard(
+      const shardReaderCluster5 = new ShardReader({
+        libp2p: mockLibp2p as any,
+        networkConfig: { clusterId: 5 }
+      });
+
+      const result = await shardReaderCluster5.isPeerOnShard(
         testPeerId,
-        5,
         testShardIndex
       );
 
@@ -211,7 +214,6 @@ describe("ShardReader", function () {
 
       const result = await shardReader.isPeerOnShard(
         testPeerId,
-        testClusterId,
         testShardIndex + 100
       );
 
@@ -223,7 +225,6 @@ describe("ShardReader", function () {
 
       const result = await shardReader.isPeerOnShard(
         testPeerId,
-        testClusterId,
         testShardIndex
       );
 

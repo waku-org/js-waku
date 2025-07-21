@@ -1,7 +1,6 @@
 import { type Peer, type PeerId, type Stream } from "@libp2p/interface";
 import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
-  ClusterId,
   ConnectionManagerOptions,
   IConnectionManager,
   IRelay,
@@ -47,7 +46,7 @@ export class ConnectionManager implements IConnectionManager {
   private readonly networkMonitor: NetworkMonitor;
   private readonly connectionLimiter: ConnectionLimiter;
 
-  private options: ConnectionManagerOptions;
+  private readonly options: ConnectionManagerOptions;
   private libp2p: Libp2p;
 
   public constructor(options: ConnectionManagerConstructorOptions) {
@@ -200,9 +199,8 @@ export class ConnectionManager implements IConnectionManager {
 
   public async isPeerOnShard(
     peerId: PeerId,
-    clusterId: ClusterId,
     shardId: ShardId
   ): Promise<boolean> {
-    return this.shardReader.isPeerOnShard(peerId, clusterId, shardId);
+    return this.shardReader.isPeerOnShard(peerId, shardId);
   }
 }

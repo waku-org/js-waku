@@ -20,7 +20,7 @@ type ShardReaderConstructorOptions = {
   networkConfig: NetworkConfig;
 };
 
-interface IShardReader {
+export interface IShardReader {
   hasShardInfo(id: PeerId): Promise<boolean>;
   isPeerOnCluster(id: PeerId): Promise<boolean>;
   isPeerOnShard(
@@ -66,7 +66,8 @@ export class ShardReader implements IShardReader {
   ): Promise<boolean> {
     try {
       const { clusterId, shard } = pubsubTopicToSingleShardInfo(pubsubTopic);
-      return await this.isPeerOnShard(id, clusterId, shard);
+      if (clusterId !== this.clusterId) return false;
+      return await this.isPeerOnShard(id, shard);
     } catch (error) {
       log.error(
         `Error comparing pubsub topic ${pubsubTopic} with shard info for ${id}`,
@@ -76,14 +77,10 @@ export class ShardReader implements IShardReader {
     }
   }
 
-  public async isPeerOnShard(
-    id: PeerId,
-    clusterId: ClusterId,
-    shard: ShardId
-  ): Promise<boolean> {
+  public async isPeerOnShard(id: PeerId, shard: ShardId): Promise<boolean> {
     const peerShardInfo = await this.getRelayShards(id);
     log.info(
-      `Checking if peer on same shard: this { clusterId: ${clusterId}, shardId: ${shard} },` +
+      `Checking if peer on same shard: this { clusterId: ${this.clusterId}, shardId: ${shard} },` +
         `${id} { clusterId: ${peerShardInfo?.clusterId}, shards: ${peerShardInfo?.shards} }`
     );
     if (!peerShardInfo) {
@@ -91,7 +88,7 @@ export class ShardReader implements IShardReader {
     }
 
     return (
-      peerShardInfo.clusterId === clusterId &&
+      peerShardInfo.clusterId === this.clusterId &&
       peerShardInfo.shards.includes(shard)
     );
   }
