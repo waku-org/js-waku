@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
-import { AutoSharding } from "@waku/interfaces";
+import type { AutoSharding, StaticSharding } from "@waku/interfaces";
 import { createLightNode, LightNode, Tags } from "@waku/sdk";
 import { contentTopicToShardIndex } from "@waku/utils";
 import chai, { expect } from "chai";
@@ -45,7 +45,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const shard = 2;
       const numShardsInCluster = 8;
-      const networkConfig: AutoSharding = { clusterId, numShardsInCluster };
+      const networkConfig: StaticSharding = { clusterId };
 
       await nwaku1.start({
         discv5Discovery: true,
@@ -122,7 +122,7 @@ describe("Static Sharding: Peer Management", function () {
       this.timeout(100_000);
 
       const numShardsInCluster = 8;
-      const networkConfig: AutoSharding = { clusterId, numShardsInCluster };
+      const networkConfig: StaticSharding = { clusterId };
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
