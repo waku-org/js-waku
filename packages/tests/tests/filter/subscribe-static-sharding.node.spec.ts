@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { LightNode } from "@waku/interfaces";
 import { Protocols, utf8ToBytes } from "@waku/sdk";
-import { createRoutingInfo, formatPubsubTopic } from "@waku/utils";
+import { createRoutingInfo, StaticShardingRoutingInfo } from "@waku/utils";
 
 import {
   afterEachCustom,
@@ -78,7 +78,9 @@ const runTests = (strictCheckNodes: boolean): void => {
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
         await nwaku2.ensureSubscriptions([
-          formatPubsubTopic(TestClusterId, shardId)
+          StaticShardingRoutingInfo.fromShard(shardId, {
+            clusterId: TestClusterId
+          }).pubsubTopic
         ]);
 
         const messageCollector2 = new MessageCollector();

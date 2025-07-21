@@ -1,10 +1,6 @@
 import { LightNode, Protocols } from "@waku/interfaces";
 import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  createRoutingInfo,
-  delay
-} from "@waku/utils";
+import { AutoShardingRoutingInfo, createRoutingInfo, delay } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -62,11 +58,8 @@ describe("Longevity", function () {
     );
 
     await nwaku.ensureSubscriptions([
-      contentTopicToPubsubTopic(
-        ContentTopic,
-        networkConfig.clusterId,
-        networkConfig.numShardsInCluster
-      )
+      AutoShardingRoutingInfo.fromContentTopic(ContentTopic, networkConfig)
+        .pubsubTopic
     ]);
 
     waku = await createLightNode({ networkConfig });

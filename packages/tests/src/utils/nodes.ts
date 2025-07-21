@@ -6,10 +6,10 @@ import {
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import {
-  contentTopicToPubsubTopic,
-  formatPubsubTopic,
+  AutoShardingRoutingInfo,
   isAutoShardingRoutingInfo,
-  RoutingInfo
+  RoutingInfo,
+  StaticShardingRoutingInfo
 } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
@@ -75,7 +75,11 @@ export async function runMultipleNodes(
   if (customArgs?.shard) {
     const shards = customArgs?.shard ?? [];
     for (const s of shards) {
-      pubsubTopics.push(formatPubsubTopic(routingInfo.clusterId, s));
+      pubsubTopics.push(
+        StaticShardingRoutingInfo.fromShard(s, {
+          clusterId: routingInfo.clusterId
+        }).pubsubTopic
+      );
     }
   }
 
@@ -83,11 +87,8 @@ export async function runMultipleNodes(
     const contentTopics = customArgs?.contentTopic ?? [];
     for (const ct of contentTopics) {
       pubsubTopics.push(
-        contentTopicToPubsubTopic(
-          ct,
-          routingInfo.clusterId,
-          routingInfo.networkConfig.numShardsInCluster
-        )
+        AutoShardingRoutingInfo.fromContentTopic(ct, routingInfo.networkConfig)
+          .pubsubTopic
       );
     }
   }

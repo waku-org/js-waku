@@ -1,5 +1,5 @@
 import { IMessage, type LightNode } from "@waku/interfaces";
-import { formatPubsubTopic } from "@waku/utils";
+import { StaticShardingRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -68,7 +68,9 @@ describe("Waku Store, error handling", function () {
   });
 
   it("Query Generator, No message returned", async function () {
-    const WrongTestPubsubTopic = formatPubsubTopic(43, 53);
+    const WrongTestPubsubTopic = StaticShardingRoutingInfo.fromShard(53, {
+      clusterId: 43
+    }).pubsubTopic;
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],

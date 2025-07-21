@@ -1,6 +1,6 @@
 import { AutoSharding, LightNode } from "@waku/interfaces";
 import { createEncoder, utf8ToBytes } from "@waku/sdk";
-import { contentTopicToPubsubTopic, createRoutingInfo } from "@waku/utils";
+import { AutoShardingRoutingInfo, createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -136,7 +136,10 @@ describe("Autosharding: Running Nodes", function () {
   it("Wrong topic", async function () {
     const wrongTopic = "wrong_format";
     try {
-      contentTopicToPubsubTopic(wrongTopic, clusterId, 8);
+      AutoShardingRoutingInfo.fromContentTopic(wrongTopic, {
+        clusterId,
+        numShardsInCluster: 8
+      });
       throw new Error("Wrong topic should've thrown an error");
     } catch (err) {
       if (
