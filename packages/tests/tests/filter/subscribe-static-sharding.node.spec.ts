@@ -70,8 +70,9 @@ const runTests = (strictCheckNodes: boolean): void => {
           filter: true,
           lightpush: true,
           relay: true,
-          clusterId: TestClusterId,
-          shard: [shardId]
+          clusterId: staticNetworkConfig.clusterId,
+          shard: [shardId],
+          numShardsInNetwork: 0 // Running static sharding
         });
         await waku.dial(await nwaku2.getMultiaddrWithId());
         await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);

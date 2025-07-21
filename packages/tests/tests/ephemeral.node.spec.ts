@@ -97,7 +97,8 @@ describe("Waku Message Ephemeral field", function () {
       store: true,
       relay: true,
       contentTopic: contentTopics,
-      clusterId: TestClusterId
+      clusterId: TestClusterId,
+      numShardsInNetwork: TestNetworkConfig.numShardsInCluster
     });
     await nwaku.ensureSubscriptionsAutosharding([
       TestContentTopic,
