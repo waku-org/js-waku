@@ -139,7 +139,7 @@ describe("RetryManager", () => {
       throw new Error(ProtocolError.NO_PEER_AVAILABLE);
     });
 
-    await (retryManager as any)["taskExecutor"]({
+    await (retryManager as RetryManager)["taskExecutor"]({
       callback: errorCallback,
       maxAttempts: 1,
       routingInfo: TestRoutingInfo
@@ -149,7 +149,7 @@ describe("RetryManager", () => {
     expect(
       (peerManager.renewPeer as sinon.SinonSpy).calledWith(mockPeerId, {
         protocol: Protocols.LightPush,
-        routingInfo: TestRoutingInfo
+        pubsubTopic: TestRoutingInfo.pubsubTopic
       })
     ).to.be.true;
   });
