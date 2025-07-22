@@ -75,8 +75,5 @@
     "*.{ts,js}": [
       "eslint --fix"
     ]
-  },
-  "dependencies": {
-    "randchacha": "^1.0.2"
   }
 }
