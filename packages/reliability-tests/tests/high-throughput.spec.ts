@@ -17,6 +17,10 @@ import {
 } from "../../tests/src/index.js";
 
 const ContentTopic = "/waku/2/content/test.high-throughput.js";
+const NetworkConfig = { clusterId: 0, numShardsInCluster: 8 };
+const RoutingInfo = createRoutingInfo(NetworkConfig, {
+  contentTopic: ContentTopic
+});
 
 describe("High Throughput Messaging", function () {
   const testDurationMs = 20 * 60 * 1000; // 20 minutes
@@ -35,8 +39,6 @@ describe("High Throughput Messaging", function () {
   });
 
   it("Send/Receive thousands of messages quickly", async function () {
-    const networkConfig = { clusterId: 0, numShardsInCluster: 8 };
-
     const testStart = new Date();
     const testEnd = Date.now() + testDurationMs;
 
@@ -53,8 +55,8 @@ describe("High Throughput Messaging", function () {
         store: true,
         filter: true,
         relay: true,
-        clusterId: networkConfig.clusterId,
-        numShardsInNetwork: networkConfig.numShardsInCluster,
+        clusterId: NetworkConfig.clusterId,
+        numShardsInNetwork: NetworkConfig.numShardsInCluster,
         contentTopic: [ContentTopic]
       },
       { retries: 3 }
@@ -65,20 +67,17 @@ describe("High Throughput Messaging", function () {
     await nwaku.ensureSubscriptions([
       contentTopicToPubsubTopic(
         ContentTopic,
-        networkConfig.clusterId,
-        networkConfig.numShardsInCluster
+        NetworkConfig.clusterId,
+        NetworkConfig.numShardsInCluster
       )
     ]);
 
-    waku = await createLightNode({ networkConfig });
+    waku = await createLightNode({ networkConfig: NetworkConfig });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter]);
 
-    const routingInfo = createRoutingInfo(networkConfig, {
-      contentTopic: ContentTopic
-    });
-    const decoder = createDecoder(ContentTopic, routingInfo);
+    const decoder = createDecoder(ContentTopic, RoutingInfo);
     const hasSubscribed = await waku.filter.subscribe(
       [decoder],
       messageCollector.callback
@@ -101,7 +100,7 @@ describe("High Throughput Messaging", function () {
             contentTopic: ContentTopic,
             payload: utf8ToBytes(message)
           }),
-          routingInfo
+          RoutingInfo
         );
         sent = true;
 
@@ -113,7 +112,7 @@ describe("High Throughput Messaging", function () {
           messageCollector.verifyReceivedMessage(0, {
             expectedMessageText: message,
             expectedContentTopic: ContentTopic,
-            expectedPubsubTopic: routingInfo.pubsubTopic
+            expectedPubsubTopic: RoutingInfo.pubsubTopic
           });
         }
       } catch (e: any) {
