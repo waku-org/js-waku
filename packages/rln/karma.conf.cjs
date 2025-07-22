@@ -130,7 +130,8 @@ module.exports = function (config) {
           "process.env.DISPLAY": "Browser"
         }),
         new webpack.ProvidePlugin({
-          process: "process/browser.js"
+          process: "process/browser.js",
+          Buffer: ["buffer", "Buffer"]
         })
       ],
       resolve: {
@@ -143,6 +144,7 @@ module.exports = function (config) {
           )
         },
         fallback: {
+          buffer: require.resolve("buffer"),
           crypto: false,
           fs: false,
           path: false,

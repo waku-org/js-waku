@@ -46,9 +46,10 @@ export class BytesUtils {
    */
   public static bigIntToUint8Array32BE(value: bigint): Uint8Array {
     const bytes = new Uint8Array(32);
+    let tempValue = value; // Don't modify the original parameter
     for (let i = 31; i >= 0; i--) {
-      bytes[i] = Number(value & 0xffn);
-      value >>= 8n;
+      bytes[i] = Number(tempValue & BigInt(0xff));
+      tempValue >>= BigInt(8);
     }
     return bytes;
   }

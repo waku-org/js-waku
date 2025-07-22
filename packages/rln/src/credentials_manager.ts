@@ -1,6 +1,7 @@
-import { hmac } from "@noble/hashes/hmac";
-import { sha256 } from "@noble/hashes/sha2";
+import { chacha20 } from "@noble/ciphers/chacha";
+import { keccak_256 as keccak256 } from "@noble/hashes/sha3";
 import { Logger } from "@waku/utils";
+import { buildPoseidon } from "circomlibjs";
 import { ethers } from "ethers";
 
 import { RLN_CONTRACT, RLN_Q } from "./contract/constants.js";
@@ -252,45 +253,49 @@ export class RLNCredentialsManager {
   private async generateSeededIdentityCredential(
     seed: string
   ): Promise<IdentityCredential> {
-    log.info("Generating seeded identity credential");
-    // Convert the seed to bytes
-    const encoder = new TextEncoder();
-    const seedBytes = encoder.encode(seed);
+    log.info("Generating seeded identity credential (uniform field)");
 
-    // Generate deterministic values using HMAC-SHA256
-    // We use different context strings for each component to ensure they're different
-    const idTrapdoorBE = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
-    const idNullifierBE = hmac(
-      sha256,
-      seedBytes,
-      encoder.encode("IDNullifier")
-    );
+    const seedHash = keccak256(new TextEncoder().encode(seed));
 
-    const combinedBytes = new Uint8Array([...idTrapdoorBE, ...idNullifierBE]);
-    const idSecretHashBE = sha256(combinedBytes);
+    const key = seedHash;
+    const nonce = new Uint8Array(12);
+    const keystream = chacha20(key, nonce, new Uint8Array(64));
+    const trapdoorBytes = keystream.slice(0, 32);
+    const nullifierBytes = keystream.slice(32, 64);
 
-    const idCommitmentRawBE = sha256(idSecretHashBE);
-    const idCommitmentBE = this.reduceIdCommitment(idCommitmentRawBE);
+    const trapdoorField =
+      BytesUtils.buildBigIntFromUint8ArrayBE(trapdoorBytes) % RLN_Q;
+    const nullifierField =
+      BytesUtils.buildBigIntFromUint8ArrayBE(nullifierBytes) % RLN_Q;
 
-    log.info(
-      "Successfully generated identity credential, storing in Big Endian format"
-    );
+    const secretHashField = await this.poseidonHash([
+      trapdoorField,
+      nullifierField
+    ]);
+    const commitmentField = await this.poseidonHash([secretHashField]);
+
     return new IdentityCredential(
-      idTrapdoorBE,
-      idNullifierBE,
-      idSecretHashBE,
-      idCommitmentBE
+      BytesUtils.bigIntToUint8Array32BE(trapdoorField),
+      BytesUtils.bigIntToUint8Array32BE(nullifierField),
+      BytesUtils.bigIntToUint8Array32BE(secretHashField),
+      BytesUtils.bigIntToUint8Array32BE(commitmentField)
     );
   }
 
   /**
-   * Helper: take 32-byte BE, reduce mod Q, return 32-byte BE
+   * Poseidon hash function
+   * This is a pure implementation that doesn't rely on Zerokit
+   * @param inputs The inputs to hash
+   * @returns The hash
    */
-  private reduceIdCommitment(
-    bytesBE: Uint8Array,
-    limit: bigint = RLN_Q
-  ): Uint8Array {
-    const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
-    return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
+  private async poseidonHash(inputs: bigint[]): Promise<bigint> {
+    const poseidon = await buildPoseidon();
+    const fieldInputs = inputs.map((x) => x % RLN_Q);
+    const raw = poseidon(fieldInputs);
+    const hash =
+      typeof raw === "bigint"
+        ? raw
+        : BytesUtils.buildBigIntFromUint8ArrayBE(raw as Uint8Array);
+    return hash % RLN_Q;
   }
 }

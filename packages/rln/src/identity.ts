@@ -3,7 +3,7 @@ import { BytesUtils } from "./utils/bytes.js";
 export class IdentityCredential {
   public IDCommitmentBigInt: bigint;
   /**
-   * All variables are in little-endian format
+   * All variables are in big-endian format
    */
   public constructor(
     public readonly IDTrapdoor: Uint8Array,
