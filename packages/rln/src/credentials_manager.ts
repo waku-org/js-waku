@@ -34,9 +34,9 @@ export class RLNCredentialsManager {
   protected keystore = Keystore.create();
   public credentials: undefined | DecryptedCredentials;
 
-  public zerokit: undefined | Zerokit;
+  public zerokit: Zerokit;
 
-  public constructor(zerokit?: Zerokit) {
+  public constructor(zerokit: Zerokit) {
     log.info("RLNCredentialsManager initialized");
     this.zerokit = zerokit;
   }
@@ -81,7 +81,7 @@ export class RLNCredentialsManager {
       this.contract = await RLNBaseContract.create({
         address: address!,
         signer: signer!,
-        rateLimit: rateLimit ?? this.zerokit?.rateLimit
+        rateLimit: rateLimit ?? this.zerokit.rateLimit
       });
 
       log.info("RLNCredentialsManager successfully started");
