@@ -2,6 +2,7 @@ import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopic,
   IDecodedMessage,
+  IRoutingInfo,
   EncoderOptions as WakuEncoderOptions
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -87,11 +88,12 @@ export class RLNInstance extends RLNCredentialsManager {
   }
 
   public createDecoder(
-    contentTopic: ContentTopic
+    contentTopic: ContentTopic,
+    routingInfo: IRoutingInfo
   ): RLNDecoder<IDecodedMessage> {
     return createRLNDecoder({
       rlnInstance: this,
-      decoder: createDecoder(contentTopic)
+      decoder: createDecoder(contentTopic, routingInfo)
     });
   }
 

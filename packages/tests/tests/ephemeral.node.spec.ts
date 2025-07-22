@@ -1,5 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { Protocols } from "@waku/interfaces";
+import { AutoSharding, Protocols } from "@waku/interfaces";
 import type { IDecodedMessage, LightNode } from "@waku/interfaces";
 import {
   generatePrivateKey,
@@ -15,11 +15,7 @@ import {
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
 import { createLightNode } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  contentTopicToShardIndex,
-  Logger
-} from "@waku/utils";
+import { createRoutingInfo, Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -36,15 +32,21 @@ import {
 
 const log = new Logger("test:ephemeral");
 
-const ClusterId = 2;
+const TestClusterId = 2;
+const TestNetworkConfig: AutoSharding = {
+  clusterId: TestClusterId,
+  numShardsInCluster: 8
+};
 const TestContentTopic = "/test/1/ephemeral/utf8";
-const PubsubTopic = contentTopicToPubsubTopic(TestContentTopic, ClusterId);
+const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+  contentTopic: TestContentTopic
+});
 
 const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
-  pubsubTopic: PubsubTopic
+  routingInfo: TestRoutingInfo
 });
-const TestDecoder = createDecoder(TestContentTopic, PubsubTopic);
+const TestDecoder = createDecoder(TestContentTopic, TestRoutingInfo);
 
 const privateKey = generatePrivateKey();
 const symKey = generateSymmetricKey();
@@ -57,26 +59,26 @@ const AsymEncoder = createEciesEncoder({
   contentTopic: AsymContentTopic,
   publicKey,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  routingInfo: TestRoutingInfo
 });
 const SymEncoder = createSymEncoder({
   contentTopic: SymContentTopic,
   symKey,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  routingInfo: TestRoutingInfo
 });
 const ClearEncoder = createEncoder({
   contentTopic: TestContentTopic,
   ephemeral: true,
-  pubsubTopic: PubsubTopic
+  routingInfo: TestRoutingInfo
 });
 
 const AsymDecoder = createEciesDecoder(
   AsymContentTopic,
-  privateKey,
-  PubsubTopic
+  TestRoutingInfo,
+  privateKey
 );
-const SymDecoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
+const SymDecoder = createSymDecoder(SymContentTopic, TestRoutingInfo, symKey);
 
 describe("Waku Message Ephemeral field", function () {
   let waku: LightNode;
@@ -95,8 +97,8 @@ describe("Waku Message Ephemeral field", function () {
       store: true,
       relay: true,
       contentTopic: contentTopics,
-      clusterId: ClusterId,
-      shard: contentTopics.map((t) => contentTopicToShardIndex(t))
+      clusterId: TestClusterId,
+      numShardsInNetwork: TestNetworkConfig.numShardsInCluster
     });
     await nwaku.ensureSubscriptionsAutosharding([
       TestContentTopic,
@@ -107,10 +109,7 @@ describe("Waku Message Ephemeral field", function () {
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      networkConfig: {
-        contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
-        clusterId: ClusterId
-      }
+      networkConfig: TestNetworkConfig
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -138,17 +137,11 @@ describe("Waku Message Ephemeral field", function () {
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        networkConfig: {
-          contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
-          clusterId: ClusterId
-        }
+        networkConfig: TestNetworkConfig
       }).then((waku) => waku.start().then(() => waku)),
       createLightNode({
         staticNoiseKey: NOISE_KEY_2,
-        networkConfig: {
-          contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
-          clusterId: ClusterId
-        }
+        networkConfig: TestNetworkConfig
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId()
     ]);
@@ -200,7 +193,7 @@ describe("Waku Message Ephemeral field", function () {
     const ephemeralEncoder = createEncoder({
       contentTopic: TestContentTopic,
       ephemeral: true,
-      pubsubTopic: PubsubTopic
+      routingInfo: TestRoutingInfo
     });
 
     const messages: IDecodedMessage[] = [];
@@ -246,9 +239,9 @@ describe("Waku Message Ephemeral field", function () {
     const encoder = createSymEncoder({
       contentTopic: SymContentTopic,
       symKey,
-      pubsubTopic: PubsubTopic
+      routingInfo: TestRoutingInfo
     });
-    const decoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
+    const decoder = createSymDecoder(SymContentTopic, TestRoutingInfo, symKey);
 
     const messages: IDecodedMessage[] = [];
     const callback = (msg: IDecodedMessage): void => {
@@ -293,12 +286,12 @@ describe("Waku Message Ephemeral field", function () {
     const encoder = createEciesEncoder({
       contentTopic: AsymContentTopic,
       publicKey: publicKey,
-      pubsubTopic: PubsubTopic
+      routingInfo: TestRoutingInfo
     });
     const decoder = createEciesDecoder(
       AsymContentTopic,
-      privateKey,
-      PubsubTopic
+      TestRoutingInfo,
+      privateKey
     );
 
     const messages: IDecodedMessage[] = [];

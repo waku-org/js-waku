@@ -13,6 +13,7 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
+import { createRoutingInfo } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -23,7 +24,7 @@ import {
   tearDownNodes
 } from "../../src/index.js";
 
-import { runJSNodes, TestPubsubTopic } from "./utils.js";
+import { runJSNodes, TestNetworkConfig, TestRoutingInfo } from "./utils.js";
 
 describe("Waku Relay", function () {
   this.timeout(15000);
@@ -51,20 +52,20 @@ describe("Waku Relay", function () {
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
       publicKey,
-      pubsubTopic: TestPubsubTopic
+      routingInfo: TestRoutingInfo
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
       symKey,
-      pubsubTopic: TestPubsubTopic
+      routingInfo: TestRoutingInfo
     });
 
     const eciesDecoder = createEciesDecoder(
       asymTopic,
-      privateKey,
-      TestPubsubTopic
+      TestRoutingInfo,
+      privateKey
     );
-    const symDecoder = createSymDecoder(symTopic, symKey, TestPubsubTopic);
+    const symDecoder = createSymDecoder(symTopic, TestRoutingInfo, symKey);
 
     const msgs: IDecodedMessage[] = [];
     void waku2.relay.subscribeWithUnsubscribe([eciesDecoder], (wakuMsg) => {
@@ -93,19 +94,20 @@ describe("Waku Relay", function () {
       "Published on content topic with added then deleted observer";
 
     const contentTopic = "/test/1/observer/proto";
+    const routingInfo = createRoutingInfo(TestNetworkConfig, { contentTopic });
 
     // The promise **fails** if we receive a message on this observer.
     const receivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve, reject) => {
         const deleteObserver = waku2.relay.subscribeWithUnsubscribe(
-          [createDecoder(contentTopic)],
+          [createDecoder(contentTopic, routingInfo)],
           reject
         ) as () => void;
         deleteObserver();
         setTimeout(resolve, 500);
       }
     );
-    await waku1.relay.send(createEncoder({ contentTopic }), {
+    await waku1.relay.send(createEncoder({ contentTopic, routingInfo }), {
       payload: utf8ToBytes(messageText)
     });
 

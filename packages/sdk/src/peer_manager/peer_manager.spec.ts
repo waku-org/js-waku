@@ -1,9 +1,11 @@
 import { PeerId } from "@libp2p/interface";
 import {
+  ClusterId,
   CONNECTION_LOCKED_TAG,
   IConnectionManager,
   Libp2p,
-  Protocols
+  Protocols,
+  ShardId
 } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -81,6 +83,11 @@ describe("PeerManager", () => {
       pubsubTopics: [TEST_PUBSUB_TOPIC],
       getConnectedPeers: async () => peers,
       getPeers: async () => peers,
+      isPeerOnShard: async (
+        _id: PeerId,
+        _clusterId: ClusterId,
+        _shardId: ShardId
+      ) => true,
       isPeerOnTopic: async (_id: PeerId, _topic: string) => true
     } as unknown as IConnectionManager;
     peerManager = new PeerManager({

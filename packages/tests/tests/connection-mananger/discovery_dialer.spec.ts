@@ -11,7 +11,7 @@ import {
   teardownNodesWithRedundancy
 } from "../../src/index.js";
 
-import { TestShardInfo } from "./utils.js";
+import { TestRoutingInfo } from "./utils.js";
 
 // TODO: investigate and re-enable in https://github.com/waku-org/js-waku/issues/2453
 describe.skip("DiscoveryDialer", function () {
@@ -22,7 +22,7 @@ describe.skip("DiscoveryDialer", function () {
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      TestShardInfo,
+      TestRoutingInfo,
       { lightpush: true, filter: true, peerExchange: true },
       false,
       2,
@@ -35,7 +35,7 @@ describe.skip("DiscoveryDialer", function () {
       ctx,
       2,
       false,
-      TestShardInfo,
+      TestRoutingInfo,
       {
         lightpush: true,
         filter: true,

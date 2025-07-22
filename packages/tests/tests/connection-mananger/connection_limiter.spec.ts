@@ -9,7 +9,7 @@ import {
   teardownNodesWithRedundancy
 } from "../../src/index.js";
 
-import { TestShardInfo } from "./utils.js";
+import { TestRoutingInfo } from "./utils.js";
 
 describe("Connection Limiter", function () {
   let waku: LightNode;
@@ -18,7 +18,7 @@ describe("Connection Limiter", function () {
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      TestShardInfo,
+      TestRoutingInfo,
       { lightpush: true, filter: true, peerExchange: true },
       false,
       2,
@@ -68,7 +68,7 @@ describe("Connection Limiter", function () {
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      TestShardInfo,
+      TestRoutingInfo,
       { lightpush: true, filter: true, peerExchange: true },
       false,
       2,
@@ -126,7 +126,7 @@ describe("Connection Limiter", function () {
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      TestShardInfo,
+      TestRoutingInfo,
       { lightpush: true, filter: true, peerExchange: true },
       false,
       2,

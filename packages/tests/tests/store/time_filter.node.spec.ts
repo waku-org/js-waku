@@ -12,7 +12,8 @@ import {
   adjustDate,
   runStoreNodes,
   TestDecoder,
-  TestShardInfo
+  TestNetworkConfig,
+  TestRoutingInfo
 } from "./utils.js";
 
 describe("Waku Store, time filter", function () {
@@ -21,7 +22,7 @@ describe("Waku Store, time filter", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -49,7 +50,8 @@ describe("Waku Store, time filter", function () {
             payload: new Uint8Array([0]),
             contentTopic: TestDecoder.contentTopic,
             timestamp: msgTimestamp
-          })
+          }),
+          TestRoutingInfo
         )
       ).to.eq(true);
 
@@ -90,7 +92,8 @@ describe("Waku Store, time filter", function () {
             payload: new Uint8Array([0]),
             contentTopic: TestDecoder.contentTopic,
             timestamp: msgTimestamp
-          })
+          }),
+          TestRoutingInfo
         )
       ).to.eq(true);
 

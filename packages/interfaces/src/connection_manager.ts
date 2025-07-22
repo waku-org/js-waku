@@ -1,6 +1,8 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
+import { ShardId } from "./sharding.js";
+
 // Peer tags
 export enum Tags {
   BOOTSTRAP = "bootstrap",
@@ -161,4 +163,14 @@ export interface IConnectionManager {
    * @returns Promise resolving to true if the peer has shard info, false otherwise
    */
   hasShardInfo(peerId: PeerId): Promise<boolean>;
+
+  /**
+   * Returns true if the passed peer is on the passed pubsub topic
+   */
+  isPeerOnTopic(peerId: PeerId, pubsubTopic: string): Promise<boolean>;
+
+  /**
+   * Returns true if the passed peer is on the passed shard
+   */
+  isPeerOnShard(peerId: PeerId, shardId: ShardId): Promise<boolean>;
 }

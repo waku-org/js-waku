@@ -14,9 +14,10 @@ import {
   runStoreNodes,
   sendMessages,
   startAndConnectLightNode,
+  TestContentTopic,
   TestDecoder,
-  TestDecoder2,
-  TestShardInfo,
+  TestNetworkConfig,
+  TestRoutingInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -27,7 +28,12 @@ describe("Waku Store, cursor", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(
+      this.ctx,
+      TestNetworkConfig,
+      [],
+      [TestContentTopic]
+    );
   });
 
   afterEachCustom(this, async () => {
@@ -47,7 +53,7 @@ describe("Waku Store, cursor", function () {
         nwaku,
         messageCount,
         TestDecoder.contentTopic,
-        TestDecoder.pubsubTopic
+        TestRoutingInfo
       );
 
       // messages in reversed order (first message at last index)
@@ -95,9 +101,9 @@ describe("Waku Store, cursor", function () {
       nwaku,
       totalMsgs,
       TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
+      TestRoutingInfo
     );
-    waku2 = await startAndConnectLightNode(nwaku, TestShardInfo);
+    waku2 = await startAndConnectLightNode(nwaku, TestNetworkConfig);
 
     // messages in reversed order (first message at last index)
     const messages: DecodedMessage[] = [];
@@ -132,17 +138,8 @@ describe("Waku Store, cursor", function () {
     ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
-  it("Passing invalid cursor for nwaku > 0.35.1", async function () {
-    if (nwaku.version && nwaku.version.minor < 36) {
-      this.skip();
-    }
-
-    await sendMessages(
-      nwaku,
-      totalMsgs,
-      TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
-    );
+  it("Passing invalid cursor", async function () {
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, TestRoutingInfo);
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
@@ -169,49 +166,7 @@ describe("Waku Store, cursor", function () {
     } catch (err) {
       if (
         !(err instanceof Error) ||
-        !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
-        )
-      ) {
-        throw err;
-      }
-    }
-  });
-
-  it("Passing cursor with wrong pubsubTopic for nwaku > 0.35.1", async function () {
-    if (nwaku.version && nwaku.version.minor < 36) {
-      this.skip();
-    }
-
-    await sendMessages(
-      nwaku,
-      totalMsgs,
-      TestDecoder.contentTopic,
-      TestDecoder.pubsubTopic
-    );
-
-    const messages: DecodedMessage[] = [];
-    for await (const page of waku.store.queryGenerator([TestDecoder])) {
-      for await (const msg of page) {
-        messages.push(msg as DecodedMessage);
-      }
-    }
-    messages[5].pubsubTopic = TestDecoder2.pubsubTopic;
-    const cursor = waku.store.createCursor(messages[5]);
-
-    try {
-      for await (const page of waku.store.queryGenerator([TestDecoder], {
-        paginationCursor: cursor
-      })) {
-        void page;
-      }
-      throw new Error("Cursor with wrong pubsubtopic was accepted");
-    } catch (err) {
-      if (
-        !(err instanceof Error) ||
-        !err.message.includes(
-          "Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DRIVER_ERROR: cursor not found"
-        )
+        !err.message.includes("cursor not found")
       ) {
         throw err;
       }

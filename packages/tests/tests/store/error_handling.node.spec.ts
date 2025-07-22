@@ -1,5 +1,5 @@
 import { IMessage, type LightNode } from "@waku/interfaces";
-import { determinePubsubTopic } from "@waku/utils";
+import { formatPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -14,7 +14,7 @@ import {
   runStoreNodes,
   TestDecoder,
   TestDecoder2,
-  TestShardInfo
+  TestNetworkConfig
 } from "./utils.js";
 
 describe("Waku Store, error handling", function () {
@@ -23,7 +23,7 @@ describe("Waku Store, error handling", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestNetworkConfig);
   });
 
   afterEachCustom(this, async () => {
@@ -68,7 +68,7 @@ describe("Waku Store, error handling", function () {
   });
 
   it("Query Generator, No message returned", async function () {
-    const WrongTestPubsubTopic = determinePubsubTopic("/test/1/wrong/utf8");
+    const WrongTestPubsubTopic = formatPubsubTopic(43, 53);
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],

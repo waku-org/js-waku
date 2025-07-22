@@ -1,13 +1,5 @@
 import type { ContentTopic, PubsubTopic } from "./misc.js";
-
-export interface SingleShardInfo {
-  clusterId: number;
-  /**
-   * TODO: make shard required
-   * Specifying this field indicates to the encoder/decoder that static sharding must be used.
-   */
-  shard?: number;
-}
+import type { IRoutingInfo } from "./sharding.js";
 
 export interface IRateLimitProof {
   proof: Uint8Array;
@@ -81,10 +73,9 @@ export interface IMetaSetter {
 
 export interface EncoderOptions {
   /**
-   * @deprecated
+   * The routing information for the message (cluster id, shard id, pubsubTopic)
    */
-  pubsubTopic?: PubsubTopic;
-  pubsubTopicShardInfo?: SingleShardInfo;
+  routingInfo: IRoutingInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -101,16 +92,17 @@ export interface EncoderOptions {
 }
 
 export interface IEncoder {
-  pubsubTopic: PubsubTopic;
   contentTopic: string;
   ephemeral: boolean;
+  routingInfo: IRoutingInfo;
+  pubsubTopic: PubsubTopic;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
-  pubsubTopic: PubsubTopic;
   contentTopic: string;
+  pubsubTopic: PubsubTopic;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,

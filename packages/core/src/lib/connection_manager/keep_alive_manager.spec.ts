@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
+import { AutoSharding } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -21,6 +22,11 @@ describe("KeepAliveManager", () => {
   const defaultOptions = {
     pingKeepAlive: 30,
     relayKeepAlive: 60
+  };
+
+  const defaultNetworkConfig: AutoSharding = {
+    clusterId: 0,
+    numShardsInCluster: 1
   };
 
   beforeEach(() => {
@@ -61,6 +67,7 @@ describe("KeepAliveManager", () => {
     it("should create KeepAliveManager with required options", () => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p
       });
 
@@ -70,6 +77,7 @@ describe("KeepAliveManager", () => {
     it("should create KeepAliveManager with relay", () => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -82,6 +90,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p
       });
     });
@@ -110,6 +119,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -158,6 +168,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -194,6 +205,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -225,6 +237,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p
       });
       keepAliveManager.start();
@@ -244,6 +257,7 @@ describe("KeepAliveManager", () => {
       keepAliveManager.stop();
       keepAliveManager = new KeepAliveManager({
         options: { pingKeepAlive: 0, relayKeepAlive: 0 },
+        networkConfig: defaultNetworkConfig,
         libp2p
       });
       keepAliveManager.start();
@@ -317,6 +331,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -337,6 +352,7 @@ describe("KeepAliveManager", () => {
       keepAliveManager.stop();
       keepAliveManager = new KeepAliveManager({
         options: { pingKeepAlive: 30, relayKeepAlive: 0 },
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -355,6 +371,7 @@ describe("KeepAliveManager", () => {
       keepAliveManager.stop();
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p
       });
       keepAliveManager.start();
@@ -423,6 +440,7 @@ describe("KeepAliveManager", () => {
     beforeEach(() => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -489,6 +507,7 @@ describe("KeepAliveManager", () => {
 
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay: emptyRelay
       });
@@ -506,6 +525,7 @@ describe("KeepAliveManager", () => {
     it("should handle all zero keep alive options", () => {
       keepAliveManager = new KeepAliveManager({
         options: { pingKeepAlive: 0, relayKeepAlive: 0 },
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -525,6 +545,7 @@ describe("KeepAliveManager", () => {
 
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });
@@ -544,6 +565,7 @@ describe("KeepAliveManager", () => {
     it("should handle complete peer lifecycle", async () => {
       keepAliveManager = new KeepAliveManager({
         options: defaultOptions,
+        networkConfig: defaultNetworkConfig,
         libp2p,
         relay
       });

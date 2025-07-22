@@ -5,7 +5,8 @@ import {
   IConnectionManager,
   IRelay,
   IWakuEventEmitter,
-  NetworkConfig
+  NetworkConfig,
+  ShardId
 } from "@waku/interfaces";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -45,7 +46,7 @@ export class ConnectionManager implements IConnectionManager {
   private readonly networkMonitor: NetworkMonitor;
   private readonly connectionLimiter: ConnectionLimiter;
 
-  private options: ConnectionManagerOptions;
+  private readonly options: ConnectionManagerOptions;
   private libp2p: Libp2p;
 
   public constructor(options: ConnectionManagerConstructorOptions) {
@@ -66,6 +67,7 @@ export class ConnectionManager implements IConnectionManager {
     this.keepAliveManager = new KeepAliveManager({
       relay: options.relay,
       libp2p: options.libp2p,
+      networkConfig: options.networkConfig,
       options: {
         pingKeepAlive: this.options.pingKeepAlive,
         relayKeepAlive: this.options.relayKeepAlive
@@ -193,5 +195,12 @@ export class ConnectionManager implements IConnectionManager {
     pubsubTopic: string
   ): Promise<boolean> {
     return this.shardReader.isPeerOnTopic(peerId, pubsubTopic);
+  }
+
+  public async isPeerOnShard(
+    peerId: PeerId,
+    shardId: ShardId
+  ): Promise<boolean> {
+    return this.shardReader.isPeerOnShard(peerId, shardId);
   }
 }

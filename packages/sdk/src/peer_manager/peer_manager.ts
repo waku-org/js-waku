@@ -4,14 +4,10 @@ import {
   PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import {
-  ConnectionManager,
-  FilterCodecs,
-  LightPushCodec,
-  StoreCodec
-} from "@waku/core";
+import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import {
   CONNECTION_LOCKED_TAG,
+  type IConnectionManager,
   Libp2p,
   Libp2pEventHandler,
   Protocols
@@ -29,7 +25,7 @@ type PeerManagerConfig = {
 type PeerManagerParams = {
   libp2p: Libp2p;
   config?: PeerManagerConfig;
-  connectionManager: ConnectionManager;
+  connectionManager: IConnectionManager;
 };
 
 type GetPeersParams = {
@@ -67,7 +63,7 @@ export class PeerManager {
   private readonly numPeersToUse: number;
 
   private readonly libp2p: Libp2p;
-  private readonly connectionManager: ConnectionManager;
+  private readonly connectionManager: IConnectionManager;
 
   private readonly lockedPeers = new Set<string>();
   private readonly unlockedPeers = new Map<string, number>();

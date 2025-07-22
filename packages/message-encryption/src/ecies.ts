@@ -7,11 +7,11 @@ import {
   type IMessage,
   type IMetaSetter,
   type IProtoMessage,
-  type PubsubTopic,
-  type SingleShardInfo
+  type IRoutingInfo,
+  type PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { determinePubsubTopic, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -35,8 +35,8 @@ const log = new Logger("message-encryption:ecies");
 
 class Encoder implements IEncoder {
   public constructor(
-    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
+    public routingInfo: IRoutingInfo,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
@@ -45,6 +45,10 @@ class Encoder implements IEncoder {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
+  }
+
+  public get pubsubTopic(): PubsubTopic {
+    return this.routingInfo.pubsubTopic;
   }
 
   public async toWire(message: IMessage): Promise<Uint8Array | undefined> {
@@ -82,10 +86,6 @@ class Encoder implements IEncoder {
 }
 
 export interface EncoderOptions extends BaseEncoderOptions {
-  /**
-   * @deprecated
-   */
-  pubsubTopic?: PubsubTopic;
   /** The public key to encrypt the payload for. */
   publicKey: Uint8Array;
   /**  An optional private key to be used to sign the payload before encryption. */
@@ -105,17 +105,16 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic,
-  pubsubTopicShardInfo,
   contentTopic,
+  routingInfo,
   publicKey,
   sigPrivKey,
   ephemeral = false,
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
+    routingInfo,
     publicKey,
     sigPrivKey,
     ephemeral,
@@ -125,11 +124,11 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   public constructor(
-    pubsubTopic: PubsubTopic,
     contentTopic: string,
+    routingInfo: IRoutingInfo,
     private privateKey: Uint8Array
   ) {
-    super(pubsubTopic, contentTopic);
+    super(contentTopic, routingInfo);
   }
 
   public async fromProtoObj(
@@ -197,16 +196,13 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
  * decode incoming messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param routingInfo
  * @param privateKey The private key used to decrypt the message.
  */
 export function createDecoder(
   contentTopic: string,
-  privateKey: Uint8Array,
-  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
+  routingInfo: IRoutingInfo,
+  privateKey: Uint8Array
 ): Decoder {
-  return new Decoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
-    contentTopic,
-    privateKey
-  );
+  return new Decoder(contentTopic, routingInfo, privateKey);
 }
