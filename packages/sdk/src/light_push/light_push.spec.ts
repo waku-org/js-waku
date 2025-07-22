@@ -1,6 +1,18 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { createEncoder, Encoder, LightPushCodec } from "@waku/core";
-import { Libp2p, ProtocolError } from "@waku/interfaces";
+import {
+  createEncoder,
+  Encoder,
+  LightPushCodec,
+  LightPushCodecV3
+} from "@waku/core";
+import {
+  isSuccess,
+  Libp2p,
+  LightPushError,
+  LightPushStatusCode,
+  toLightPushError,
+  toProtocolError
+} from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -40,8 +52,8 @@ describe("LightPush SDK", () => {
     const failures = result.failures ?? [];
 
     expect(failures.length).to.be.eq(1);
-    expect(failures.some((v) => v.error === ProtocolError.NO_PEER_AVAILABLE)).to
-      .be.true;
+    expect(failures.some((v) => v.error === LightPushError.NO_PEER_AVAILABLE))
+      .to.be.true;
   });
 
   it("should send to specified number of peers of used peers", async () => {
@@ -127,6 +139,86 @@ describe("LightPush SDK", () => {
     expect(result.successes?.length).to.be.eq(1);
     expect(result.failures?.length).to.be.eq(1);
   });
+
+  describe("v3 protocol support", () => {
+    it("should work with v3 peers", async () => {
+      libp2p = mockLibp2p({
+        peers: [mockV3Peer("1"), mockV3Peer("2")]
+      });
+
+      expect(isSuccess(LightPushStatusCode.SUCCESS)).to.be.true;
+      expect(isSuccess(LightPushStatusCode.BAD_REQUEST)).to.be.false;
+      // Test the new v3 error mapping function
+      expect(toLightPushError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
+        LightPushError.PAYLOAD_TOO_LARGE
+      );
+      // Test backward compatibility with the deprecated function
+      expect(toProtocolError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
+        LightPushError.PAYLOAD_TOO_LARGE
+      );
+    });
+
+    it("should work with mixed v2 and v3 peers", async () => {
+      libp2p = mockLibp2p({
+        peers: [mockV2AndV3Peer("1"), mockPeer("2"), mockV3Peer("3")]
+      });
+
+      // Mock responses for different protocol versions
+      const v3Response = mockV3SuccessResponse(5);
+      const v2Response = mockV2SuccessResponse();
+      const v3ErrorResponse = mockV3ErrorResponse(
+        LightPushStatusCode.PAYLOAD_TOO_LARGE
+      );
+      const v2ErrorResponse = mockV2ErrorResponse("Message too large");
+
+      expect(v3Response.statusCode).to.eq(LightPushStatusCode.SUCCESS);
+      expect(v3Response.relayPeerCount).to.eq(5);
+      expect(v2Response.isSuccess).to.be.true;
+      expect(v3ErrorResponse.statusCode).to.eq(
+        LightPushStatusCode.PAYLOAD_TOO_LARGE
+      );
+      expect(v2ErrorResponse.isSuccess).to.be.false;
+    });
+
+    it("should handle v3 RLN errors", async () => {
+      const v3RLNError = mockV3RLNErrorResponse();
+      const v2RLNError = mockV2RLNErrorResponse();
+
+      expect(v3RLNError.statusCode).to.eq(LightPushStatusCode.NO_RLN_PROOF);
+      expect(v3RLNError.statusDesc).to.include("RLN proof generation failed");
+      expect(v2RLNError.info).to.include("RLN proof generation failed");
+    });
+
+    it("should validate status codes", async () => {
+      const statusCodes = [
+        LightPushStatusCode.SUCCESS,
+        LightPushStatusCode.BAD_REQUEST,
+        LightPushStatusCode.PAYLOAD_TOO_LARGE,
+        LightPushStatusCode.INVALID_MESSAGE,
+        LightPushStatusCode.UNSUPPORTED_TOPIC,
+        LightPushStatusCode.TOO_MANY_REQUESTS,
+        LightPushStatusCode.INTERNAL_ERROR,
+        LightPushStatusCode.UNAVAILABLE,
+        LightPushStatusCode.NO_RLN_PROOF,
+        LightPushStatusCode.NO_PEERS
+      ];
+
+      statusCodes.forEach((code) => {
+        // Test the new v3 mapping function
+        const lightPushError = toLightPushError(code);
+        expect(lightPushError).to.be.a("string");
+        expect(Object.values(LightPushError)).to.include(lightPushError);
+
+        // Test backward compatibility - deprecated function now returns LightPushError values
+        const deprecatedError = toProtocolError(code);
+        expect(deprecatedError).to.be.a("string");
+        expect(Object.values(LightPushError)).to.include(deprecatedError);
+
+        // Both functions should return the same value for consistency
+        expect(lightPushError).to.eq(deprecatedError);
+      });
+    });
+  });
 });
 
 type MockLibp2pOptions = {
@@ -136,7 +228,16 @@ type MockLibp2pOptions = {
 function mockLibp2p(options?: MockLibp2pOptions): Libp2p {
   const peers = options?.peers || [];
   const peerStore = {
-    get: (id: any) => Promise.resolve(peers.find((p) => p.id === id))
+    get: (id: any) => {
+      const peer = peers.find((p) => p.id === id);
+      if (peer) {
+        return Promise.resolve({
+          ...peer,
+          protocols: peer.protocols || [LightPushCodec]
+        });
+      }
+      return Promise.resolve(undefined);
+    }
   };
 
   return {
@@ -179,9 +280,89 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   return lightPush;
 }
 
-function mockPeer(id: string): Peer {
+function mockPeer(id: string, protocols: string[] = [LightPushCodec]): Peer {
   return {
     id,
-    protocols: [LightPushCodec]
+    protocols
   } as unknown as Peer;
+}
+
+// V3-specific mock functions
+function mockV3Peer(id: string): Peer {
+  return mockPeer(id, [LightPushCodecV3]);
+}
+
+function mockV2AndV3Peer(id: string): Peer {
+  return mockPeer(id, [LightPushCodec, LightPushCodecV3]);
+}
+
+function mockV3SuccessResponse(relayPeerCount?: number): {
+  statusCode: LightPushStatusCode;
+  statusDesc: string;
+  relayPeerCount?: number;
+  isSuccess: boolean;
+} {
+  return {
+    statusCode: LightPushStatusCode.SUCCESS,
+    statusDesc: "Message sent successfully",
+    relayPeerCount,
+    isSuccess: true
+  };
+}
+
+function mockV3ErrorResponse(
+  statusCode: LightPushStatusCode,
+  statusDesc?: string
+): {
+  statusCode: LightPushStatusCode;
+  statusDesc: string;
+  isSuccess: boolean;
+} {
+  return {
+    statusCode,
+    statusDesc: statusDesc || "Error occurred",
+    isSuccess: false
+  };
+}
+
+function mockV2SuccessResponse(): {
+  isSuccess: boolean;
+  info: string;
+} {
+  return {
+    isSuccess: true,
+    info: "Message sent successfully"
+  };
+}
+
+function mockV2ErrorResponse(info?: string): {
+  isSuccess: boolean;
+  info: string;
+} {
+  return {
+    isSuccess: false,
+    info: info || "Error occurred"
+  };
+}
+
+function mockV3RLNErrorResponse(): {
+  statusCode: LightPushStatusCode;
+  statusDesc: string;
+  isSuccess: boolean;
+} {
+  return {
+    statusCode: LightPushStatusCode.NO_RLN_PROOF,
+    statusDesc: "RLN proof generation failed",
+    isSuccess: false
+  };
+}
+
+function mockV2RLNErrorResponse(): {
+  isSuccess: boolean;
+  info: string;
+} {
+  return {
+    isSuccess: false,
+    info: "RLN proof generation failed"
+  };
 }
