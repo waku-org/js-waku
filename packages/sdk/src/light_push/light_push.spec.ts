@@ -2,17 +2,13 @@ import { Peer, PeerId } from "@libp2p/interface";
 import {
   createEncoder,
   Encoder,
-  LightPushCodec,
-  LightPushCodecV3
-} from "@waku/core";
-import {
   isSuccess,
-  Libp2p,
-  LightPushError,
-  LightPushStatusCode,
+  LightPushCodec,
+  LightPushCodecV3,
   toLightPushError,
   toProtocolError
-} from "@waku/interfaces";
+} from "@waku/core";
+import { Libp2p, LightPushError, LightPushStatusCode } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";

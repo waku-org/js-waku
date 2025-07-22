@@ -1,10 +1,10 @@
 import type { PeerId } from "@libp2p/interface";
 import { LightPushCore } from "@waku/core";
+import { inferProtocolVersion } from "@waku/core";
 import {
   type IEncoder,
   ILightPush,
   type IMessage,
-  inferProtocolVersion,
   type ISendOptions,
   type Libp2p,
   type LightPushCoreResult,

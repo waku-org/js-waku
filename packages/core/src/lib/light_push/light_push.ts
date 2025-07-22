@@ -2,13 +2,10 @@ import type { PeerId } from "@libp2p/interface";
 import {
   type IEncoder,
   type IMessage,
-  inferProtocolVersion,
-  isSuccess as isV3Success,
   type Libp2p,
   type LightPushCoreResult,
   LightPushError,
-  type ThisOrThat,
-  toLightPushError
+  type ThisOrThat
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
@@ -22,6 +19,8 @@ import { StreamManager } from "../stream_manager/index.js";
 import { selectOpenConnection } from "../stream_manager/utils.js";
 
 import { PushRpc } from "./push_rpc.js";
+import { PushRpcV3 } from "./push_rpc_v3.js";
+import { isSuccess as isV3Success } from "./utils.js";
 import { isRLNResponseError } from "./utils.js";
 
 const log = new Logger("light-push");
@@ -33,7 +32,7 @@ export { PushResponse };
 
 type PreparePushMessageResult = ThisOrThat<
   "query",
-  PushRpc,
+  PushRpc | PushRpcV3,
   "error",
   LightPushError
 >;
@@ -81,7 +80,10 @@ export class LightPushCore {
     } catch (error) {
       if (supportsV3 && supportsV2) {
         // TODO: This fallback should be evaluated for v3 compatibility
-        log.warn("Failed to create v3 stream, falling back to v2", error);
+        log.warn(
+          `Failed to create v3 stream, falling back to v2. Error: ${error}`
+        );
+        log.info("Protocol negotiation chose v2 due to failure in v3");
         stream = await this.streamManager.getStream(peerId);
         return { stream, protocol: LightPushCodec };
       }
@@ -93,7 +95,8 @@ export class LightPushCore {
 
   private async preparePushMessage(
     encoder: IEncoder,
-    message: IMessage
+    message: IMessage,
+    protocol: string
   ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
@@ -115,7 +118,14 @@ export class LightPushCore {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+      // Create the appropriate message format based on protocol version
+      let query: PushRpc | PushRpcV3;
+      if (protocol === LightPushCodecV3) {
+        query = PushRpcV3.createRequest(protoMessage, encoder.pubsubTopic);
+      } else {
+        query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+      }
+
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);
@@ -125,12 +135,6 @@ export class LightPushCore {
         error: LightPushError.GENERIC_FAIL
       };
     }
-  }
-
-  private isTopicConfigured(_topic: string): boolean {
-    // Placeholder for actual configuration check logic
-    // Return true if the topic is configured, false otherwise
-    return true;
   }
 
   public async send(
@@ -178,6 +182,23 @@ export class LightPushCore {
       };
     }
 
+    // Prepare message using the detected protocol version
+    const { query, error: preparationError } = await this.preparePushMessage(
+      encoder,
+      message,
+      protocol
+    );
+
+    if (preparationError || !query) {
+      return {
+        success: null,
+        failure: {
+          error: preparationError,
+          peerId
+        }
+      };
+    }
+
     let res: Uint8ArrayList[] | undefined;
     try {
       const encodedQuery = query.encode();
@@ -215,6 +236,63 @@ export class LightPushCore {
       };
     }
 
+    // Handle response based on protocol version
+    if (protocol === LightPushCodecV3) {
+      return this.handleV3Response(bytes, peerId);
+    } else {
+      return this.handleV2Response(bytes, peerId);
+    }
+  }
+
+  private handleV3Response(
+    bytes: Uint8ArrayList,
+    peerId: PeerId
+  ): LightPushCoreResult {
+    try {
+      const decodedRpcV3 = PushRpcV3.decodeResponse(bytes);
+      const statusCode = decodedRpcV3.statusCode;
+      const statusDesc = decodedRpcV3.statusDesc;
+
+      if (!isV3Success(statusCode)) {
+        // For backward compatibility, map all v3 non-success status codes to REMOTE_PEER_REJECTED
+        // while still propagating statusCode & statusDesc for advanced users
+        const error = LightPushError.REMOTE_PEER_REJECTED;
+        log.error(
+          `Remote peer rejected with v3 status code ${statusCode}: ${statusDesc}`
+        );
+        return {
+          success: null,
+          failure: {
+            error,
+            peerId: peerId,
+            statusCode,
+            statusDesc,
+            protocolVersion: "v3"
+          }
+        };
+      }
+
+      if (decodedRpcV3.relayPeerCount !== undefined) {
+        log.info(`Message relayed to ${decodedRpcV3.relayPeerCount} peers`);
+      }
+
+      return { success: peerId, failure: null };
+    } catch (err) {
+      return {
+        success: null,
+        failure: {
+          error: LightPushError.DECODE_FAILED,
+          peerId: peerId,
+          protocolVersion: "v3"
+        }
+      };
+    }
+  }
+
+  private handleV2Response(
+    bytes: Uint8ArrayList,
+    peerId: PeerId
+  ): LightPushCoreResult {
     let response: PushResponse | undefined;
     try {
       const decodedRpc = PushRpc.decode(bytes);
@@ -224,7 +302,8 @@ export class LightPushCore {
         success: null,
         failure: {
           error: LightPushError.DECODE_FAILED,
-          peerId: peerId
+          peerId: peerId,
+          protocolVersion: "v2"
         }
       };
     }
@@ -234,39 +313,10 @@ export class LightPushCore {
         success: null,
         failure: {
           error: LightPushError.NO_RESPONSE,
-          peerId: peerId
+          peerId: peerId,
+          protocolVersion: "v2"
         }
       };
-    }
-
-    // Determine protocol version for response handling
-    const protocolVersion = inferProtocolVersion(
-      response.statusCode !== undefined
-    );
-
-    if (protocol === LightPushCodecV3 && response.statusCode !== undefined) {
-      if (!isV3Success(response.statusCode)) {
-        const error = toLightPushError(response.statusCode);
-        log.error(
-          `Remote peer rejected with v3 status code ${response.statusCode}: ${response.statusDesc || response.info}`
-        );
-        return {
-          success: null,
-          failure: {
-            error,
-            peerId: peerId,
-            statusCode: response.statusCode,
-            statusDesc: response.statusDesc || response.info,
-            protocolVersion
-          }
-        };
-      }
-
-      if (response.relayPeerCount !== undefined) {
-        log.info(`Message relayed to ${response.relayPeerCount} peers`);
-      }
-
-      return { success: peerId, failure: null };
     }
 
     if (isRLNResponseError(response.info)) {
@@ -276,7 +326,7 @@ export class LightPushCore {
         failure: {
           error: LightPushError.RLN_PROOF_GENERATION,
           peerId: peerId,
-          protocolVersion
+          protocolVersion: "v2"
         }
       };
     }
@@ -289,7 +339,7 @@ export class LightPushCore {
           error: LightPushError.REMOTE_PEER_REJECTED,
           peerId: peerId,
           statusDesc: response.info,
-          protocolVersion
+          protocolVersion: "v2"
         }
       };
     }
