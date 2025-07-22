@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.33](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.32...interfaces-v0.0.33) (2025-07-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
 ## [0.0.32](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.31...interfaces-v0.0.32) (2025-07-18)
 
 
