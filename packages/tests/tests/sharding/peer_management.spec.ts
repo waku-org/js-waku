@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import type { AutoSharding, StaticSharding } from "@waku/interfaces";
 import { createLightNode, LightNode, Tags } from "@waku/sdk";
-import { contentTopicToShardIndex } from "@waku/utils";
+import { AutoShardingRoutingInfo } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
@@ -201,7 +201,14 @@ describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = 8;
   const numShardsInCluster = 8;
-  const Shard = [contentTopicToShardIndex(ContentTopic, numShardsInCluster)];
+  const networkConfig: AutoSharding = {
+    clusterId,
+    numShardsInCluster
+  };
+  const Shard = [
+    AutoShardingRoutingInfo.fromContentTopic(ContentTopic, networkConfig)
+      .shardId
+  ];
 
   describe("Peer Exchange", function () {
     let waku: LightNode;

@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import {
-  contentTopicToShardIndex,
+  AutoShardingRoutingInfo,
   createRoutingInfo,
   Logger
 } from "@waku/utils";
@@ -11,14 +11,14 @@ export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter/default";
 export const TestClusterId = 2;
 export const TestNumShardsInCluster = 8;
-export const TestShardIndex = contentTopicToShardIndex(
-  TestContentTopic,
-  TestNumShardsInCluster
-);
 export const TestNetworkConfig = {
   clusterId: TestClusterId,
   numShardsInCluster: TestNumShardsInCluster
 };
+export const TestShardIndex = AutoShardingRoutingInfo.fromContentTopic(
+  TestContentTopic,
+  TestNetworkConfig
+).shardId;
 export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
   contentTopic: TestContentTopic
 });

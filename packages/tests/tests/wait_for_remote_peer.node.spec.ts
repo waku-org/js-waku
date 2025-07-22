@@ -2,7 +2,7 @@ import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
-import { formatPubsubTopic } from "@waku/utils";
+import { StaticShardingRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -261,7 +261,9 @@ describe("Wait for remote peer", function () {
     [nwaku, waku1] = await runRelayNodes(this, { clusterId: 0 }, [0]);
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    const peers = waku1.relay.getMeshPeers(formatPubsubTopic(0, 0));
+    const peers = waku1.relay.getMeshPeers(
+      StaticShardingRoutingInfo.fromShard(0, { clusterId: 0 }).pubsubTopic
+    );
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

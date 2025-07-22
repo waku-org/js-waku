@@ -3,11 +3,11 @@ import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { ContentTopic, PubsubTopic } from "@waku/interfaces";
 import {
-  formatPubsubTopic,
   isAutoSharding,
   isDefined,
   isStaticSharding,
-  RoutingInfo
+  RoutingInfo,
+  StaticShardingRoutingInfo
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
@@ -279,10 +279,10 @@ export class ServiceNode {
     if (this.args?.shard) {
       if (this.args?.shard.length > 1)
         throw "More that one shard passed, not supported";
-      const pubsubTopic = formatPubsubTopic(
-        this.args.clusterId ?? DefaultTestNetworkConfig.clusterId,
-        this.args?.shard[0]
-      );
+      const pubsubTopic = StaticShardingRoutingInfo.fromShard(
+        this.args?.shard[0],
+        { clusterId: this.args.clusterId ?? DefaultTestNetworkConfig.clusterId }
+      ).pubsubTopic;
       return this.pubsubTopicMessages(pubsubTopic);
     }
 

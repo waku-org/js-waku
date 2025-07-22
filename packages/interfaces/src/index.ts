@@ -18,3 +18,4 @@ export * from "./constants.js";
 export * from "./local_storage.js";
 export * from "./sharding.js";
 export * from "./health_status.js";
+export type { ShardInfo } from "./sharding.js";

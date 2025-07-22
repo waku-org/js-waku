@@ -6,11 +6,7 @@ import type {
   ShardId,
   ShardInfo
 } from "@waku/interfaces";
-import {
-  decodeRelayShard,
-  Logger,
-  pubsubTopicToSingleShardInfo
-} from "@waku/utils";
+import { decodeRelayShard, Logger } from "@waku/utils";
 import { Libp2p } from "libp2p";
 
 const log = new Logger("shard-reader");
@@ -65,7 +61,7 @@ export class ShardReader implements IShardReader {
     pubsubTopic: PubsubTopic
   ): Promise<boolean> {
     try {
-      const { clusterId, shard } = pubsubTopicToSingleShardInfo(pubsubTopic);
+      const { clusterId, shard } = this.parsePubsubTopic(pubsubTopic);
       if (clusterId !== this.clusterId) return false;
       return await this.isPeerOnShard(id, shard);
     } catch (error) {
@@ -91,6 +87,34 @@ export class ShardReader implements IShardReader {
       peerShardInfo.clusterId === this.clusterId &&
       peerShardInfo.shards.includes(shard)
     );
+  }
+
+  private parsePubsubTopic(pubsubTopic: PubsubTopic): {
+    clusterId: ClusterId;
+    shard: ShardId;
+  } {
+    const parts = pubsubTopic.split("/");
+
+    if (
+      parts.length !== 6 ||
+      parts[1] !== "waku" ||
+      parts[2] !== "2" ||
+      parts[3] !== "rs"
+    ) {
+      throw new Error("Invalid pubsub topic");
+    }
+
+    const clusterId = parseInt(parts[4], 10);
+    const shard = parseInt(parts[5], 10);
+
+    if (isNaN(clusterId) || isNaN(shard)) {
+      throw new Error("Invalid clusterId or shard");
+    }
+
+    return {
+      clusterId,
+      shard
+    };
   }
 
   private async getRelayShards(id: PeerId): Promise<ShardInfo | undefined> {

@@ -1,10 +1,6 @@
 import { LightNode, Protocols } from "@waku/interfaces";
 import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  createRoutingInfo,
-  delay
-} from "@waku/utils";
+import { createRoutingInfo, delay } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -64,13 +60,7 @@ describe("High Throughput Messaging", function () {
 
     await delay(1000);
 
-    await nwaku.ensureSubscriptions([
-      contentTopicToPubsubTopic(
-        ContentTopic,
-        NetworkConfig.clusterId,
-        NetworkConfig.numShardsInCluster
-      )
-    ]);
+    await nwaku.ensureSubscriptions([RoutingInfo.pubsubTopic]);
 
     waku = await createLightNode({ networkConfig: NetworkConfig });
     await waku.start();

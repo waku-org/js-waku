@@ -6,7 +6,7 @@ import {
   PubsubTopic,
   ShardInfo
 } from "@waku/interfaces";
-import { contentTopicToShardIndex, encodeRelayShard } from "@waku/utils";
+import { AutoShardingRoutingInfo, encodeRelayShard } from "@waku/utils";
 import { expect } from "chai";
 import { Libp2p } from "libp2p";
 import sinon from "sinon";
@@ -29,15 +29,16 @@ describe("ShardReader", function () {
 
   const testContentTopic = "/test/1/waku-light-push/utf8";
   const testClusterId = 3;
-  const testShardIndex = contentTopicToShardIndex(
-    testContentTopic,
-    DEFAULT_NUM_SHARDS
-  );
 
   const testNetworkConfig: AutoSharding = {
     clusterId: testClusterId,
     numShardsInCluster: DEFAULT_NUM_SHARDS
   };
+
+  const testShardIndex = AutoShardingRoutingInfo.fromContentTopic(
+    testContentTopic,
+    testNetworkConfig
+  ).shardId;
 
   const testShardInfo: ShardInfo = {
     clusterId: testClusterId,

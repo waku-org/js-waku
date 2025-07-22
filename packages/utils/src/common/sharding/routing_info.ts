@@ -1,3 +1,4 @@
+import { sha256 } from "@noble/hashes/sha256";
 import type {
   AutoSharding,
   ClusterId,
@@ -9,25 +10,133 @@ import type {
   StaticSharding
 } from "@waku/interfaces";
 
-import {
-  contentTopicToShardIndex,
-  ensureValidContentTopic,
-  formatPubsubTopic,
-  isAutoSharding,
-  pubsubTopicToSingleShardInfo
-} from "./index.js";
+import { concat, utf8ToBytes } from "../../bytes/index.js";
+
+import { isAutoSharding } from "./index.js";
+
+const formatPubsubTopic = (
+  clusterId: ClusterId,
+  shard: ShardId
+): PubsubTopic => {
+  return `/waku/2/rs/${clusterId}/${shard}`;
+};
+
+interface ParsedContentTopic {
+  generation: number;
+  application: string;
+  version: string;
+  topicName: string;
+  encoding: string;
+}
+
+function ensureValidContentTopic(
+  contentTopic: ContentTopic
+): ParsedContentTopic {
+  const parts = (contentTopic as string).split("/");
+  if (parts.length < 5 || parts.length > 6) {
+    throw Error(`Content topic format is invalid: ${contentTopic}`);
+  }
+  // Validate generation field if present
+  let generation = 0;
+  if (parts.length == 6) {
+    generation = parseInt(parts[1]);
+    if (isNaN(generation)) {
+      throw new Error(
+        `Invalid generation field in content topic: ${contentTopic}`
+      );
+    }
+    if (generation > 0) {
+      throw new Error(
+        `Generation greater than 0 is not supported: ${contentTopic}`
+      );
+    }
+  }
+  // Validate remaining fields
+  const fields = parts.splice(-4);
+  // Validate application field
+  if (fields[0].length == 0) {
+    throw new Error(`Application field cannot be empty: ${contentTopic}`);
+  }
+  // Validate version field
+  if (fields[1].length == 0) {
+    throw new Error(`Version field cannot be empty: ${contentTopic}`);
+  }
+  // Validate topic name field
+  if (fields[2].length == 0) {
+    throw new Error(`Topic name field cannot be empty: ${contentTopic}`);
+  }
+  // Validate encoding field
+  if (fields[3].length == 0) {
+    throw new Error(`Encoding field cannot be empty: ${contentTopic}`);
+  }
+
+  return {
+    generation,
+    application: fields[0],
+    version: fields[1],
+    topicName: fields[2],
+    encoding: fields[3]
+  };
+}
+
+function contentTopicToShardIndex(
+  contentTopic: ContentTopic,
+  numShardsInCluster: number
+): number {
+  const { application, version } = ensureValidContentTopic(contentTopic);
+  const digest = sha256(
+    concat([utf8ToBytes(application), utf8ToBytes(version)])
+  );
+  const dataview = new DataView(digest.buffer.slice(-8));
+  return Number(dataview.getBigUint64(0, false) % BigInt(numShardsInCluster));
+}
+
+/**
+ * @deprecated will be removed
+ */
+const pubsubTopicToSingleShardInfo = (
+  pubsubTopics: PubsubTopic
+): { clusterId: ClusterId; shard: ShardId } => {
+  const parts = pubsubTopics.split("/");
+
+  if (
+    parts.length != 6 ||
+    parts[1] !== "waku" ||
+    parts[2] !== "2" ||
+    parts[3] !== "rs"
+  )
+    throw new Error("Invalid pubsub topic");
+
+  const clusterId = parseInt(parts[4]);
+  const shard = parseInt(parts[5]);
+
+  if (isNaN(clusterId) || isNaN(shard))
+    throw new Error("Invalid clusterId or shard");
+
+  return {
+    clusterId,
+    shard
+  };
+};
 
 export type RoutingInfo = AutoShardingRoutingInfo | StaticShardingRoutingInfo;
 
 export abstract class BaseRoutingInfo {
+  public pubsubTopic: PubsubTopic;
+  public shardId: ShardId;
+
   protected constructor(
     public networkConfig: NetworkConfig,
-    public pubsubTopic: PubsubTopic,
-    public shardId: ShardId
-  ) {}
+    pubsubTopic: PubsubTopic,
+    shardId: ShardId
+  ) {
+    this.pubsubTopic = pubsubTopic;
+    this.shardId = shardId;
+  }
 
-  public abstract get isAutoSharding(): boolean;
-  public abstract get isStaticSharding(): boolean;
+  public get clusterId(): ClusterId {
+    return this.networkConfig.clusterId;
+  }
 }
 
 export class AutoShardingRoutingInfo
@@ -61,23 +170,11 @@ export class AutoShardingRoutingInfo
    */
   private constructor(
     public networkConfig: AutoSharding,
-    public pubsubTopic: PubsubTopic,
-    public shardId: ShardId,
+    pubsubTopic: PubsubTopic,
+    shardId: ShardId,
     public contentTopic: string
   ) {
     super(networkConfig, pubsubTopic, shardId);
-  }
-
-  public get clusterId(): number {
-    return this.networkConfig.clusterId;
-  }
-
-  public get isAutoSharding(): boolean {
-    return true;
-  }
-
-  public get isStaticSharding(): boolean {
-    return false;
   }
 }
 
@@ -127,35 +224,23 @@ export class StaticShardingRoutingInfo
    */
   private constructor(
     public networkConfig: StaticSharding,
-    public pubsubTopic: PubsubTopic,
-    public shardId: ShardId
+    pubsubTopic: PubsubTopic,
+    shardId: ShardId
   ) {
     super(networkConfig, pubsubTopic, shardId);
-  }
-
-  public get clusterId(): ClusterId {
-    return this.networkConfig.clusterId;
-  }
-
-  public get isAutoSharding(): boolean {
-    return false;
-  }
-
-  public get isStaticSharding(): boolean {
-    return true;
   }
 }
 
 export function isAutoShardingRoutingInfo(
   routingInfo: BaseRoutingInfo
 ): routingInfo is AutoShardingRoutingInfo {
-  return routingInfo.isAutoSharding;
+  return routingInfo instanceof AutoShardingRoutingInfo;
 }
 
 export function isStaticShardingRoutingInfo(
   routingInfo: BaseRoutingInfo
 ): routingInfo is StaticShardingRoutingInfo {
-  return routingInfo.isStaticSharding;
+  return routingInfo instanceof StaticShardingRoutingInfo;
 }
 
 export function createRoutingInfo(
