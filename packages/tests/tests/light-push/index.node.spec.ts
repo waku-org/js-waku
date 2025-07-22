@@ -89,7 +89,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       }
     });
 
-    it.only("Throws when trying to push message with empty payload", async function () {
+    it("Throws when trying to push message with empty payload", async function () {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: new Uint8Array()
       });
