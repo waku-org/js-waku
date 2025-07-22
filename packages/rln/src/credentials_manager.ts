@@ -1,4 +1,4 @@
-import { chacha20 } from "@noble/ciphers/chacha";
+import { chacha20orig } from "@noble/ciphers/chacha";
 import { keccak_256 as keccak256 } from "@noble/hashes/sha3";
 import { Logger } from "@waku/utils";
 import { buildPoseidon } from "circomlibjs";
@@ -258,15 +258,53 @@ export class RLNCredentialsManager {
     const seedHash = keccak256(new TextEncoder().encode(seed));
 
     const key = seedHash;
-    const nonce = new Uint8Array(12);
-    const keystream = chacha20(key, nonce, new Uint8Array(64));
+    // ChaCha20Rng in Rust (rand_chacha) uses the original ChaCha20 variant
+    // with a 64-bit nonce (stream identifier) and 64-bit counter. To reproduce
+    // the **exact same** byte stream here we:
+    //   1. Feed ChaCha20 with the 32-byte key `seedHash`.
+    //   2. Use an 8-byte all-zero nonce (equivalent to stream id = 0).
+    //   3. Start from counter 0 and read the first 64 bytes of keystream.
+    // Note: noble's `chacha20` implementation switches to the 64-bit-nonce
+    // layout automatically when an 8-byte nonce is supplied.
+
+    // The Rust `ark_ff::UniformRand` implementation interprets the random
+    // bytes as **little-endian** integers before the rejection-sampling step.
+    // Convert the 32-byte chunks to bigint using LE order to stay in sync.
+    const bytesToBigIntLE = (bytes: Uint8Array): bigint => {
+      let res = 0n;
+      for (let i = bytes.length - 1; i >= 0; i--) {
+        res = (res << 8n) + BigInt(bytes[i]);
+      }
+      return res;
+    };
+
+    const nonce = new Uint8Array(8); // 64-bit nonce = 0
+    const keystream = chacha20orig(key, nonce, new Uint8Array(64));
+
+    // DEBUG: Log the raw keystream bytes for comparison with Rust
+    // eslint-disable-next-line no-console
+    console.log(
+      "Raw keystream bytes:",
+      Array.from(keystream)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+    );
+
     const trapdoorBytes = keystream.slice(0, 32);
     const nullifierBytes = keystream.slice(32, 64);
 
-    const trapdoorField =
-      BytesUtils.buildBigIntFromUint8ArrayBE(trapdoorBytes) % RLN_Q;
-    const nullifierField =
-      BytesUtils.buildBigIntFromUint8ArrayBE(nullifierBytes) % RLN_Q;
+    // DEBUG: Log the first 32 bytes as both BE and LE integers
+    const trapdoorBE = BytesUtils.buildBigIntFromUint8ArrayBE(trapdoorBytes);
+    // eslint-disable-next-line no-console
+    console.log("Trapdoor bytes (BE):", trapdoorBE.toString());
+
+    const trapdoorLE = bytesToBigIntLE(trapdoorBytes);
+    // eslint-disable-next-line no-console
+    console.log("Trapdoor bytes (LE):", trapdoorLE.toString());
+
+    const trapdoorField = trapdoorLE % RLN_Q;
+
+    const nullifierField = bytesToBigIntLE(nullifierBytes);
 
     const secretHashField = await this.poseidonHash([
       trapdoorField,
@@ -274,11 +312,22 @@ export class RLNCredentialsManager {
     ]);
     const commitmentField = await this.poseidonHash([secretHashField]);
 
+    // Convert bigints to bytes using little-endian order to match how we read them
+    const bigIntToUint8Array32LE = (value: bigint): Uint8Array => {
+      const bytes = new Uint8Array(32);
+      let temp = value;
+      for (let i = 0; i < 32; i++) {
+        bytes[i] = Number(temp & 0xffn);
+        temp >>= 8n;
+      }
+      return bytes;
+    };
+
     return new IdentityCredential(
-      BytesUtils.bigIntToUint8Array32BE(trapdoorField),
-      BytesUtils.bigIntToUint8Array32BE(nullifierField),
-      BytesUtils.bigIntToUint8Array32BE(secretHashField),
-      BytesUtils.bigIntToUint8Array32BE(commitmentField)
+      bigIntToUint8Array32LE(trapdoorField),
+      bigIntToUint8Array32LE(nullifierField),
+      bigIntToUint8Array32LE(secretHashField),
+      bigIntToUint8Array32LE(commitmentField)
     );
   }
 
@@ -290,12 +339,12 @@ export class RLNCredentialsManager {
    */
   private async poseidonHash(inputs: bigint[]): Promise<bigint> {
     const poseidon = await buildPoseidon();
-    const fieldInputs = inputs.map((x) => x % RLN_Q);
+    const fieldInputs = inputs.map((x) => x);
     const raw = poseidon(fieldInputs);
     const hash =
       typeof raw === "bigint"
         ? raw
         : BytesUtils.buildBigIntFromUint8ArrayBE(raw as Uint8Array);
-    return hash % RLN_Q;
+    return hash;
   }
 }
