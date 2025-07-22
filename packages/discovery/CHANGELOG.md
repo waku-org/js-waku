@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.0.11](https://github.com/waku-org/js-waku/compare/discovery-v0.0.10...discovery-v0.0.11) (2025-07-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.37 to 0.0.38
+    * @waku/enr bumped from 0.0.31 to 0.0.32
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+    * @waku/utils bumped from 0.0.25 to 0.0.26
+
 ## [0.0.10](https://github.com/waku-org/js-waku/compare/discovery-v0.0.9...discovery-v0.0.10) (2025-07-18)
 
 
