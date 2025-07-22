@@ -278,33 +278,35 @@ export class RLNCredentialsManager {
       return res;
     };
 
+    // Create a ChaCha20 stream that we can read bytes from incrementally
+    // to simulate arkworks Fr::rand() rejection sampling
     const nonce = new Uint8Array(8); // 64-bit nonce = 0
-    const keystream = chacha20orig(key, nonce, new Uint8Array(64));
+    let streamOffset = 0;
+    const getRandomBytes = (numBytes: number): Uint8Array => {
+      const stream = chacha20orig(
+        key,
+        nonce,
+        new Uint8Array(streamOffset + numBytes)
+      );
+      const result = stream.slice(streamOffset, streamOffset + numBytes);
+      streamOffset += numBytes;
+      return result;
+    };
 
-    // DEBUG: Log the raw keystream bytes for comparison with Rust
-    // eslint-disable-next-line no-console
-    console.log(
-      "Raw keystream bytes:",
-      Array.from(keystream)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("")
-    );
+    // Simulate Fr::rand() for trapdoor with rejection sampling
+    const simulateFrRand = (): bigint => {
+      while (true) {
+        const randomBytes = getRandomBytes(32);
+        const randomLE = bytesToBigIntLE(randomBytes);
+        if (randomLE < RLN_Q) {
+          return randomLE;
+        }
+        // Rejection: try again with next 32 bytes
+      }
+    };
 
-    const trapdoorBytes = keystream.slice(0, 32);
-    const nullifierBytes = keystream.slice(32, 64);
-
-    // DEBUG: Log the first 32 bytes as both BE and LE integers
-    const trapdoorBE = BytesUtils.buildBigIntFromUint8ArrayBE(trapdoorBytes);
-    // eslint-disable-next-line no-console
-    console.log("Trapdoor bytes (BE):", trapdoorBE.toString());
-
-    const trapdoorLE = bytesToBigIntLE(trapdoorBytes);
-    // eslint-disable-next-line no-console
-    console.log("Trapdoor bytes (LE):", trapdoorLE.toString());
-
-    const trapdoorField = trapdoorLE % RLN_Q;
-
-    const nullifierField = bytesToBigIntLE(nullifierBytes);
+    const trapdoorField = simulateFrRand();
+    const nullifierField = simulateFrRand();
 
     const secretHashField = await this.poseidonHash([
       trapdoorField,

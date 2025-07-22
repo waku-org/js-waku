@@ -1,0 +1,10 @@
+[package]
+name = "debug_chacha_verify"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand_chacha = "0.3"
+sha3 = "0.10"
+hex = "0.4"
+num-bigint = "0.4" 

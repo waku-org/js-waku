@@ -67,7 +67,7 @@
     "size-limit": "^11.0.1",
     "ts-loader": "9.5.2",
     "ts-node": "10.9.2",
-    "typedoc": "0.28.5",
+  "typedoc": "0.28.5",
     "typescript": "5.8.3",
     "wscat": "^6.0.1"
   },
