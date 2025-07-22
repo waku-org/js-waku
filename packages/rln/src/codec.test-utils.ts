@@ -41,7 +41,6 @@ export const EMPTY_PROTO_MESSAGE = {
 export async function createTestRLNCodecSetup(): Promise<TestRLNCodecSetup> {
   const rlnInstance = await createRLN();
   const credential = rlnInstance.zerokit.generateIdentityCredentials();
-  rlnInstance.zerokit.insertMember(credential.IDCommitment);
 
   return {
     rlnInstance,
