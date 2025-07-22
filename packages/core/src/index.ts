@@ -13,8 +13,20 @@ export * as waku_light_push from "./lib/light_push/index.js";
 export {
   LightPushCodec,
   LightPushCodecV3,
+  LightPushCodecLatest,
   LightPushCodecs,
-  LightPushCore
+  LightPushCore,
+  PushRpcV3,
+  PushRpcLatest,
+  LightPushV3StatusCodes,
+  LightPushStatusCodes,
+  isRLNResponseError,
+  isSuccess,
+  toLightPushError,
+  toProtocolError,
+  getStatusDescription,
+  getProtocolVersion,
+  inferProtocolVersion
 } from "./lib/light_push/index.js";
 
 export * as waku_store from "./lib/store/index.js";
