@@ -71,7 +71,12 @@ export class ServiceNodesFleet {
   ) {
     const _messageCollectors: MessageCollector[] = [];
     this.nodes.forEach((node) => {
-      _messageCollectors.push(new MessageCollector(node));
+      const collector = new MessageCollector(node);
+      // Set up the callback for individual collectors
+      collector.callback = (msg: IDecodedMessage): void => {
+        collector.list.push(msg);
+      };
+      _messageCollectors.push(collector);
     });
     this.messageCollector = new MultipleNodesMessageCollector(
       _messageCollectors,
@@ -134,6 +139,10 @@ class MultipleNodesMessageCollector {
     this.callback = (msg: IDecodedMessage): void => {
       log.info("Got a message");
       this.messageList.push(msg);
+      // Forward the message to all individual message collectors
+      this.messageCollectors.forEach((collector) => {
+        collector.callback(msg);
+      });
     };
   }
 
