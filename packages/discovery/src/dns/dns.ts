@@ -1,25 +1,16 @@
 import { ENR, EnrDecoder } from "@waku/enr";
-import type {
-  DnsClient,
-  IEnr,
-  NodeCapabilityCount,
-  SearchContext
-} from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import type { DnsClient, IEnr, SearchContext } from "@waku/interfaces";
+import { Logger, shuffle } from "@waku/utils";
 
 import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
-import {
-  fetchNodesUntilCapabilitiesFulfilled,
-  yieldNodesUntilCapabilitiesFulfilled
-} from "./fetch_nodes.js";
+import { fetchNodes } from "./fetch_nodes.js";
 
 const log = new Logger("discovery:dns");
 
 export class DnsNodeDiscovery {
   private readonly dns: DnsClient;
   private readonly _DNSTreeCache: { [key: string]: string };
-  private readonly _errorTolerance: number = 10;
 
   public static async dnsOverHttp(
     dnsClient?: DnsClient
@@ -30,68 +21,29 @@ export class DnsNodeDiscovery {
     return new DnsNodeDiscovery(dnsClient);
   }
 
-  /**
-   * Returns a list of verified peers listed in an EIP-1459 DNS tree. Method may
-   * return fewer peers than requested if @link wantedNodeCapabilityCount requires
-   * larger quantity of peers than available or the number of errors/duplicate
-   * peers encountered by randomized search exceeds the sum of the fields of
-   * @link wantedNodeCapabilityCount plus the @link _errorTolerance factor.
-   */
-  public async getPeers(
-    enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): Promise<IEnr[]> {
-    const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
-    const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
-    const context: SearchContext = {
-      domain,
-      publicKey,
-      visits: {}
-    };
-
-    const peers = await fetchNodesUntilCapabilitiesFulfilled(
-      wantedNodeCapabilityCount,
-      this._errorTolerance,
-      () => this._search(domain, context)
-    );
-    log.info(
-      "retrieved peers: ",
-      peers.map((peer) => {
-        return {
-          id: peer.peerId?.toString(),
-          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString())
-        };
-      })
-    );
-    return peers;
-  }
-
   public constructor(dns: DnsClient) {
     this._DNSTreeCache = {};
     this.dns = dns;
   }
 
   /**
-   * {@inheritDoc getPeers}
+   * Retrieve the next peers from the passed [[enrTreeUrls]],
    */
-  public async *getNextPeer(
-    enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): AsyncGenerator<IEnr> {
-    const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
-    const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
-    const context: SearchContext = {
-      domain,
-      publicKey,
-      visits: {}
-    };
+  public async *getNextPeer(enrTreeUrls: string[]): AsyncGenerator<IEnr> {
+    // Shuffle the ENR Trees so that not all clients connect to same nodes first.
+    for (const enrTreeUrl of shuffle(enrTreeUrls)) {
+      const { publicKey, domain } = ENRTree.parseTree(enrTreeUrl);
+      const context: SearchContext = {
+        domain,
+        publicKey,
+        visits: {}
+      };
 
-    for await (const peer of yieldNodesUntilCapabilitiesFulfilled(
-      wantedNodeCapabilityCount,
-      this._errorTolerance,
-      () => this._search(domain, context)
-    )) {
-      yield peer;
+      for await (const peer of fetchNodes(() =>
+        this._search(domain, context)
+      )) {
+        yield peer;
+      }
     }
   }
 
@@ -165,7 +117,7 @@ export class DnsNodeDiscovery {
       throw new Error("Received empty result array while fetching TXT record");
     if (!response[0].length) throw new Error("Received empty TXT record");
 
-    // Branch entries can be an array of strings of comma delimited subdomains, with
+    // Branch entries can be an array of strings of comma-delimited subdomains, with
     // some subdomain strings split across the array elements
     const result = response.join("");
 
