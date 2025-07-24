@@ -3,7 +3,7 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-const WAKUNODE_IMAGE = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.35.1";
+const WAKUNODE_IMAGE = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.36.0";
 
 async function main() {
   try {
