@@ -11,15 +11,14 @@ export { FilterCore, FilterCodecs } from "./lib/filter/index.js";
 
 export * as waku_light_push from "./lib/light_push/index.js";
 export {
-  LightPushCodec,
-  LightPushCodecV3,
-  LightPushCodecLatest,
-  LightPushCodecs,
   LightPushCore,
-  PushRpcV3,
-  PushRpcLatest,
-  LightPushV3StatusCodes,
-  LightPushStatusCodes,
+  LightPushCodecLatest,
+  LightPushStatusCode,
+  PushRpc,
+  isV3,
+  isV2,
+  createV2Rpc,
+  createV3Rpc,
   isRLNResponseError,
   isSuccess,
   toLightPushError,

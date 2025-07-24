@@ -3,8 +3,7 @@ import {
   createEncoder,
   Encoder,
   isSuccess,
-  LightPushCodec,
-  LightPushCodecV3,
+  LightPushCodecLatest,
   toLightPushError,
   toProtocolError
 } from "@waku/core";
@@ -229,7 +228,7 @@ function mockLibp2p(options?: MockLibp2pOptions): Libp2p {
       if (peer) {
         return Promise.resolve({
           ...peer,
-          protocols: peer.protocols || [LightPushCodec]
+          protocols: peer.protocols || [LightPushCodecLatest]
         });
       }
       return Promise.resolve(undefined);
@@ -276,20 +275,26 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   return lightPush;
 }
 
-function mockPeer(id: string, protocols: string[] = [LightPushCodec]): Peer {
+function mockPeer(
+  id: string,
+  protocols: string[] = [LightPushCodecLatest]
+): Peer {
   return {
-    id,
-    protocols
-  } as unknown as Peer;
+    id: { toString: () => id } as PeerId,
+    protocols: protocols,
+    metadata: new Map(),
+    addresses: [],
+    tags: new Map()
+  };
 }
 
 // V3-specific mock functions
 function mockV3Peer(id: string): Peer {
-  return mockPeer(id, [LightPushCodecV3]);
+  return mockPeer(id, [LightPushCodecLatest]);
 }
 
 function mockV2AndV3Peer(id: string): Peer {
-  return mockPeer(id, [LightPushCodec, LightPushCodecV3]);
+  return mockPeer(id, [LightPushCodecLatest, LightPushCodecLatest]);
 }
 
 function mockV3SuccessResponse(relayPeerCount?: number): {
