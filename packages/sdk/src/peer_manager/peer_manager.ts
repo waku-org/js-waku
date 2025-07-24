@@ -4,7 +4,7 @@ import {
   PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
+import { FilterCodecs, LightPushCodecLatest, StoreCodec } from "@waku/core";
 import {
   CONNECTION_LOCKED_TAG,
   type IConnectionManager,
@@ -279,7 +279,7 @@ export class PeerManager {
   private matchProtocolToCodec(protocol: Protocols): string {
     const protocolToCodec = {
       [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
-      [Protocols.LightPush]: LightPushCodec,
+      [Protocols.LightPush]: LightPushCodecLatest,
       [Protocols.Store]: StoreCodec,
       [Protocols.Relay]: ""
     };

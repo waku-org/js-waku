@@ -18,7 +18,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { StreamManager } from "../stream_manager/index.js";
 import { selectOpenConnection } from "../stream_manager/utils.js";
 
-import { PushRpc } from "./push_rpc.js";
+import { PushRpcV2 } from "./push_rpc.js";
 import { PushRpcV3 } from "./push_rpc_v3.js";
 import { isSuccess as isV3Success } from "./utils.js";
 import { isRLNResponseError } from "./utils.js";
@@ -32,7 +32,7 @@ export { PushResponse };
 
 type PreparePushMessageResult = ThisOrThat<
   "query",
-  PushRpc | PushRpcV3,
+  PushRpcV2 | PushRpcV3,
   "error",
   LightPushError
 >;
@@ -119,11 +119,11 @@ export class LightPushCore {
       }
 
       // Create the appropriate message format based on protocol version
-      let query: PushRpc | PushRpcV3;
+      let query: PushRpcV2 | PushRpcV3;
       if (protocol === LightPushCodecV3) {
         query = PushRpcV3.createRequest(protoMessage, encoder.pubsubTopic);
       } else {
-        query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+        query = PushRpcV2.createRequest(protoMessage, encoder.pubsubTopic);
       }
 
       return { query, error: null };
@@ -295,7 +295,7 @@ export class LightPushCore {
   ): LightPushCoreResult {
     let response: PushResponse | undefined;
     try {
-      const decodedRpc = PushRpc.decode(bytes);
+      const decodedRpc = PushRpcV2.decode(bytes);
       response = decodedRpc.response;
     } catch (err) {
       return {
