@@ -8,8 +8,7 @@ export type PushRpc =
   | ({ version: "v2" } & PushRpcV2)
   | ({ version: "v3" } & PushRpcV3);
 
-export const LightPushCodecLatest = "/vac/waku/lightpush/3.0.0" as const;
-export type LightPushCodec = typeof LightPushCodecLatest;
+export const LightPushCodec = "/vac/waku/lightpush/3.0.0" as const;
 
 export { LightPushStatusCode };
 
