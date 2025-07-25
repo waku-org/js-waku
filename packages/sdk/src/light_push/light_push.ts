@@ -1,6 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
 import { LightPushCore } from "@waku/core";
-import { inferProtocolVersion } from "@waku/core";
 import {
   type IEncoder,
   ILightPush,
@@ -126,9 +125,7 @@ export class LightPush implements ILightPush {
                   const peerIdStr = peerId.toString();
                   const protocolVersion =
                     result.failure.protocolVersion ||
-                    inferProtocolVersion(
-                      result.failure.statusCode !== undefined
-                    );
+                    (result.failure.statusCode !== undefined ? "v3" : "v2");
                   protocolVersions[peerIdStr] = protocolVersion;
 
                   log.warn(

@@ -1,5 +1,5 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodecLatest, StoreCodec } from "@waku/core";
+import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import { IWaku, Libp2p, Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -99,7 +99,7 @@ async function waitForProtocols(
   }
 
   if (waku.lightPush && protocols.includes(Protocols.LightPush)) {
-    promises.push(waitForConnectedPeer(LightPushCodecLatest, waku.libp2p));
+    promises.push(waitForConnectedPeer(LightPushCodec, waku.libp2p));
   }
 
   if (waku.filter && protocols.includes(Protocols.Filter)) {
@@ -249,7 +249,7 @@ function mapProtocolsToCodecs(protocols: Protocols[]): Map<string, boolean> {
 
   const protocolToCodec: Record<string, string> = {
     [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
-    [Protocols.LightPush]: LightPushCodecLatest,
+    [Protocols.LightPush]: LightPushCodec,
     [Protocols.Store]: StoreCodec,
     [Protocols.Relay]: ""
   };
