@@ -25,9 +25,9 @@ import { isRLNResponseError } from "./utils.js";
 
 const log = new Logger("light-push");
 
-export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
+export const LightPushCodecV2 = "/vac/waku/lightpush/2.0.0-beta1";
 export const LightPushCodecV3 = "/vac/waku/lightpush/3.0.0";
-export const LightPushCodecs = [LightPushCodecV3, LightPushCodec];
+export const LightPushCodecs = [LightPushCodecV3, LightPushCodecV2];
 export { PushResponse };
 
 type PreparePushMessageResult = ThisOrThat<
@@ -43,11 +43,11 @@ type PreparePushMessageResult = ThisOrThat<
 export class LightPushCore {
   private readonly streamManager: StreamManager;
 
-  public readonly multicodec = LightPushCodec;
+  public readonly multicodec = LightPushCodecV2;
   public readonly multicodecs = LightPushCodecs;
 
   public constructor(private libp2p: Libp2p) {
-    this.streamManager = new StreamManager(LightPushCodec, libp2p.components);
+    this.streamManager = new StreamManager(LightPushCodecV2, libp2p.components);
   }
 
   private async getProtocolStream(
@@ -57,7 +57,7 @@ export class LightPushCore {
     const protocols = peer.protocols;
 
     const supportsV3 = protocols.includes(LightPushCodecV3);
-    const supportsV2 = protocols.includes(LightPushCodec);
+    const supportsV2 = protocols.includes(LightPushCodecV2);
 
     if (!supportsV2 && !supportsV3) {
       throw new Error("Peer does not support any Light Push protocol");
@@ -65,7 +65,7 @@ export class LightPushCore {
 
     // TODO: Remove forced v2 fallback - currently disabled to test v3 protocol communication
     // Prefer v3 protocol when available, fallback to v2
-    const protocol = supportsV3 ? LightPushCodecV3 : LightPushCodec;
+    const protocol = supportsV3 ? LightPushCodecV3 : LightPushCodecV2;
 
     let stream: Stream;
     try {
@@ -85,7 +85,7 @@ export class LightPushCore {
         );
         log.info("Protocol negotiation chose v2 due to failure in v3");
         stream = await this.streamManager.getStream(peerId);
-        return { stream, protocol: LightPushCodec };
+        return { stream, protocol: LightPushCodecV2 };
       }
       throw error;
     }

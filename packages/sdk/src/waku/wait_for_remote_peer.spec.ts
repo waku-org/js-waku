@@ -1,5 +1,5 @@
 import type { Connection, Peer, PeerStore } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodecLatest, StoreCodec } from "@waku/core";
+import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import { IRelay, Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -131,7 +131,7 @@ describe("waitForRemotePeer", () => {
       peers: [
         mockPeer("1", []),
         mockPeer("1.1", ["random"]),
-        mockPeer("2", ["random", LightPushCodecLatest])
+        mockPeer("2", ["random", LightPushCodec])
       ],
       metadataService: mockMetadataService("resolve")
     });
@@ -150,7 +150,7 @@ describe("waitForRemotePeer", () => {
   it("should wait for LightPush peer to be connected", async () => {
     const addEventListenerSpy = sinon.spy(
       (_type: string, _cb: (e: any) => void) => {
-        _cb({ detail: { protocols: [LightPushCodecLatest] } });
+        _cb({ detail: { protocols: [LightPushCodec] } });
       }
     );
     eventTarget.addEventListener = addEventListenerSpy;

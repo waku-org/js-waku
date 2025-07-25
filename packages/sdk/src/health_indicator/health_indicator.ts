@@ -1,5 +1,5 @@
 import type { IdentifyResult, PeerId } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodecLatest } from "@waku/core";
+import { FilterCodecs, LightPushCodec } from "@waku/core";
 import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -103,7 +103,7 @@ export class HealthIndicator implements IHealthIndicator {
     ).length;
 
     const lightPushPeers = peers.filter((p) =>
-      p?.protocols.includes(LightPushCodecLatest)
+      p?.protocols.includes(LightPushCodec)
     ).length;
 
     let newValue;

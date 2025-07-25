@@ -1,5 +1,5 @@
 import { Connection, Peer } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodecLatest } from "@waku/core";
+import { FilterCodecs, LightPushCodec } from "@waku/core";
 import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -58,7 +58,7 @@ describe("HealthIndicator", () => {
       );
     });
 
-    const peer = mockPeer("1", [FilterCodecs.SUBSCRIBE, LightPushCodecLatest]);
+    const peer = mockPeer("1", [FilterCodecs.SUBSCRIBE, LightPushCodec]);
     const connections = [mockConnection("1")];
     sinon.stub(libp2p, "getConnections").returns(connections);
     sinon.stub(libp2p.peerStore, "get").resolves(peer);
@@ -81,8 +81,8 @@ describe("HealthIndicator", () => {
       );
     });
 
-    const peer1 = mockPeer("1", [FilterCodecs.SUBSCRIBE, LightPushCodecLatest]);
-    const peer2 = mockPeer("2", [FilterCodecs.SUBSCRIBE, LightPushCodecLatest]);
+    const peer1 = mockPeer("1", [FilterCodecs.SUBSCRIBE, LightPushCodec]);
+    const peer2 = mockPeer("2", [FilterCodecs.SUBSCRIBE, LightPushCodec]);
     const connections = [mockConnection("1"), mockConnection("2")];
 
     sinon.stub(libp2p, "getConnections").returns(connections);

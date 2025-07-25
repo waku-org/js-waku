@@ -1,12 +1,5 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import {
-  createEncoder,
-  Encoder,
-  isSuccess,
-  LightPushCodecLatest,
-  toLightPushError,
-  toProtocolError
-} from "@waku/core";
+import { createEncoder, Encoder, LightPushCodec } from "@waku/core";
 import { Libp2p, LightPushError, LightPushStatusCode } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -140,17 +133,6 @@ describe("LightPush SDK", () => {
       libp2p = mockLibp2p({
         peers: [mockV3Peer("1"), mockV3Peer("2")]
       });
-
-      expect(isSuccess(LightPushStatusCode.SUCCESS)).to.be.true;
-      expect(isSuccess(LightPushStatusCode.BAD_REQUEST)).to.be.false;
-      // Test the new v3 error mapping function
-      expect(toLightPushError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
-        LightPushError.PAYLOAD_TOO_LARGE
-      );
-      // Test backward compatibility with the deprecated function
-      expect(toProtocolError(LightPushStatusCode.PAYLOAD_TOO_LARGE)).to.eq(
-        LightPushError.PAYLOAD_TOO_LARGE
-      );
     });
 
     it("should work with mixed v2 and v3 peers", async () => {
@@ -183,36 +165,6 @@ describe("LightPush SDK", () => {
       expect(v3RLNError.statusDesc).to.include("RLN proof generation failed");
       expect(v2RLNError.info).to.include("RLN proof generation failed");
     });
-
-    it("should validate status codes", async () => {
-      const statusCodes = [
-        LightPushStatusCode.SUCCESS,
-        LightPushStatusCode.BAD_REQUEST,
-        LightPushStatusCode.PAYLOAD_TOO_LARGE,
-        LightPushStatusCode.INVALID_MESSAGE,
-        LightPushStatusCode.UNSUPPORTED_TOPIC,
-        LightPushStatusCode.TOO_MANY_REQUESTS,
-        LightPushStatusCode.INTERNAL_ERROR,
-        LightPushStatusCode.UNAVAILABLE,
-        LightPushStatusCode.NO_RLN_PROOF,
-        LightPushStatusCode.NO_PEERS
-      ];
-
-      statusCodes.forEach((code) => {
-        // Test the new v3 mapping function
-        const lightPushError = toLightPushError(code);
-        expect(lightPushError).to.be.a("string");
-        expect(Object.values(LightPushError)).to.include(lightPushError);
-
-        // Test backward compatibility - deprecated function now returns LightPushError values
-        const deprecatedError = toProtocolError(code);
-        expect(deprecatedError).to.be.a("string");
-        expect(Object.values(LightPushError)).to.include(deprecatedError);
-
-        // Both functions should return the same value for consistency
-        expect(lightPushError).to.eq(deprecatedError);
-      });
-    });
   });
 });
 
@@ -228,7 +180,7 @@ function mockLibp2p(options?: MockLibp2pOptions): Libp2p {
       if (peer) {
         return Promise.resolve({
           ...peer,
-          protocols: peer.protocols || [LightPushCodecLatest]
+          protocols: peer.protocols || [LightPushCodec]
         });
       }
       return Promise.resolve(undefined);
@@ -275,10 +227,7 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
   return lightPush;
 }
 
-function mockPeer(
-  id: string,
-  protocols: string[] = [LightPushCodecLatest]
-): Peer {
+function mockPeer(id: string, protocols: string[] = [LightPushCodec]): Peer {
   return {
     id: { toString: () => id } as PeerId,
     protocols: protocols,
@@ -290,11 +239,11 @@ function mockPeer(
 
 // V3-specific mock functions
 function mockV3Peer(id: string): Peer {
-  return mockPeer(id, [LightPushCodecLatest]);
+  return mockPeer(id, [LightPushCodec]);
 }
 
 function mockV2AndV3Peer(id: string): Peer {
-  return mockPeer(id, [LightPushCodecLatest, LightPushCodecLatest]);
+  return mockPeer(id, [LightPushCodec, LightPushCodec]);
 }
 
 function mockV3SuccessResponse(relayPeerCount?: number): {
