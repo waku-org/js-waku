@@ -23,15 +23,9 @@ export class Zerokit {
     return this._rateLimit;
   }
 
-  public generateIdentityCredentials(): IdentityCredential {
-    const memKeys = zerokitRLN.generateExtendedMembershipKey(this.zkRLN); // TODO: rename this function in zerokit rln-wasm
-    return IdentityCredential.fromBytes(memKeys);
-  }
-
   public generateSeededIdentityCredential(seed: string): IdentityCredential {
     const stringEncoder = new TextEncoder();
     const seedBytes = stringEncoder.encode(seed);
-    // TODO: rename this function in zerokit rln-wasm
     const memKeys = zerokitRLN.generateSeededExtendedMembershipKey(
       this.zkRLN,
       seedBytes

@@ -1,6 +1,5 @@
 import { Logger } from "@waku/utils";
-import init from "@waku/zerokit-rln-wasm";
-import * as zerokitRLN from "@waku/zerokit-rln-wasm";
+import init, * as zerokitRLN from "@waku/zerokit-rln-wasm";
 
 import { DEFAULT_RATE_LIMIT } from "./contract/constants.js";
 import { RLNCredentialsManager } from "./credentials_manager.js";
@@ -17,8 +16,7 @@ export class RLNInstance extends RLNCredentialsManager {
    */
   public static async create(): Promise<RLNInstance> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (init as any)?.();
+      await init();
       zerokitRLN.initPanicHook();
 
       const witnessCalculator = await RLNInstance.loadWitnessCalculator();
