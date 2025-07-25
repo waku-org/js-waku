@@ -44,9 +44,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 
-    TEST_STRING.forEach((testItem, i) => {
-      if (i > 0) return;
-
+    TEST_STRING.forEach((testItem) => {
       it(`Push message with ${testItem.description} payload`, async function () {
         const pushResponse = await waku.lightPush.send(TestEncoder, {
           payload: utf8ToBytes(testItem.value)
