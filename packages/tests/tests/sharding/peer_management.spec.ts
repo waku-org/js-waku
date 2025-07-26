@@ -192,6 +192,7 @@ describe("Static Sharding: Peer Management", function () {
       });
 
       await delay(1000);
+
       expect(dialPeerSpy.callCount).to.equal(3);
     });
   });

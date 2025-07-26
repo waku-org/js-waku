@@ -1,5 +1,5 @@
 import { createEncoder } from "@waku/core";
-import { LightNode, Protocols } from "@waku/interfaces";
+import { IWaku, Protocols } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -28,7 +28,7 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
   this.timeout(30000);
   const numServiceNodes = 2;
 
-  let waku: LightNode;
+  let waku: IWaku;
   let serviceNodes: ServiceNodesFleet;
 
   const customContentTopic2 = "/test/2/waku-light-push/utf8";
@@ -48,6 +48,7 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
       {
         lightpush: true,
         filter: true,
+        relay: true,
         contentTopic: [TestEncoder.contentTopic, customEncoder2.contentTopic]
       },
       false,
@@ -60,19 +61,37 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
     await teardownNodesWithRedundancy(serviceNodes, waku);
   });
 
-  it("Subscribe and receive messages on 2 different pubsubtopics", async function () {
+  it("Subscribe and receive messages on 2 different pubsubtopics with v3 protocol", async function () {
     if (customRoutingInfo2.pubsubTopic === TestEncoder.pubsubTopic)
       throw "Invalid test, both encoder uses same shard";
 
-    const pushResponse1 = await waku.lightPush.send(TestEncoder, {
+    const pushResponse1 = await waku.lightPush!.send(TestEncoder, {
       payload: utf8ToBytes("M1")
     });
-    const pushResponse2 = await waku.lightPush.send(customEncoder2, {
+
+    const pushResponse2 = await waku.lightPush!.send(customEncoder2, {
       payload: utf8ToBytes("M2")
     });
 
-    expect(pushResponse1.successes.length).to.eq(numServiceNodes);
-    expect(pushResponse2.successes.length).to.eq(numServiceNodes);
+    expect(pushResponse1?.successes.length).to.eq(numServiceNodes);
+    expect(pushResponse2?.successes.length).to.eq(numServiceNodes);
+
+    // Add protocol version tracking validation
+    if (pushResponse1.protocolVersions && pushResponse2.protocolVersions) {
+      const versions1 = Object.values(pushResponse1.protocolVersions);
+      const versions2 = Object.values(pushResponse2.protocolVersions);
+
+      expect(
+        versions1.every((version) =>
+          ["v2", "v3", "unknown"].includes(version as string)
+        )
+      ).to.be.true;
+      expect(
+        versions2.every((version) =>
+          ["v2", "v3", "unknown"].includes(version as string)
+        )
+      ).to.be.true;
+    }
 
     const messageCollector1 = new MessageCollector(serviceNodes.nodes[0]);
     const messageCollector2 = new MessageCollector(serviceNodes.nodes[1]);
@@ -122,10 +141,10 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
 
       const messageCollector2 = new MessageCollector(nwaku2);
 
-      await waku.lightPush.send(TestEncoder, {
+      await waku.lightPush!.send(TestEncoder, {
         payload: utf8ToBytes("M1")
       });
-      await waku.lightPush.send(customEncoder2, {
+      await waku.lightPush!.send(customEncoder2, {
         payload: utf8ToBytes("M2")
       });
 
