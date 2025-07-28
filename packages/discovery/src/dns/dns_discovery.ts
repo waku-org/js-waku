@@ -87,9 +87,11 @@ export class PeerDiscoveryDns
       };
 
       let isPeerChanged = false;
-      const isPeerExists = await this._components.peerStore.has(peerInfo.id);
+      const isPeerAlreadyInPeerStore = await this._components.peerStore.has(
+        peerInfo.id
+      );
 
-      if (isPeerExists) {
+      if (isPeerAlreadyInPeerStore) {
         const peer = await this._components.peerStore.get(peerInfo.id);
         const hasBootstrapTag = peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME);
 
