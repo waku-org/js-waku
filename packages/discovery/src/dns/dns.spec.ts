@@ -33,10 +33,12 @@ const errorBranchB = `enrtree-branch:${branchDomainD}`;
 class MockDNS implements DnsClient {
   private fqdnRes: Map<string, string[]>;
   private fqdnThrows: string[];
+  public hasThrown: boolean;
 
   public constructor() {
     this.fqdnRes = new Map();
     this.fqdnThrows = [];
+    this.hasThrown = false;
   }
 
   public addRes(fqdn: string, res: string[]): void {
@@ -48,11 +50,18 @@ class MockDNS implements DnsClient {
   }
 
   public resolveTXT(fqdn: string): Promise<string[]> {
-    if (this.fqdnThrows.includes(fqdn)) throw "Mock DNS throws.";
+    if (this.fqdnThrows.includes(fqdn)) {
+      this.hasThrown = true;
+      console.log("throwing");
+      throw "Mock DNS throws.";
+    }
 
     const res = this.fqdnRes.get(fqdn);
 
-    if (!res) throw `Mock DNS could not resolve ${fqdn}`;
+    if (!res) {
+      this.hasThrown = true;
+      throw `Mock DNS could not resolve ${fqdn}`;
+    }
 
     return Promise.resolve(res);
   }
@@ -163,6 +172,7 @@ describe("DNS Node Discovery", () => {
     }
     expect(peersB.length).to.eq(1);
     expect(peersA[0].ip).to.eq(peersB[0].ip);
+    expect(mockDns.hasThrown).to.be.false;
   });
 });
 
@@ -202,6 +212,26 @@ describe("DNS Node Discovery w/ capabilities", () => {
     expect(peers[0].peerId?.toString()).to.eq(
       "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
     );
+  });
+
+  it("return first retrieved peers without further DNS queries", async function () {
+    mockDns.addRes(`${rootDomain}.${host}`, multiComponentBranch);
+    mockDns.addRes(`${branchDomainA}.${host}`, [
+      mockData.enrWithWaku2RelayStore
+    ]);
+    // The ENR Tree is such as there are more branches to be explored.
+    // But they should not be explored if it isn't asked
+    mockDns.addThrow(`${branchDomainB}.${host}`);
+
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
+
+    const iterator = dnsNodeDiscovery.getNextPeer([mockData.enrTree]);
+    const { value: peer } = await iterator.next();
+
+    expect(peer.peerId?.toString()).to.eq(
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+    );
+    expect(mockDns.hasThrown).to.be.false;
   });
 
   it("retrieves all peers (3) when branch entries are composed of multiple strings", async function () {
