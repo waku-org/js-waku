@@ -1,13 +1,19 @@
 import { IProtoMessage } from "@waku/interfaces";
-import { contentTopicToPubsubTopic } from "@waku/utils";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "./crypto/index.js";
 import { createDecoder, createEncoder } from "./symmetric.js";
 
-const contentTopic = "/js-waku/1/tests/bytes";
-const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+const testContentTopic = "/js-waku/1/tests/bytes";
+const testRoutingInfo = createRoutingInfo(
+  {
+    clusterId: 0,
+    numShardsInCluster: 14
+  },
+  { contentTopic: testContentTopic }
+);
 
 describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, no signature]", async function () {
@@ -17,19 +23,27 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, symKey) => {
           const encoder = createEncoder({
-            contentTopic,
+            contentTopic: testContentTopic,
+            routingInfo: testRoutingInfo,
             symKey
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, symKey);
+          const decoder = createDecoder(
+            testContentTopic,
+            testRoutingInfo,
+            symKey
+          );
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
+          const result = await decoder.fromProtoObj(
+            testRoutingInfo.pubsubTopic,
+            protoResult
+          );
           if (!result) throw "Failed to decode";
 
-          expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubsubTopic).to.equal(pubsubTopic);
+          expect(result.contentTopic).to.equal(testContentTopic);
+          expect(result.pubsubTopic).to.equal(testRoutingInfo.pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
@@ -50,20 +64,28 @@ describe("Symmetric Encryption", function () {
           const sigPubKey = getPublicKey(sigPrivKey);
 
           const encoder = createEncoder({
-            contentTopic,
+            contentTopic: testContentTopic,
+            routingInfo: testRoutingInfo,
             symKey,
             sigPrivKey
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, symKey);
+          const decoder = createDecoder(
+            testContentTopic,
+            testRoutingInfo,
+            symKey
+          );
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
+          const result = await decoder.fromProtoObj(
+            testRoutingInfo.pubsubTopic,
+            protoResult
+          );
           if (!result) throw "Failed to decode";
 
-          expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubsubTopic).to.equal(pubsubTopic);
+          expect(result.contentTopic).to.equal(testContentTopic);
+          expect(result.pubsubTopic).to.equal(testRoutingInfo.pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
@@ -90,16 +112,24 @@ describe("Symmetric Encryption", function () {
           };
 
           const encoder = createEncoder({
-            contentTopic,
+            contentTopic: testContentTopic,
+            routingInfo: testRoutingInfo,
             symKey,
             metaSetter
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, symKey);
+          const decoder = createDecoder(
+            testContentTopic,
+            testRoutingInfo,
+            symKey
+          );
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
+          const result = await decoder.fromProtoObj(
+            testRoutingInfo.pubsubTopic,
+            protoResult
+          );
           if (!result) throw "Failed to decode";
 
           const expectedMeta = metaSetter({
@@ -124,6 +154,7 @@ describe("Ensures content topic is defined", () => {
     const wrapper = function (): void {
       createEncoder({
         contentTopic: undefined as unknown as string,
+        routingInfo: testRoutingInfo,
         symKey: new Uint8Array()
       });
     };
@@ -132,21 +163,29 @@ describe("Ensures content topic is defined", () => {
   });
   it("Encoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createEncoder({ contentTopic: "", symKey: new Uint8Array() });
+      createEncoder({
+        contentTopic: "",
+        routingInfo: testRoutingInfo,
+        symKey: new Uint8Array()
+      });
     };
 
     expect(wrapper).to.throw("Content topic must be specified");
   });
   it("Decoder throws on undefined content topic", () => {
     const wrapper = function (): void {
-      createDecoder(undefined as unknown as string, new Uint8Array());
+      createDecoder(
+        undefined as unknown as string,
+        testRoutingInfo,
+        new Uint8Array()
+      );
     };
 
     expect(wrapper).to.throw("Content topic must be specified");
   });
   it("Decoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createDecoder("", new Uint8Array());
+      createDecoder("", testRoutingInfo, new Uint8Array());
     };
 
     expect(wrapper).to.throw("Content topic must be specified");

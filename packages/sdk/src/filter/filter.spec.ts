@@ -5,6 +5,7 @@ import type {
   IProtoMessage,
   Libp2p
 } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -13,8 +14,15 @@ import { PeerManager } from "../peer_manager/index.js";
 import { Filter } from "./filter.js";
 import { Subscription } from "./subscription.js";
 
-const PUBSUB_TOPIC = "/waku/2/rs/1/4";
-const CONTENT_TOPIC = "/test/1/waku-filter/utf8";
+const testContentTopic = "/test/1/waku-filter/utf8";
+const testNetworkconfig = {
+  clusterId: 0,
+  numShardsInCluster: 9
+};
+const testRoutingInfo = createRoutingInfo(testNetworkconfig, {
+  contentTopic: testContentTopic
+});
+const testPubsubTopic = testRoutingInfo.pubsubTopic;
 
 describe("Filter SDK", () => {
   let libp2p: Libp2p;
@@ -29,28 +37,12 @@ describe("Filter SDK", () => {
     connectionManager = mockConnectionManager();
     peerManager = mockPeerManager();
     filter = mockFilter({ libp2p, connectionManager, peerManager });
-    decoder = createDecoder(CONTENT_TOPIC, PUBSUB_TOPIC);
+    decoder = createDecoder(testContentTopic, testRoutingInfo);
     callback = sinon.spy();
   });
 
   afterEach(() => {
     sinon.restore();
-  });
-
-  it("should throw error when subscribing with unsupported pubsub topic", async () => {
-    const unsupportedDecoder = createDecoder(
-      CONTENT_TOPIC,
-      "/unsupported/topic"
-    );
-
-    try {
-      await filter.subscribe(unsupportedDecoder, callback);
-      expect.fail("Should have thrown an error");
-    } catch (error) {
-      expect((error as Error).message).to.include(
-        "Pubsub topic /unsupported/topic has not been configured on this instance."
-      );
-    }
   });
 
   it("should successfully subscribe to supported pubsub topic", async () => {
@@ -62,22 +54,6 @@ describe("Filter SDK", () => {
     expect(result).to.be.true;
     expect(addStub.calledOnce).to.be.true;
     expect(startStub.calledOnce).to.be.true;
-  });
-
-  it("should throw error when unsubscribing with unsupported pubsub topic", async () => {
-    const unsupportedDecoder = createDecoder(
-      CONTENT_TOPIC,
-      "/unsupported/topic"
-    );
-
-    try {
-      await filter.unsubscribe(unsupportedDecoder);
-      expect.fail("Should have thrown an error");
-    } catch (error) {
-      expect((error as Error).message).to.include(
-        "Pubsub topic /unsupported/topic has not been configured on this instance."
-      );
-    }
   });
 
   it("should return false when unsubscribing from a non-existing subscription", async () => {
@@ -112,10 +88,10 @@ describe("Filter SDK", () => {
 
     await filter.subscribe(decoder, callback);
 
-    const message = createMockMessage(CONTENT_TOPIC);
+    const message = createMockMessage(testContentTopic);
     const peerId = "peer1";
 
-    await (filter as any).onIncomingMessage(PUBSUB_TOPIC, message, peerId);
+    await (filter as any).onIncomingMessage(testPubsubTopic, message, peerId);
 
     expect(subscriptionInvokeStub.calledOnce).to.be.true;
     expect(subscriptionInvokeStub.firstCall.args[0]).to.equal(message);
@@ -123,7 +99,11 @@ describe("Filter SDK", () => {
   });
 
   it("should successfully stop", async () => {
-    const decoder2 = createDecoder("/another-content-topic", PUBSUB_TOPIC);
+    const contentTopic2 = "/test/1/waku-filter-2/utf8";
+    const decoder2 = createDecoder(
+      contentTopic2,
+      createRoutingInfo(testNetworkconfig, { contentTopic: contentTopic2 })
+    );
     const stopStub = sinon.stub(Subscription.prototype, "stop");
 
     sinon.stub(Subscription.prototype, "add").resolves(true);
@@ -161,7 +141,7 @@ function mockLibp2p(): Libp2p {
 function mockConnectionManager(): ConnectionManager {
   return {
     isTopicConfigured: sinon.stub().callsFake((topic: string) => {
-      return topic === PUBSUB_TOPIC;
+      return topic === testPubsubTopic;
     })
   } as unknown as ConnectionManager;
 }
@@ -183,9 +163,9 @@ type MockFilterOptions = {
 };
 
 function mockFilter(options: MockFilterOptions): Filter {
-  const filter = new Filter({
+  // we're not actually testing FilterCore functionality here
+  return new Filter({
     libp2p: options.libp2p,
-    connectionManager: options.connectionManager || mockConnectionManager(),
     peerManager: options.peerManager || mockPeerManager(),
     options: {
       numPeersToUse: 2,
@@ -193,9 +173,6 @@ function mockFilter(options: MockFilterOptions): Filter {
       keepAliveIntervalMs: 60_000
     }
   });
-
-  // we're not actually testing FilterCore functionality here
-  return filter;
 }
 
 function createMockMessage(contentTopic: string): IProtoMessage {

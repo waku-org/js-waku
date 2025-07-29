@@ -15,7 +15,7 @@ import { ConnectionManager } from "./connection_manager.js";
 import { DiscoveryDialer } from "./discovery_dialer.js";
 import { KeepAliveManager } from "./keep_alive_manager.js";
 import { NetworkMonitor } from "./network_monitor.js";
-import { ShardReader } from "./shard_reader.js";
+import { IShardReader, ShardReader } from "./shard_reader.js";
 
 describe("ConnectionManager", () => {
   let libp2p: Libp2p;
@@ -30,7 +30,7 @@ describe("ConnectionManager", () => {
   // Mock internal components
   let mockKeepAliveManager: sinon.SinonStubbedInstance<KeepAliveManager>;
   let mockDiscoveryDialer: sinon.SinonStubbedInstance<DiscoveryDialer>;
-  let mockShardReader: sinon.SinonStubbedInstance<ShardReader>;
+  let mockShardReader: sinon.SinonStubbedInstance<IShardReader>;
   let mockNetworkMonitor: sinon.SinonStubbedInstance<NetworkMonitor>;
   let mockConnectionLimiter: sinon.SinonStubbedInstance<ConnectionLimiter>;
 
@@ -63,7 +63,7 @@ describe("ConnectionManager", () => {
     } as unknown as IWakuEventEmitter;
 
     networkConfig = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [0, 1]
     } as NetworkConfig;
 
@@ -87,7 +87,7 @@ describe("ConnectionManager", () => {
 
     mockShardReader = {
       isPeerOnTopic: sinon.stub().resolves(true)
-    } as unknown as sinon.SinonStubbedInstance<ShardReader>;
+    } as unknown as sinon.SinonStubbedInstance<IShardReader>;
 
     mockNetworkMonitor = {
       start: sinon.stub(),
@@ -157,7 +157,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
 
@@ -168,7 +167,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -180,7 +178,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
 
@@ -197,7 +194,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         config: customConfig
       });
@@ -209,7 +205,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -224,7 +219,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -255,7 +249,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig,
         relay
       });
@@ -287,7 +280,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -316,7 +308,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -367,7 +358,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -409,7 +399,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });
@@ -540,21 +529,8 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
-    });
-
-    it("should return true when topic is configured", () => {
-      const result = connectionManager.isTopicConfigured("/waku/2/rs/1/0");
-
-      expect(result).to.be.true;
-    });
-
-    it("should return false when topic is not configured", () => {
-      const result = connectionManager.isTopicConfigured("/waku/2/rs/1/99");
-
-      expect(result).to.be.false;
     });
   });
 
@@ -563,7 +539,6 @@ describe("ConnectionManager", () => {
       connectionManager = new ConnectionManager({
         libp2p,
         events,
-        pubsubTopics,
         networkConfig
       });
     });

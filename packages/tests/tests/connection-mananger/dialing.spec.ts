@@ -10,7 +10,7 @@ import {
   teardownNodesWithRedundancy
 } from "../../src/index.js";
 
-import { TestShardInfo } from "./utils.js";
+import { TestRoutingInfo } from "./utils.js";
 
 describe("Dialing", function () {
   const ctx: Context = this.ctx;
@@ -20,7 +20,7 @@ describe("Dialing", function () {
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      TestShardInfo,
+      TestRoutingInfo,
       { lightpush: true, filter: true, peerExchange: true },
       false,
       2,
@@ -33,7 +33,7 @@ describe("Dialing", function () {
       ctx,
       2,
       false,
-      TestShardInfo,
+      TestRoutingInfo,
       {
         lightpush: true,
         filter: true,

@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, LightPushCore } from "@waku/core";
+import { LightPushCore } from "@waku/core";
 import {
   type CoreProtocolResult,
   Failure,
@@ -8,7 +8,7 @@ import {
   type IMessage,
   type ISendOptions,
   type Libp2p,
-  LightPushProtocolOptions,
+  type LightPushProtocolOptions,
   ProtocolError,
   Protocols,
   SDKProtocolResult
@@ -30,7 +30,6 @@ const DEFAULT_SEND_OPTIONS: LightPushProtocolOptions = {
 };
 
 type LightPushConstructorParams = {
-  connectionManager: ConnectionManager;
   peerManager: PeerManager;
   libp2p: Libp2p;
   options?: Partial<LightPushProtocolOptions>;
@@ -40,7 +39,6 @@ export class LightPush implements ILightPush {
   private readonly config: LightPushProtocolOptions;
   private readonly retryManager: RetryManager;
   private readonly peerManager: PeerManager;
-  private readonly connectionManager: ConnectionManager;
   private readonly protocol: LightPushCore;
 
   public constructor(params: LightPushConstructorParams) {
@@ -50,7 +48,6 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.connectionManager = params.connectionManager;
     this.protocol = new LightPushCore(params.libp2p);
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
@@ -83,17 +80,6 @@ export class LightPush implements ILightPush {
     const { pubsubTopic } = encoder;
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
-
-    if (!this.connectionManager.isTopicConfigured(pubsubTopic)) {
-      return {
-        successes: [],
-        failures: [
-          {
-            error: ProtocolError.TOPIC_NOT_CONFIGURED
-          }
-        ]
-      };
-    }
 
     const peerIds = await this.peerManager.getPeers({
       protocol: Protocols.LightPush,
@@ -138,7 +124,7 @@ export class LightPush implements ILightPush {
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS,
-        encoder.pubsubTopic
+        encoder.routingInfo
       );
     }
 

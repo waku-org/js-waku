@@ -6,7 +6,7 @@ import {
   IRelay,
   IWakuEventEmitter,
   NetworkConfig,
-  PubsubTopic
+  ShardId
 } from "@waku/interfaces";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -21,22 +21,24 @@ import { getPeerPing, mapToPeerId, mapToPeerIdOrMultiaddr } from "./utils.js";
 
 const log = new Logger("connection-manager");
 
-const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 3;
 const DEFAULT_PING_KEEP_ALIVE_SEC = 5 * 60;
 const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
+const DEFAULT_ENABLE_AUTO_RECOVERY = true;
+const DEFAULT_MAX_CONNECTIONS = 10;
+const DEFAULT_MAX_DIALING_PEERS = 3;
+const DEFAULT_FAILED_DIAL_COOLDOWN_SEC = 60;
+const DEFAULT_DIAL_COOLDOWN_SEC = 10;
 
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
   events: IWakuEventEmitter;
-  pubsubTopics: PubsubTopic[];
   networkConfig: NetworkConfig;
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
 };
 
 export class ConnectionManager implements IConnectionManager {
-  private readonly pubsubTopics: PubsubTopic[];
-
   private readonly keepAliveManager: KeepAliveManager;
   private readonly discoveryDialer: DiscoveryDialer;
   private readonly dialer: Dialer;
@@ -44,23 +46,28 @@ export class ConnectionManager implements IConnectionManager {
   private readonly networkMonitor: NetworkMonitor;
   private readonly connectionLimiter: ConnectionLimiter;
 
-  private options: ConnectionManagerOptions;
+  private readonly options: ConnectionManagerOptions;
   private libp2p: Libp2p;
 
   public constructor(options: ConnectionManagerConstructorOptions) {
     this.libp2p = options.libp2p;
-    this.pubsubTopics = options.pubsubTopics;
 
     this.options = {
       maxBootstrapPeers: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+      maxConnections: DEFAULT_MAX_CONNECTIONS,
       pingKeepAlive: DEFAULT_PING_KEEP_ALIVE_SEC,
       relayKeepAlive: DEFAULT_RELAY_KEEP_ALIVE_SEC,
+      enableAutoRecovery: DEFAULT_ENABLE_AUTO_RECOVERY,
+      maxDialingPeers: DEFAULT_MAX_DIALING_PEERS,
+      failedDialCooldown: DEFAULT_FAILED_DIAL_COOLDOWN_SEC,
+      dialCooldown: DEFAULT_DIAL_COOLDOWN_SEC,
       ...options.config
     };
 
     this.keepAliveManager = new KeepAliveManager({
       relay: options.relay,
       libp2p: options.libp2p,
+      networkConfig: options.networkConfig,
       options: {
         pingKeepAlive: this.options.pingKeepAlive,
         relayKeepAlive: this.options.relayKeepAlive
@@ -74,7 +81,8 @@ export class ConnectionManager implements IConnectionManager {
 
     this.dialer = new Dialer({
       libp2p: options.libp2p,
-      shardReader: this.shardReader
+      shardReader: this.shardReader,
+      options: this.options
     });
 
     this.discoveryDialer = new DiscoveryDialer({
@@ -97,6 +105,7 @@ export class ConnectionManager implements IConnectionManager {
   }
 
   public start(): void {
+    this.dialer.start();
     this.networkMonitor.start();
     this.discoveryDialer.start();
     this.keepAliveManager.start();
@@ -104,6 +113,7 @@ export class ConnectionManager implements IConnectionManager {
   }
 
   public stop(): void {
+    this.dialer.stop();
     this.networkMonitor.stop();
     this.discoveryDialer.stop();
     this.keepAliveManager.stop();
@@ -176,10 +186,6 @@ export class ConnectionManager implements IConnectionManager {
     return result;
   }
 
-  public isTopicConfigured(pubsubTopic: PubsubTopic): boolean {
-    return this.pubsubTopics.includes(pubsubTopic);
-  }
-
   public async hasShardInfo(peerId: PeerId): Promise<boolean> {
     return this.shardReader.hasShardInfo(peerId);
   }
@@ -189,5 +195,12 @@ export class ConnectionManager implements IConnectionManager {
     pubsubTopic: string
   ): Promise<boolean> {
     return this.shardReader.isPeerOnTopic(peerId, pubsubTopic);
+  }
+
+  public async isPeerOnShard(
+    peerId: PeerId,
+    shardId: ShardId
+  ): Promise<boolean> {
+    return this.shardReader.isPeerOnShard(peerId, shardId);
   }
 }

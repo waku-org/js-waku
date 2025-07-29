@@ -1,8 +1,10 @@
 import { Peer, PeerId } from "@libp2p/interface";
 import {
+  CONNECTION_LOCKED_TAG,
   ConnectionManagerOptions,
   IWakuEventEmitter,
   Libp2p,
+  Libp2pEventHandler,
   Tags
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -12,7 +14,7 @@ import { NetworkMonitor } from "./network_monitor.js";
 
 const log = new Logger("connection-limiter");
 
-type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
+const DEFAULT_CONNECTION_MONITOR_INTERVAL = 5 * 1_000;
 
 type ConnectionLimiterConstructorOptions = {
   libp2p: Libp2p;
@@ -38,6 +40,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
   private readonly networkMonitor: NetworkMonitor;
   private readonly dialer: Dialer;
 
+  private connectionMonitorInterval: NodeJS.Timeout | null = null;
   private readonly options: ConnectionManagerOptions;
 
   public constructor(options: ConnectionLimiterConstructorOptions) {
@@ -49,7 +52,6 @@ export class ConnectionLimiter implements IConnectionLimiter {
     this.options = options.options;
 
     this.onWakuConnectionEvent = this.onWakuConnectionEvent.bind(this);
-    this.onConnectedEvent = this.onConnectedEvent.bind(this);
     this.onDisconnectedEvent = this.onDisconnectedEvent.bind(this);
   }
 
@@ -57,12 +59,17 @@ export class ConnectionLimiter implements IConnectionLimiter {
     // dial all known peers because libp2p might have emitted `peer:discovery` before initialization
     void this.dialPeersFromStore();
 
-    this.events.addEventListener("waku:connection", this.onWakuConnectionEvent);
+    if (
+      this.options.enableAutoRecovery &&
+      this.connectionMonitorInterval === null
+    ) {
+      this.connectionMonitorInterval = setInterval(
+        () => void this.maintainConnections(),
+        DEFAULT_CONNECTION_MONITOR_INTERVAL
+      );
+    }
 
-    this.libp2p.addEventListener(
-      "peer:connect",
-      this.onConnectedEvent as Libp2pEventHandler<PeerId>
-    );
+    this.events.addEventListener("waku:connection", this.onWakuConnectionEvent);
 
     /**
      * NOTE: Event is not being emitted on closing nor losing a connection.
@@ -88,43 +95,30 @@ export class ConnectionLimiter implements IConnectionLimiter {
     );
 
     this.libp2p.removeEventListener(
-      "peer:connect",
-      this.onConnectedEvent as Libp2pEventHandler<PeerId>
-    );
-
-    this.libp2p.removeEventListener(
       "peer:disconnect",
       this.onDisconnectedEvent as Libp2pEventHandler<PeerId>
     );
+
+    if (this.connectionMonitorInterval) {
+      clearInterval(this.connectionMonitorInterval);
+      this.connectionMonitorInterval = null;
+    }
   }
 
   private onWakuConnectionEvent(): void {
+    if (!this.options.enableAutoRecovery) {
+      log.info(`Auto recovery is disabled, skipping`);
+      return;
+    }
+
     if (this.networkMonitor.isBrowserConnected()) {
       void this.dialPeersFromStore();
     }
   }
 
-  private async onConnectedEvent(evt: CustomEvent<PeerId>): Promise<void> {
-    log.info(`Connected to peer ${evt.detail.toString()}`);
-
-    const peerId = evt.detail;
-
-    const tags = await this.getTagsForPeer(peerId);
-    const isBootstrap = tags.includes(Tags.BOOTSTRAP);
-
-    if (!isBootstrap) {
-      log.info(
-        `Connected to peer ${peerId.toString()} is not a bootstrap peer`
-      );
-      return;
-    }
-
-    if (await this.hasMoreThanMaxBootstrapConnections()) {
-      log.info(
-        `Connected to peer ${peerId.toString()} and node has more than max bootstrap connections ${this.options.maxBootstrapPeers}. Dropping connection.`
-      );
-      await this.libp2p.hangUp(peerId);
-    }
+  private async maintainConnections(): Promise<void> {
+    await this.maintainConnectionsCount();
+    await this.maintainBootstrapConnections();
   }
 
   private async onDisconnectedEvent(): Promise<void> {
@@ -134,22 +128,98 @@ export class ConnectionLimiter implements IConnectionLimiter {
     }
   }
 
+  private async maintainConnectionsCount(): Promise<void> {
+    log.info(`Maintaining connections count`);
+
+    const connections = this.libp2p.getConnections();
+
+    if (connections.length <= this.options.maxConnections) {
+      log.info(
+        `Node has less than max connections ${this.options.maxConnections}, trying to dial more peers`
+      );
+
+      const peers = await this.getPrioritizedPeers();
+
+      if (peers.length === 0) {
+        log.info(`No peers to dial, node is utilizing all known peers`);
+        return;
+      }
+
+      const promises = peers
+        .slice(0, this.options.maxConnections - connections.length)
+        .map((p) => this.dialer.dial(p.id));
+      await Promise.all(promises);
+
+      return;
+    }
+
+    log.info(
+      `Node has more than max connections ${this.options.maxConnections}, dropping connections`
+    );
+
+    try {
+      const connectionsToDrop = connections
+        .filter((c) => !c.tags.includes(CONNECTION_LOCKED_TAG))
+        .slice(this.options.maxConnections);
+
+      if (connectionsToDrop.length === 0) {
+        log.info(`No connections to drop, skipping`);
+        return;
+      }
+
+      const promises = connectionsToDrop.map((c) =>
+        this.libp2p.hangUp(c.remotePeer)
+      );
+      await Promise.all(promises);
+
+      log.info(`Dropped ${connectionsToDrop.length} connections`);
+    } catch (error) {
+      log.error(`Unexpected error while maintaining connections`, error);
+    }
+  }
+
+  private async maintainBootstrapConnections(): Promise<void> {
+    log.info(`Maintaining bootstrap connections`);
+
+    const bootstrapPeers = await this.getBootstrapPeers();
+
+    if (bootstrapPeers.length <= this.options.maxBootstrapPeers) {
+      return;
+    }
+
+    try {
+      const peersToDrop = bootstrapPeers.slice(this.options.maxBootstrapPeers);
+
+      log.info(
+        `Dropping ${peersToDrop.length} bootstrap connections because node has more than max bootstrap connections ${this.options.maxBootstrapPeers}`
+      );
+
+      const promises = peersToDrop.map((p) => this.libp2p.hangUp(p.id));
+      await Promise.all(promises);
+
+      log.info(`Dropped ${peersToDrop.length} bootstrap connections`);
+    } catch (error) {
+      log.error(
+        `Unexpected error while maintaining bootstrap connections`,
+        error
+      );
+    }
+  }
+
   private async dialPeersFromStore(): Promise<void> {
     log.info(`Dialing peers from store`);
 
-    const allPeers = await this.libp2p.peerStore.all();
-    const allConnections = this.libp2p.getConnections();
-
-    log.info(
-      `Found ${allPeers.length} peers in store, and found ${allConnections.length} connections`
-    );
-
-    const promises = allPeers
-      .filter((p) => !allConnections.some((c) => c.remotePeer.equals(p.id)))
-      .map((p) => this.dialer.dial(p.id));
-
     try {
-      log.info(`Dialing ${promises.length} peers from store`);
+      const peers = await this.getPrioritizedPeers();
+
+      if (peers.length === 0) {
+        log.info(`No peers to dial, skipping`);
+        return;
+      }
+
+      const promises = peers.map((p) => this.dialer.dial(p.id));
+
+      log.info(`Dialing ${peers.length} peers from store`);
       await Promise.all(promises);
       log.info(`Dialed ${promises.length} peers from store`);
     } catch (error) {
@@ -157,27 +227,58 @@ export class ConnectionLimiter implements IConnectionLimiter {
     }
   }
 
-  private async hasMoreThanMaxBootstrapConnections(): Promise<boolean> {
-    try {
-      const peers = await Promise.all(
-        this.libp2p
-          .getConnections()
-          .map((conn) => conn.remotePeer)
-          .map((id) => this.getPeer(id))
-      );
+  /**
+   * Returns a list of peers ordered by priority:
+   * - bootstrap peers
+   * - peers from peer exchange
+   * - peers from local store (last because we are not sure that locally stored information is up to date)
+   */
+  private async getPrioritizedPeers(): Promise<Peer[]> {
+    const allPeers = await this.libp2p.peerStore.all();
+    const allConnections = this.libp2p.getConnections();
 
-      const bootstrapPeers = peers.filter(
-        (peer) => peer && peer.tags.has(Tags.BOOTSTRAP)
-      );
+    log.info(
+      `Found ${allPeers.length} peers in store, and found ${allConnections.length} connections`
+    );
 
-      return bootstrapPeers.length > this.options.maxBootstrapPeers;
-    } catch (error) {
-      log.error(
-        `Unexpected error while checking for bootstrap connections`,
-        error
-      );
-      return false;
-    }
+    const notConnectedPeers = allPeers.filter(
+      (p) =>
+        !allConnections.some((c) => c.remotePeer.equals(p.id)) &&
+        p.addresses.some(
+          (a) =>
+            a.multiaddr.toString().includes("wss") ||
+            a.multiaddr.toString().includes("ws")
+        )
+    );
+
+    const bootstrapPeers = notConnectedPeers.filter((p) =>
+      p.tags.has(Tags.BOOTSTRAP)
+    );
+
+    const peerExchangePeers = notConnectedPeers.filter((p) =>
+      p.tags.has(Tags.PEER_EXCHANGE)
+    );
+
+    const localStorePeers = notConnectedPeers.filter((p) =>
+      p.tags.has(Tags.LOCAL)
+    );
+
+    return [...bootstrapPeers, ...peerExchangePeers, ...localStorePeers];
+  }
+
+  private async getBootstrapPeers(): Promise<Peer[]> {
+    const peers = await Promise.all(
+      this.libp2p
+        .getConnections()
+        .map((conn) => conn.remotePeer)
+        .map((id) => this.getPeer(id))
+    );
+
+    const bootstrapPeers = peers.filter(
+      (peer) => peer && peer.tags.has(Tags.BOOTSTRAP)
+    ) as Peer[];
+
+    return bootstrapPeers;
   }
 
   private async getPeer(peerId: PeerId): Promise<Peer | null> {
@@ -186,16 +287,6 @@ export class ConnectionLimiter implements IConnectionLimiter {
     } catch (error) {
       log.error(`Failed to get peer ${peerId}, error: ${error}`);
       return null;
-    }
-  }
-
-  private async getTagsForPeer(peerId: PeerId): Promise<string[]> {
-    try {
-      const peer = await this.libp2p.peerStore.get(peerId);
-      return Array.from(peer.tags.keys());
-    } catch (error) {
-      log.error(`Failed to get peer ${peerId}, error: ${error}`);
-      return [];
     }
   }
 }

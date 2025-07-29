@@ -1,13 +1,8 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
-import {
-  ContentTopicInfo,
-  createLightNode,
-  LightNode,
-  ShardInfo,
-  Tags
-} from "@waku/sdk";
+import type { AutoSharding, StaticSharding } from "@waku/interfaces";
+import { createLightNode, LightNode, Tags } from "@waku/sdk";
 import { contentTopicToShardIndex } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -48,14 +43,17 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const shardInfo: ShardInfo = { clusterId: clusterId, shards: [2] };
+      const shard = 2;
+      const numShardsInCluster = 8;
+      const networkConfig: StaticSharding = { clusterId };
 
       await nwaku1.start({
         discv5Discovery: true,
         peerExchange: true,
         relay: true,
         clusterId: clusterId,
-        shard: [2]
+        shard: [shard],
+        numShardsInNetwork: numShardsInCluster
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -66,7 +64,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5BootstrapNode: enr1,
         relay: true,
         clusterId: clusterId,
-        shard: [2]
+        shard: [shard],
+        numShardsInNetwork: numShardsInCluster
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -77,12 +76,13 @@ describe("Static Sharding: Peer Management", function () {
         discv5BootstrapNode: enr2,
         relay: true,
         clusterId: clusterId,
-        shard: [2]
+        shard: [shard],
+        numShardsInNetwork: numShardsInCluster
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        networkConfig: shardInfo,
+        networkConfig: networkConfig,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -118,9 +118,11 @@ describe("Static Sharding: Peer Management", function () {
       expect(dialPeerSpy.callCount).to.equal(3);
     });
 
-    it("px service nodes not subscribed to the shard should not be dialed", async function () {
+    it("px service nodes in same cluster, no matter the shard, should be dialed", async function () {
       this.timeout(100_000);
-      const shardInfoToDial: ShardInfo = { clusterId: clusterId, shards: [2] };
+
+      const numShardsInCluster = 8;
+      const networkConfig: StaticSharding = { clusterId };
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
@@ -128,7 +130,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         clusterId: clusterId,
-        shard: [1]
+        shard: [1],
+        numShardsInNetwork: numShardsInCluster
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -139,7 +142,8 @@ describe("Static Sharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr1,
         clusterId: clusterId,
-        shard: [2]
+        shard: [2],
+        numShardsInNetwork: numShardsInCluster
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -150,12 +154,13 @@ describe("Static Sharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr2,
         clusterId: clusterId,
-        shard: [2]
+        shard: [2],
+        numShardsInNetwork: numShardsInCluster
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        networkConfig: shardInfoToDial,
+        networkConfig: networkConfig,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -178,7 +183,7 @@ describe("Static Sharding: Peer Management", function () {
             const tags = Array.from(peer.tags.keys());
             if (tags.includes(Tags.PEER_EXCHANGE)) {
               pxPeersDiscovered.add(peerId);
-              if (pxPeersDiscovered.size === 1) {
+              if (pxPeersDiscovered.size === 2) {
                 resolve();
               }
             }
@@ -187,7 +192,7 @@ describe("Static Sharding: Peer Management", function () {
       });
 
       await delay(1000);
-      expect(dialPeerSpy.callCount).to.equal(2);
+      expect(dialPeerSpy.callCount).to.equal(3);
     });
   });
 });
@@ -195,7 +200,8 @@ describe("Static Sharding: Peer Management", function () {
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = 8;
-  const Shard = [contentTopicToShardIndex(ContentTopic)];
+  const numShardsInCluster = 8;
+  const Shard = [contentTopicToShardIndex(ContentTopic, numShardsInCluster)];
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
@@ -219,9 +225,9 @@ describe("Autosharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const contentTopicInfo: ContentTopicInfo = {
+      const networkConfig: AutoSharding = {
         clusterId: clusterId,
-        contentTopics: [ContentTopic]
+        numShardsInCluster: 8
       };
 
       await nwaku1.start({
@@ -259,7 +265,7 @@ describe("Autosharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        networkConfig: contentTopicInfo,
+        networkConfig: networkConfig,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -293,83 +299,6 @@ describe("Autosharding: Peer Management", function () {
       await delay(1000);
 
       expect(dialPeerSpy.callCount).to.equal(3);
-    });
-
-    it("px service nodes not subscribed to the shard should not be dialed", async function () {
-      this.timeout(100_000);
-      const contentTopicInfoToDial: ContentTopicInfo = {
-        clusterId: clusterId,
-        contentTopics: [ContentTopic]
-      };
-
-      // this service node is not subscribed to the shard
-      await nwaku1.start({
-        relay: true,
-        discv5Discovery: true,
-        peerExchange: true,
-        clusterId: 3,
-        shard: Shard
-      });
-
-      const enr1 = (await nwaku1.info()).enrUri;
-
-      await nwaku2.start({
-        relay: true,
-        discv5Discovery: true,
-        peerExchange: true,
-        discv5BootstrapNode: enr1,
-        clusterId: clusterId,
-        shard: Shard,
-        contentTopic: [ContentTopic]
-      });
-
-      const enr2 = (await nwaku2.info()).enrUri;
-
-      await nwaku3.start({
-        relay: true,
-        discv5Discovery: true,
-        peerExchange: true,
-        discv5BootstrapNode: enr2,
-        clusterId: clusterId,
-        shard: Shard,
-        contentTopic: [ContentTopic]
-      });
-      const nwaku3Ma = await nwaku3.getMultiaddrWithId();
-
-      waku = await createLightNode({
-        networkConfig: contentTopicInfoToDial,
-        libp2p: {
-          peerDiscovery: [
-            bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
-          ]
-        }
-      });
-
-      dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
-
-      await waku.start();
-
-      const pxPeersDiscovered = new Set<PeerId>();
-
-      await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:discovery", (evt) => {
-          return void (async () => {
-            const peerId = evt.detail.id;
-            const peer = await waku.libp2p.peerStore.get(peerId);
-            const tags = Array.from(peer.tags.keys());
-            if (tags.includes(Tags.PEER_EXCHANGE)) {
-              pxPeersDiscovered.add(peerId);
-              if (pxPeersDiscovered.size === 1) {
-                resolve();
-              }
-            }
-          })();
-        });
-      });
-
-      await delay(1000);
-      expect(dialPeerSpy.callCount).to.equal(2);
     });
   });
 });

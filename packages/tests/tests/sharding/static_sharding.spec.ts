@@ -1,15 +1,10 @@
-import { LightNode, ProtocolError, SingleShardInfo } from "@waku/interfaces";
-import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import {
-  shardInfoToPubsubTopics,
-  singleShardInfosToShardInfo,
-  singleShardInfoToPubsubTopic
-} from "@waku/utils";
+import { LightNode, StaticSharding } from "@waku/interfaces";
+import { createEncoder, utf8ToBytes } from "@waku/sdk";
+import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
-  beforeEachCustom,
   runMultipleNodes,
   ServiceNodesFleet,
   teardownNodesWithRedundancy
@@ -30,13 +25,15 @@ describe("Static Sharding: Running Nodes", function () {
     }
   });
 
-  it("shard 0", async function () {
-    const singleShardInfo = { clusterId: 0, shard: 0 };
-    const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+  it("Cluster id 0, shard 0", async function () {
+    const clusterId = 0;
+    const shardId = 0;
+    const networkConfig: StaticSharding = { clusterId };
+    const routingInfo = createRoutingInfo(networkConfig, { shardId });
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      shardInfo,
+      routingInfo,
       { lightpush: true, filter: true },
       false,
       numServiceNodes,
@@ -45,32 +42,27 @@ describe("Static Sharding: Running Nodes", function () {
 
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleShardInfo
+      routingInfo
     });
-    expect(encoder.pubsubTopic).to.eq(
-      singleShardInfoToPubsubTopic(singleShardInfo)
-    );
 
     const request = await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello World")
     });
 
     expect(request.successes.length).to.eq(numServiceNodes);
-    expect(
-      await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder.pubsubTopic
-      })
-    ).to.eq(true);
+    expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
   // dedicated test for Default Cluster ID 0
-  it("Cluster ID 0 - Default/Global Cluster", async function () {
-    const singleShardInfo = { clusterId: 0, shard: 1 };
-    const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+  it("Cluster ID 0, shard 1", async function () {
+    const clusterId = 0;
+    const shardId = 1;
+    const networkConfig: StaticSharding = { clusterId };
+    const routingInfo = createRoutingInfo(networkConfig, { shardId });
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      shardInfo,
+      routingInfo,
       { lightpush: true, filter: true },
       false,
       numServiceNodes,
@@ -79,7 +71,7 @@ describe("Static Sharding: Running Nodes", function () {
 
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleShardInfo
+      routingInfo
     });
 
     const request = await waku.lightPush.send(encoder, {
@@ -87,11 +79,7 @@ describe("Static Sharding: Running Nodes", function () {
     });
 
     expect(request.successes.length).to.eq(numServiceNodes);
-    expect(
-      await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
-      })
-    ).to.eq(true);
+    expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
   const numTest = 10;
@@ -102,15 +90,15 @@ describe("Static Sharding: Running Nodes", function () {
     // Random shardId between 1 and 1000
     const shardId = Math.floor(Math.random() * 1000) + 1;
 
+    const networkConfig: StaticSharding = { clusterId };
+    const routingInfo = createRoutingInfo(networkConfig, { shardId });
+
     it(`random static sharding ${
       i + 1
     } - Cluster ID: ${clusterId}, Shard ID: ${shardId}`, async function () {
-      const singleShardInfo = { clusterId: clusterId, shard: shardId };
-      const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
-
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
-        shardInfo,
+        routingInfo,
         { lightpush: true, filter: true },
         false,
         numServiceNodes,
@@ -119,7 +107,7 @@ describe("Static Sharding: Running Nodes", function () {
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
-        pubsubTopicShardInfo: singleShardInfo
+        routingInfo
       });
 
       const request = await waku.lightPush.send(encoder, {
@@ -127,122 +115,9 @@ describe("Static Sharding: Running Nodes", function () {
       });
 
       expect(request.successes.length).to.eq(numServiceNodes);
-      expect(
-        await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
-        })
-      ).to.eq(true);
-    });
-  }
-
-  describe("Others", function () {
-    const clusterId = 2;
-
-    const singleShardInfo1: SingleShardInfo = {
-      clusterId: clusterId,
-      shard: 2
-    };
-    const singleShardInfo2: SingleShardInfo = {
-      clusterId: clusterId,
-      shard: 3
-    };
-
-    beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(
-        this.ctx,
-        { clusterId, shards: [2, 3] },
-        { lightpush: true, filter: true },
-        false,
-        numServiceNodes,
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
       );
     });
-
-    afterEachCustom(this, async () => {
-      if (serviceNodes) {
-        await teardownNodesWithRedundancy(serviceNodes, waku ?? []);
-      }
-    });
-
-    it("configure the node with multiple pubsub topics", async function () {
-      const encoder1 = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: singleShardInfo1
-      });
-
-      const encoder2 = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: singleShardInfo2
-      });
-
-      const request1 = await waku?.lightPush.send(encoder1, {
-        payload: utf8ToBytes("Hello World2")
-      });
-
-      expect(request1?.successes.length).to.eq(numServiceNodes);
-      expect(
-        await serviceNodes?.messageCollector.waitForMessages(1, {
-          pubsubTopic: encoder1.pubsubTopic
-        })
-      ).to.eq(true);
-
-      const request2 = await waku?.lightPush.send(encoder2, {
-        payload: utf8ToBytes("Hello World3")
-      });
-
-      expect(request2?.successes.length).to.eq(numServiceNodes);
-      expect(
-        await serviceNodes?.messageCollector.waitForMessages(1, {
-          pubsubTopic: encoder2.pubsubTopic
-        })
-      ).to.eq(true);
-    });
-
-    it("using a protocol with unconfigured pubsub topic should fail", async function () {
-      this.timeout(15_000);
-
-      // use a pubsub topic that is not configured
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId,
-          shard: 4
-        }
-      });
-
-      const request = await waku?.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      if (
-        (request?.successes.length || 0) > 0 ||
-        request?.failures?.length === 0
-      ) {
-        throw new Error("The request should've thrown an error");
-      }
-
-      const errors = request?.failures?.map((failure) => failure.error);
-      expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
-    });
-
-    it("start node with empty shard should fail", async function () {
-      try {
-        waku = await createLightNode({
-          networkConfig: { clusterId: clusterId, shards: [] }
-        });
-        throw new Error(
-          "Starting the node with no shard should've thrown an error"
-        );
-      } catch (err) {
-        if (
-          !(err instanceof Error) ||
-          !err.message.includes(
-            "Invalid shards configuration: please provide at least one shard"
-          )
-        ) {
-          throw err;
-        }
-      }
-    });
-  });
+  }
 });

@@ -5,7 +5,7 @@ import sinon from "sinon";
 import { createRLN } from "../create.js";
 import type { IdentityCredential } from "../identity.js";
 
-import { DEFAULT_RATE_LIMIT, LINEA_CONTRACT } from "./constants.js";
+import { DEFAULT_RATE_LIMIT, RLN_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
 
 export interface TestRLNInstance {
@@ -42,7 +42,7 @@ export async function initializeRLNContract(
   mockedRegistryContract: ethers.Contract
 ): Promise<RLNContract> {
   const provider = new ethers.providers.JsonRpcProvider();
-  const voidSigner = new ethers.VoidSigner(LINEA_CONTRACT.address, provider);
+  const voidSigner = new ethers.VoidSigner(RLN_CONTRACT.address, provider);
 
   const originalRegister = mockedRegistryContract.register;
   (mockedRegistryContract as any).register = function (...args: any[]) {
@@ -63,7 +63,7 @@ export async function initializeRLNContract(
   };
 
   const contract = await RLNContract.init(rlnInstance, {
-    address: LINEA_CONTRACT.address,
+    address: RLN_CONTRACT.address,
     signer: voidSigner,
     rateLimit: DEFAULT_RATE_LIMIT,
     contract: mockedRegistryContract

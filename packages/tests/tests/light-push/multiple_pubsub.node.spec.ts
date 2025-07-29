@@ -1,6 +1,6 @@
 import { createEncoder } from "@waku/core";
 import { LightNode, Protocols } from "@waku/interfaces";
-import { contentTopicToPubsubTopic } from "@waku/utils";
+import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -16,31 +16,40 @@ import {
   teardownNodesWithRedundancy
 } from "../../src/index.js";
 
-import { ClusterId, TestEncoder } from "./utils.js";
+import {
+  TestClusterId,
+  TestContentTopic,
+  TestEncoder,
+  TestNetworkConfig,
+  TestRoutingInfo
+} from "./utils.js";
 
-describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
+describe("Waku Light Push (Autosharding): Multiple Shards", function () {
   this.timeout(30000);
   const numServiceNodes = 2;
 
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
 
+  const customContentTopic2 = "/test/2/waku-light-push/utf8";
+  const customRoutingInfo2 = createRoutingInfo(TestNetworkConfig, {
+    contentTopic: customContentTopic2
+  });
+
   const customEncoder2 = createEncoder({
-    contentTopic: "/test/2/waku-light-push/utf8",
-    pubsubTopic: contentTopicToPubsubTopic(
-      "/test/2/waku-light-push/utf8",
-      ClusterId
-    )
+    contentTopic: customContentTopic2,
+    routingInfo: customRoutingInfo2
   });
 
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
+      TestRoutingInfo,
       {
-        clusterId: ClusterId,
-        contentTopics: [TestEncoder.contentTopic, customEncoder2.contentTopic]
+        lightpush: true,
+        filter: true,
+        contentTopic: [TestEncoder.contentTopic, customEncoder2.contentTopic]
       },
-      { lightpush: true, filter: true },
       false,
       numServiceNodes,
       false
@@ -52,6 +61,9 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   });
 
   it("Subscribe and receive messages on 2 different pubsubtopics", async function () {
+    if (customRoutingInfo2.pubsubTopic === TestEncoder.pubsubTopic)
+      throw "Invalid test, both encoder uses same shard";
+
     const pushResponse1 = await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("M1")
     });
@@ -66,14 +78,14 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
     const messageCollector2 = new MessageCollector(serviceNodes.nodes[1]);
 
     expect(
-      await messageCollector1.waitForMessages(1, {
-        pubsubTopic: TestEncoder.pubsubTopic
+      await messageCollector1.waitForMessagesAutosharding(1, {
+        contentTopic: TestEncoder.contentTopic
       })
     ).to.eq(true);
 
     expect(
-      await messageCollector2.waitForMessages(1, {
-        pubsubTopic: customEncoder2.pubsubTopic
+      await messageCollector2.waitForMessagesAutosharding(1, {
+        contentTopic: customEncoder2.contentTopic
       })
     ).to.eq(true);
 
@@ -99,8 +111,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
         filter: true,
         lightpush: true,
         relay: true,
-        clusterId: ClusterId,
-        shard: [2]
+        clusterId: TestClusterId,
+        contentTopic: [TestContentTopic]
       });
       await nwaku2.ensureSubscriptionsAutosharding([
         customEncoder2.pubsubTopic
@@ -118,7 +130,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       });
 
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: TestEncoder.pubsubTopic
+        contentTopic: TestEncoder.contentTopic
       });
       await messageCollector2.waitForMessagesAutosharding(1, {
         contentTopic: customEncoder2.contentTopic

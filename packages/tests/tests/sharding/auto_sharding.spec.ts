@@ -1,9 +1,6 @@
-import { LightNode, ProtocolError } from "@waku/interfaces";
-import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import {
-  contentTopicToPubsubTopic,
-  contentTopicToShardIndex
-} from "@waku/utils";
+import { AutoSharding, LightNode } from "@waku/interfaces";
+import { createEncoder, utf8ToBytes } from "@waku/sdk";
+import { contentTopicToPubsubTopic, createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -33,10 +30,14 @@ describe("Autosharding: Running Nodes", function () {
   // js-waku allows autosharding for cluster IDs different than 1
   it("Cluster ID 0 - Default/Global Cluster", async function () {
     const clusterId = 0;
+    const networkConfig: AutoSharding = { clusterId, numShardsInCluster: 8 };
+    const routingInfo = createRoutingInfo(networkConfig, {
+      contentTopic: ContentTopic
+    });
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      { clusterId, contentTopics: [ContentTopic] },
+      routingInfo,
       { lightpush: true, filter: true },
       false,
       numServiceNodes,
@@ -45,10 +46,7 @@ describe("Autosharding: Running Nodes", function () {
 
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      routingInfo
     });
 
     const request = await waku.lightPush.send(encoder, {
@@ -56,19 +54,19 @@ describe("Autosharding: Running Nodes", function () {
     });
 
     expect(request.successes.length).to.eq(numServiceNodes);
-    expect(
-      await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder.pubsubTopic
-      })
-    ).to.eq(true);
+    expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
   it("Non TWN Cluster", async function () {
     const clusterId = 5;
+    const networkConfig: AutoSharding = { clusterId, numShardsInCluster: 10 };
+    const routingInfo = createRoutingInfo(networkConfig, {
+      contentTopic: ContentTopic
+    });
 
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      { clusterId, contentTopics: [ContentTopic] },
+      routingInfo,
       { lightpush: true, filter: true },
       false,
       numServiceNodes,
@@ -77,10 +75,7 @@ describe("Autosharding: Running Nodes", function () {
 
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      routingInfo
     });
 
     const request = await waku.lightPush.send(encoder, {
@@ -88,11 +83,7 @@ describe("Autosharding: Running Nodes", function () {
     });
 
     expect(request.successes.length).to.eq(numServiceNodes);
-    expect(
-      await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder.pubsubTopic
-      })
-    ).to.eq(true);
+    expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
   const numTest = 10;
@@ -109,9 +100,14 @@ describe("Autosharding: Running Nodes", function () {
     it(`random auto sharding ${
       i + 1
     } - Cluster ID: ${clusterId}, Content Topic: ${ContentTopic}`, async function () {
+      const networkConfig: AutoSharding = { clusterId, numShardsInCluster: 8 };
+      const routingInfo = createRoutingInfo(networkConfig, {
+        contentTopic: ContentTopic
+      });
+
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
-        { clusterId, contentTopics: [ContentTopic] },
+        routingInfo,
         { lightpush: true, filter: true },
         false,
         numServiceNodes,
@@ -120,10 +116,7 @@ describe("Autosharding: Running Nodes", function () {
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId: clusterId,
-          shard: contentTopicToShardIndex(ContentTopic)
-        }
+        routingInfo
       });
 
       const request = await waku.lightPush.send(encoder, {
@@ -133,7 +126,7 @@ describe("Autosharding: Running Nodes", function () {
       expect(request.successes.length).to.eq(numServiceNodes);
       expect(
         await serviceNodes.messageCollector.waitForMessages(1, {
-          pubsubTopic: encoder.pubsubTopic
+          contentTopic: ContentTopic
         })
       ).to.eq(true);
     });
@@ -143,7 +136,7 @@ describe("Autosharding: Running Nodes", function () {
   it("Wrong topic", async function () {
     const wrongTopic = "wrong_format";
     try {
-      contentTopicToPubsubTopic(wrongTopic, clusterId);
+      contentTopicToPubsubTopic(wrongTopic, clusterId, 8);
       throw new Error("Wrong topic should've thrown an error");
     } catch (err) {
       if (
@@ -156,10 +149,19 @@ describe("Autosharding: Running Nodes", function () {
   });
 
   it("configure the node with multiple content topics", async function () {
+    const networkConfig: AutoSharding = { clusterId, numShardsInCluster: 8 };
+    const routingInfo = createRoutingInfo(networkConfig, {
+      contentTopic: ContentTopic
+    });
+
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      { clusterId, contentTopics: [ContentTopic, ContentTopic2] },
-      { lightpush: true, filter: true },
+      routingInfo,
+      {
+        lightpush: true,
+        filter: true,
+        contentTopic: [ContentTopic, ContentTopic2]
+      },
       false,
       numServiceNodes,
       true
@@ -167,18 +169,14 @@ describe("Autosharding: Running Nodes", function () {
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic)
-      }
+      routingInfo
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic2,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic2)
-      }
+      routingInfo: createRoutingInfo(networkConfig, {
+        contentTopic: ContentTopic2
+      })
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -187,7 +185,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(request1.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder1.pubsubTopic
+        contentTopic: ContentTopic
       })
     ).to.eq(true);
 
@@ -197,62 +195,8 @@ describe("Autosharding: Running Nodes", function () {
     expect(request2.successes.length).to.eq(numServiceNodes);
     expect(
       await serviceNodes.messageCollector.waitForMessages(1, {
-        pubsubTopic: encoder2.pubsubTopic
+        contentTopic: ContentTopic2
       })
     ).to.eq(true);
-  });
-
-  it("using a protocol with unconfigured pubsub topic should fail", async function () {
-    [serviceNodes, waku] = await runMultipleNodes(
-      this.ctx,
-      { clusterId, contentTopics: [ContentTopic] },
-      { lightpush: true, filter: true },
-      false,
-      numServiceNodes,
-      true
-    );
-
-    // use a content topic that is not configured
-    const encoder = createEncoder({
-      contentTopic: ContentTopic2,
-      pubsubTopicShardInfo: {
-        clusterId: clusterId,
-        shard: contentTopicToShardIndex(ContentTopic2)
-      }
-    });
-
-    const { successes, failures } = await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello World")
-    });
-
-    if (successes.length > 0 || failures?.length === 0) {
-      throw new Error("The request should've thrown an error");
-    }
-
-    const errors = failures?.map((failure) => failure.error);
-    expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
-  });
-
-  it("start node with empty content topic", async function () {
-    try {
-      waku = await createLightNode({
-        networkConfig: {
-          clusterId: clusterId,
-          contentTopics: []
-        }
-      });
-      throw new Error(
-        "Starting the node with no content topic should've thrown an error"
-      );
-    } catch (err) {
-      if (
-        !(err instanceof Error) ||
-        !err.message.includes(
-          "Invalid content topics configuration: please provide at least one content topic"
-        )
-      ) {
-        throw err;
-      }
-    }
   });
 });

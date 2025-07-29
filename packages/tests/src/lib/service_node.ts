@@ -1,12 +1,19 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
+import { ContentTopic, PubsubTopic } from "@waku/interfaces";
+import {
+  formatPubsubTopic,
+  isAutoSharding,
+  isDefined,
+  isStaticSharding,
+  RoutingInfo
+} from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
-import { DefaultTestPubsubTopic } from "../constants.js";
+import { DefaultTestNetworkConfig } from "../constants.js";
 import {
   Args,
   LogLevel,
@@ -245,9 +252,7 @@ export class ServiceNode {
     );
   }
 
-  public async ensureSubscriptions(
-    pubsubTopics: string[] = [DefaultTestPubsubTopic]
-  ): Promise<boolean> {
+  public async ensureSubscriptions(pubsubTopics: string[]): Promise<boolean> {
     return this.restCall<boolean>(
       "/relay/v1/subscriptions",
       "POST",
@@ -256,13 +261,51 @@ export class ServiceNode {
     );
   }
 
-  public async messages(_pubsubTopic?: string): Promise<MessageRpcResponse[]> {
-    const pubsubTopic =
-      _pubsubTopic ??
-      shardInfoToPubsubTopics({
-        clusterId: this.args?.clusterId,
-        shards: this.args?.shard
-      })[0];
+  public async messages(
+    contentTopic?: ContentTopic
+  ): Promise<MessageRpcResponse[]> {
+    if (contentTopic) {
+      return this.contentTopicMessages(contentTopic);
+    }
+
+    if (this.args?.contentTopic) {
+      if (this.args?.contentTopic.length > 1)
+        throw "More that one content topic passed, not supported";
+      const contentTopic = this.args?.contentTopic[0];
+
+      return this.contentTopicMessages(contentTopic);
+    }
+
+    if (this.args?.shard) {
+      if (this.args?.shard.length > 1)
+        throw "More that one shard passed, not supported";
+      const pubsubTopic = formatPubsubTopic(
+        this.args.clusterId ?? DefaultTestNetworkConfig.clusterId,
+        this.args?.shard[0]
+      );
+      return this.pubsubTopicMessages(pubsubTopic);
+    }
+
+    throw "Content topic, shard or pubsubTopic must be set";
+  }
+
+  private async contentTopicMessages(
+    contentTopic: ContentTopic
+  ): Promise<MessageRpcResponse[]> {
+    return this.restCall<MessageRpcResponse[]>(
+      `/relay/v1/auto/messages/${encodeURIComponent(contentTopic)}`,
+      "GET",
+      null,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
+  }
+
+  private async pubsubTopicMessages(
+    pubsubTopic: PubsubTopic
+  ): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
       `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "GET",
@@ -289,7 +332,20 @@ export class ServiceNode {
 
   public async sendMessage(
     message: MessageRpcQuery,
-    _pubsubTopic?: string
+    routingInfo: RoutingInfo
+  ): Promise<boolean> {
+    if (isAutoSharding(routingInfo.networkConfig)) {
+      return this.sendMessageAutoSharding(message);
+    }
+    if (isStaticSharding(routingInfo.networkConfig)) {
+      return this.sendMessageStaticSharding(message, routingInfo.pubsubTopic);
+    }
+    throw "Invalid network config";
+  }
+
+  private async sendMessageStaticSharding(
+    message: MessageRpcQuery,
+    pubsubTopic: PubsubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -297,21 +353,15 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    const pubsubTopic =
-      _pubsubTopic ??
-      shardInfoToPubsubTopics({
-        clusterId: this.args?.clusterId,
-        shards: this.args?.shard
-      })[0];
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || DefaultTestPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
     );
   }
 
-  public async sendMessageAutosharding(
+  private async sendMessageAutoSharding(
     message: MessageRpcQuery
   ): Promise<boolean> {
     this.checkProcess();
@@ -429,9 +479,7 @@ export function defaultArgs(): Args {
     rest: true,
     restAdmin: true,
     websocketSupport: true,
-    logLevel: LogLevel.Trace,
-    clusterId: 0,
-    shard: [0]
+    logLevel: LogLevel.Trace
   };
 }
 

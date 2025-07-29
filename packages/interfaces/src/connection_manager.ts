@@ -1,22 +1,33 @@
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
-import type { PubsubTopic } from "./misc.js";
+import { ShardId } from "./sharding.js";
 
+// Peer tags
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
   LOCAL = "local-peer-cache"
 }
 
+// Connection tag
+export const CONNECTION_LOCKED_TAG = "locked";
+
 export type ConnectionManagerOptions = {
   /**
    * Max number of bootstrap peers allowed to be connected to initially.
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange).
    *
-   * @default 1
+   * @default 3
    */
   maxBootstrapPeers: number;
+
+  /**
+   * Max number of connections allowed to be connected to.
+   *
+   * @default 10
+   */
+  maxConnections: number;
 
   /**
    * Keep alive libp2p pings interval in seconds.
@@ -31,6 +42,38 @@ export type ConnectionManagerOptions = {
    * @default 300 seconds
    */
   relayKeepAlive: number;
+
+  /**
+   * Enable auto recovery of connections if has not enough:
+   * - bootstrap peers
+   * - LightPush and Filter peers
+   * - number of connected peers
+   * - dial known peers on reconnect to Internet
+   *
+   * @default true
+   */
+  enableAutoRecovery: boolean;
+
+  /**
+   * Max number of peers to dial at once.
+   *
+   * @default 3
+   */
+  maxDialingPeers: number;
+
+  /**
+   * Time to wait before dialing failed peers again.
+   *
+   * @default 60 seconds
+   */
+  failedDialCooldown: number;
+
+  /**
+   * Time to wait before dialing a peer again.
+   *
+   * @default 10 seconds
+   */
+  dialCooldown: number;
 };
 
 export interface IConnectionManager {
@@ -114,26 +157,20 @@ export interface IConnectionManager {
   getConnectedPeers(codec?: string): Promise<Peer[]>;
 
   /**
-   * Checks if a specific pubsub topic is configured in the connection manager.
-   *
-   * @param pubsubTopic - The pubsub topic to check
-   * @returns True if the topic is configured, false otherwise
-   *
-   * @example
-   * ```typescript
-   * const isConfigured = connectionManager.isTopicConfigured("/waku/2/default-waku/proto");
-   * if (isConfigured) {
-   *   console.log("Topic is configured");
-   * }
-   * ```
-   */
-  isTopicConfigured(pubsubTopic: PubsubTopic): boolean;
-
-  /**
    * Checks if a peer has shard info.
    *
    * @param peerId - The peer to check
    * @returns Promise resolving to true if the peer has shard info, false otherwise
    */
   hasShardInfo(peerId: PeerId): Promise<boolean>;
+
+  /**
+   * Returns true if the passed peer is on the passed pubsub topic
+   */
+  isPeerOnTopic(peerId: PeerId, pubsubTopic: string): Promise<boolean>;
+
+  /**
+   * Returns true if the passed peer is on the passed shard
+   */
+  isPeerOnShard(peerId: PeerId, shardId: ShardId): Promise<boolean>;
 }

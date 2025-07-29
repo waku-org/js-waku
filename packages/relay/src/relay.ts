@@ -17,6 +17,7 @@ import {
   IEncoder,
   IMessage,
   IRelay,
+  type IRoutingInfo,
   Libp2p,
   ProtocolError,
   PubsubTopic,
@@ -29,7 +30,7 @@ import { pEvent } from "p-event";
 
 import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
-import { TopicOnlyDecoder } from "./topic_only_message.js";
+import { ContentTopicOnlyDecoder } from "./topic_only_message.js";
 
 const log = new Logger("relay");
 
@@ -38,7 +39,9 @@ export type Observer<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
+export type RelayCreateOptions = CreateNodeOptions & {
+  routingInfos: IRoutingInfo[];
+} & Partial<GossipsubOpts>;
 export type ContentTopic = string;
 
 type ActiveSubscriptions = Map<PubsubTopic, ContentTopic[]>;
@@ -53,7 +56,7 @@ type RelayConstructorParams = {
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 export class Relay implements IRelay {
-  public readonly pubsubTopics: Set<PubsubTopic>;
+  public pubsubTopics: Set<PubsubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -73,6 +76,7 @@ export class Relay implements IRelay {
     }
 
     this.gossipSub = params.libp2p.services.pubsub as GossipSub;
+
     this.pubsubTopics = new Set(params.pubsubTopics);
 
     if (this.gossipSub.isStarted()) {
@@ -82,7 +86,7 @@ export class Relay implements IRelay {
     this.observers = new Map();
 
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-    this.defaultDecoder = new TopicOnlyDecoder(params.pubsubTopics[0]);
+    this.defaultDecoder = new ContentTopicOnlyDecoder();
   }
 
   /**
@@ -240,8 +244,9 @@ export class Relay implements IRelay {
     pubsubTopic: string,
     bytes: Uint8Array
   ): Promise<void> {
-    const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
-    if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
+    const contentTopicOnlyMsg =
+      await this.defaultDecoder.fromWireToProtoObj(bytes);
+    if (!contentTopicOnlyMsg || !contentTopicOnlyMsg.contentTopic) {
       log.warn("Message does not have a content topic, skipping");
       return;
     }
@@ -253,9 +258,9 @@ export class Relay implements IRelay {
     }
 
     // Retrieve the set of observers for the given contentTopic
-    const observers = contentTopicMap.get(topicOnlyMsg.contentTopic) as Set<
-      Observer<T>
-    >;
+    const observers = contentTopicMap.get(
+      contentTopicOnlyMsg.contentTopic
+    ) as Set<Observer<T>>;
     if (!observers) {
       return;
     }
@@ -277,7 +282,7 @@ export class Relay implements IRelay {
             } else {
               log.error(
                 "Failed to decode messages on",
-                topicOnlyMsg.contentTopic
+                contentTopicOnlyMsg.contentTopic
               );
             }
           } catch (error) {

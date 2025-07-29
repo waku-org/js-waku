@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
-import { ConnectionManager, messageHash, StoreCore } from "@waku/core";
+import { messageHash, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -16,12 +16,11 @@ import { isDefined, Logger } from "@waku/utils";
 
 import { PeerManager } from "../peer_manager/index.js";
 
-const log = new Logger("waku:store:sdk");
+const log = new Logger("store-sdk");
 
 type StoreConstructorParams = {
   libp2p: Libp2p;
   peerManager: PeerManager;
-  connectionManager: ConnectionManager;
   options?: Partial<StoreProtocolOptions>;
 };
 
@@ -33,13 +32,11 @@ export class Store implements IStore {
   private readonly options: Partial<StoreProtocolOptions>;
   private readonly libp2p: Libp2p;
   private readonly peerManager: PeerManager;
-  private readonly connectionManager: ConnectionManager;
   private readonly protocol: StoreCore;
 
   public constructor(params: StoreConstructorParams) {
     this.options = params.options || {};
     this.peerManager = params.peerManager;
-    this.connectionManager = params.connectionManager;
     this.libp2p = params.libp2p;
 
     this.protocol = new StoreCore(params.libp2p);
@@ -62,55 +59,30 @@ export class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: Partial<QueryRequestParams>
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    // For message hash queries, don't validate decoders but still need decodersAsMap
-    const isHashQuery =
-      options?.messageHashes && options.messageHashes.length > 0;
-
-    let pubsubTopic: string;
-    let contentTopics: string[];
-    let decodersAsMap: Map<string, IDecoder<T>>;
-
-    if (isHashQuery) {
-      // For hash queries, we still need decoders to decode messages
-      // but we don't validate pubsubTopic consistency
-      // Use pubsubTopic from options if provided, otherwise from first decoder
-      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
-      contentTopics = [];
-      decodersAsMap = new Map();
-      decoders.forEach((dec) => {
-        decodersAsMap.set(dec.contentTopic, dec);
-      });
-    } else {
-      const validated = this.validateDecodersAndPubsubTopic(decoders);
-      pubsubTopic = validated.pubsubTopic;
-      contentTopics = validated.contentTopics;
-      decodersAsMap = validated.decodersAsMap;
-    }
-
-    const queryOpts: QueryRequestParams = {
-      pubsubTopic,
-      contentTopics,
-      includeData: true,
-      paginationForward: true,
-      ...options
-    };
-
-    const peer = await this.getPeerToUse(pubsubTopic);
-
-    if (!peer) {
-      log.error("No peers available to query");
-      throw new Error("No peers available to query");
-    }
-
-    log.info(`Querying store with options: ${JSON.stringify(options)}`);
-    const responseGenerator = this.protocol.queryPerPage(
-      queryOpts,
-      decodersAsMap,
-      peer
+    const { decodersAsMap, queryOptions } = this.buildQueryParams(
+      decoders,
+      options
     );
 
-    for await (const messages of responseGenerator) {
-      yield messages;
+    for (const queryOption of queryOptions) {
+      const peer = await this.getPeerToUse(queryOption.pubsubTopic);
+
+      if (!peer) {
+        log.error("No peers available to query");
+        throw new Error("No peers available to query");
+      }
+
+      log.info(`Querying store with options: ${JSON.stringify(queryOption)}`);
+
+      const responseGenerator = this.protocol.queryPerPage(
+        queryOption,
+        decodersAsMap,
+        peer
+      );
+
+      for await (const messages of responseGenerator) {
+        yield messages;
+      }
     }
   }
 
@@ -229,14 +201,6 @@ export class Store implements IStore {
     }
 
     const pubsubTopicForQuery = uniquePubsubTopicsInQuery[0];
-    const isTopicSupported =
-      this.connectionManager.isTopicConfigured(pubsubTopicForQuery);
-
-    if (!isTopicSupported) {
-      throw new Error(
-        `Pubsub topic ${pubsubTopicForQuery} has not been configured on this instance.`
-      );
-    }
 
     const decodersAsMap = new Map();
     decoders.forEach((dec) => {
@@ -271,11 +235,9 @@ export class Store implements IStore {
       pubsubTopic
     });
 
-    const peer = this.options.peers
+    return this.options.peers
       ? await this.getPeerFromConfigurationOrFirst(peers, this.options.peers)
       : peers[0];
-
-    return peer;
   }
 
   private async getPeerFromConfigurationOrFirst(
@@ -322,5 +284,85 @@ export class Store implements IStore {
     );
 
     return peerIds[0];
+  }
+
+  private buildQueryParams<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
+    options?: Partial<QueryRequestParams>
+  ): {
+    decodersAsMap: Map<string, IDecoder<T>>;
+    queryOptions: QueryRequestParams[];
+  } {
+    // For message hash queries, don't validate decoders but still need decodersAsMap
+    const isHashQuery =
+      options?.messageHashes && options.messageHashes.length > 0;
+
+    let pubsubTopic: string;
+    let contentTopics: string[];
+    let decodersAsMap: Map<string, IDecoder<T>>;
+
+    if (isHashQuery) {
+      // For hash queries, we still need decoders to decode messages
+      // but we don't validate pubsubTopic consistency
+      // Use pubsubTopic from options if provided, otherwise from first decoder
+      pubsubTopic = options.pubsubTopic || decoders[0]?.pubsubTopic || "";
+      contentTopics = [];
+      decodersAsMap = new Map();
+      decoders.forEach((dec) => {
+        decodersAsMap.set(dec.contentTopic, dec);
+      });
+    } else {
+      const validated = this.validateDecodersAndPubsubTopic(decoders);
+      pubsubTopic = validated.pubsubTopic;
+      contentTopics = validated.contentTopics;
+      decodersAsMap = validated.decodersAsMap;
+    }
+
+    const subTimeRanges: [Date, Date][] = [];
+    if (options?.timeStart && options?.timeEnd) {
+      let start = options.timeStart;
+      const end = options.timeEnd;
+      while (end.getTime() - start.getTime() > this.protocol.maxTimeLimit) {
+        const subEnd = new Date(start.getTime() + this.protocol.maxTimeLimit);
+        subTimeRanges.push([start, subEnd]);
+        start = subEnd;
+      }
+
+      if (subTimeRanges.length === 0) {
+        log.info("Using single time range");
+        subTimeRanges.push([start, end]);
+      }
+    }
+
+    if (subTimeRanges.length === 0) {
+      log.info("No sub time ranges");
+      return {
+        decodersAsMap,
+        queryOptions: [
+          {
+            pubsubTopic,
+            contentTopics,
+            includeData: true,
+            paginationForward: true,
+            ...options
+          }
+        ]
+      };
+    }
+
+    log.info(`Building ${subTimeRanges.length} sub time ranges`);
+
+    return {
+      decodersAsMap,
+      queryOptions: subTimeRanges.map(([start, end]) => ({
+        pubsubTopic,
+        contentTopics,
+        includeData: true,
+        paginationForward: true,
+        ...options,
+        timeStart: start,
+        timeEnd: end
+      }))
+    };
   }
 }

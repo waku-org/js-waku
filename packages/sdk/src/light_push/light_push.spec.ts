@@ -1,11 +1,7 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import {
-  ConnectionManager,
-  createEncoder,
-  Encoder,
-  LightPushCodec
-} from "@waku/core";
+import { createEncoder, Encoder, LightPushCodec } from "@waku/core";
 import { Libp2p, ProtocolError } from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import sinon, { SinonSpy } from "sinon";
@@ -14,8 +10,14 @@ import { PeerManager } from "../peer_manager/index.js";
 
 import { LightPush } from "./light_push.js";
 
-const PUBSUB_TOPIC = "/waku/2/rs/1/4";
-const CONTENT_TOPIC = "/test/1/waku-light-push/utf8";
+const testContentTopic = "/test/1/waku-light-push/utf8";
+const testRoutingInfo = createRoutingInfo(
+  {
+    clusterId: 0,
+    numShardsInCluster: 7
+  },
+  { contentTopic: testContentTopic }
+);
 
 describe("LightPush SDK", () => {
   let libp2p: Libp2p;
@@ -24,21 +26,11 @@ describe("LightPush SDK", () => {
 
   beforeEach(() => {
     libp2p = mockLibp2p();
-    encoder = createEncoder({ contentTopic: CONTENT_TOPIC });
-    lightPush = mockLightPush({ libp2p });
-  });
-
-  it("should fail to send if pubsub topics are misconfigured", async () => {
-    lightPush = mockLightPush({ libp2p, pubsubTopics: ["/wrong"] });
-
-    const result = await lightPush.send(encoder, {
-      payload: utf8ToBytes("test")
+    encoder = createEncoder({
+      contentTopic: testContentTopic,
+      routingInfo: testRoutingInfo
     });
-    const failures = result.failures ?? [];
-
-    expect(failures.length).to.be.eq(1);
-    expect(failures.some((v) => v.error === ProtocolError.TOPIC_NOT_CONFIGURED))
-      .to.be.true;
+    lightPush = mockLightPush({ libp2p });
   });
 
   it("should fail to send if no connected peers found", async () => {
@@ -168,10 +160,6 @@ type MockLightPushOptions = {
 
 function mockLightPush(options: MockLightPushOptions): LightPush {
   const lightPush = new LightPush({
-    connectionManager: {
-      isTopicConfigured: (topic: string) =>
-        (options.pubsubTopics || [PUBSUB_TOPIC]).includes(topic)
-    } as unknown as ConnectionManager,
     peerManager: {
       getPeers: () =>
         options.libp2p

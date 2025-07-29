@@ -17,6 +17,7 @@ import { toProtoMessage } from "../to_proto_message.js";
 import {
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
+  MAX_TIME_RANGE,
   StoreQueryRequest,
   StoreQueryResponse
 } from "./rpc.js";
@@ -34,11 +35,23 @@ export class StoreCore {
     this.streamManager = new StreamManager(StoreCodec, libp2p.components);
   }
 
+  public get maxTimeLimit(): number {
+    return MAX_TIME_RANGE;
+  }
+
   public async *queryPerPage<T extends IDecodedMessage>(
     queryOpts: QueryRequestParams,
     decoders: Map<string, IDecoder<T>>,
     peerId: PeerId
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    if (queryOpts.timeStart && queryOpts.timeEnd) {
+      const timeDiff =
+        queryOpts.timeEnd.getTime() - queryOpts.timeStart.getTime();
+      if (timeDiff > MAX_TIME_RANGE) {
+        throw new Error("Time range bigger than 24h");
+      }
+    }
+
     // Only validate decoder content topics for content-filtered queries
     const isHashQuery =
       queryOpts.messageHashes && queryOpts.messageHashes.length > 0;

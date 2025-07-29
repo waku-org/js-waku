@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.5](https://github.com/waku-org/js-waku/compare/sds-v0.0.4...sds-v0.0.5) (2025-07-18)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.11 to ^0.0.12
+    * @waku/utils bumped from ^0.0.24 to ^0.0.25
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/sds-v0.0.3...sds-v0.0.4) (2025-06-23)
 
 

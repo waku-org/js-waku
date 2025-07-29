@@ -1,12 +1,29 @@
+/**
+ * Configuration for a Waku network. All nodes in a given network/cluster
+ * should have the same configuration.
+ */
+export type NetworkConfig = StaticSharding | AutoSharding;
+
 export type ShardInfo = {
-  clusterId: number;
-  shards: number[];
+  clusterId: ClusterId;
+  shards: ShardId[];
 };
 
-export type ContentTopicInfo = {
-  clusterId?: number;
-  contentTopics: string[];
+export type StaticSharding = {
+  clusterId: ClusterId;
 };
+export type AutoSharding = {
+  clusterId: ClusterId;
+  numShardsInCluster: number;
+};
+export type ClusterId = number;
+export type ShardId = number;
 
-export type StaticSharding = ShardInfo;
-export type AutoSharding = ContentTopicInfo;
+/**
+ * Routing Information for a given message.
+ */
+export interface IRoutingInfo {
+  clusterId: ClusterId;
+  shardId: ShardId;
+  pubsubTopic: string;
+}

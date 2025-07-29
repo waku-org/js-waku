@@ -16,15 +16,19 @@ import type {
   IFilter,
   ILightPush,
   IRelay,
+  IRoutingInfo,
   IStore,
   IWaku,
   IWakuEventEmitter,
   Libp2p,
-  NetworkConfig,
-  PubsubTopic
+  NetworkConfig
 } from "@waku/interfaces";
-import { DefaultNetworkConfig, Protocols } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import {
+  DefaultNetworkConfig,
+  HealthStatus,
+  Protocols
+} from "@waku/interfaces";
+import { createRoutingInfo, Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -32,7 +36,6 @@ import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
-import { decoderParamsToShardInfo, isShardCompatible } from "./utils.js";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 const log = new Logger("waku");
@@ -50,7 +53,6 @@ export class WakuNode implements IWaku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
 
-  public readonly health: HealthIndicator;
   public readonly events: IWakuEventEmitter = new TypedEventEmitter();
 
   private readonly networkConfig: NetworkConfig;
@@ -61,9 +63,9 @@ export class WakuNode implements IWaku {
 
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
+  private readonly healthIndicator: HealthIndicator;
 
   public constructor(
-    pubsubTopics: PubsubTopic[],
     options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
@@ -86,7 +88,6 @@ export class WakuNode implements IWaku {
       libp2p,
       relay: this.relay,
       events: this.events,
-      pubsubTopics: pubsubTopics,
       networkConfig: this.networkConfig,
       config: options?.connectionManager
     });
@@ -99,12 +100,11 @@ export class WakuNode implements IWaku {
       connectionManager: this.connectionManager
     });
 
-    this.health = new HealthIndicator({ libp2p });
+    this.healthIndicator = new HealthIndicator({ libp2p, events: this.events });
 
     if (protocolsEnabled.store) {
       this.store = new Store({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options?.store
       });
@@ -114,7 +114,6 @@ export class WakuNode implements IWaku {
       this.lightPush = new LightPush({
         libp2p,
         peerManager: this.peerManager,
-        connectionManager: this.connectionManager,
         options: options?.lightPush
       });
     }
@@ -122,7 +121,6 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.filter) {
       this.filter = new Filter({
         libp2p,
-        connectionManager: this.connectionManager,
         peerManager: this.peerManager,
         options: options.filter
       });
@@ -142,6 +140,10 @@ export class WakuNode implements IWaku {
 
   public get protocols(): string[] {
     return this.libp2p.getProtocols();
+  }
+
+  public get health(): HealthStatus {
+    return this.healthIndicator.toValue();
   }
 
   public async dial(
@@ -216,7 +218,7 @@ export class WakuNode implements IWaku {
     await this.libp2p.start();
     this.connectionManager.start();
     this.peerManager.start();
-    this.health.start();
+    this.healthIndicator.start();
     this.lightPush?.start();
 
     this._nodeStateLock = false;
@@ -229,7 +231,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     this.lightPush?.stop();
-    this.health.stop();
+    this.healthIndicator.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();
@@ -258,40 +260,30 @@ export class WakuNode implements IWaku {
   }
 
   public createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage> {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = this.createRoutingInfo(
+      params.contentTopic,
+      params.shardId
     );
-
-    log.info(
-      `Creating Decoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create decoder: incompatible shard configuration.`);
-    }
-
-    return createDecoder(params.contentTopic, singleShardInfo);
+    return createDecoder(params.contentTopic, routingInfo);
   }
 
   public createEncoder(params: CreateEncoderParams): IEncoder {
-    const singleShardInfo = decoderParamsToShardInfo(
-      params,
-      this.networkConfig
+    const routingInfo = this.createRoutingInfo(
+      params.contentTopic,
+      params.shardId
     );
-
-    log.info(
-      `Creating Encoder with input:${JSON.stringify(params.shardInfo)}, determined:${JSON.stringify(singleShardInfo)}, expected:${JSON.stringify(this.networkConfig)}.`
-    );
-
-    if (!isShardCompatible(singleShardInfo, this.networkConfig)) {
-      throw Error(`Cannot create encoder: incompatible shard configuration.`);
-    }
 
     return createEncoder({
       contentTopic: params.contentTopic,
       ephemeral: params.ephemeral,
-      pubsubTopicShardInfo: singleShardInfo
+      routingInfo: routingInfo
     });
+  }
+
+  private createRoutingInfo(
+    contentTopic?: string,
+    shardId?: number
+  ): IRoutingInfo {
+    return createRoutingInfo(this.networkConfig, { contentTopic, shardId });
   }
 }

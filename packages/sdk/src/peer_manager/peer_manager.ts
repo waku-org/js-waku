@@ -4,13 +4,14 @@ import {
   PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
+import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import {
-  ConnectionManager,
-  FilterCodecs,
-  LightPushCodec,
-  StoreCodec
-} from "@waku/core";
-import { Libp2p, Protocols } from "@waku/interfaces";
+  CONNECTION_LOCKED_TAG,
+  type IConnectionManager,
+  Libp2p,
+  Libp2pEventHandler,
+  Protocols
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("peer-manager");
@@ -24,7 +25,7 @@ type PeerManagerConfig = {
 type PeerManagerParams = {
   libp2p: Libp2p;
   config?: PeerManagerConfig;
-  connectionManager: ConnectionManager;
+  connectionManager: IConnectionManager;
 };
 
 type GetPeersParams = {
@@ -49,8 +50,6 @@ interface IPeerManagerEvents {
   [PeerManagerEventNames.Disconnect]: CustomEvent<PeerId>;
 }
 
-type Libp2pEventHandler<T> = (e: CustomEvent<T>) => void;
-
 /**
  * @description
  * PeerManager is responsible for:
@@ -64,7 +63,7 @@ export class PeerManager {
   private readonly numPeersToUse: number;
 
   private readonly libp2p: Libp2p;
-  private readonly connectionManager: ConnectionManager;
+  private readonly connectionManager: IConnectionManager;
 
   private readonly lockedPeers = new Set<string>();
   private readonly unlockedPeers = new Map<string, number>();
@@ -231,6 +230,10 @@ export class PeerManager {
   private lockPeer(id: PeerId): void {
     log.info(`Locking peer ${id}`);
     this.lockedPeers.add(id.toString());
+    this.libp2p
+      .getConnections()
+      .filter((c) => c.remotePeer.equals(id))
+      .forEach((c) => c.tags.push(CONNECTION_LOCKED_TAG));
     this.unlockedPeers.delete(id.toString());
   }
 
@@ -241,6 +244,12 @@ export class PeerManager {
   private unlockPeer(id: PeerId): void {
     log.info(`Unlocking peer ${id}`);
     this.lockedPeers.delete(id.toString());
+    this.libp2p
+      .getConnections()
+      .filter((c) => c.remotePeer.equals(id))
+      .forEach((c) => {
+        c.tags = c.tags.filter((t) => t !== CONNECTION_LOCKED_TAG);
+      });
     this.unlockedPeers.set(id.toString(), Date.now());
   }
 

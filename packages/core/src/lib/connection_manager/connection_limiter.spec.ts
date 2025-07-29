@@ -1,5 +1,10 @@
 import { type Connection, type Peer, type PeerId } from "@libp2p/interface";
-import { IWakuEventEmitter, Tags } from "@waku/interfaces";
+import { multiaddr } from "@multiformats/multiaddr";
+import {
+  CONNECTION_LOCKED_TAG,
+  IWakuEventEmitter,
+  Tags
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -23,7 +28,13 @@ describe("ConnectionLimiter", () => {
   const createMockPeerId = (id: string): PeerId =>
     ({
       toString: () => id,
-      equals: (other: PeerId) => other.toString() === id
+      equals: function (other: PeerId) {
+        return (
+          other &&
+          typeof other.toString === "function" &&
+          other.toString() === id
+        );
+      }
     }) as PeerId;
 
   const createMockPeer = (id: string, tags: string[] = []): Peer =>
@@ -42,20 +53,37 @@ describe("ConnectionLimiter", () => {
   ): Connection =>
     ({
       remotePeer: peerId,
-      tags
+      tags: tags || []
     }) as Connection;
 
   const defaultOptions = {
+    maxConnections: 5,
     maxBootstrapPeers: 2,
     pingKeepAlive: 300,
-    relayKeepAlive: 300
+    relayKeepAlive: 300,
+    enableAutoRecovery: true,
+    maxDialingPeers: 3,
+    failedDialCooldown: 60,
+    dialCooldown: 10
   };
+
+  function createLimiter(
+    opts: Partial<typeof defaultOptions> = {}
+  ): ConnectionLimiter {
+    return new ConnectionLimiter({
+      libp2p,
+      events,
+      dialer,
+      networkMonitor,
+      options: { ...defaultOptions, ...opts }
+    });
+  }
 
   beforeEach(() => {
     mockPeerId = createMockPeerId("12D3KooWTest1");
 
     mockPeer = createMockPeer("12D3KooWTest1", [Tags.BOOTSTRAP]);
-    mockPeer2 = createMockPeer("12D3KooWTest2", []);
+    mockPeer2 = createMockPeer("12D3KooWTest2", [Tags.BOOTSTRAP]); // Ensure mockPeer2 is prioritized and dialed
     mockConnection = createMockConnection(mockPeerId, [Tags.BOOTSTRAP]);
 
     libp2p = {
@@ -76,12 +104,6 @@ describe("ConnectionLimiter", () => {
       dispatchEvent: sinon.stub()
     } as any;
 
-    dialer = {
-      start: sinon.stub(),
-      stop: sinon.stub(),
-      dial: sinon.stub().resolves()
-    } as unknown as sinon.SinonStubbedInstance<Dialer>;
-
     networkMonitor = {
       start: sinon.stub(),
       stop: sinon.stub(),
@@ -98,48 +120,15 @@ describe("ConnectionLimiter", () => {
     sinon.restore();
   });
 
-  describe("constructor", () => {
-    it("should create ConnectionLimiter with required options", () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-
-      expect(connectionLimiter).to.be.instanceOf(ConnectionLimiter);
-    });
-
-    it("should store libp2p and options references", () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-
-      expect(connectionLimiter).to.have.property("libp2p");
-      expect(connectionLimiter).to.have.property("options");
-    });
-  });
-
   describe("start", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
     });
 
     it("should dial peers from store on start", async () => {
       const dialPeersStub = sinon.stub(
-        connectionLimiter,
-        "dialPeersFromStore" as any
+        connectionLimiter as any,
+        "dialPeersFromStore"
       );
 
       connectionLimiter.start();
@@ -147,7 +136,7 @@ describe("ConnectionLimiter", () => {
       expect(dialPeersStub.calledOnce).to.be.true;
     });
 
-    it("should add event listeners for waku:connection, peer connect and disconnect", () => {
+    it("should add event listeners for waku:connection and peer:disconnect", () => {
       connectionLimiter.start();
 
       expect((events.addEventListener as sinon.SinonStub).calledOnce).to.be
@@ -159,10 +148,7 @@ describe("ConnectionLimiter", () => {
         )
       ).to.be.true;
 
-      expect(libp2p.addEventListener.calledTwice).to.be.true;
-      expect(
-        libp2p.addEventListener.calledWith("peer:connect", sinon.match.func)
-      ).to.be.true;
+      expect(libp2p.addEventListener.calledOnce).to.be.true;
       expect(
         libp2p.addEventListener.calledWith("peer:disconnect", sinon.match.func)
       ).to.be.true;
@@ -175,19 +161,13 @@ describe("ConnectionLimiter", () => {
       expect((events.addEventListener as sinon.SinonStub).callCount).to.equal(
         2
       );
-      expect(libp2p.addEventListener.callCount).to.equal(4);
+      expect(libp2p.addEventListener.callCount).to.equal(2);
     });
   });
 
   describe("stop", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
     });
 
@@ -203,10 +183,7 @@ describe("ConnectionLimiter", () => {
         )
       ).to.be.true;
 
-      expect(libp2p.removeEventListener.calledTwice).to.be.true;
-      expect(
-        libp2p.removeEventListener.calledWith("peer:connect", sinon.match.func)
-      ).to.be.true;
+      expect(libp2p.removeEventListener.calledOnce).to.be.true;
       expect(
         libp2p.removeEventListener.calledWith(
           "peer:disconnect",
@@ -222,7 +199,7 @@ describe("ConnectionLimiter", () => {
       expect(
         (events.removeEventListener as sinon.SinonStub).callCount
       ).to.equal(2);
-      expect(libp2p.removeEventListener.callCount).to.equal(4);
+      expect(libp2p.removeEventListener.callCount).to.equal(2);
     });
   });
 
@@ -230,13 +207,7 @@ describe("ConnectionLimiter", () => {
     let eventHandler: () => void;
 
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
 
       const addEventListenerStub = events.addEventListener as sinon.SinonStub;
@@ -245,8 +216,8 @@ describe("ConnectionLimiter", () => {
 
     it("should dial peers from store when browser is connected", () => {
       const dialPeersStub = sinon.stub(
-        connectionLimiter,
-        "dialPeersFromStore" as any
+        connectionLimiter as any,
+        "dialPeersFromStore"
       );
       networkMonitor.isBrowserConnected.returns(true);
 
@@ -257,8 +228,8 @@ describe("ConnectionLimiter", () => {
 
     it("should not dial peers from store when browser is not connected", () => {
       const dialPeersStub = sinon.stub(
-        connectionLimiter,
-        "dialPeersFromStore" as any
+        connectionLimiter as any,
+        "dialPeersFromStore"
       );
       networkMonitor.isBrowserConnected.returns(false);
 
@@ -268,212 +239,86 @@ describe("ConnectionLimiter", () => {
     });
   });
 
-  describe("onConnectedEvent", () => {
-    let eventHandler: (event: CustomEvent<PeerId>) => Promise<void>;
+  describe("onDisconnectedEvent", () => {
+    let eventHandler: () => Promise<void>;
 
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
       connectionLimiter.start();
 
       const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
       eventHandler = addEventListenerStub.getCall(0).args[1];
     });
 
-    it("should handle connection event", async () => {
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.peerStore.get.calledWith(mockPeerId)).to.be.true;
-    });
-
-    it("should get tags for the connected peer", async () => {
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.peerStore.get.calledWith(mockPeerId)).to.be.true;
-    });
-
-    it("should do nothing if peer is not a bootstrap peer", async () => {
-      const nonBootstrapPeer = createMockPeer("12D3KooWNonBootstrap", []);
-      libp2p.peerStore.get.resolves(nonBootstrapPeer);
-
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.hangUp.called).to.be.false;
-    });
-
-    it("should not hang up bootstrap peer if under limit", async () => {
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const connectedBootstrapPeer = createMockPeer(
-        "12D3KooWConnectedBootstrap",
-        [Tags.BOOTSTRAP]
-      );
-
-      libp2p.getConnections.returns([mockConnection]);
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(mockConnection.remotePeer)
-        .resolves(connectedBootstrapPeer);
-
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.hangUp.called).to.be.false;
-    });
-
-    it("should hang up bootstrap peer if over limit", async () => {
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer3 = createMockPeer("12D3KooWBootstrap3", [
-        Tags.BOOTSTRAP
-      ]);
-
-      const peerId1 = createMockPeerId("peer1");
-      const peerId2 = createMockPeerId("peer2");
-      const peerId3 = createMockPeerId("peer3");
-
-      const bootstrapConnections = [
-        createMockConnection(peerId1, [Tags.BOOTSTRAP]),
-        createMockConnection(peerId2, [Tags.BOOTSTRAP]),
-        createMockConnection(peerId3, [Tags.BOOTSTRAP])
-      ];
-
-      libp2p.getConnections.returns(bootstrapConnections);
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get.withArgs(peerId1).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(peerId2).resolves(bootstrapPeer2);
-      libp2p.peerStore.get.withArgs(peerId3).resolves(bootstrapPeer3);
-
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.hangUp.calledWith(mockPeerId)).to.be.true;
-    });
-
-    it("should handle errors in getTagsForPeer gracefully", async () => {
-      libp2p.peerStore.get.rejects(new Error("Peer not found"));
-
-      const mockEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await eventHandler(mockEvent);
-
-      expect(libp2p.hangUp.called).to.be.false;
-    });
-  });
-
-  describe("onDisconnectedEvent", () => {
-    let eventHandler: () => Promise<void>;
-
-    beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-      connectionLimiter.start();
-
-      const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
-      eventHandler = addEventListenerStub.getCall(1).args[1];
-    });
-
     it("should dial peers from store when no connections remain", async () => {
       libp2p.getConnections.returns([]);
       const dialPeersStub = sinon.stub(
-        connectionLimiter,
-        "dialPeersFromStore" as any
+        connectionLimiter as any,
+        "dialPeersFromStore"
       );
-
       await eventHandler();
-
       expect(dialPeersStub.calledOnce).to.be.true;
     });
 
     it("should do nothing when connections still exist", async () => {
       libp2p.getConnections.returns([mockConnection]);
       const dialPeersStub = sinon.stub(
-        connectionLimiter,
-        "dialPeersFromStore" as any
+        connectionLimiter as any,
+        "dialPeersFromStore"
       );
-
       await eventHandler();
-
       expect(dialPeersStub.called).to.be.false;
     });
   });
 
   describe("dialPeersFromStore", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      dialer = {
+        start: sinon.stub(),
+        stop: sinon.stub(),
+        dial: sinon.stub().resolves()
+      } as unknown as sinon.SinonStubbedInstance<Dialer>;
+      libp2p.hangUp = sinon.stub().resolves();
+      connectionLimiter = createLimiter();
+      mockPeer.addresses = [
+        {
+          multiaddr: multiaddr("/dns4/mockpeer/tcp/443/wss"),
+          isCertified: false
+        }
+      ];
+      mockPeer2.addresses = [
+        {
+          multiaddr: multiaddr("/dns4/mockpeer2/tcp/443/wss"),
+          isCertified: false
+        }
+      ];
     });
 
     it("should get all peers from store", async () => {
       libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
       libp2p.getConnections.returns([]);
-
       await (connectionLimiter as any).dialPeersFromStore();
-
       expect(libp2p.peerStore.all.calledOnce).to.be.true;
     });
 
     it("should filter out already connected peers", async () => {
+      dialer.dial.resetHistory();
+      libp2p.hangUp.resetHistory();
       libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
-      libp2p.getConnections.returns([mockConnection]);
-
+      libp2p.getConnections.returns([createMockConnection(mockPeer.id, [])]);
       await (connectionLimiter as any).dialPeersFromStore();
-
       expect(dialer.dial.calledOnce).to.be.true;
       expect(dialer.dial.calledWith(mockPeer2.id)).to.be.true;
       expect(dialer.dial.calledWith(mockPeer.id)).to.be.false;
     });
 
     it("should dial all remaining peers", async () => {
+      dialer.dial.resetHistory();
+      libp2p.hangUp.resetHistory();
       libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
       libp2p.getConnections.returns([]);
-
       await (connectionLimiter as any).dialPeersFromStore();
-
-      expect(dialer.dial.calledTwice).to.be.true;
+      expect(dialer.dial.callCount).to.equal(2);
       expect(dialer.dial.calledWith(mockPeer.id)).to.be.true;
       expect(dialer.dial.calledWith(mockPeer2.id)).to.be.true;
     });
@@ -482,88 +327,28 @@ describe("ConnectionLimiter", () => {
       libp2p.peerStore.all.resolves([mockPeer]);
       libp2p.getConnections.returns([]);
       dialer.dial.rejects(new Error("Dial failed"));
-
       await (connectionLimiter as any).dialPeersFromStore();
-
       expect(dialer.dial.calledOnce).to.be.true;
     });
 
     it("should handle case with no peers in store", async () => {
       libp2p.peerStore.all.resolves([]);
       libp2p.getConnections.returns([]);
-
       await (connectionLimiter as any).dialPeersFromStore();
-
       expect(dialer.dial.called).to.be.false;
     });
 
     it("should handle case with all peers already connected", async () => {
       libp2p.peerStore.all.resolves([mockPeer]);
-      libp2p.getConnections.returns([mockConnection]);
-
+      libp2p.getConnections.returns([createMockConnection(mockPeer.id)]);
       await (connectionLimiter as any).dialPeersFromStore();
-
       expect(dialer.dial.called).to.be.false;
-    });
-  });
-
-  describe("getTagsForPeer", () => {
-    beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-    });
-
-    it("should return tags for existing peer", async () => {
-      const tags = await (connectionLimiter as any).getTagsForPeer(mockPeerId);
-
-      expect(libp2p.peerStore.get.calledWith(mockPeerId)).to.be.true;
-      expect(tags).to.deep.equal([Tags.BOOTSTRAP]);
-    });
-
-    it("should return empty array for non-existent peer", async () => {
-      libp2p.peerStore.get.rejects(new Error("Peer not found"));
-
-      const tags = await (connectionLimiter as any).getTagsForPeer(mockPeerId);
-
-      expect(tags).to.deep.equal([]);
-    });
-
-    it("should handle peer store errors gracefully", async () => {
-      libp2p.peerStore.get.rejects(new Error("Database error"));
-
-      const tags = await (connectionLimiter as any).getTagsForPeer(mockPeerId);
-
-      expect(tags).to.deep.equal([]);
-    });
-
-    it("should convert tags map to array of keys", async () => {
-      const peerWithMultipleTags = createMockPeer("12D3KooWMultiTag", [
-        Tags.BOOTSTRAP,
-        Tags.PEER_EXCHANGE
-      ]);
-      libp2p.peerStore.get.resolves(peerWithMultipleTags);
-
-      const tags = await (connectionLimiter as any).getTagsForPeer(mockPeerId);
-
-      expect(tags).to.include(Tags.BOOTSTRAP);
-      expect(tags).to.include(Tags.PEER_EXCHANGE);
     });
   });
 
   describe("getPeer", () => {
     beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+      connectionLimiter = createLimiter();
     });
 
     it("should return peer for existing peer", async () => {
@@ -590,479 +375,149 @@ describe("ConnectionLimiter", () => {
     });
   });
 
-  describe("hasMoreThanMaxBootstrapConnections", () => {
-    beforeEach(() => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+  describe("autoRecovery flag", () => {
+    it("should not dial on waku:connection if enableAutoRecovery is false, but should dial on start", () => {
+      connectionLimiter = createLimiter({ enableAutoRecovery: false });
+      const dialPeersStub = sinon.stub(
+        connectionLimiter as any,
+        "dialPeersFromStore"
+      );
+      connectionLimiter.start();
+      expect(connectionLimiter["connectionMonitorInterval"]).to.be.null;
+      connectionLimiter["onWakuConnectionEvent"]();
+      expect(dialPeersStub.calledOnce).to.be.true;
     });
 
-    it("should return false when no connections", async () => {
-      libp2p.getConnections.returns([]);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should return false when under bootstrap limit", async () => {
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      libp2p.getConnections.returns([mockConnection]);
-      libp2p.peerStore.get.resolves(bootstrapPeer);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should return false when at bootstrap limit", async () => {
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-      const connection1 = createMockConnection(bootstrapPeer1.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection2 = createMockConnection(bootstrapPeer2.id, [
-        Tags.BOOTSTRAP
-      ]);
-
-      libp2p.getConnections.returns([connection1, connection2]);
-      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should return true when over bootstrap limit", async () => {
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer3 = createMockPeer("12D3KooWBootstrap3", [
-        Tags.BOOTSTRAP
-      ]);
-      const connection1 = createMockConnection(bootstrapPeer1.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection2 = createMockConnection(bootstrapPeer2.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection3 = createMockConnection(bootstrapPeer3.id, [
-        Tags.BOOTSTRAP
-      ]);
-
-      libp2p.getConnections.returns([connection1, connection2, connection3]);
-      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
-      libp2p.peerStore.get.withArgs(bootstrapPeer3.id).resolves(bootstrapPeer3);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.true;
-    });
-
-    it("should return false when connections are non-bootstrap peers", async () => {
-      const nonBootstrapPeer1 = createMockPeer("12D3KooWNonBootstrap1", []);
-      const nonBootstrapPeer2 = createMockPeer("12D3KooWNonBootstrap2", []);
-      const connection1 = createMockConnection(nonBootstrapPeer1.id, []);
-      const connection2 = createMockConnection(nonBootstrapPeer2.id, []);
-
-      libp2p.getConnections.returns([connection1, connection2]);
-      libp2p.peerStore.get
-        .withArgs(nonBootstrapPeer1.id)
-        .resolves(nonBootstrapPeer1);
-      libp2p.peerStore.get
-        .withArgs(nonBootstrapPeer2.id)
-        .resolves(nonBootstrapPeer2);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should handle mixed bootstrap and non-bootstrap peers", async () => {
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-      const nonBootstrapPeer = createMockPeer("12D3KooWNonBootstrap", []);
-      const connection1 = createMockConnection(bootstrapPeer1.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection2 = createMockConnection(bootstrapPeer2.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection3 = createMockConnection(nonBootstrapPeer.id, []);
-
-      libp2p.getConnections.returns([connection1, connection2, connection3]);
-      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
-      libp2p.peerStore.get
-        .withArgs(nonBootstrapPeer.id)
-        .resolves(nonBootstrapPeer);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should handle peer store errors gracefully", async () => {
-      libp2p.getConnections.returns([mockConnection]);
-      libp2p.peerStore.get.rejects(new Error("Peer store error"));
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should handle null peers returned by getPeer", async () => {
-      const getPeerStub = sinon.stub(connectionLimiter, "getPeer" as any);
-      getPeerStub.resolves(null);
-
-      libp2p.getConnections.returns([mockConnection]);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.false;
-    });
-
-    it("should work with custom bootstrap limits", async () => {
-      const customOptions = {
-        maxBootstrapPeers: 1,
-        pingKeepAlive: 300,
-        relayKeepAlive: 300
-      };
-
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: customOptions
-      });
-
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-      const connection1 = createMockConnection(bootstrapPeer1.id, [
-        Tags.BOOTSTRAP
-      ]);
-      const connection2 = createMockConnection(bootstrapPeer2.id, [
-        Tags.BOOTSTRAP
-      ]);
-
-      libp2p.getConnections.returns([connection1, connection2]);
-      libp2p.peerStore.get.withArgs(bootstrapPeer1.id).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(bootstrapPeer2.id).resolves(bootstrapPeer2);
-
-      const result = await (
-        connectionLimiter as any
-      ).hasMoreThanMaxBootstrapConnections();
-
-      expect(result).to.be.true;
+    it("should start connection monitor interval and dial on waku:connection if enableAutoRecovery is true", () => {
+      connectionLimiter = createLimiter({ enableAutoRecovery: true });
+      const dialPeersStub = sinon.stub(
+        connectionLimiter as any,
+        "dialPeersFromStore"
+      );
+      connectionLimiter.start();
+      expect(connectionLimiter["connectionMonitorInterval"]).to.not.be.null;
+      connectionLimiter["onWakuConnectionEvent"]();
+      expect(dialPeersStub.calledTwice).to.be.true;
     });
   });
 
-  describe("integration tests", () => {
-    it("should handle full lifecycle (start -> events -> stop)", async () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
+  describe("maintainConnectionsCount", () => {
+    beforeEach(() => {
+      dialer = {
+        start: sinon.stub(),
+        stop: sinon.stub(),
+        dial: sinon.stub().resolves()
+      } as unknown as sinon.SinonStubbedInstance<Dialer>;
+      libp2p.hangUp = sinon.stub().resolves();
+      connectionLimiter = createLimiter({ maxConnections: 2 });
+      mockPeer.addresses = [
+        {
+          multiaddr: multiaddr("/dns4/mockpeer/tcp/443/wss"),
+          isCertified: false
+        }
+      ];
+      mockPeer2.addresses = [
+        {
+          multiaddr: multiaddr("/dns4/mockpeer2/tcp/443/wss"),
+          isCertified: false
+        }
+      ];
+    });
 
-      connectionLimiter.start();
-      expect((events.addEventListener as sinon.SinonStub).calledOnce).to.be
-        .true;
-      expect(libp2p.addEventListener.calledTwice).to.be.true;
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-      await connectEventHandler(connectEvent);
-      expect(libp2p.peerStore.get.calledWith(mockPeerId)).to.be.true;
-
-      const disconnectEventHandler = libp2p.addEventListener.getCall(1).args[1];
+    it("should dial more peers if under maxConnections", async () => {
       libp2p.getConnections.returns([]);
-      await disconnectEventHandler();
-      expect(libp2p.peerStore.all.called).to.be.true;
-
-      connectionLimiter.stop();
-      expect((events.removeEventListener as sinon.SinonStub).calledOnce).to.be
-        .true;
-      expect(libp2p.removeEventListener.calledTwice).to.be.true;
-    });
-
-    it("should handle multiple bootstrap peers with different limits", async () => {
-      const customOptions = {
-        maxBootstrapPeers: 1,
-        pingKeepAlive: 300,
-        relayKeepAlive: 300
-      };
-
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: customOptions
-      });
-      connectionLimiter.start();
-
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer1 = createMockPeer("12D3KooWBootstrap1", [
-        Tags.BOOTSTRAP
-      ]);
-      const bootstrapPeer2 = createMockPeer("12D3KooWBootstrap2", [
-        Tags.BOOTSTRAP
-      ]);
-
-      const peerId1 = createMockPeerId("peer1");
-      const peerId2 = createMockPeerId("peer2");
-
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get.withArgs(peerId1).resolves(bootstrapPeer1);
-      libp2p.peerStore.get.withArgs(peerId2).resolves(bootstrapPeer2);
-
-      libp2p.getConnections.returns([
-        createMockConnection(peerId1, [Tags.BOOTSTRAP]),
-        createMockConnection(peerId2, [Tags.BOOTSTRAP])
-      ]);
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await connectEventHandler(connectEvent);
-
-      expect(libp2p.hangUp.calledWith(mockPeerId)).to.be.true;
-    });
-
-    it("should handle bootstrap limit of 1 correctly", async () => {
-      const customOptions = {
-        maxBootstrapPeers: 1,
-        pingKeepAlive: 300,
-        relayKeepAlive: 300
-      };
-
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: customOptions
-      });
-      connectionLimiter.start();
-
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const existingBootstrapPeer = createMockPeer(
-        "12D3KooWExistingBootstrap",
-        [Tags.BOOTSTRAP]
-      );
-      const existingPeerId = createMockPeerId("existing");
-
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(existingPeerId)
-        .resolves(existingBootstrapPeer);
-
-      // Include the new peer in connections since peer:connect is fired after connection is established
-      libp2p.getConnections.returns([
-        createMockConnection(existingPeerId, [Tags.BOOTSTRAP]),
-        createMockConnection(mockPeerId, [Tags.BOOTSTRAP])
-      ]);
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await connectEventHandler(connectEvent);
-
-      expect(libp2p.hangUp.calledWith(mockPeerId)).to.be.true;
-    });
-
-    it("should handle high bootstrap limit correctly", async () => {
-      const customOptions = {
-        maxBootstrapPeers: 10,
-        pingKeepAlive: 300,
-        relayKeepAlive: 300
-      };
-
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: customOptions
-      });
-      connectionLimiter.start();
-
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const existingBootstrapPeer = createMockPeer(
-        "12D3KooWExistingBootstrap",
-        [Tags.BOOTSTRAP]
-      );
-      const existingPeerId = createMockPeerId("existing");
-
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(existingPeerId)
-        .resolves(existingBootstrapPeer);
-
-      libp2p.getConnections.returns([
-        createMockConnection(existingPeerId, [Tags.BOOTSTRAP])
-      ]);
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await connectEventHandler(connectEvent);
-
-      expect(libp2p.hangUp.called).to.be.false;
-    });
-
-    it("should handle mixed peer types with bootstrap limiting", async () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-      connectionLimiter.start();
-
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
-      ]);
-      const existingBootstrapPeer = createMockPeer(
-        "12D3KooWExistingBootstrap",
-        [Tags.BOOTSTRAP]
-      );
-      const nonBootstrapPeer = createMockPeer("12D3KooWNonBootstrap", []);
-
-      const existingBootstrapPeerId = createMockPeerId("existing-bootstrap");
-      const nonBootstrapPeerId = createMockPeerId("non-bootstrap");
-
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(existingBootstrapPeerId)
-        .resolves(existingBootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(nonBootstrapPeerId)
-        .resolves(nonBootstrapPeer);
-
-      libp2p.getConnections.returns([
-        createMockConnection(existingBootstrapPeerId, [Tags.BOOTSTRAP]),
-        createMockConnection(nonBootstrapPeerId, [])
-      ]);
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await connectEventHandler(connectEvent);
-
-      expect(libp2p.hangUp.called).to.be.false;
-    });
-
-    it("should redial peers when all connections are lost", async () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-      connectionLimiter.start();
-
-      const disconnectEventHandler = libp2p.addEventListener.getCall(1).args[1];
-
-      libp2p.getConnections.returns([]);
-      libp2p.peerStore.all.resolves([mockPeer, mockPeer2]);
-
-      await disconnectEventHandler();
-
-      expect(libp2p.peerStore.all.called).to.be.true;
+      sinon
+        .stub(connectionLimiter as any, "getPrioritizedPeers")
+        .resolves([mockPeer, mockPeer2]);
+      await (connectionLimiter as any).maintainConnectionsCount();
       expect(dialer.dial.calledTwice).to.be.true;
     });
 
-    it("should handle peer store errors during connection limiting", async () => {
-      connectionLimiter = new ConnectionLimiter({
-        libp2p,
-        events,
-        dialer,
-        networkMonitor,
-        options: defaultOptions
-      });
-      connectionLimiter.start();
-
-      const bootstrapPeer = createMockPeer("12D3KooWBootstrap", [
-        Tags.BOOTSTRAP
+    it("should drop only non-locked connections when over maxConnections", async () => {
+      dialer.dial.resetHistory();
+      libp2p.hangUp.resetHistory();
+      const lockedConn = createMockConnection(mockPeerId, [
+        CONNECTION_LOCKED_TAG
       ]);
+      const normalConn1 = createMockConnection(createMockPeerId("p2"), []);
+      const normalConn2 = createMockConnection(createMockPeerId("p3"), []);
+      const normalConn3 = createMockConnection(createMockPeerId("p4"), []);
+      const connections = [lockedConn, normalConn1, normalConn2, normalConn3];
+      libp2p.getConnections.returns(connections);
+      sinon.stub(connectionLimiter as any, "getPrioritizedPeers").resolves([]);
+      await (connectionLimiter as any).maintainConnectionsCount();
 
-      libp2p.peerStore.get.withArgs(mockPeerId).resolves(bootstrapPeer);
-      libp2p.peerStore.get
-        .withArgs(mockConnection.remotePeer)
-        .rejects(new Error("Peer store error"));
+      expect(libp2p.hangUp.callCount).to.equal(1);
+      expect(libp2p.hangUp.calledWith(normalConn3.remotePeer)).to.be.true;
+      expect(libp2p.hangUp.calledWith(normalConn1.remotePeer)).to.be.false;
+      expect(libp2p.hangUp.calledWith(normalConn2.remotePeer)).to.be.false;
+      expect(libp2p.hangUp.calledWith(lockedConn.remotePeer)).to.be.false;
+    });
 
-      libp2p.getConnections.returns([mockConnection]);
-
-      const connectEventHandler = libp2p.addEventListener.getCall(0).args[1];
-      const connectEvent = new CustomEvent("peer:connect", {
-        detail: mockPeerId
-      });
-
-      await connectEventHandler(connectEvent);
-
+    it("should do nothing if no non-locked connections to drop", async () => {
+      const lockedConn1 = createMockConnection(createMockPeerId("p1"), [
+        CONNECTION_LOCKED_TAG
+      ]);
+      const lockedConn2 = createMockConnection(createMockPeerId("p2"), [
+        CONNECTION_LOCKED_TAG
+      ]);
+      libp2p.getConnections.returns([lockedConn1, lockedConn2]);
+      sinon.stub(connectionLimiter as any, "getPrioritizedPeers").resolves([]);
+      await (connectionLimiter as any).maintainConnectionsCount();
       expect(libp2p.hangUp.called).to.be.false;
+    });
+  });
+
+  describe("maintainBootstrapConnections", () => {
+    beforeEach(() => {
+      connectionLimiter = createLimiter({ maxBootstrapPeers: 2 });
+    });
+
+    it("should do nothing if at or below maxBootstrapPeers", async () => {
+      sinon
+        .stub(connectionLimiter as any, "getBootstrapPeers")
+        .resolves([mockPeer, mockPeer2]);
+      await (connectionLimiter as any).maintainBootstrapConnections();
+      expect(libp2p.hangUp.called).to.be.false;
+    });
+
+    it("should drop excess bootstrap peers if over maxBootstrapPeers", async () => {
+      const p1 = createMockPeer("p1", [Tags.BOOTSTRAP]);
+      const p2 = createMockPeer("p2", [Tags.BOOTSTRAP]);
+      const p3 = createMockPeer("p3", [Tags.BOOTSTRAP]);
+      sinon
+        .stub(connectionLimiter as any, "getBootstrapPeers")
+        .resolves([p1, p2, p3]);
+      await (connectionLimiter as any).maintainBootstrapConnections();
+      expect(libp2p.hangUp.calledOnce).to.be.true;
+      expect(libp2p.hangUp.calledWith(p3.id)).to.be.true;
+    });
+  });
+
+  describe("dialPeersFromStore prioritization", () => {
+    beforeEach(() => {
+      connectionLimiter = createLimiter();
+    });
+
+    it("should prioritize bootstrap, then peer exchange, then local peers", async () => {
+      const bootstrapPeer = createMockPeer("b", [Tags.BOOTSTRAP]);
+      bootstrapPeer.addresses = [
+        { multiaddr: multiaddr("/dns4/b/tcp/443/wss"), isCertified: false }
+      ];
+      const pxPeer = createMockPeer("px", [Tags.PEER_EXCHANGE]);
+      pxPeer.addresses = [
+        { multiaddr: multiaddr("/dns4/px/tcp/443/wss"), isCertified: false }
+      ];
+      const localPeer = createMockPeer("l", [Tags.LOCAL]);
+      localPeer.addresses = [
+        { multiaddr: multiaddr("/dns4/l/tcp/443/wss"), isCertified: false }
+      ];
+      libp2p.peerStore.all.resolves([bootstrapPeer, pxPeer, localPeer]);
+      libp2p.getConnections.returns([]);
+      const peers = await (connectionLimiter as any).getPrioritizedPeers();
+      expect(peers[0].id.toString()).to.equal("b");
+      expect(peers[1].id.toString()).to.equal("px");
+      expect(peers[2].id.toString()).to.equal("l");
     });
   });
 });

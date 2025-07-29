@@ -17,8 +17,6 @@ describe("nwaku", () => {
       "--rest-admin=true",
       "--websocket-support=true",
       "--log-level=TRACE",
-      "--cluster-id=0",
-      "--shard=0",
       "--ports-shift=42"
     ];
 

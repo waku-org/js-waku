@@ -10,7 +10,7 @@ import { CreateNodeOptions, type Libp2pComponents } from "@waku/interfaces";
 export function getPeerDiscoveries(
   enabled?: CreateNodeOptions["discovery"]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
-  const dnsEnrTrees = [enrTree["SANDBOX"]];
+  const dnsEnrTrees = [enrTree["SANDBOX"], enrTree["TEST"]];
 
   const discoveries: ((components: Libp2pComponents) => PeerDiscovery)[] = [];
 

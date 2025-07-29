@@ -5,14 +5,15 @@ import {
   Decoder
 } from "@waku/core";
 import {
+  type AutoSharding,
+  ContentTopic,
   LightNode,
-  NetworkConfig,
+  type NetworkConfig,
   Protocols,
-  ShardInfo,
-  type SingleShardInfo
+  ShardId
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
+import { createRoutingInfo, Logger, RoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 import { Context } from "mocha";
 
@@ -21,27 +22,31 @@ import { MessageRpcQuery } from "../../src/types.js";
 
 export const log = new Logger("test:store");
 
-export const TestClusterId = 3;
-export const TestShardInfo: ShardInfo = {
+export const TestClusterId = 5;
+export const TestNetworkConfig: AutoSharding = {
   clusterId: TestClusterId,
-  shards: [1, 2]
+  numShardsInCluster: 8
 };
 
-export const TestShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
-export const TestPubsubTopic1 = singleShardInfoToPubsubTopic(TestShardInfo1);
-
-export const TestShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
-export const TestPubsubTopic2 = singleShardInfoToPubsubTopic(TestShardInfo2);
-
-export const TestContentTopic1 = "/test/1/waku-store/utf8";
-export const TestEncoder = createEncoder({
-  contentTopic: TestContentTopic1,
-  pubsubTopicShardInfo: TestShardInfo1
+export const TestContentTopic = "/test/1/waku-store/utf8";
+export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
+  contentTopic: TestContentTopic
 });
-export const TestDecoder = createDecoder(TestContentTopic1, TestPubsubTopic1);
 
-export const TestContentTopic2 = "/test/3/waku-store/utf8";
-export const TestDecoder2 = createDecoder(TestContentTopic2, TestPubsubTopic2);
+export const TestPubsubTopic = TestRoutingInfo.pubsubTopic;
+
+export const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+  routingInfo: TestRoutingInfo
+});
+export const TestDecoder = createDecoder(TestContentTopic, TestRoutingInfo);
+
+export const TestContentTopic2 = "/test/12/waku-store/utf8";
+export const TestRoutingInfo2 = createRoutingInfo(TestNetworkConfig, {
+  contentTopic: TestContentTopic2
+});
+
+export const TestDecoder2 = createDecoder(TestContentTopic2, TestRoutingInfo2);
 
 export const totalMsgs = 20;
 export const messageText = "Store Push works!";
@@ -50,7 +55,7 @@ export async function sendMessages(
   instance: ServiceNode,
   numMessages: number,
   contentTopic: string,
-  pubsubTopic: string,
+  routingInfo: RoutingInfo,
   timestamp: boolean = false
 ): Promise<MessageRpcQuery[]> {
   const messages: MessageRpcQuery[] = new Array<MessageRpcQuery>(numMessages);
@@ -60,28 +65,10 @@ export async function sendMessages(
       contentTopic: contentTopic,
       timestamp: timestamp ? new Date() : undefined
     });
-    expect(await instance.sendMessage(messages[i], pubsubTopic)).to.eq(true);
+    expect(await instance.sendMessage(messages[i], routingInfo)).to.eq(true);
     await delay(1); // to ensure each timestamp is unique.
   }
   return messages;
-}
-
-export async function sendMessagesAutosharding(
-  instance: ServiceNode,
-  numMessages: number,
-  contentTopic: string
-): Promise<void> {
-  for (let i = 0; i < numMessages; i++) {
-    expect(
-      await instance.sendMessageAutosharding(
-        ServiceNode.toMessageRpcQuery({
-          payload: new Uint8Array([i]),
-          contentTopic: contentTopic
-        })
-      )
-    ).to.eq(true);
-    await delay(1); // to ensure each timestamp is unique.
-  }
 }
 
 export async function processQueriedMessages(
@@ -126,17 +113,6 @@ export async function startAndConnectLightNode(
   return waku;
 }
 
-export function chunkAndReverseArray(
-  arr: number[],
-  chunkSize: number
-): number[] {
-  const result: number[] = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    result.push(...arr.slice(i, i + chunkSize).reverse());
-  }
-  return result.reverse();
-}
-
 export const adjustDate = (baseDate: Date, adjustMs: number): Date => {
   const adjusted = new Date(baseDate);
   adjusted.setTime(adjusted.getTime() + adjustMs);
@@ -145,11 +121,15 @@ export const adjustDate = (baseDate: Date, adjustMs: number): Date => {
 
 export const runStoreNodes = (
   context: Context,
-  networkConfig: NetworkConfig
+  networkConfig: NetworkConfig,
+  shardIds?: ShardId[],
+  contentTopics?: ContentTopic[]
 ): Promise<[ServiceNode, LightNode]> =>
   runNodes({
     context,
     networkConfig,
     createNode: createLightNode,
+    relayShards: shardIds,
+    contentTopics,
     protocols: [Protocols.Store]
   });

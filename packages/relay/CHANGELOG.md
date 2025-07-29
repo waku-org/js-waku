@@ -25,6 +25,40 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/relay-v0.0.19...relay-v0.0.20) (2025-07-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove node level pubsub topic concept
+* re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445))
+* remove deprecated filter implementation ([#2433](https://github.com/waku-org/js-waku/issues/2433))
+
+### Features
+
+* Re-architect connection manager ([#2445](https://github.com/waku-org/js-waku/issues/2445)) ([c7682ea](https://github.com/waku-org/js-waku/commit/c7682ea67c54d2c26a68ce96208003fb1ffc915c))
+
+
+### Bug Fixes
+
+* Remove node level pubsub topic concept ([6d55af9](https://github.com/waku-org/js-waku/commit/6d55af947e8e57bf0d33fc6a5a67f61594e83ff1))
+
+
+### Miscellaneous Chores
+
+* Remove deprecated filter implementation ([#2433](https://github.com/waku-org/js-waku/issues/2433)) ([981248e](https://github.com/waku-org/js-waku/commit/981248eedd2192e0a160939e5ff0d7133b12db59))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.36 to 0.0.37
+    * @waku/sdk bumped from 0.0.32 to 0.0.33
+    * @waku/interfaces bumped from 0.0.31 to 0.0.32
+    * @waku/proto bumped from 0.0.11 to 0.0.12
+    * @waku/utils bumped from 0.0.24 to 0.0.25
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/relay-v0.0.18...relay-v0.0.19) (2025-06-23)
 
 

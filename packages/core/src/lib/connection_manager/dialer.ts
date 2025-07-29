@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { ConnectionManagerOptions, Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { ShardReader } from "./shard_reader.js";
@@ -9,6 +9,7 @@ const log = new Logger("dialer");
 type DialerConstructorOptions = {
   libp2p: Libp2p;
   shardReader: ShardReader;
+  options: ConnectionManagerOptions;
 };
 
 interface IDialer {
@@ -20,18 +21,25 @@ interface IDialer {
 export class Dialer implements IDialer {
   private readonly libp2p: Libp2p;
   private readonly shardReader: ShardReader;
+  private readonly options: ConnectionManagerOptions;
 
   private dialingQueue: PeerId[] = [];
   private dialHistory: Map<string, number> = new Map();
+  private failedDials: Map<string, number> = new Map();
   private dialingInterval: NodeJS.Timeout | null = null;
+
   private isProcessing = false;
+  private isImmediateDialing = false;
 
   public constructor(options: DialerConstructorOptions) {
     this.libp2p = options.libp2p;
     this.shardReader = options.shardReader;
+    this.options = options.options;
   }
 
   public start(): void {
+    log.info("Starting dialer");
+
     if (!this.dialingInterval) {
       this.dialingInterval = setInterval(() => {
         void this.processQueue();
@@ -39,15 +47,19 @@ export class Dialer implements IDialer {
     }
 
     this.dialHistory.clear();
+    this.failedDials.clear();
   }
 
   public stop(): void {
+    log.info("Stopping dialer");
+
     if (this.dialingInterval) {
       clearInterval(this.dialingInterval);
       this.dialingInterval = null;
     }
 
     this.dialHistory.clear();
+    this.failedDials.clear();
   }
 
   public async dial(peerId: PeerId): Promise<void> {
@@ -58,11 +70,17 @@ export class Dialer implements IDialer {
       return;
     }
 
+    const isEmptyQueue = this.dialingQueue.length === 0;
+    const isNotDialing = !this.isProcessing && !this.isImmediateDialing;
+
     // If queue is empty and we're not currently processing, dial immediately
-    if (this.dialingQueue.length === 0 && !this.isProcessing) {
+    if (isEmptyQueue && isNotDialing) {
+      this.isImmediateDialing = true;
+      log.info("Dialed peer immediately");
       await this.dialPeer(peerId);
+      this.isImmediateDialing = false;
+      log.info("Released immediate dial lock");
     } else {
-      // Add to queue
       this.dialingQueue.push(peerId);
       log.info(
         `Added peer to dialing queue, queue size: ${this.dialingQueue.length}`
@@ -71,12 +89,17 @@ export class Dialer implements IDialer {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.dialingQueue.length === 0 || this.isProcessing) return;
+    if (this.dialingQueue.length === 0 || this.isProcessing) {
+      return;
+    }
 
     this.isProcessing = true;
 
     try {
-      const peersToDial = this.dialingQueue.slice(0, 3);
+      const peersToDial = this.dialingQueue.slice(
+        0,
+        this.options.maxDialingPeers
+      );
       this.dialingQueue = this.dialingQueue.slice(peersToDial.length);
 
       log.info(
@@ -95,10 +118,12 @@ export class Dialer implements IDialer {
 
       await this.libp2p.dial(peerId);
       this.dialHistory.set(peerId.toString(), Date.now());
+      this.failedDials.delete(peerId.toString());
 
       log.info(`Successfully dialed peer from queue: ${peerId}`);
     } catch (error) {
       log.error(`Error dialing peer ${peerId}`, error);
+      this.failedDials.set(peerId.toString(), Date.now());
     }
   }
 
@@ -109,11 +134,15 @@ export class Dialer implements IDialer {
       return true;
     }
 
-    const lastDialed = this.dialHistory.get(peerId.toString());
-    if (lastDialed && Date.now() - lastDialed < 10_000) {
+    if (this.isRecentlyDialed(peerId)) {
       log.info(
         `Skipping peer ${peerId} - already dialed in the last 10 seconds`
       );
+      return true;
+    }
+
+    if (this.isRecentlyFailed(peerId)) {
+      log.info(`Skipping peer ${peerId} - recently failed to dial`);
       return true;
     }
 
@@ -124,9 +153,9 @@ export class Dialer implements IDialer {
         return false;
       }
 
-      const isOnSameShard = await this.shardReader.isPeerOnNetwork(peerId);
-      if (!isOnSameShard) {
-        log.info(`Skipping peer ${peerId} - not on same shard`);
+      const isOnSameCluster = await this.shardReader.isPeerOnCluster(peerId);
+      if (!isOnSameCluster) {
+        log.info(`Skipping peer ${peerId} - not on same cluster`);
         return true;
       }
 
@@ -135,5 +164,29 @@ export class Dialer implements IDialer {
       log.error(`Error checking shard info for peer ${peerId}`, error);
       return true; // Skip peer when there's an error
     }
+  }
+
+  private isRecentlyDialed(peerId: PeerId): boolean {
+    const lastDialed = this.dialHistory.get(peerId.toString());
+    if (
+      lastDialed &&
+      Date.now() - lastDialed < this.options.dialCooldown * 1000
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private isRecentlyFailed(peerId: PeerId): boolean {
+    const lastFailed = this.failedDials.get(peerId.toString());
+    if (
+      lastFailed &&
+      Date.now() - lastFailed < this.options.failedDialCooldown * 1000
+    ) {
+      return true;
+    }
+
+    return false;
   }
 }

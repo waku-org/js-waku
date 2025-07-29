@@ -11,7 +11,8 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
-  DefaultTestShardInfo,
+  DefaultTestNetworkConfig,
+  DefaultTestRoutingInfo,
   delay,
   NOISE_KEY_1
 } from "../../src/index.js";
@@ -36,7 +37,7 @@ describe("Connection state", function () {
   let originalNavigator: any;
 
   beforeEachCustom(this, async () => {
-    waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
+    waku = await createLightNode({ networkConfig: DefaultTestNetworkConfig });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({ filter: true });
@@ -104,11 +105,13 @@ describe("Connection state", function () {
   it("`waku:online` between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestShardInfo
+      networkConfig: DefaultTestNetworkConfig,
+      routingInfos: [DefaultTestRoutingInfo]
     });
     const waku2 = await createRelayNode({
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      networkConfig: DefaultTestShardInfo
+      networkConfig: DefaultTestNetworkConfig,
+      routingInfos: [DefaultTestRoutingInfo]
     });
 
     let eventCount1 = 0;
@@ -171,10 +174,12 @@ describe("Connection state", function () {
 
   it("isConnected between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      routingInfos: [DefaultTestRoutingInfo]
     });
     const waku2 = await createRelayNode({
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      routingInfos: [DefaultTestRoutingInfo]
     });
     await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
       multiaddrs: waku2.libp2p.getMultiaddrs()
@@ -228,7 +233,7 @@ describe("waku:connection", function () {
     globalThis.dispatchEvent = undefined;
   });
 
-  it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
+  it(`should emit events and transition isConnected state when has peers or no peers`, async function () {
     const privateKey1 = await generateKeyPair("secp256k1");
     const privateKey2 = await generateKeyPair("secp256k1");
     const peerIdPx = peerIdFromPrivateKey(privateKey1);
