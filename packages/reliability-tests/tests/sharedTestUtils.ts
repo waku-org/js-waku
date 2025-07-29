@@ -1,18 +1,13 @@
 import { execSync } from "child_process";
 
-import { LightNode, Protocols } from "@waku/interfaces";
+import { AutoSharding, LightNode, Protocols } from "@waku/interfaces";
 import {
   createDecoder,
   createEncoder,
   createLightNode,
   utf8ToBytes
 } from "@waku/sdk";
-import {
-  delay,
-  derivePubsubTopicsFromNetworkConfig,
-  singleShardInfosToShardInfo,
-  singleShardInfoToPubsubTopic
-} from "@waku/utils";
+import { createRoutingInfo, delay } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -23,6 +18,7 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../tests/src/index.js";
+import { singleShardInfoToPubsubTopic } from "../../utils/dist/common/sharding";
 
 export interface TestContext {
   waku?: LightNode;
@@ -107,13 +103,24 @@ export function runTest(options: RunTestOptions): void {
     this.timeout(testDurationMs * 1.1); // Timing out if test runs for 10% more than expected. Used to avoid hangs and freezes
 
     it(testName, async function () {
-      const singleShardInfo = { clusterId: 0, shard: 0 };
-      const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+      const clusterId = 2;
+      const shards = [1];
+      const numShardsInCluster = 8;
+
+      const singleShardInfo = { clusterId: clusterId, shard: shards[0] };
 
       const contentTopic = "/waku/2/content/test.js";
 
       const testStart = new Date();
       const testEnd = Date.now() + testDurationMs;
+
+      const testNetworkConfig: AutoSharding = {
+        clusterId: clusterId,
+        numShardsInCluster: numShardsInCluster
+      };
+      const testRoutingInfo = createRoutingInfo(testNetworkConfig, {
+        contentTopic: contentTopic
+      });
 
       const report: {
         messageId: number;
@@ -129,8 +136,9 @@ export function runTest(options: RunTestOptions): void {
           store: true,
           filter: true,
           relay: true,
-          clusterId: 0,
-          shard: [0],
+          clusterId,
+          shard: shards,
+          numShardsInNetwork: numShardsInCluster,
           contentTopic: [contentTopic]
         },
         { retries: 3 }
@@ -138,18 +146,24 @@ export function runTest(options: RunTestOptions): void {
 
       await delay(1000);
 
-      await testContext.nwaku!.ensureSubscriptions(
-        derivePubsubTopicsFromNetworkConfig(shardInfo)
-      );
+      await testContext.nwaku!.ensureSubscriptions([
+        singleShardInfoToPubsubTopic(singleShardInfo)
+      ]);
 
-      testContext.waku = await createLightNode({ networkConfig: shardInfo });
+      testContext.waku = await createLightNode({
+        networkConfig: { clusterId, numShardsInCluster }
+      });
       await testContext.waku.start();
       await testContext.waku.dial(
         await testContext.nwaku!.getMultiaddrWithId()
       );
       await testContext.waku.waitForPeers([Protocols.Filter]);
 
-      const decoder = createDecoder(contentTopic, singleShardInfo);
+      const decoder = createDecoder(contentTopic, {
+        clusterId: singleShardInfo.clusterId,
+        shardId: singleShardInfo.shard,
+        pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
+      });
       const hasSubscribed = await testContext.waku.filter.subscribe(
         [decoder],
         testContext.messageCollector!.callback
@@ -159,7 +173,11 @@ export function runTest(options: RunTestOptions): void {
 
       const encoder = createEncoder({
         contentTopic,
-        pubsubTopicShardInfo: singleShardInfo
+        routingInfo: {
+          clusterId: singleShardInfo.clusterId,
+          shardId: singleShardInfo.shard,
+          pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
+        }
       });
 
       expect(encoder.pubsubTopic).to.eq(
@@ -184,7 +202,8 @@ export function runTest(options: RunTestOptions): void {
             ServiceNode.toMessageRpcQuery({
               contentTopic,
               payload: utf8ToBytes(message)
-            })
+            }),
+            testRoutingInfo
           );
           sent = true;
 
@@ -196,8 +215,7 @@ export function runTest(options: RunTestOptions): void {
             testContext.messageCollector!.verifyReceivedMessage(0, {
               expectedMessageText: message,
               expectedContentTopic: contentTopic,
-              expectedPubsubTopic:
-                derivePubsubTopicsFromNetworkConfig(shardInfo)[0]
+              expectedPubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
             });
           }
 
