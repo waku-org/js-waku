@@ -1,4 +1,6 @@
-import type { ILightPushSender, ISendOptions } from "./sender.js";
+import { IEncoder, IMessage } from "./message.js";
+import { LightPushSDKResult } from "./protocols.js";
+import type { ISendOptions } from "./sender.js";
 
 export type LightPushProtocolOptions = ISendOptions & {
   /**
@@ -15,10 +17,11 @@ export type LightPushProtocolOptions = ISendOptions & {
   numPeersToUse?: number;
 };
 
-export type ILightPush = ILightPushSender & {
+export type ILightPush = {
   readonly multicodec: string;
   start: () => void;
   stop: () => void;
+  send: (encoder: IEncoder, message: IMessage) => Promise<LightPushSDKResult>;
 };
 
 export enum LightPushStatusCode {
