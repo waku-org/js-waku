@@ -1,12 +1,7 @@
 import { execSync } from "child_process";
 
 import { AutoSharding, LightNode, Protocols } from "@waku/interfaces";
-import {
-  createDecoder,
-  createEncoder,
-  createLightNode,
-  utf8ToBytes
-} from "@waku/sdk";
+import { createDecoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { createRoutingInfo, delay } from "@waku/utils";
 import { expect } from "chai";
 
@@ -18,7 +13,6 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../tests/src/index.js";
-import { singleShardInfoToPubsubTopic } from "../../utils/dist/common/sharding";
 
 export interface TestContext {
   waku?: LightNode;
@@ -107,8 +101,6 @@ export function runTest(options: RunTestOptions): void {
       const shards = [1];
       const numShardsInCluster = 8;
 
-      const singleShardInfo = { clusterId: clusterId, shard: shards[0] };
-
       const contentTopic = "/waku/2/content/test.js";
 
       const testStart = new Date();
@@ -147,7 +139,7 @@ export function runTest(options: RunTestOptions): void {
       await delay(1000);
 
       await testContext.nwaku!.ensureSubscriptions([
-        singleShardInfoToPubsubTopic(singleShardInfo)
+        testRoutingInfo.pubsubTopic
       ]);
 
       testContext.waku = await createLightNode({
@@ -159,30 +151,13 @@ export function runTest(options: RunTestOptions): void {
       );
       await testContext.waku.waitForPeers([Protocols.Filter]);
 
-      const decoder = createDecoder(contentTopic, {
-        clusterId: singleShardInfo.clusterId,
-        shardId: singleShardInfo.shard,
-        pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
-      });
+      const decoder = createDecoder(contentTopic, testRoutingInfo);
       const hasSubscribed = await testContext.waku.filter.subscribe(
         [decoder],
         testContext.messageCollector!.callback
       );
       if (!hasSubscribed)
         throw new Error("Failed to subscribe from the start.");
-
-      const encoder = createEncoder({
-        contentTopic,
-        routingInfo: {
-          clusterId: singleShardInfo.clusterId,
-          shardId: singleShardInfo.shard,
-          pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
-        }
-      });
-
-      expect(encoder.pubsubTopic).to.eq(
-        singleShardInfoToPubsubTopic(singleShardInfo)
-      );
 
       let messageId = 0;
 
@@ -215,7 +190,7 @@ export function runTest(options: RunTestOptions): void {
             testContext.messageCollector!.verifyReceivedMessage(0, {
               expectedMessageText: message,
               expectedContentTopic: contentTopic,
-              expectedPubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo)
+              expectedPubsubTopic: testRoutingInfo.pubsubTopic
             });
           }
 
