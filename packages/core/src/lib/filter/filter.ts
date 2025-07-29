@@ -114,10 +114,7 @@ export class FilterCore {
       return {
         failure: {
           error: FilterError.REMOTE_PEER_REJECTED,
-          peerId: peerId,
-          statusCode: statusCode,
-          statusDesc: statusDesc,
-          requestId: requestId
+          peerId: peerId
         },
         success: null
       };

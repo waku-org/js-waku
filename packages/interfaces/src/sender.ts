@@ -1,5 +1,5 @@
 import type { IEncoder, IMessage } from "./message.js";
-import { LightPushSDKResult, SDKProtocolResult } from "./protocols.js";
+import { LightPushSDKResult } from "./protocols.js";
 
 export type ISendOptions = {
   /**
@@ -16,14 +16,6 @@ export type ISendOptions = {
 };
 
 export interface ISender {
-  send: (
-    encoder: IEncoder,
-    message: IMessage,
-    sendOptions?: ISendOptions
-  ) => Promise<SDKProtocolResult>;
-}
-
-export interface ILightPushSender {
   send: (
     encoder: IEncoder,
     message: IMessage,
