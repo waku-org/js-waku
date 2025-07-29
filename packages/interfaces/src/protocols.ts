@@ -198,9 +198,6 @@ export interface LightPushFailure {
 export interface FilterFailure {
   error: FilterError;
   peerId?: PeerId;
-  statusCode?: number;
-  statusDesc?: string;
-  requestId?: string;
 }
 
 // Protocol-specific result types
@@ -266,23 +263,3 @@ export interface Failure {
   error: ProtocolError;
   peerId?: PeerId;
 }
-
-/**
- * @deprecated Use LightPushCoreResult or FilterCoreResult instead
- */
-export type CoreProtocolResult = ThisOrThat<
-  "success",
-  PeerId,
-  "failure",
-  Failure
->;
-
-/**
- * @deprecated Use LightPushSDKResult or FilterSDKResult instead
- */
-export type SDKProtocolResult = ThisAndThat<
-  "successes",
-  PeerId[],
-  "failures",
-  Failure[]
->;
