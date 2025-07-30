@@ -9,7 +9,7 @@ import { v4 as uuid } from "uuid";
  * - pubsubTopic: 20
  * - message: 21
  */
-export class PushRpcV3 {
+export class PushRpc {
   public constructor(
     public proto: proto.LightPushRequestV3 | proto.LightPushResponseV3
   ) {}
@@ -20,8 +20,8 @@ export class PushRpcV3 {
   public static createRequest(
     message: proto.WakuMessage,
     pubsubTopic: string
-  ): PushRpcV3 {
-    return new PushRpcV3({
+  ): PushRpc {
+    return new PushRpc({
       requestId: uuid(),
       pubsubTopic: pubsubTopic,
       message: message
@@ -36,8 +36,8 @@ export class PushRpcV3 {
     statusCode: number,
     statusDesc?: string,
     relayPeerCount?: number
-  ): PushRpcV3 {
-    return new PushRpcV3({
+  ): PushRpc {
+    return new PushRpc({
       requestId,
       statusCode,
       statusDesc,
@@ -48,17 +48,17 @@ export class PushRpcV3 {
   /**
    * Decode v3 request message
    */
-  public static decodeRequest(bytes: Uint8ArrayList): PushRpcV3 {
+  public static decodeRequest(bytes: Uint8ArrayList): PushRpc {
     const res = proto.LightPushRequestV3.decode(bytes);
-    return new PushRpcV3(res);
+    return new PushRpc(res);
   }
 
   /**
    * Decode v3 response message
    */
-  public static decodeResponse(bytes: Uint8ArrayList): PushRpcV3 {
+  public static decodeResponse(bytes: Uint8ArrayList): PushRpc {
     const res = proto.LightPushResponseV3.decode(bytes);
-    return new PushRpcV3(res);
+    return new PushRpc(res);
   }
 
   /**
