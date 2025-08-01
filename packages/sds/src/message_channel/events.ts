@@ -58,6 +58,7 @@ export type MessageChannelEvents = {
   [MessageChannelEvent.MessageSent]: CustomEvent<Message>;
   [MessageChannelEvent.MessageDelivered]: CustomEvent<{
     messageId: MessageId;
+    // TODO: this is never set to "sent"
     sentOrReceived: "sent" | "received";
   }>;
   [MessageChannelEvent.MessageReceived]: CustomEvent<Message>;
