@@ -104,8 +104,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("my-channel");
    *
    * // Queue some operations
-   * await channel.sendMessage(payload, callback);
-   * channel.receiveMessage(incomingMessage);
+   * await channel.pushOutgoingMessage(payload, callback);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process all queued operations
    * await channel.processTasks();
@@ -139,7 +139,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    * const message = new TextEncoder().encode("Hello, world!");
    *
-   * await channel.sendMessage(message, async (processedMessage) => {
+   * await channel.pushOutgoingMessage(message, async (processedMessage) => {
    *   console.log("Message processed:", processedMessage.messageId);
    *   return { success: true };
    * });
@@ -148,9 +148,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * await channel.processTasks();
    * ```
    */
-  public async sendMessage(
+  public async pushOutgoingMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<{
+    callback?: (processedMessage: Message) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
@@ -177,9 +177,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param payload - The payload to send.
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public async sendEphemeralMessage(
+  public async pushOutgoingEphemeralMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (processedMessage: Message) => Promise<boolean>
   ): Promise<void> {
     this.tasks.push({
       command: Command.SendEphemeral,
@@ -203,13 +203,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    *
    * // Receive a message from the network
-   * channel.receiveMessage(incomingMessage);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process the received message
    * await channel.processTasks();
    * ```
    */
-  public receiveMessage(message: Message): void {
+  public pushIncomingMessage(message: Message): void {
     this.tasks.push({
       command: Command.Receive,
       params: {

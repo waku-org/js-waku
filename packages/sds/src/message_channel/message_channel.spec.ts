@@ -32,7 +32,7 @@ const sendMessage = async (
   payload: Uint8Array,
   callback: (message: Message) => Promise<{ success: boolean }>
 ): Promise<void> => {
-  await channel.sendMessage(payload, callback);
+  await channel.pushOutgoingMessage(payload, callback);
   await channel.processTasks();
 };
 
@@ -40,7 +40,7 @@ const receiveMessage = async (
   channel: MessageChannel,
   message: Message
 ): Promise<void> => {
-  channel.receiveMessage(message);
+  channel.pushIncomingMessage(message);
   await channel.processTasks();
 };
 
@@ -652,12 +652,15 @@ describe("MessageChannel", function () {
 
     it("should be sent without a timestamp, causal history, or bloom filter", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      await channelA.sendEphemeralMessage(new Uint8Array(), async (message) => {
-        expect(message.lamportTimestamp).to.equal(undefined);
-        expect(message.causalHistory).to.deep.equal([]);
-        expect(message.bloomFilter).to.equal(undefined);
-        return true;
-      });
+      await channelA.pushOutgoingEphemeralMessage(
+        new Uint8Array(),
+        async (message) => {
+          expect(message.lamportTimestamp).to.equal(undefined);
+          expect(message.causalHistory).to.deep.equal([]);
+          expect(message.bloomFilter).to.equal(undefined);
+          return true;
+        }
+      );
 
       const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
       expect(outgoingBuffer.length).to.equal(0);
@@ -674,7 +677,7 @@ describe("MessageChannel", function () {
       const incomingBufferBefore = (channelB as any).incomingBuffer.length;
       const timestampBefore = (channelB as any).lamportTimestamp;
 
-      await channelA.sendEphemeralMessage(
+      await channelA.pushOutgoingEphemeralMessage(
         utf8ToBytes(messagesA[0]),
         async (message) => {
           // Ephemeral messages should have no timestamp
