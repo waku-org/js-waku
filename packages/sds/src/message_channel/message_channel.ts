@@ -40,6 +40,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private timeReceived: Map<MessageId, number>;
+  // TODO: Would be better if it's persisted
   private outgoingMessages: Set<MessageId>;
   private readonly causalHistorySize: number;
   private readonly acknowledgementCount: number;
