@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from "@libp2p/interface";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@waku/utils";
 
@@ -40,10 +40,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private causalHistorySize: number;
-  private acknowledgementCount: number;
+  private readonly acknowledgementCount: number;
   private timeReceived: Map<MessageId, number>;
-  private receivedMessageTimeoutEnabled: boolean;
-  private receivedMessageTimeout: number;
+  private readonly receivedMessageTimeoutEnabled: boolean;
+  private readonly receivedMessageTimeout: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
