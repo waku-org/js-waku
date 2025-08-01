@@ -9,8 +9,7 @@ import type {
   DiscoveryTrigger,
   DnsDiscOptions,
   DnsDiscoveryComponents,
-  IEnr,
-  NodeCapabilityCount
+  IEnr
 } from "@waku/interfaces";
 import { DNS_DISCOVERY_TAG } from "@waku/interfaces";
 import { encodeRelayShard, Logger } from "@waku/utils";
@@ -18,8 +17,7 @@ import { encodeRelayShard, Logger } from "@waku/utils";
 import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
   DEFAULT_BOOTSTRAP_TAG_TTL,
-  DEFAULT_BOOTSTRAP_TAG_VALUE,
-  DEFAULT_NODE_REQUIREMENTS
+  DEFAULT_BOOTSTRAP_TAG_VALUE
 } from "./constants.js";
 import { DnsNodeDiscovery } from "./dns.js";
 
@@ -35,7 +33,7 @@ export class PeerDiscoveryDns
   private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
   private _started: boolean;
   private _components: DnsDiscoveryComponents;
-  private _options: DnsDiscOptions;
+  private readonly _options: DnsDiscOptions;
 
   public constructor(
     components: DnsDiscoveryComponents,
@@ -65,14 +63,9 @@ export class PeerDiscoveryDns
       let { enrUrls } = this._options;
       if (!Array.isArray(enrUrls)) enrUrls = [enrUrls];
 
-      const { wantedNodeCapabilityCount } = this._options;
       const dns = await DnsNodeDiscovery.dnsOverHttp();
 
-      this.nextPeer = dns.getNextPeer.bind(
-        dns,
-        enrUrls,
-        wantedNodeCapabilityCount
-      );
+      this.nextPeer = dns.getNextPeer.bind(dns, enrUrls);
     }
 
     for await (const peerEnr of this.nextPeer()) {
@@ -94,9 +87,11 @@ export class PeerDiscoveryDns
       };
 
       let isPeerChanged = false;
-      const isPeerExists = await this._components.peerStore.has(peerInfo.id);
+      const isPeerAlreadyInPeerStore = await this._components.peerStore.has(
+        peerInfo.id
+      );
 
-      if (isPeerExists) {
+      if (isPeerAlreadyInPeerStore) {
         const peer = await this._components.peerStore.get(peerInfo.id);
         const hasBootstrapTag = peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME);
 
@@ -143,9 +138,8 @@ export class PeerDiscoveryDns
 }
 
 export function wakuDnsDiscovery(
-  enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS
+  enrUrls: string[]
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
-    new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });
+    new PeerDiscoveryDns(components, { enrUrls });
 }
