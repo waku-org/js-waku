@@ -577,7 +577,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       const count = (this.acknowledgements.get(message.messageId) ?? 0) + 1;
       if (count < this.acknowledgementCount) {
         this.acknowledgements.set(message.messageId, count);
-        this.safeSendEvent(MessageChannelEvent.PartialAcknowledgement, {
+        this.safeSendEvent(MessageChannelEvent.MessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
             count

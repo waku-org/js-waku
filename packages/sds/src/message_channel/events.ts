@@ -1,11 +1,16 @@
 import { proto_sds_message } from "@waku/proto";
 
 export enum MessageChannelEvent {
+  // TODO: events are usually in the form `domain:name`
+  // here it should be `sds:<name>`
+  // also, it can be confusing to know if we are talking about incoming
+  // or outgoing. suggesting `sds:in` or `sds:out` format.
   MessageSent = "messageSent",
+  // TODO: Is this "delivered" event of any use?
   MessageDelivered = "messageDelivered",
   MessageReceived = "messageReceived",
   MessageAcknowledged = "messageAcknowledged",
-  PartialAcknowledgement = "partialAcknowledgement",
+  MessagePossiblyAcknowledged = "messagePossiblyAcknowledged",
   MissedMessages = "missedMessages",
   SyncSent = "syncSent",
   SyncReceived = "syncReceived"
@@ -57,7 +62,7 @@ export type MessageChannelEvents = {
   }>;
   [MessageChannelEvent.MessageReceived]: CustomEvent<Message>;
   [MessageChannelEvent.MessageAcknowledged]: CustomEvent<MessageId>;
-  [MessageChannelEvent.PartialAcknowledgement]: CustomEvent<{
+  [MessageChannelEvent.MessagePossiblyAcknowledged]: CustomEvent<{
     messageId: MessageId;
     count: number;
   }>;
