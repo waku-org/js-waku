@@ -12,16 +12,41 @@ export enum MessageChannelEvent {
 }
 
 export type MessageId = string;
-export type Message = proto_sds_message.SdsMessage;
 export type HistoryEntry = proto_sds_message.HistoryEntry;
 export type ChannelId = string;
 
-export function encodeMessage(message: Message): Uint8Array {
-  return proto_sds_message.SdsMessage.encode(message);
-}
+export class Message implements proto_sds_message.SdsMessage {
+  public constructor(
+    public messageId: string,
+    public channelId: string,
+    public causalHistory: proto_sds_message.HistoryEntry[],
+    public lamportTimestamp?: number | undefined,
+    public bloomFilter?: Uint8Array<ArrayBufferLike> | undefined,
+    public content?: Uint8Array<ArrayBufferLike> | undefined
+  ) {}
 
-export function decodeMessage(data: Uint8Array): Message {
-  return proto_sds_message.SdsMessage.decode(data);
+  public encode(): Uint8Array {
+    return proto_sds_message.SdsMessage.encode(this);
+  }
+
+  public static decode(data: Uint8Array): Message {
+    const {
+      messageId,
+      channelId,
+      causalHistory,
+      lamportTimestamp,
+      bloomFilter,
+      content
+    } = proto_sds_message.SdsMessage.decode(data);
+    return new Message(
+      messageId,
+      channelId,
+      causalHistory,
+      lamportTimestamp,
+      bloomFilter,
+      content
+    );
+  }
 }
 
 export type MessageChannelEvents = {
