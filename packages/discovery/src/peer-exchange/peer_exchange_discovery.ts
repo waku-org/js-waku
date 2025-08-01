@@ -8,6 +8,7 @@ import type {
   PeerInfo
 } from "@libp2p/interface";
 import {
+  type IPeerExchange,
   type Libp2pComponents,
   type PeerExchangeQueryResult,
   ShardInfo,
@@ -15,7 +16,7 @@ import {
 } from "@waku/interfaces";
 import { decodeRelayShard, encodeRelayShard, Logger } from "@waku/utils";
 
-import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
+import { PeerExchange, PeerExchangeCodec } from "./peer_exchange.js";
 
 const log = new Logger("peer-exchange-discovery");
 
@@ -23,7 +24,7 @@ const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
 const DEFAULT_MAX_RETRIES = 3;
 
-export interface Options {
+interface Options {
   /**
    * Tag a bootstrap peer with this name before "discovering" it (default: 'bootstrap')
    */
@@ -63,7 +64,7 @@ export class PeerExchangeDiscovery
   implements PeerDiscovery
 {
   private readonly components: Libp2pComponents;
-  private readonly peerExchange: WakuPeerExchange;
+  private readonly peerExchange: IPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
   private queryingPeers: Set<string> = new Set();
@@ -89,7 +90,7 @@ export class PeerExchangeDiscovery
   public constructor(components: Libp2pComponents, options: Options = {}) {
     super();
     this.components = components;
-    this.peerExchange = new WakuPeerExchange(components);
+    this.peerExchange = new PeerExchange(components);
     this.options = options;
     this.isStarted = false;
   }
@@ -102,6 +103,7 @@ export class PeerExchangeDiscovery
       return;
     }
 
+    // TODO: remove this event as it is needed only for testing
     this.dispatchEvent(
       new CustomEvent("waku:peer-exchange:started", { detail: true })
     );
