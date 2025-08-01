@@ -11,7 +11,8 @@ import {
   HistoryEntry,
   Message,
   MessageChannelEvent,
-  MessageChannelEvents
+  MessageChannelEvents,
+  type MessageId
 } from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -35,12 +36,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
-  private acknowledgements: Map<string, number>;
+  private acknowledgements: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private causalHistorySize: number;
   private acknowledgementCount: number;
-  private timeReceived: Map<string, number>;
+  private timeReceived: Map<MessageId, number>;
   private receivedMessageTimeoutEnabled: boolean;
   private receivedMessageTimeout: number;
 
@@ -85,7 +86,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
   }
 
-  public static getMessageId(payload: Uint8Array): string {
+  public static getMessageId(payload: Uint8Array): MessageId {
     return bytesToHex(sha256(payload));
   }
 
