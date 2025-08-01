@@ -49,6 +49,7 @@ export class Message implements proto_sds_message.SdsMessage {
   }
 }
 
+// TODO: Why is task error not part of those events?
 export type MessageChannelEvents = {
   [MessageChannelEvent.MessageSent]: CustomEvent<Message>;
   [MessageChannelEvent.MessageDelivered]: CustomEvent<{
