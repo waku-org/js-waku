@@ -20,12 +20,12 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   errorRate: 0.001
 };
 
-const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
+const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
 const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 
 const log = new Logger("sds:message-channel");
 
-interface MessageChannelOptions {
+export interface MessageChannelOptions {
   causalHistorySize?: number;
   receivedMessageTimeoutEnabled?: boolean;
   receivedMessageTimeout?: number;
