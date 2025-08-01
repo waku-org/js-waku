@@ -322,16 +322,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const emptyMessage = new Uint8Array();
 
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(emptyMessage),
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
+    const message = new Message(
+      MessageChannel.getMessageId(emptyMessage),
+      this.channelId,
+      this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: emptyMessage
-    };
+      this.lamportTimestamp,
+      this.filter.toBytes(),
+      emptyMessage
+    );
 
     if (callback) {
       try {
@@ -442,16 +442,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     this.outgoingMessages.add(messageId);
 
-    const message: Message = {
+    const message = new Message(
       messageId,
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
+      this.channelId,
+      this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: payload
-    };
+      this.lamportTimestamp,
+      this.filter.toBytes(),
+      payload
+    );
 
     this.outgoingBuffer.push(message);
 
@@ -483,14 +483,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     payload: Uint8Array,
     callback?: (message: Message) => Promise<boolean>
   ): Promise<void> {
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(payload),
-      channelId: this.channelId,
-      content: payload,
-      lamportTimestamp: undefined,
-      causalHistory: [],
-      bloomFilter: undefined
-    };
+    const message = new Message(
+      MessageChannel.getMessageId(payload),
+      this.channelId,
+      [],
+      undefined,
+      undefined,
+      payload
+    );
 
     if (callback) {
       try {
