@@ -3,9 +3,7 @@ import { BloomFilter } from "./bloom_filter/bloom.js";
 export {
   MessageChannel,
   MessageChannelEvent,
-  MessageChannelOptions,
-  encodeMessage,
-  decodeMessage
+  MessageChannelOptions
 } from "./message_channel/index.js";
 
 export type {
