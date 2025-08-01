@@ -6,11 +6,11 @@ export {
   MessageChannelOptions
 } from "./message_channel/index.js";
 
-export type {
+export {
   Message,
-  HistoryEntry,
-  ChannelId,
-  MessageChannelEvents
+  type HistoryEntry,
+  type ChannelId,
+  type MessageChannelEvents
 } from "./message_channel/index.js";
 
 export { BloomFilter };
