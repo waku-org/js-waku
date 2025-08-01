@@ -298,5 +298,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
       }
     );
+    this.messageChannel.addEventListener(
+      SdsMessageChannelEvent.MessageAcknowledged,
+      (event) => {
+        if (event.detail) {
+          this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
+            detail: event.detail
+          });
+        }
+      }
+    );
   }
 }
