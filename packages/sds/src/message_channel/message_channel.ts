@@ -39,11 +39,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private acknowledgements: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private timeReceived: Map<MessageId, number>;
-  // TODO: To be removed once sender id is added to SDS protocol
-  private outgoingMessages: Set<MessageId>;
-  private readonly causalHistorySize: number;
+  private causalHistorySize: number;
   private readonly acknowledgementCount: number;
+  private timeReceived: Map<MessageId, number>;
   private readonly receivedMessageTimeoutEnabled: boolean;
   private readonly receivedMessageTimeout: number;
 
