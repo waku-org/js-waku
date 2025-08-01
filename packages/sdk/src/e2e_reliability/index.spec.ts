@@ -22,12 +22,12 @@ import {
   Protocols,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { createRoutingInfo, delay } from "@waku/utils";
+import { createRoutingInfo } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
-import { MessageChannel } from "./index.js";
+import { MessageChannel, MessageChannelEvent } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
 const TEST_NETWORK_CONFIG: AutoSharding = {
@@ -176,39 +176,41 @@ describe("E2E Reliability", () => {
     decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
   });
 
-  it("Easily create a new group with e2e reliability", () => {
-    MessageChannel.create(mockWakuNode, "MyChannel");
-  });
-
-  it("Sends a message with e2e reliability", async () => {
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
-
-    const message = { payload: utf8ToBytes("message in channel") };
-    await messageChannel.send(encoder, message);
-  });
-
   it("Subscribe and then sends a message with e2e reliability", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
+    const subRes = await messageChannel.subscribe(decoder);
+    expect(subRes).to.be.true;
+
     let receivedMessage: IDecodedMessage;
-    const subRes = await messageChannel.subscribe(
-      decoder,
-      (message: IDecodedMessage) => {
-        receivedMessage = message;
+    messageChannel.addEventListener(
+      MessageChannelEvent.InMessageReceived,
+      (event) => {
+        receivedMessage = event.detail;
       }
     );
 
-    expect(subRes).to.be.true;
-
     const message = { payload: utf8ToBytes("message in channel") };
+
+    // Setting up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let messageSent = false;
+    messageChannel.addEventListener(
+      MessageChannelEvent.OutMessageSent,
+      (event) => {
+        if (event.detail === messageId) {
+          messageSent = true;
+        }
+      }
+    );
+
+    // Send !
     await messageChannel.send(encoder, message);
 
-    while (!receivedMessage!) {
-      await delay(100);
-    }
-
-    expect(bytesToUtf8(receivedMessage?.payload)).to.eq(
+    expect(bytesToUtf8(receivedMessage!.payload)).to.eq(
       bytesToUtf8(message.payload)
     );
+
+    expect(messageSent).to.be.true;
   });
 });
