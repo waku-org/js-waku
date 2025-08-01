@@ -1,5 +1,8 @@
 import { messageHash } from "@waku/core";
 import {
+  type Callback,
+  type IDecodedMessage,
+  type IDecoder,
   type IEncoder,
   type IMessage,
   ISendOptions,
@@ -25,6 +28,9 @@ const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.INVALID_DECODER_TOPICS
 ];
 
+/**
+ * @emits TODO
+ */
 export class MessageChannel {
   private readonly _send: (
     encoder: IEncoder,
@@ -32,16 +38,31 @@ export class MessageChannel {
     sendOptions?: ISendOptions
   ) => Promise<SDKProtocolResult>;
 
+  private readonly _subscribe: <T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>
+  ) => Promise<boolean>;
+
   private constructor(
     public node: IWaku,
     public messageChannel: SdsMessageChannel
   ) {
     if (node.lightPush) {
-      this._send = node.lightPush.send;
+      this._send = node.lightPush.send.bind(node.lightPush);
     } else if (node.relay) {
-      this._send = node.relay.send;
+      this._send = node.relay.send.bind(node.relay);
     } else {
       throw "No protocol available to send messages";
+    }
+
+    if (node.filter) {
+      this._subscribe = node.filter.subscribe.bind(node.filter);
+    } else if (node.relay) {
+      // TODO: Why do relay and filter have different interfaces?
+      //  this._subscribe = node.relay.subscribeWithUnsubscribe;
+      throw "Not implemented";
+    } else {
+      throw "No protocol available to receive messages";
     }
   }
 
@@ -49,6 +70,13 @@ export class MessageChannel {
    * Create a new message channels. Message channels enables end-to-end
    * reliability by ensuring that all messages in the channel are received
    * by other users, and retrieved by this local node.
+   *
+   * emits events about outgoing messages, see [[`MessageChannel`]] docs.
+   *
+   * Note that all participants in a message channels need to get the messages
+   * from the channel. Meaning:
+   * - all participants must be able to decrypt the messages
+   * - all participants must be subscribing to content topic(s) where the messages are sent
    *
    * @param node
    * @param channelId
@@ -63,6 +91,13 @@ export class MessageChannel {
     return new MessageChannel(node, sdsMessageChannel);
   }
 
+  /**
+   * Sends a message in the channel, will attempt to re-send if not acknowledged
+   * by other participants.
+   *
+   * @param encoder
+   * @param message
+   */
   public async send(encoder: IEncoder, message: IMessage): Promise<void> {
     await this.messageChannel.pushOutgoingMessage(
       message.payload,
@@ -109,6 +144,44 @@ export class MessageChannel {
     );
 
     // Process outgoing messages straight away
+    // TODO: review and optimize
     await this.messageChannel.processTasks();
+  }
+
+  /**
+   * Subscribe to a content topic to receive messages. Received messages will
+   * be used to determined if a previous message was sent, and whether
+   * messages are missed.
+   *
+   * emits events about incoming messages, see [[`MessageChannel`]] docs.
+   *
+   * @param decoders[]
+   * @param callback function to process incoming messages
+   */
+  public async subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>
+  ): Promise<boolean> {
+    return this._subscribe(decoders, async (msg: T): Promise<void> => {
+      // New message arrives, we need to unwrap it first
+      const sdsMessage = SdsMessage.decode(msg.payload);
+
+      // SDS Message decoded, let's pass it to the channel so we can learn about
+      // missing messages or the status of previous outgoing messages
+      this.messageChannel.pushIncomingMessage(sdsMessage);
+
+      // Now, process the message with callback
+
+      // Overrides msg.payload with unwrapped payload
+      const unwrappedMessage: T = Object.assign(msg, {
+        payload: sdsMessage.content
+      });
+
+      await callback(unwrappedMessage);
+
+      // Do a process straight away
+      // TODO: review and optimize
+      await this.messageChannel.processTasks();
+    });
   }
 }
