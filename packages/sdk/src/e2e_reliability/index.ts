@@ -170,14 +170,19 @@ export class MessageChannel {
       // missing messages or the status of previous outgoing messages
       this.messageChannel.pushIncomingMessage(sdsMessage);
 
-      // Now, process the message with callback
+      if (sdsMessage.content) {
+        // Now, process the message with callback
 
-      // Overrides msg.payload with unwrapped payload
-      const unwrappedMessage: T = Object.assign(msg, {
-        payload: sdsMessage.content
-      });
+        // Overrides msg.payload with unwrapped payload
+        // `payload` is just here to be discarded
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { payload, ...allButPayload } = msg;
+        const unwrappedMessage = Object.assign(allButPayload, {
+          payload: sdsMessage.content
+        });
 
-      await callback(unwrappedMessage);
+        await callback(unwrappedMessage as unknown as T);
+      }
 
       // Do a process straight away
       // TODO: review and optimize
