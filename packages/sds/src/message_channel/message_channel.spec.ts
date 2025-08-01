@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
-import { HistoryEntry, Message } from "./events.js";
+import { HistoryEntry, Message, MessageId } from "./events.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
   MessageChannel
@@ -326,7 +326,7 @@ describe("MessageChannel", function () {
         }
       );
 
-      const acknowledgements: ReadonlyMap<string, number> = (channelA as any)
+      const acknowledgements: ReadonlyMap<MessageId, number> = (channelA as any)
         .acknowledgements;
       // Other than the message IDs which were included in causal history,
       // the remaining messages sent by channel A should be considered possibly acknowledged
@@ -566,7 +566,7 @@ describe("MessageChannel", function () {
 
       const localLog = (channelA as any).localHistory as {
         timestamp: number;
-        messageId: string;
+        messageId: MessageId;
       }[];
       expect(localLog.length).to.equal(0);
     });
@@ -585,7 +585,7 @@ describe("MessageChannel", function () {
 
       const localLog = (channelB as any).localHistory as {
         timestamp: number;
-        messageId: string;
+        messageId: MessageId;
       }[];
       expect(localLog.length).to.equal(0);
 
