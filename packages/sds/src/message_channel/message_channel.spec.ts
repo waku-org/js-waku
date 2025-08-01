@@ -293,6 +293,21 @@ describe("MessageChannel", function () {
       );
     });
 
+    it("should not mark messages in causal history as acknowledged if it's our own message", async () => {
+      for (const m of messagesA) {
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelA, message); // same channel used on purpose
+          return { success: true };
+        });
+      }
+      await channelA.processTasks();
+
+      // All messages remain in the buffer
+      expect((channelA as any).outgoingBuffer.length).to.equal(
+        messagesA.length
+      );
+    });
+
     it("should track probabilistic acknowledgements of messages received in bloom filter", async () => {
       const acknowledgementCount = (channelA as any).acknowledgementCount;
 
