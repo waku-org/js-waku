@@ -226,7 +226,7 @@ describe("E2E Reliability", () => {
     expect(messageSent).to.be.true;
   });
 
-  it("Outgoing message is emitted as acknowledged", async () => {
+  it("Outgoing message is not emitted as acknowledged from own outgoing messages", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
     const subRes = await messageChannel.subscribe(decoder);
@@ -248,13 +248,12 @@ describe("E2E Reliability", () => {
 
     await messageChannel.send(encoder, message);
 
-    // Sending a second message to acknowledge the first..
-    // TODO: Let's see if we are acknowledging our own messages... we are!
+    // Sending a second message from the same node should not acknowledge the first one
     await messageChannel.send(encoder, {
       payload: utf8ToBytes("second message in channel")
     });
 
-    expect(messageAcknowledged).to.be.true;
+    expect(messageAcknowledged).to.be.false;
   });
 
   it("Incoming message is emitted as received", async () => {
