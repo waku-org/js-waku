@@ -241,8 +241,8 @@ describe("MessageChannel", function () {
 
   describe("reviewing ack status", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
-      channelB = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
     });
 
     it("should mark all messages in causal history as acknowledged", async () => {
@@ -409,8 +409,8 @@ describe("MessageChannel", function () {
 
   describe("Sweeping incoming buffer", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
-      channelB = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
     });
 
     it("should detect messages with missing dependencies", async () => {
@@ -526,8 +526,8 @@ describe("MessageChannel", function () {
 
   describe("Sweeping outgoing buffer", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
-      channelB = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
     });
 
     it("should partition messages based on acknowledgement status", async () => {
@@ -571,8 +571,8 @@ describe("MessageChannel", function () {
 
   describe("Sync messages", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
-      channelB = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
     });
 
     it("should be sent with empty content", async () => {
