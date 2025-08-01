@@ -39,9 +39,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private acknowledgements: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private causalHistorySize: number;
-  private readonly acknowledgementCount: number;
   private timeReceived: Map<MessageId, number>;
+  private outgoingMessages: Set<MessageId>;
+  private readonly causalHistorySize: number;
+  private readonly acknowledgementCount: number;
   private readonly receivedMessageTimeoutEnabled: boolean;
   private readonly receivedMessageTimeout: number;
 
@@ -84,6 +85,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.receivedMessageTimeoutEnabled ?? false;
     this.receivedMessageTimeout =
       options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
+    this.outgoingMessages = new Set();
   }
 
   public static getMessageId(payload: Uint8Array): MessageId {
@@ -355,6 +357,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
+    const isOwnOutgoingMessage =
+      message.content &&
+      message.content.length > 0 &&
+      this.outgoingMessages.has(MessageChannel.getMessageId(message.content));
+
+    if (isOwnOutgoingMessage) {
+      return;
+    }
+
     if (!message.lamportTimestamp) {
       this.deliverMessage(message);
       return;
@@ -427,6 +438,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.lamportTimestamp++;
 
     const messageId = MessageChannel.getMessageId(payload);
+
+    this.outgoingMessages.add(messageId);
 
     const message: Message = {
       messageId,
