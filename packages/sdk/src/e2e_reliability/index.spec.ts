@@ -176,7 +176,7 @@ describe("E2E Reliability", () => {
     decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
   });
 
-  it("Outgoing message is marked as sending", async () => {
+  it("Outgoing message is emitted as sending", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
     const subRes = await messageChannel.subscribe(decoder);
@@ -201,7 +201,7 @@ describe("E2E Reliability", () => {
     expect(messageSending).to.be.true;
   });
 
-  it("Outgoing message is marked as sent", async () => {
+  it("Outgoing message is emitted as sent", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
     const subRes = await messageChannel.subscribe(decoder);
@@ -224,6 +224,37 @@ describe("E2E Reliability", () => {
     await messageChannel.send(encoder, message);
 
     expect(messageSent).to.be.true;
+  });
+
+  it("Outgoing message is emitted as acknowledged", async () => {
+    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+
+    const subRes = await messageChannel.subscribe(decoder);
+    expect(subRes).to.be.true;
+
+    const message = { payload: utf8ToBytes("first message in channel") };
+
+    // Setting up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let messageAcknowledged = false;
+    messageChannel.addEventListener(
+      MessageChannelEvent.OutMessageAcknowledged,
+      (event) => {
+        if (event.detail === messageId) {
+          messageAcknowledged = true;
+        }
+      }
+    );
+
+    await messageChannel.send(encoder, message);
+
+    // Sending a second message to acknowledge the first..
+    // TODO: Let's see if we are acknowledging our own messages... we are!
+    await messageChannel.send(encoder, {
+      payload: utf8ToBytes("second message in channel")
+    });
+
+    expect(messageAcknowledged).to.be.true;
   });
 
   it("Incoming message is emitted as received", async () => {
