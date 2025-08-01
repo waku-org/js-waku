@@ -176,19 +176,36 @@ describe("E2E Reliability", () => {
     decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
   });
 
-  it("Subscribe and then sends a message with e2e reliability", async () => {
+  it("Outgoing message is marked as sending", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    let receivedMessage: IDecodedMessage;
+    const message = { payload: utf8ToBytes("message in channel") };
+
+    // Setting up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let messageSending = false;
     messageChannel.addEventListener(
-      MessageChannelEvent.InMessageReceived,
+      MessageChannelEvent.OutMessageSending,
       (event) => {
-        receivedMessage = event.detail;
+        if (event.detail === messageId) {
+          messageSending = true;
+        }
       }
     );
+
+    await messageChannel.send(encoder, message);
+
+    expect(messageSending).to.be.true;
+  });
+
+  it("Outgoing message is marked as sent", async () => {
+    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+
+    const subRes = await messageChannel.subscribe(decoder);
+    expect(subRes).to.be.true;
 
     const message = { payload: utf8ToBytes("message in channel") };
 
@@ -204,13 +221,31 @@ describe("E2E Reliability", () => {
       }
     );
 
-    // Send !
+    await messageChannel.send(encoder, message);
+
+    expect(messageSent).to.be.true;
+  });
+
+  it("Incoming message is emitted as received", async () => {
+    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+
+    const subRes = await messageChannel.subscribe(decoder);
+    expect(subRes).to.be.true;
+
+    let receivedMessage: IDecodedMessage;
+    messageChannel.addEventListener(
+      MessageChannelEvent.InMessageReceived,
+      (event) => {
+        receivedMessage = event.detail;
+      }
+    );
+
+    const message = { payload: utf8ToBytes("message in channel") };
+
     await messageChannel.send(encoder, message);
 
     expect(bytesToUtf8(receivedMessage!.payload)).to.eq(
       bytesToUtf8(message.payload)
     );
-
-    expect(messageSent).to.be.true;
   });
 });

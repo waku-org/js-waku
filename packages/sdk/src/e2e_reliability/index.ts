@@ -202,6 +202,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           return { success: false };
         }
 
+        const messageId = MessageChannel.getMessageId(message.payload);
+        this.safeSendEvent(MessageChannelEvent.OutMessageSending, {
+          detail: messageId
+        });
+
         const sendRes = await this._send(encoder, wakuMessage);
 
         // If it's a recoverable failure, we will try again to send letter
