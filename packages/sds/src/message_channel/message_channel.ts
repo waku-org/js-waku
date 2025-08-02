@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from "@libp2p/interface";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@waku/utils";
 
@@ -11,7 +11,8 @@ import {
   HistoryEntry,
   Message,
   MessageChannelEvent,
-  MessageChannelEvents
+  MessageChannelEvents,
+  type MessageId
 } from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -19,12 +20,12 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   errorRate: 0.001
 };
 
-const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
+const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
 const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 
 const log = new Logger("sds:message-channel");
 
-interface MessageChannelOptions {
+export interface MessageChannelOptions {
   causalHistorySize?: number;
   receivedMessageTimeoutEnabled?: boolean;
   receivedMessageTimeout?: number;
@@ -35,14 +36,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
-  private acknowledgements: Map<string, number>;
+  private acknowledgements: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private causalHistorySize: number;
-  private acknowledgementCount: number;
-  private timeReceived: Map<string, number>;
-  private receivedMessageTimeoutEnabled: boolean;
-  private receivedMessageTimeout: number;
+  private timeReceived: Map<MessageId, number>;
+  // TODO: To be removed once sender id is added to SDS protocol
+  private outgoingMessages: Set<MessageId>;
+  private readonly causalHistorySize: number;
+  private readonly acknowledgementCount: number;
+  private readonly receivedMessageTimeoutEnabled: boolean;
+  private readonly receivedMessageTimeout: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
@@ -83,9 +86,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.receivedMessageTimeoutEnabled ?? false;
     this.receivedMessageTimeout =
       options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
+    this.outgoingMessages = new Set();
   }
 
-  public static getMessageId(payload: Uint8Array): string {
+  public static getMessageId(payload: Uint8Array): MessageId {
     return bytesToHex(sha256(payload));
   }
 
@@ -100,14 +104,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("my-channel");
    *
    * // Queue some operations
-   * await channel.sendMessage(payload, callback);
-   * channel.receiveMessage(incomingMessage);
+   * await channel.pushOutgoingMessage(payload, callback);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process all queued operations
    * await channel.processTasks();
    * ```
    *
-   * @throws Will emit a 'taskError' event if any task fails, but continues processing remaining tasks
+   * @emits CustomEvent("taskError", { detail: { command, error, params } }
+   * if any task fails, but continues processing remaining tasks
    */
   public async processTasks(): Promise<void> {
     while (this.tasks.length > 0) {
@@ -127,7 +132,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * This ensures proper lamport timestamp ordering and causal history tracking.
    *
    * @param payload - The message content as a byte array
-   * @param callback - Optional callback function called after the message is processed
+   * @param callback - callback function that should propagate the message
+   * on the routing layer; `success` should be false if sending irremediably fails,
+   * when set to true, the message is finalized into the channel locally.
    * @returns Promise that resolves when the message is queued (not sent)
    *
    * @example
@@ -135,7 +142,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    * const message = new TextEncoder().encode("Hello, world!");
    *
-   * await channel.sendMessage(message, async (processedMessage) => {
+   * await channel.pushOutgoingMessage(message, async (processedMessage) => {
    *   console.log("Message processed:", processedMessage.messageId);
    *   return { success: true };
    * });
@@ -144,9 +151,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * await channel.processTasks();
    * ```
    */
-  public async sendMessage(
+  public async pushOutgoingMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<{
+    callback?: (processedMessage: Message) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
@@ -173,9 +180,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param payload - The payload to send.
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public async sendEphemeralMessage(
+  public async pushOutgoingEphemeralMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (processedMessage: Message) => Promise<boolean>
   ): Promise<void> {
     this.tasks.push({
       command: Command.SendEphemeral,
@@ -199,13 +206,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    *
    * // Receive a message from the network
-   * channel.receiveMessage(incomingMessage);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process the received message
    * await channel.processTasks();
    * ```
    */
-  public receiveMessage(message: Message): void {
+  public pushIncomingMessage(message: Message): void {
     this.tasks.push({
       command: Command.Receive,
       params: {
@@ -318,16 +325,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const emptyMessage = new Uint8Array();
 
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(emptyMessage),
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
+    const message = new Message(
+      MessageChannel.getMessageId(emptyMessage),
+      this.channelId,
+      this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: emptyMessage
-    };
+      this.lamportTimestamp,
+      this.filter.toBytes(),
+      emptyMessage
+    );
 
     if (callback) {
       try {
@@ -351,6 +358,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.timeReceived.has(message.messageId);
 
     if (isDuplicate) {
+      return;
+    }
+
+    const isOwnOutgoingMessage =
+      message.content &&
+      message.content.length > 0 &&
+      this.outgoingMessages.has(MessageChannel.getMessageId(message.content));
+
+    if (isOwnOutgoingMessage) {
       return;
     }
 
@@ -427,16 +443,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const messageId = MessageChannel.getMessageId(payload);
 
-    const message: Message = {
+    this.outgoingMessages.add(messageId);
+
+    const message = new Message(
       messageId,
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
+      this.channelId,
+      this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: payload
-    };
+      this.lamportTimestamp,
+      this.filter.toBytes(),
+      payload
+    );
 
     this.outgoingBuffer.push(message);
 
@@ -468,14 +486,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     payload: Uint8Array,
     callback?: (message: Message) => Promise<boolean>
   ): Promise<void> {
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(payload),
-      channelId: this.channelId,
-      content: payload,
-      lamportTimestamp: undefined,
-      causalHistory: [],
-      bloomFilter: undefined
-    };
+    const message = new Message(
+      MessageChannel.getMessageId(payload),
+      this.channelId,
+      [],
+      undefined,
+      undefined,
+      payload
+    );
 
     if (callback) {
       try {
@@ -562,7 +580,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       const count = (this.acknowledgements.get(message.messageId) ?? 0) + 1;
       if (count < this.acknowledgementCount) {
         this.acknowledgements.set(message.messageId, count);
-        this.safeSendEvent(MessageChannelEvent.PartialAcknowledgement, {
+        this.safeSendEvent(MessageChannelEvent.MessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
             count
