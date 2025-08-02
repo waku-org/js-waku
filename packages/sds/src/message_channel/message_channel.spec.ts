@@ -391,6 +391,20 @@ describe("MessageChannel", function () {
         ).to.equal(true);
       });
     });
+
+    it("should not track probabilistic acknowledgements of messages received in bloom filter of own messages", async () => {
+      for (const m of messagesA) {
+        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
+        });
+      }
+
+      const acknowledgements: ReadonlyMap<MessageId, number> = (channelA as any)
+        .acknowledgements;
+
+      expect(acknowledgements.size).to.equal(0);
+    });
   });
 
   describe("Sweeping incoming buffer", () => {
