@@ -279,7 +279,7 @@ describe("E2E Reliability", () => {
 
     await messageChannelAlice.send(encoder, message);
 
-    // Bobs sends a message now (it should have received the first one)
+    // Bobs sends a message now, it should include first one in causal history
     await messageChannelBob.send(encoder, {
       payload: utf8ToBytes("second message in channel")
     });
@@ -315,6 +315,51 @@ describe("E2E Reliability", () => {
     });
 
     expect(messageAcknowledged).to.be.false;
+  });
+
+  it("Outgoing message is possibly acknowledged", async () => {
+    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+    const messageChannelAlice = MessageChannel.create(
+      mockWakuNodeAlice,
+      "MyChannel"
+    );
+    const messageChannelBob = MessageChannel.create(
+      mockWakuNodeBob,
+      "MyChannel",
+      // Bob does not include any message in causal history
+      { causalHistorySize: 0 }
+    );
+
+    let subRes = await messageChannelAlice.subscribe(decoder);
+    expect(subRes).to.be.true;
+    subRes = await messageChannelBob.subscribe(decoder);
+    expect(subRes).to.be.true;
+
+    const message = { payload: utf8ToBytes("first message in channel") };
+
+    // Alice sets up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let messagePossiblyAcknowledged = false;
+    messageChannelAlice.addEventListener(
+      MessageChannelEvent.OutMessagePossiblyAcknowledged,
+      (event) => {
+        if (event.detail === messageId) {
+          messagePossiblyAcknowledged = true;
+        }
+      }
+    );
+
+    await messageChannelAlice.send(encoder, message);
+
+    // Bobs sends a message now, it should include first one in bloom filter
+    await messageChannelBob.send(encoder, {
+      payload: utf8ToBytes("second message in channel")
+    });
+
+    expect(messagePossiblyAcknowledged).to.be.true;
   });
 
   it("Incoming message is emitted as received", async () => {
