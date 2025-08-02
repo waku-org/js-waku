@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from "@libp2p/interface";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@waku/utils";
 
@@ -11,7 +11,8 @@ import {
   HistoryEntry,
   Message,
   MessageChannelEvent,
-  MessageChannelEvents
+  MessageChannelEvents,
+  type MessageId
 } from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -35,14 +36,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
-  private acknowledgements: Map<string, number>;
+  private acknowledgements: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private causalHistorySize: number;
-  private acknowledgementCount: number;
-  private timeReceived: Map<string, number>;
-  private receivedMessageTimeoutEnabled: boolean;
-  private receivedMessageTimeout: number;
+  private timeReceived: Map<MessageId, number>;
+  // TODO: To be removed once sender id is added to SDS protocol
+  private outgoingMessages: Set<MessageId>;
+  private readonly causalHistorySize: number;
+  private readonly acknowledgementCount: number;
+  private readonly receivedMessageTimeoutEnabled: boolean;
+  private readonly receivedMessageTimeout: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
@@ -83,9 +86,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.receivedMessageTimeoutEnabled ?? false;
     this.receivedMessageTimeout =
       options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
+    this.outgoingMessages = new Set();
   }
 
-  public static getMessageId(payload: Uint8Array): string {
+  public static getMessageId(payload: Uint8Array): MessageId {
     return bytesToHex(sha256(payload));
   }
 
@@ -354,6 +358,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
+    const isOwnOutgoingMessage =
+      message.content &&
+      message.content.length > 0 &&
+      this.outgoingMessages.has(MessageChannel.getMessageId(message.content));
+
+    if (isOwnOutgoingMessage) {
+      return;
+    }
+
     if (!message.lamportTimestamp) {
       this.deliverMessage(message);
       return;
@@ -426,6 +439,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.lamportTimestamp++;
 
     const messageId = MessageChannel.getMessageId(payload);
+
+    this.outgoingMessages.add(messageId);
 
     const message: Message = {
       messageId,
