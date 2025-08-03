@@ -23,7 +23,7 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
 const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 
-const log = new Logger("sds:message-channel");
+const log = new Logger("waku:sds:message-channel");
 
 interface MessageChannelOptions {
   causalHistorySize?: number;
