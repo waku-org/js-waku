@@ -8,7 +8,8 @@ export enum MessageChannelEvent {
   OutMessagePossiblyAcknowledged = "sds:out:message-possibly-acknowledged",
   InMessageMissing = "sds:in:message-missing",
   OutSyncSent = "sds:out:sync-sent",
-  InSyncDelivered = "sds:in:sync-delivered"
+  InSyncDelivered = "sds:in:sync-delivered",
+  ErrorTask = "sds:error-task"
 }
 
 export type MessageId = string;
@@ -49,7 +50,6 @@ export class Message implements proto_sds_message.SdsMessage {
   }
 }
 
-// TODO: Why is task error not part of those events?
 export type MessageChannelEvents = {
   [MessageChannelEvent.OutMessageSent]: CustomEvent<Message>;
   [MessageChannelEvent.InMessageDelivered]: CustomEvent<MessageId>;
@@ -62,4 +62,5 @@ export type MessageChannelEvents = {
   [MessageChannelEvent.InMessageMissing]: CustomEvent<HistoryEntry[]>;
   [MessageChannelEvent.OutSyncSent]: CustomEvent<Message>;
   [MessageChannelEvent.InSyncDelivered]: CustomEvent<Message>;
+  [MessageChannelEvent.ErrorTask]: CustomEvent<any>;
 };
