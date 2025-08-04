@@ -44,7 +44,7 @@ export enum MessageChannelEvent {
    *
    * This event may be emitted several times if the retry mechanism kicks in.
    */
-  OutMessageSending = "channel:out:message:sending",
+  OutMessageSending = "channel:out:message-sending",
   /**
    * The message has been sent over the wire but has not been acknowledged by
    * any other party yet.
@@ -54,7 +54,7 @@ export enum MessageChannelEvent {
    * This event may be emitted several times if the
    * several times if the retry mechanisms kicks in.
    */
-  OutMessageSent = "channel:out:message:sent",
+  OutMessageSent = "channel:out:message-sent",
   /**
    * A received bloom filter seems to indicate that the messages was received
    * by another party.
@@ -62,24 +62,29 @@ export enum MessageChannelEvent {
    * However, this is probabilistic. The retry mechanism will wait a bit longer
    * before trying to send the message again.
    */
-  OutMessagePossiblyAcknowledged = "channel:out:message:possibly-acknowledged",
+  OutMessagePossiblyAcknowledged = "channel:out:message-possibly-acknowledged",
   /**
    * The message was fully acknowledged by other members of the channel
    */
-  OutMessageAcknowledged = "channel:out:message:acknowledged",
+  OutMessageAcknowledged = "channel:out:message-acknowledged",
   /**
    * The retry mechanism failed too many times, and the message is not considered
    * as sent.
    */
-  OutMessageFailed = "channel:out:message:failed",
+  OutMessageRetriesError = "channel:out:message-retries-error",
+  /**
+   * It was not possible to send the messages due to a non-recoverable error,
+   * most likely an internal error for a developer to resolve.
+   */
+  OutMessageIrrecoverableError = "channel:out:message-irrecoverable-error",
   /**
    * A new message has been received.
    */
-  InMessageReceived = "channel:in:message:received",
+  InMessageReceived = "channel:in:message-received",
   /**
    * We are aware of a missing message but failed to retrieve it successfully.
    */
-  InIrretrievableMessage = "channel:in:message:irretrievable"
+  InIrretrievableMessage = "channel:in:message-irretrievable"
 }
 
 export type MessageChannelEvents = {
@@ -90,10 +95,14 @@ export type MessageChannelEvents = {
     possibleAckCount: number;
   }>;
   [MessageChannelEvent.OutMessageAcknowledged]: CustomEvent<MessageId>;
-  [MessageChannelEvent.OutMessageFailed]: CustomEvent<MessageId>;
+  [MessageChannelEvent.OutMessageRetriesError]: CustomEvent<MessageId>;
   // TODO probably T extends IDecodedMessage?
   [MessageChannelEvent.InMessageReceived]: CustomEvent<IDecodedMessage>;
   [MessageChannelEvent.InIrretrievableMessage]: CustomEvent<HistoryEntry>;
+  [MessageChannelEvent.OutMessageIrrecoverableError]: CustomEvent<{
+    messageId: MessageId;
+    error: ProtocolError;
+  }>;
 };
 
 /**
@@ -213,13 +222,21 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
         const sendRes = await this._send(encoder, wakuMessage);
 
-        // If it's a recoverable failure, we will try again to send letter
+        // If it's a recoverable failure, we will try again to send later
         // If not, then we should error to the user now
         for (const { error } of sendRes.failures) {
           if (IRRECOVERABLE_SENDING_ERRORS.includes(error)) {
             // Not recoverable, best to return it
-            // TODO: Should we emit?
             log.error("Irrecoverable error, cannot send message: ", error);
+            this.safeSendEvent(
+              MessageChannelEvent.OutMessageIrrecoverableError,
+              {
+                detail: {
+                  messageId,
+                  error
+                }
+              }
+            );
             return { success: false };
           }
         }

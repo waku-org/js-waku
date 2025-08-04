@@ -19,6 +19,7 @@ import {
   IWaku,
   IWakuEventEmitter,
   Libp2p,
+  ProtocolError,
   Protocols,
   SDKProtocolResult
 } from "@waku/interfaces";
@@ -242,6 +243,43 @@ describe("E2E Reliability", () => {
     await messageChannel.send(encoder, message);
 
     expect(messageSent).to.be.true;
+  });
+
+  it("Encoder error raises irrecoverable error", async () => {
+    mockWakuNode.lightPush!.send = (
+      _encoder: IEncoder,
+      _message: IMessage,
+      _sendOptions?: ISendOptions
+    ): Promise<SDKProtocolResult> => {
+      return Promise.resolve({
+        failures: [{ error: ProtocolError.EMPTY_PAYLOAD }],
+        successes: []
+      });
+    };
+
+    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+
+    const subRes = await messageChannel.subscribe(decoder);
+    expect(subRes).to.be.true;
+
+    const message = { payload: new Uint8Array() };
+
+    // Setting up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let irrecoverableError = false;
+    messageChannel.addEventListener(
+      MessageChannelEvent.OutMessageIrrecoverableError,
+      (event) => {
+        if (event.detail.messageId === messageId) {
+          irrecoverableError = true;
+        }
+      }
+    );
+
+    encoder.contentTopic = "...";
+    await messageChannel.send(encoder, message);
+
+    expect(irrecoverableError).to.be.true;
   });
 
   it("Outgoing message is acknowledged", async () => {
