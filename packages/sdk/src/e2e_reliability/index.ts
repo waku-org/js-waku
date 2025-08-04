@@ -85,7 +85,10 @@ export enum MessageChannelEvent {
 export type MessageChannelEvents = {
   [MessageChannelEvent.OutMessageSending]: CustomEvent<MessageId>;
   [MessageChannelEvent.OutMessageSent]: CustomEvent<MessageId>;
-  [MessageChannelEvent.OutMessagePossiblyAcknowledged]: CustomEvent<MessageId>;
+  [MessageChannelEvent.OutMessagePossiblyAcknowledged]: CustomEvent<{
+    messageId: MessageId;
+    possibleAckCount: number;
+  }>;
   [MessageChannelEvent.OutMessageAcknowledged]: CustomEvent<MessageId>;
   [MessageChannelEvent.OutMessageFailed]: CustomEvent<MessageId>;
   // TODO probably T extends IDecodedMessage?
@@ -298,6 +301,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
       }
     );
+
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.MessageAcknowledged,
       (event) => {
@@ -305,6 +309,23 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
             detail: event.detail
           });
+        }
+      }
+    );
+
+    this.messageChannel.addEventListener(
+      SdsMessageChannelEvent.MessagePossiblyAcknowledged,
+      (event) => {
+        if (event.detail) {
+          this.safeSendEvent(
+            MessageChannelEvent.OutMessagePossiblyAcknowledged,
+            {
+              detail: {
+                messageId: event.detail.messageId,
+                possibleAckCount: event.detail.count
+              }
+            }
+          );
         }
       }
     );
