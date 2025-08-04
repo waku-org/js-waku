@@ -57,17 +57,17 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     [Command.Send]: async (
       params: ParamsByAction[Command.Send]
     ): Promise<void> => {
-      await this._sendMessage(params.payload, params.callback);
+      await this._pushOutgoingMessage(params.payload, params.callback);
     },
     [Command.Receive]: async (
       params: ParamsByAction[Command.Receive]
     ): Promise<void> => {
-      this._receiveMessage(params.message);
+      this._pushIncomingMessage(params.message);
     },
     [Command.SendEphemeral]: async (
       params: ParamsByAction[Command.SendEphemeral]
     ): Promise<void> => {
-      await this._sendEphemeralMessage(params.payload, params.callback);
+      await this._pushOutgoingEphemeralMessage(params.payload, params.callback);
     }
   };
 
@@ -358,7 +358,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     return false;
   }
 
-  private _receiveMessage(message: Message): void {
+  private _pushIncomingMessage(message: Message): void {
     const isDuplicate =
       message.content &&
       message.content.length > 0 &&
@@ -439,7 +439,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
   }
 
-  private async _sendMessage(
+  private async _pushOutgoingMessage(
     payload: Uint8Array,
     callback?: (message: Message) => Promise<{
       success: boolean;
@@ -483,13 +483,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           });
         }
       } catch (error) {
-        log.error("Callback execution failed in _sendMessage:", error);
+        log.error("Callback execution failed in _pushOutgoingMessage:", error);
         throw error;
       }
     }
   }
 
-  private async _sendEphemeralMessage(
+  private async _pushOutgoingEphemeralMessage(
     payload: Uint8Array,
     callback?: (message: Message) => Promise<boolean>
   ): Promise<void> {
@@ -506,7 +506,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       try {
         await callback(message);
       } catch (error) {
-        log.error("Callback execution failed in _sendEphemeralMessage:", error);
+        log.error(
+          "Callback execution failed in _pushOutgoingEphemeralMessage:",
+          error
+        );
         throw error;
       }
     }
