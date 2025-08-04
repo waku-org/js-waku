@@ -1,18 +1,14 @@
 import { proto_sds_message } from "@waku/proto";
 
 export enum MessageChannelEvent {
-  // TODO: events are usually in the form `domain:name`
-  // here it should be `sds:<name>`
-  // also, it can be confusing to know if we are talking about incoming
-  // or outgoing. suggesting `sds:in` or `sds:out` format.
-  MessageSent = "messageSent",
-  MessageDelivered = "messageDelivered",
-  MessageReceived = "messageReceived",
-  MessageAcknowledged = "messageAcknowledged",
-  MessagePossiblyAcknowledged = "messagePossiblyAcknowledged",
-  MissedMessages = "missedMessages",
-  SyncSent = "syncSent",
-  SyncReceived = "syncReceived"
+  OutMessageSent = "sds:out:message-sent",
+  InMessageDelivered = "sds:in:message-delivered",
+  InMessageReceived = "sds:in:message-received",
+  OutMessageAcknowledged = "sds:out:message-acknowledged",
+  OutMessagePossiblyAcknowledged = "sds:out:message-possibly-acknowledged",
+  InMessageMissing = "sds:in:message-missing",
+  OutSyncSent = "sds:out:sync-sent",
+  InSyncDelivered = "sds:in:sync-delivered"
 }
 
 export type MessageId = string;
@@ -54,15 +50,15 @@ export class Message implements proto_sds_message.SdsMessage {
 }
 
 export type MessageChannelEvents = {
-  [MessageChannelEvent.MessageSent]: CustomEvent<Message>;
-  [MessageChannelEvent.MessageDelivered]: CustomEvent<MessageId>;
-  [MessageChannelEvent.MessageReceived]: CustomEvent<Message>;
-  [MessageChannelEvent.MessageAcknowledged]: CustomEvent<MessageId>;
-  [MessageChannelEvent.MessagePossiblyAcknowledged]: CustomEvent<{
+  [MessageChannelEvent.OutMessageSent]: CustomEvent<Message>;
+  [MessageChannelEvent.InMessageDelivered]: CustomEvent<MessageId>;
+  [MessageChannelEvent.InMessageReceived]: CustomEvent<Message>;
+  [MessageChannelEvent.OutMessageAcknowledged]: CustomEvent<MessageId>;
+  [MessageChannelEvent.OutMessagePossiblyAcknowledged]: CustomEvent<{
     messageId: MessageId;
     count: number;
   }>;
-  [MessageChannelEvent.MissedMessages]: CustomEvent<HistoryEntry[]>;
-  [MessageChannelEvent.SyncSent]: CustomEvent<Message>;
-  [MessageChannelEvent.SyncReceived]: CustomEvent<Message>;
+  [MessageChannelEvent.InMessageMissing]: CustomEvent<HistoryEntry[]>;
+  [MessageChannelEvent.OutSyncSent]: CustomEvent<Message>;
+  [MessageChannelEvent.InSyncDelivered]: CustomEvent<Message>;
 };

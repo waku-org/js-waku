@@ -245,7 +245,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         );
         if (missingDependencies.length === 0) {
           if (this.deliverMessage(message)) {
-            this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
+            this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
               detail: message.messageId
             });
           }
@@ -275,7 +275,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
     this.incomingBuffer = buffer;
 
-    this.safeSendEvent(MessageChannelEvent.MissedMessages, {
+    this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
       detail: Array.from(missing)
     });
 
@@ -341,7 +341,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (callback) {
       try {
         await callback(message);
-        this.safeSendEvent(MessageChannelEvent.SyncSent, {
+        this.safeSendEvent(MessageChannelEvent.OutSyncSent, {
           detail: message
         });
         return true;
@@ -380,11 +380,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
     if (message.content?.length === 0) {
-      this.safeSendEvent(MessageChannelEvent.SyncReceived, {
+      this.safeSendEvent(MessageChannelEvent.InSyncDelivered, {
         detail: message
       });
     } else {
-      this.safeSendEvent(MessageChannelEvent.MessageReceived, {
+      this.safeSendEvent(MessageChannelEvent.InMessageReceived, {
         detail: message
       });
     }
@@ -403,7 +403,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.timeReceived.set(message.messageId, Date.now());
     } else {
       if (this.deliverMessage(message)) {
-        this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
+        this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
           detail: message.messageId
         });
       }
@@ -474,7 +474,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             }
           });
           this.timeReceived.set(messageId, Date.now());
-          this.safeSendEvent(MessageChannelEvent.MessageSent, {
+          this.safeSendEvent(MessageChannelEvent.OutMessageSent, {
             detail: message
           });
         }
@@ -569,7 +569,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           if (outgoingMessageId !== messageId) {
             return true;
           }
-          this.safeSendEvent(MessageChannelEvent.MessageAcknowledged, {
+          this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
             detail: messageId
           });
           return false;
@@ -597,7 +597,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       const count = (this.possibleAcks.get(message.messageId) ?? 0) + 1;
       if (count < this.possibleAcksThreshold) {
         this.possibleAcks.set(message.messageId, count);
-        this.safeSendEvent(MessageChannelEvent.MessagePossiblyAcknowledged, {
+        this.safeSendEvent(MessageChannelEvent.OutMessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
             count
