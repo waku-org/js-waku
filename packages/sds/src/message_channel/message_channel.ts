@@ -244,13 +244,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             )
         );
         if (missingDependencies.length === 0) {
-          this.deliverMessage(message);
-          this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-            detail: {
-              messageId: message.messageId,
-              sentOrReceived: "received"
-            }
-          });
+          if (this.deliverMessage(message)) {
+            this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
+              detail: {
+                messageId: message.messageId,
+                sentOrReceived: "received"
+              }
+            });
+          }
           return { buffer, missing };
         }
 
@@ -404,13 +405,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.incomingBuffer.push(message);
       this.timeReceived.set(message.messageId, Date.now());
     } else {
-      this.deliverMessage(message);
-      this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-        detail: {
-          messageId: message.messageId,
-          sentOrReceived: "received"
-        }
-      });
+      if (this.deliverMessage(message)) {
+        this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
+          detail: {
+            messageId: message.messageId,
+            sentOrReceived: "received"
+          }
+        });
+      }
     }
   }
 
@@ -515,8 +517,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
   }
 
+  /**
+   * Return true if the message was "delivered"
+   *
+   * @param message
+   * @param retrievalHint
+   * @private
+   */
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
-  private deliverMessage(message: Message, retrievalHint?: Uint8Array): void {
+  private deliverMessage(
+    message: Message,
+    retrievalHint?: Uint8Array
+  ): boolean {
     if (
       message.content?.length === 0 ||
       message.lamportTimestamp === undefined
@@ -525,7 +537,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       // Messages with no timestamp are ephemeral messages.
       // They do not need to be "delivered".
       // They are not added to the local log or bloom filter.
-      return;
+      return false;
     }
 
     if (message.lamportTimestamp > this.lamportTimestamp) {
@@ -550,6 +562,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       }
       return a.historyEntry.messageId.localeCompare(b.historyEntry.messageId);
     });
+    return true;
   }
 
   // For each received message (including sync messages), inspect the causal history and bloom filter
