@@ -375,7 +375,7 @@ describe("MessageChannel", function () {
         });
       }
 
-      // No more partial acknowledgements should be in channel A
+      // No more possible acknowledgements should be in channel A
       expect(possibleAcks.size).to.equal(0);
 
       // Messages that were not acknowledged should still be in the outgoing buffer
