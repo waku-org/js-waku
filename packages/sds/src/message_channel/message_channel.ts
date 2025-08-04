@@ -22,6 +22,7 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 
 const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
 const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
+const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
 const log = new Logger("waku:sds:message-channel");
 
@@ -29,6 +30,10 @@ interface MessageChannelOptions {
   causalHistorySize?: number;
   receivedMessageTimeoutEnabled?: boolean;
   receivedMessageTimeout?: number;
+  /**
+   * How many possible acks does it take to consider it a definitive ack.
+   */
+  possibleAcksThreshold?: number;
 }
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
@@ -36,14 +41,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
-  private acknowledgements: Map<MessageId, number>;
+  private possibleAcks: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private timeReceived: Map<MessageId, number>;
   // TODO: To be removed once sender id is added to SDS protocol
   private outgoingMessages: Set<MessageId>;
   private readonly causalHistorySize: number;
-  private readonly acknowledgementCount: number;
+  private readonly possibleAcksThreshold: number;
   private readonly receivedMessageTimeoutEnabled: boolean;
   private readonly receivedMessageTimeout: number;
 
@@ -75,12 +80,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.lamportTimestamp = 0;
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
-    this.acknowledgements = new Map();
+    this.possibleAcks = new Map();
     this.incomingBuffer = [];
     this.localHistory = [];
     this.causalHistorySize =
       options.causalHistorySize ?? DEFAULT_CAUSAL_HISTORY_SIZE;
-    this.acknowledgementCount = this.getAcknowledgementCount();
+    // TODO: this should be determined based on the bloom filter parameters and number of hashes
+    this.possibleAcksThreshold =
+      options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
     this.receivedMessageTimeoutEnabled =
       options.receivedMessageTimeoutEnabled ?? false;
@@ -287,7 +294,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       possiblyAcknowledged: Message[];
     }>(
       ({ unacknowledged, possiblyAcknowledged }, message) => {
-        if (this.acknowledgements.has(message.messageId)) {
+        if (this.possibleAcks.has(message.messageId)) {
           return {
             unacknowledged,
             possiblyAcknowledged: possiblyAcknowledged.concat(message)
@@ -315,7 +322,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public async sendSyncMessage(
+  public async pushOutgoingSyncMessage(
     callback?: (message: Message) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp++;
@@ -341,7 +348,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         });
         return true;
       } catch (error) {
-        log.error("Callback execution failed in sendSyncMessage:", error);
+        log.error(
+          "Callback execution failed in pushOutgoingSyncMessage:",
+          error
+        );
         throw error;
       }
     }
@@ -555,7 +565,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           return false;
         }
       );
-      this.acknowledgements.delete(messageId);
+      this.possibleAcks.delete(messageId);
       if (!this.filter.lookup(messageId)) {
         this.filter.insert(messageId);
       }
@@ -574,9 +584,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       // If a message appears as possibly acknowledged in multiple received bloom filters,
       // the participant MAY mark it as acknowledged based on probabilistic grounds,
       // taking into account the bloom filter size and hash number.
-      const count = (this.acknowledgements.get(message.messageId) ?? 0) + 1;
-      if (count < this.acknowledgementCount) {
-        this.acknowledgements.set(message.messageId, count);
+      const count = (this.possibleAcks.get(message.messageId) ?? 0) + 1;
+      if (count < this.possibleAcksThreshold) {
+        this.possibleAcks.set(message.messageId, count);
         this.safeSendEvent(MessageChannelEvent.MessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
@@ -585,13 +595,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         });
         return true;
       }
-      this.acknowledgements.delete(message.messageId);
+      this.possibleAcks.delete(message.messageId);
       return false;
     });
-  }
-
-  // TODO: this should be determined based on the bloom filter parameters and number of hashes
-  private getAcknowledgementCount(): number {
-    return 2;
   }
 }

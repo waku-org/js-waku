@@ -576,14 +576,14 @@ describe("MessageChannel", function () {
     });
 
     it("should be sent with empty content", async () => {
-      await channelA.sendSyncMessage(async (message) => {
+      await channelA.pushOutgoingSyncMessage(async (message) => {
         expect(message.content?.length).to.equal(0);
         return true;
       });
     });
 
     it("should not be added to outgoing buffer, bloom filter, or local log", async () => {
-      await channelA.sendSyncMessage();
+      await channelA.pushOutgoingSyncMessage();
 
       const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
       expect(outgoingBuffer.length).to.equal(0);
@@ -603,7 +603,7 @@ describe("MessageChannel", function () {
     it("should be delivered but not added to local log or bloom filter", async () => {
       const timestampBefore = (channelB as any).lamportTimestamp;
       let expectedTimestamp: number | undefined;
-      await channelA.sendSyncMessage(async (message) => {
+      await channelA.pushOutgoingSyncMessage(async (message) => {
         expectedTimestamp = message.lamportTimestamp;
         await receiveMessage(channelB, message);
         return true;
