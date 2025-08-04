@@ -309,7 +309,7 @@ describe("MessageChannel", function () {
     });
 
     it("should track probabilistic acknowledgements of messages received in bloom filter", async () => {
-      const acknowledgementCount = (channelA as any).acknowledgementCount;
+      const possibleAcksThreshold = (channelA as any).possibleAcksThreshold;
 
       const causalHistorySize = (channelA as any).causalHistorySize;
 
@@ -341,8 +341,8 @@ describe("MessageChannel", function () {
         }
       );
 
-      const acknowledgements: ReadonlyMap<MessageId, number> = (channelA as any)
-        .acknowledgements;
+      const possibleAcks: ReadonlyMap<MessageId, number> = (channelA as any)
+        .possibleAcks;
       // Other than the message IDs which were included in causal history,
       // the remaining messages sent by channel A should be considered possibly acknowledged
       // for having been included in the bloom filter sent from channel B
@@ -350,24 +350,24 @@ describe("MessageChannel", function () {
       if (expectedAcknowledgementsSize <= 0) {
         throw new Error("expectedAcknowledgementsSize must be greater than 0");
       }
-      expect(acknowledgements.size).to.equal(expectedAcknowledgementsSize);
+      expect(possibleAcks.size).to.equal(expectedAcknowledgementsSize);
       // Channel B only included the last N messages in causal history
       messages.slice(0, -causalHistorySize).forEach((m) => {
         expect(
-          acknowledgements.get(MessageChannel.getMessageId(utf8ToBytes(m)))
+          possibleAcks.get(MessageChannel.getMessageId(utf8ToBytes(m)))
         ).to.equal(1);
       });
 
       // Messages that never reached channel B should not be acknowledged
       unacknowledgedMessages.forEach((m) => {
         expect(
-          acknowledgements.has(MessageChannel.getMessageId(utf8ToBytes(m)))
+          possibleAcks.has(MessageChannel.getMessageId(utf8ToBytes(m)))
         ).to.equal(false);
       });
 
       // When channel C sends more messages, it will include all the same messages
       // in the bloom filter as before, which should mark them as fully acknowledged in channel A
-      for (let i = 1; i < acknowledgementCount; i++) {
+      for (let i = 1; i < possibleAcksThreshold; i++) {
         // Send messages until acknowledgement count is reached
         await sendMessage(channelB, utf8ToBytes(`x-${i}`), async (message) => {
           await receiveMessage(channelA, message);
@@ -376,7 +376,7 @@ describe("MessageChannel", function () {
       }
 
       // No more partial acknowledgements should be in channel A
-      expect(acknowledgements.size).to.equal(0);
+      expect(possibleAcks.size).to.equal(0);
 
       // Messages that were not acknowledged should still be in the outgoing buffer
       expect((channelA as any).outgoingBuffer.length).to.equal(
@@ -400,10 +400,10 @@ describe("MessageChannel", function () {
         });
       }
 
-      const acknowledgements: ReadonlyMap<MessageId, number> = (channelA as any)
-        .acknowledgements;
+      const possibleAcks: ReadonlyMap<MessageId, number> = (channelA as any)
+        .possibleAcks;
 
-      expect(acknowledgements.size).to.equal(0);
+      expect(possibleAcks.size).to.equal(0);
     });
   });
 
