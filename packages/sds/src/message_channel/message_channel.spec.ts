@@ -531,10 +531,8 @@ describe("MessageChannel", function () {
     });
 
     it("should partition messages based on acknowledgement status", async () => {
-      const unacknowledgedMessages: Message[] = [];
       for (const m of messagesA) {
         await sendMessage(channelA, utf8ToBytes(m), async (message) => {
-          unacknowledgedMessages.push(message);
           await receiveMessage(channelB, message);
           return { success: true };
         });
