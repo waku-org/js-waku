@@ -517,11 +517,6 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
   private deliverMessage(message: Message, retrievalHint?: Uint8Array): void {
-    const messageLamportTimestamp = message.lamportTimestamp ?? 0;
-    if (messageLamportTimestamp > this.lamportTimestamp) {
-      this.lamportTimestamp = messageLamportTimestamp;
-    }
-
     if (
       message.content?.length === 0 ||
       message.lamportTimestamp === undefined
@@ -532,13 +527,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
+    // Only messages with non-empty content topics must be "delivered"
+    if (message.lamportTimestamp > this.lamportTimestamp) {
+      this.lamportTimestamp = message.lamportTimestamp;
+    }
+
     // The participant MUST insert the message ID into its local log,
     // based on Lamport timestamp.
     // If one or more message IDs with the same Lamport timestamp already exists,
     // the participant MUST follow the Resolve Conflicts procedure.
     // https://rfc.vac.dev/vac/raw/sds/#resolve-conflicts
     this.localHistory.push({
-      timestamp: messageLamportTimestamp,
+      timestamp: message.lamportTimestamp,
       historyEntry: {
         messageId: message.messageId,
         retrievalHint

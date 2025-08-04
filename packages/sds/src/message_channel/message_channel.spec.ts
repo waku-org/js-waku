@@ -139,7 +139,7 @@ describe("MessageChannel", function () {
 
     it("should increase lamport timestamp", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      await sendMessage(channelB, new Uint8Array(), async (message) => {
+      await sendMessage(channelB, utf8ToBytes("message"), async (message) => {
         await receiveMessage(channelA, message);
         return { success: true };
       });
@@ -600,17 +600,14 @@ describe("MessageChannel", function () {
       expect(localLog.length).to.equal(0);
     });
 
-    it("should be delivered but not added to local log or bloom filter", async () => {
+    it("should not be delivered", async () => {
       const timestampBefore = (channelB as any).lamportTimestamp;
-      let expectedTimestamp: number | undefined;
       await channelA.pushOutgoingSyncMessage(async (message) => {
-        expectedTimestamp = message.lamportTimestamp;
         await receiveMessage(channelB, message);
         return true;
       });
       const timestampAfter = (channelB as any).lamportTimestamp;
-      expect(timestampAfter).to.equal(expectedTimestamp);
-      expect(timestampAfter).to.be.greaterThan(timestampBefore);
+      expect(timestampAfter).to.equal(timestampBefore);
 
       const localLog = (channelB as any).localHistory as {
         timestamp: number;
