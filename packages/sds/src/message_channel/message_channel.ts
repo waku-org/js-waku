@@ -523,11 +523,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     ) {
       // Messages with empty content are sync messages.
       // Messages with no timestamp are ephemeral messages.
+      // They do not need to be "delivered".
       // They are not added to the local log or bloom filter.
       return;
     }
 
-    // Only messages with non-empty content topics must be "delivered"
     if (message.lamportTimestamp > this.lamportTimestamp) {
       this.lamportTimestamp = message.lamportTimestamp;
     }
