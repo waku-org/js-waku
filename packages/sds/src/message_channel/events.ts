@@ -8,7 +8,8 @@ export enum MessageChannelEvent {
   OutMessagePossiblyAcknowledged = "sds:out:message-possibly-acknowledged",
   InMessageMissing = "sds:in:message-missing",
   OutSyncSent = "sds:out:sync-sent",
-  InSyncDelivered = "sds:in:sync-delivered"
+  InSyncDelivered = "sds:in:sync-delivered",
+  ErrorTask = "sds:error-task"
 }
 
 export type MessageId = string;
@@ -61,4 +62,5 @@ export type MessageChannelEvents = {
   [MessageChannelEvent.InMessageMissing]: CustomEvent<HistoryEntry[]>;
   [MessageChannelEvent.OutSyncSent]: CustomEvent<Message>;
   [MessageChannelEvent.InSyncDelivered]: CustomEvent<Message>;
+  [MessageChannelEvent.ErrorTask]: CustomEvent<any>;
 };

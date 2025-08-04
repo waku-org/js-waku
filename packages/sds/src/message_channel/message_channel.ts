@@ -421,6 +421,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           detail: { command: item.command, error, params: item.params }
         })
       );
+      this.safeSendEvent(MessageChannelEvent.ErrorTask, {
+        detail: { command: item.command, error, params: item.params }
+      });
     }
   }
 
