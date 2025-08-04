@@ -292,7 +292,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   private setupEventListeners(): void {
     this.messageChannel.addEventListener(
-      SdsMessageChannelEvent.MessageSent,
+      SdsMessageChannelEvent.OutMessageSent,
       (event) => {
         if (event.detail.content) {
           const messageId = MessageChannel.getMessageId(event.detail.content);
@@ -304,7 +304,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
 
     this.messageChannel.addEventListener(
-      SdsMessageChannelEvent.MessageAcknowledged,
+      SdsMessageChannelEvent.OutMessageAcknowledged,
       (event) => {
         if (event.detail) {
           this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
@@ -315,7 +315,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
 
     this.messageChannel.addEventListener(
-      SdsMessageChannelEvent.MessagePossiblyAcknowledged,
+      SdsMessageChannelEvent.OutMessagePossiblyAcknowledged,
       (event) => {
         if (event.detail) {
           this.safeSendEvent(
