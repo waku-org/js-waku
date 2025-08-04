@@ -6,7 +6,6 @@ export enum MessageChannelEvent {
   // also, it can be confusing to know if we are talking about incoming
   // or outgoing. suggesting `sds:in` or `sds:out` format.
   MessageSent = "messageSent",
-  // TODO: Is this "delivered" event of any use?
   MessageDelivered = "messageDelivered",
   MessageReceived = "messageReceived",
   MessageAcknowledged = "messageAcknowledged",
@@ -56,11 +55,7 @@ export class Message implements proto_sds_message.SdsMessage {
 
 export type MessageChannelEvents = {
   [MessageChannelEvent.MessageSent]: CustomEvent<Message>;
-  [MessageChannelEvent.MessageDelivered]: CustomEvent<{
-    messageId: MessageId;
-    // TODO: this is never set to "sent"
-    sentOrReceived: "sent" | "received";
-  }>;
+  [MessageChannelEvent.MessageDelivered]: CustomEvent<MessageId>;
   [MessageChannelEvent.MessageReceived]: CustomEvent<Message>;
   [MessageChannelEvent.MessageAcknowledged]: CustomEvent<MessageId>;
   [MessageChannelEvent.MessagePossiblyAcknowledged]: CustomEvent<{

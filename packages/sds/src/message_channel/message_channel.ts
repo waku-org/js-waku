@@ -246,10 +246,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         if (missingDependencies.length === 0) {
           if (this.deliverMessage(message)) {
             this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-              detail: {
-                messageId: message.messageId,
-                sentOrReceived: "received"
-              }
+              detail: message.messageId
             });
           }
           return { buffer, missing };
@@ -407,10 +404,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     } else {
       if (this.deliverMessage(message)) {
         this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-          detail: {
-            messageId: message.messageId,
-            sentOrReceived: "received"
-          }
+          detail: message.messageId
         });
       }
     }
