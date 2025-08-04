@@ -101,6 +101,7 @@ export type MessageChannelEvents = {
  * - if your outgoing messages are sent, acknowledged or error out
  * - for new incoming messages
  * @emits [[MessageChannelEvents]]
+ *
  */
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private readonly _send: (

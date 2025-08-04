@@ -368,6 +368,49 @@ describe("E2E Reliability", () => {
     expect(firstMessagePossiblyAcknowledged).to.be.true;
   });
 
+  it("Outgoing message is acknowledged", async () => {
+    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+    const messageChannelAlice = MessageChannel.create(
+      mockWakuNodeAlice,
+      "MyChannel"
+    );
+    const messageChannelBob = MessageChannel.create(
+      mockWakuNodeBob,
+      "MyChannel"
+    );
+
+    let subRes = await messageChannelAlice.subscribe(decoder);
+    expect(subRes).to.be.true;
+    subRes = await messageChannelBob.subscribe(decoder);
+    expect(subRes).to.be.true;
+
+    const message = { payload: utf8ToBytes("first message in channel") };
+
+    // Alice sets up message tracking
+    const messageId = MessageChannel.getMessageId(message.payload);
+    let messageAcknowledged = false;
+    messageChannelAlice.addEventListener(
+      MessageChannelEvent.OutMessageAcknowledged,
+      (event) => {
+        if (event.detail === messageId) {
+          messageAcknowledged = true;
+        }
+      }
+    );
+
+    await messageChannelAlice.send(encoder, message);
+
+    // Bobs sends a message now, it should include first one in causal history
+    await messageChannelBob.send(encoder, {
+      payload: utf8ToBytes("second message in channel")
+    });
+
+    expect(messageAcknowledged).to.be.true;
+  });
+
   it("Incoming message is emitted as received", async () => {
     const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
 
