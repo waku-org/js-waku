@@ -19,19 +19,16 @@ import { CODECS, ProtocolHandler } from "./public.js";
 
 const log = new Logger("light-push");
 
-export const LightPushCodecV2 = CODECS.v2;
-export const LightPushCodec = CODECS.v3;
-export const LightPushCodecs = [LightPushCodec, LightPushCodecV2];
 export { PushResponse };
+
+export const LightPushCodec = CODECS.v3;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class LightPushCore {
   private readonly streamManager: StreamManager;
-
-  public readonly multicodec = CODECS.v2;
-  public readonly multicodecs = LightPushCodecs;
+  public readonly multicodec = CODECS.v3;
 
   public constructor(private libp2p: Libp2p) {
     this.streamManager = new StreamManager(CODECS.v2, libp2p.components);
