@@ -6,7 +6,10 @@ if (!process.env.CHROME_BIN) {
   process.env.CHROME_BIN = playwright.chromium.executablePath();
 }
 console.log("Using CHROME_BIN:", process.env.CHROME_BIN);
-process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+if (!process.env.FIREFOX_BIN) {
+  process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+}
+console.log("Using FIREFOX_BIN:", process.env.FIREFOX_BIN);
 
 module.exports = function (config) {
   const configuration = {
