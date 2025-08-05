@@ -19,8 +19,6 @@ export const CODECS = {
   v3: "/vac/waku/lightpush/3.0.0"
 } as const;
 
-export const LightPushCodec = CODECS.v3;
-
 export { LightPushStatusCode };
 
 const log = new Logger("light-push:protocol-handler");

@@ -59,26 +59,6 @@ export class LightPush implements ILightPush {
     return this.protocol.multicodec;
   }
 
-  /**
-   * Get all supported protocol codecs
-   * @returns Array of supported protocol codec strings
-   */
-  public get multicodecs(): string[] {
-    return this.protocol.multicodecs;
-  }
-
-  /**
-   * Get supported protocol versions
-   * @returns Array of supported version strings (e.g., ['v2', 'v3'])
-   */
-  public get supportedVersions(): string[] {
-    return this.protocol.multicodecs.map((codec) => {
-      if (codec.includes("3.0.0")) return "v3";
-      if (codec.includes("2.0.0")) return "v2";
-      return "unknown";
-    });
-  }
-
   public start(): void {
     this.retryManager.start();
   }
