@@ -12,8 +12,8 @@ export { FilterCore, FilterCodecs } from "./lib/filter/index.js";
 export * as waku_light_push from "./lib/light_push/index.js";
 export {
   LightPushCore,
-  LightPushCodec,
-  LightPushStatusCode
+  LightPushStatusCode,
+  LightPushCodec
 } from "./lib/light_push/index.js";
 
 export * as waku_store from "./lib/store/index.js";
