@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/sds-v0.0.5...sds-v0.0.6) (2025-08-05)
+
+
+### Bug Fixes
+
+* Bloom filter protobuf decoding ([#2529](https://github.com/waku-org/js-waku/issues/2529)) ([449797d](https://github.com/waku-org/js-waku/commit/449797d5c15c278b14952ac4db828e50116e1a61))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from ^0.0.25 to ^0.0.26
+
 ## [0.0.5](https://github.com/waku-org/js-waku/compare/sds-v0.0.4...sds-v0.0.5) (2025-07-18)
 
 
