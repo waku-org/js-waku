@@ -498,8 +498,7 @@ describe("MessageChannel", function () {
     it("should mark a message as irretrievably lost if timeout is exceeded", async () => {
       // Create a channel with very very short timeout
       const channelC: MessageChannel = new MessageChannel(channelId, {
-        receivedMessageTimeoutEnabled: true,
-        receivedMessageTimeout: 10
+        timeoutToMarkMessageIrretrievableMs: 10
       });
 
       for (const m of messagesA) {
@@ -543,8 +542,7 @@ describe("MessageChannel", function () {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
       const channelC: MessageChannel = new MessageChannel(channelId, {
-        receivedMessageTimeoutEnabled: true,
-        receivedMessageTimeout: 10
+        timeoutToMarkMessageIrretrievableMs: 10
       });
 
       for (const m of messagesA) {
