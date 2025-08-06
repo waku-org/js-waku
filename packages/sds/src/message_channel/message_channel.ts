@@ -21,15 +21,20 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 };
 
 const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
-const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
 const log = new Logger("waku:sds:message-channel");
 
 interface MessageChannelOptions {
   causalHistorySize?: number;
-  receivedMessageTimeoutEnabled?: boolean;
-  receivedMessageTimeout?: number;
+  /**
+   * The time in milliseconds after which a message dependencies that could not
+   * be resolved is marked as irretrievable.
+   * Disabled if undefined or `0`.
+   *
+   * @default undefined because it is coupled to processTask calls frequency
+   */
+  timeoutToMarkMessageIrretrievableMs?: number;
   /**
    * How many possible acks does it take to consider it a definitive ack.
    */
@@ -49,8 +54,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private outgoingMessages: Set<MessageId>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
-  private readonly receivedMessageTimeoutEnabled: boolean;
-  private readonly receivedMessageTimeout: number;
+  private readonly timeoutToMarkMessageIrretrievableMs?: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
@@ -89,10 +93,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.possibleAcksThreshold =
       options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
-    this.receivedMessageTimeoutEnabled =
-      options.receivedMessageTimeoutEnabled ?? false;
-    this.receivedMessageTimeout =
-      options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
+    this.timeoutToMarkMessageIrretrievableMs =
+      options.timeoutToMarkMessageIrretrievableMs;
     this.outgoingMessages = new Set();
   }
 
@@ -254,11 +256,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
         // Optionally, if a message has not been received after a predetermined amount of time,
         // its dependencies are marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
-        if (this.receivedMessageTimeoutEnabled) {
+        if (this.timeoutToMarkMessageIrretrievableMs) {
           const timeReceived = this.timeReceived.get(message.messageId);
           if (
             timeReceived &&
-            Date.now() - timeReceived > this.receivedMessageTimeout
+            Date.now() - timeReceived > this.timeoutToMarkMessageIrretrievableMs
           ) {
             this.safeSendEvent(MessageChannelEvent.InMessageIrretrievablyLost, {
               detail: Array.from(missingDependencies)
