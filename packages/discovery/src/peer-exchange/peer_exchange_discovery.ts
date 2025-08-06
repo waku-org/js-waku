@@ -24,7 +24,7 @@ const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
 const DEFAULT_MAX_RETRIES = 3;
 
-interface Options {
+interface PeerExchangeDiscoveryOptions {
   /**
    * Tag a bootstrap peer with this name before "discovering" it (default: 'bootstrap')
    */
@@ -65,7 +65,7 @@ export class PeerExchangeDiscovery
 {
   private readonly components: Libp2pComponents;
   private readonly peerExchange: IPeerExchange;
-  private readonly options: Options;
+  private readonly options: PeerExchangeDiscoveryOptions;
   private isStarted: boolean;
   private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
@@ -87,7 +87,10 @@ export class PeerExchangeDiscovery
     );
   };
 
-  public constructor(components: Libp2pComponents, options: Options = {}) {
+  public constructor(
+    components: Libp2pComponents,
+    options: PeerExchangeDiscoveryOptions = {}
+  ) {
     super();
     this.components = components;
     this.peerExchange = new PeerExchange(components);
