@@ -3,7 +3,12 @@ import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
-import { HistoryEntry, Message, MessageId } from "./events.js";
+import {
+  HistoryEntry,
+  Message,
+  MessageChannelEvent,
+  MessageId
+} from "./events.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
   MessageChannel
@@ -488,6 +493,50 @@ describe("MessageChannel", function () {
 
       incomingBuffer = (channelB as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(0);
+    });
+
+    it("should mark a message as irretrievably lost if timeout is exceeded", async () => {
+      // Create a channel with very very short timeout
+      const channelC: MessageChannel = new MessageChannel(channelId, {
+        receivedMessageTimeoutEnabled: true,
+        receivedMessageTimeout: 10
+      });
+
+      for (const m of messagesA) {
+        await sendMessage(channelA, utf8ToBytes(m), callback);
+      }
+
+      let irretrievablyLost = false;
+      const messageToBeLostId = MessageChannel.getMessageId(
+        utf8ToBytes(messagesA[0])
+      );
+      channelC.addEventListener(
+        MessageChannelEvent.InMessageIrretrievablyLost,
+        (event) => {
+          for (const hist of event.detail) {
+            if (hist.messageId === messageToBeLostId) {
+              irretrievablyLost = true;
+            }
+          }
+        }
+      );
+
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelC, message);
+          return { success: true };
+        }
+      );
+
+      channelC.sweepIncomingBuffer();
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      channelC.sweepIncomingBuffer();
+
+      expect(irretrievablyLost).to.be.true;
     });
 
     it("should remove messages without delivering if timeout is exceeded", async () => {

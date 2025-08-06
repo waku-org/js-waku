@@ -9,6 +9,7 @@ export enum MessageChannelEvent {
   InMessageMissing = "sds:in:message-missing",
   OutSyncSent = "sds:out:sync-sent",
   InSyncDelivered = "sds:in:sync-delivered",
+  InMessageIrretrievablyLost = "sds:in:message-irretrievably-lost",
   ErrorTask = "sds:error-task"
 }
 
@@ -60,6 +61,7 @@ export type MessageChannelEvents = {
     count: number;
   }>;
   [MessageChannelEvent.InMessageMissing]: CustomEvent<HistoryEntry[]>;
+  [MessageChannelEvent.InMessageIrretrievablyLost]: CustomEvent<HistoryEntry[]>;
   [MessageChannelEvent.OutSyncSent]: CustomEvent<Message>;
   [MessageChannelEvent.InSyncDelivered]: CustomEvent<Message>;
   [MessageChannelEvent.ErrorTask]: CustomEvent<any>;

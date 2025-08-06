@@ -253,13 +253,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
 
         // Optionally, if a message has not been received after a predetermined amount of time,
-        // it is marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
+        // its dependencies are marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
         if (this.receivedMessageTimeoutEnabled) {
           const timeReceived = this.timeReceived.get(message.messageId);
           if (
             timeReceived &&
             Date.now() - timeReceived > this.receivedMessageTimeout
           ) {
+            this.safeSendEvent(MessageChannelEvent.InMessageIrretrievablyLost, {
+              detail: Array.from(missingDependencies)
+            });
             return { buffer, missing };
           }
         }
