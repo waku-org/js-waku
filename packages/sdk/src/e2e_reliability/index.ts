@@ -142,7 +142,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   ) => Promise<boolean>;
 
   private readonly syncMinIntervalMs: number;
-  private syncInterval: ReturnType<typeof setInterval> | undefined;
+  private syncTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private constructor(
     public node: IWaku,
@@ -338,8 +338,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   private restartSync(): void {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
     }
     if (this.syncMinIntervalMs) {
       // wait up to the interval threshold
@@ -349,13 +349,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
       // random is between 0.1 and 1
       const random = this.random() * 0.9 + 0.1;
-      const intervalMs = random * this.syncMinIntervalMs;
+      const timeoutMs = random * this.syncMinIntervalMs;
 
-      this.syncInterval = setInterval(() => {
+      this.syncTimeout = setTimeout(() => {
         void this.sendSyncMessage();
         // Always restart a sync, no matter whether the message was sent.
         void this.restartSync();
-      }, intervalMs);
+      }, timeoutMs);
     }
   }
 
@@ -455,7 +455,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.InSyncReceived,
       (_event) => {
-        // restart the interval when a sync message has been received
+        // restart the timeout when a sync message has been received
         this.restartSync();
       }
     );
@@ -463,7 +463,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.InMessageReceived,
       (event) => {
-        // restart the interval when a non-ephemeral message has been received
+        // restart the timeout when a non-ephemeral message has been received
         if (!event.detail.lamportTimestamp) {
           this.restartSync();
         }
@@ -473,7 +473,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.OutMessageSent,
       (event) => {
-        // restart the interval when a non-ephemeral message has been sent
+        // restart the timeout when a non-ephemeral message has been sent
         if (!event.detail.lamportTimestamp) {
           this.restartSync();
         }
