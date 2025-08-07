@@ -381,7 +381,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.restartSync();
   }
 
-  private restartSync(): void {
+  private restartSync(multiplier: number = 1): void {
     if (this.syncTimeout) {
       clearTimeout(this.syncTimeout);
     }
@@ -393,12 +393,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
       // random is between 0.1 and 1
       const random = this.random() * 0.9 + 0.1;
-      const timeoutMs = random * this.syncMinIntervalMs;
+      const timeoutMs = random * this.syncMinIntervalMs * multiplier;
 
       this.syncTimeout = setTimeout(() => {
         void this.sendSyncMessage();
         // Always restart a sync, no matter whether the message was sent.
-        void this.restartSync();
+        // Set a multiplier so we wait a bit longer to not hog the conversation
+        void this.restartSync(2);
       }, timeoutMs);
     }
   }
