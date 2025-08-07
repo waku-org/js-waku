@@ -464,5 +464,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
       }
     );
+
+    this.messageChannel.addEventListener(
+      SdsMessageChannelEvent.OutMessageSent,
+      (event) => {
+        // restart the interval when a non-ephemeral message has been sent
+        if (!event.detail.lamportTimestamp) {
+          this.restartSync();
+        }
+      }
+    );
   }
 }
