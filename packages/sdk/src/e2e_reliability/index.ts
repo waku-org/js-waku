@@ -347,7 +347,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       // missing messages or the status of previous outgoing messages
       this.messageChannel.pushIncomingMessage(sdsMessage);
 
-      if (sdsMessage.content) {
+      if (sdsMessage.content && sdsMessage.content.length > 0) {
         // Now, process the message with callback
 
         // Overrides msg.payload with unwrapped payload
