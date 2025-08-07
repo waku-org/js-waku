@@ -23,7 +23,8 @@ import {
   Protocols,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { createRoutingInfo } from "@waku/utils";
+import { MessageChannelEvent as SdsMessageChannelEvent } from "@waku/sds";
+import { createRoutingInfo, delay } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
@@ -484,5 +485,54 @@ describe("E2E Reliability", () => {
     await messageChannel.send(message);
 
     expect(bytesToUtf8(receivedMessage!.payload)).to.eq(bytesToUtf8(message));
+  });
+
+  it("Sync message is sent within sync frequency", async () => {
+    const syncMessageFrequencyMs = 100;
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: syncMessageFrequencyMs
+      }
+    );
+
+    let syncMessageSent = false;
+    messageChannel.messageChannel.addEventListener(
+      SdsMessageChannelEvent.OutSyncSent,
+      (_event) => {
+        syncMessageSent = true;
+      }
+    );
+
+    await delay(syncMessageFrequencyMs);
+
+    expect(syncMessageSent).to.be.true;
+  });
+
+  it("Sync message are not sent excessively within sync frequency", async () => {
+    const syncMessageFrequencyMs = 100;
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: syncMessageFrequencyMs
+      }
+    );
+
+    let syncMessageSentCount = 0;
+    messageChannel.messageChannel.addEventListener(
+      SdsMessageChannelEvent.OutSyncSent,
+      (_event) => {
+        syncMessageSentCount++;
+      }
+    );
+
+    await delay(syncMessageFrequencyMs);
+
+    // There is randomness to this, but it should not be excessive
+    expect(syncMessageSentCount).to.be.lessThan(3);
   });
 });

@@ -12,15 +12,17 @@ import {
   SDKProtocolResult
 } from "@waku/interfaces";
 import {
-  HistoryEntry,
-  type MessageChannelOptions,
+  type HistoryEntry,
   Message as SdsMessage,
   MessageChannel as SdsMessageChannel,
-  MessageChannelEvent as SdsMessageChannelEvent
+  MessageChannelEvent as SdsMessageChannelEvent,
+  type MessageChannelOptions as SdsMessageChannelOptions
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("sdk:e2e-reliability");
+
+const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 
 const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.ENCODE_FAILED,
@@ -105,6 +107,21 @@ export type MessageChannelEvents = {
   }>;
 };
 
+export type MessageChannelOptions = SdsMessageChannelOptions & {
+  /**
+   * The minimum interval between 2 sync messages in the channel.
+   *
+   * Meaning, how frequently we want messages in the channel, noting that the
+   * responsibility of sending a sync messages is shared between participants
+   * of the channel.
+   *
+   * `0` means no sync messages will be sent.
+   *
+   * @default 30,000 (30 seconds) [[DEFAULT_SYNC_MIN_INTERVAL_MS]]
+   */
+  syncMinIntervalMs?: number;
+};
+
 /**
  * Use events to track:
  * - if your outgoing messages are sent, acknowledged or error out
@@ -124,10 +141,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     callback: Callback<T>
   ) => Promise<boolean>;
 
+  private readonly syncMinIntervalMs: number;
+  private syncInterval: ReturnType<typeof setInterval> | undefined;
+
   private constructor(
     public node: IWaku,
     public messageChannel: SdsMessageChannel,
-    private encoder: IEncoder
+    private encoder: IEncoder,
+    options?: MessageChannelOptions
   ) {
     super();
     if (node.lightPush) {
@@ -147,6 +168,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     } else {
       throw "No protocol available to receive messages";
     }
+
+    this.syncMinIntervalMs =
+      options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS;
 
     this.setupEventListeners();
   }
@@ -176,16 +200,24 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param node The waku node to use to send and receive messages
    * @param channelId An id for the channel, all participants of the channel should use the same id
    * @param encoder A channel operates within a singular encryption layer, hence the same encoder is needed for all messages
-   * @param channelOptions
+   * @param options
    */
   public static create(
     node: IWaku,
     channelId: string,
     encoder: IEncoder,
-    channelOptions?: MessageChannelOptions
+    options?: MessageChannelOptions
   ): MessageChannel {
-    const sdsMessageChannel = new SdsMessageChannel(channelId, channelOptions);
-    return new MessageChannel(node, sdsMessageChannel, encoder);
+    const sdsMessageChannel = new SdsMessageChannel(channelId, options);
+    const messageChannel = new MessageChannel(
+      node,
+      sdsMessageChannel,
+      encoder,
+      options
+    );
+
+    messageChannel.start();
+    return messageChannel;
   }
 
   /**
@@ -301,6 +333,27 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     });
   }
 
+  private start(): void {
+    this.restartSync();
+  }
+
+  private restartSync(): void {
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+    }
+    if (this.syncMinIntervalMs) {
+      // wait up to the interval threshold
+      // random wait so that not all participants send a message at the same time.
+      const intervalMs = Math.random() * this.syncMinIntervalMs;
+
+      this.syncInterval = setInterval(() => {
+        void this.sendSyncMessage();
+        // Always restart a sync, no matter if a message was sent.
+        void this.restartSync();
+      }, intervalMs);
+    }
+  }
+
   private safeSendEvent<T extends MessageChannelEvent>(
     event: T,
     eventInit?: CustomEventInit
@@ -310,6 +363,41 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     } catch (error) {
       log.error(`Failed to dispatch event ${event}:`, error);
     }
+  }
+
+  private async sendSyncMessage(): Promise<void> {
+    await this.messageChannel.pushOutgoingSyncMessage(
+      async (sdsMessage: SdsMessage): Promise<boolean> => {
+        // Callback is called once message has added to the SDS outgoing queue
+        // We start by trying to send the message now.
+
+        // `payload` wrapped in SDS
+        const sdsPayload = sdsMessage.encode();
+
+        const wakuMessage = {
+          payload: sdsPayload
+        };
+
+        // TODO: should the encoder give me the message hash?
+        // Encoding now to fail early, used later to get message hash
+        const protoMessage = await this.encoder.toProtoObj(wakuMessage);
+        if (!protoMessage) {
+          return false;
+        }
+
+        const sendRes = await this._send(this.encoder, wakuMessage);
+        if (sendRes.failures.length > 0) {
+          log.error("Error sending sync message: ", sendRes);
+          return false;
+        }
+
+        return true;
+      }
+    );
+
+    // Process outgoing messages straight away
+    // TODO: review and optimize
+    await this.messageChannel.processTasks();
   }
 
   private setupEventListeners(): void {
