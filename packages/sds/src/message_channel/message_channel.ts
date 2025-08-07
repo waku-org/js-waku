@@ -239,6 +239,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       missing: Set<HistoryEntry>;
     }>(
       ({ buffer, missing }, message) => {
+        log.info(
+          this.senderId,
+          "sweeping incoming buffer",
+          message.messageId,
+          message.causalHistory.map((ch) => ch.messageId)
+        );
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
             !this.localHistory.some(
@@ -254,6 +260,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           }
           return { buffer, missing };
         }
+        log.info(
+          this.senderId,
+          message.messageId,
+          "is missing dependencies",
+          missingDependencies.map((ch) => ch.messageId)
+        );
 
         // Optionally, if a message has not been received after a predetermined amount of time,
         // its dependencies are marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
@@ -396,15 +408,24 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (message.content?.length && message.content.length > 0) {
       this.filter.insert(message.messageId);
     }
-    const dependenciesMet = message.causalHistory.every((historyEntry) =>
-      this.localHistory.some(
-        ({ historyEntry: { messageId } }) =>
-          messageId === historyEntry.messageId
-      )
+
+    const missingDependencies = message.causalHistory.filter(
+      (messageHistoryEntry) =>
+        !this.localHistory.some(
+          ({ historyEntry: { messageId } }) =>
+            messageId === messageHistoryEntry.messageId
+        )
     );
-    if (!dependenciesMet) {
+
+    if (missingDependencies.length > 0) {
       this.incomingBuffer.push(message);
       this.timeReceived.set(message.messageId, Date.now());
+      log.info(
+        this.senderId,
+        message.messageId,
+        "is missing dependencies",
+        missingDependencies.map((ch) => ch.messageId)
+      );
     } else {
       if (this.deliverMessage(message)) {
         this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
@@ -552,6 +573,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return false;
     }
 
+    log.info(this.senderId, "delivering message", message.messageId);
     if (message.lamportTimestamp > this.lamportTimestamp) {
       this.lamportTimestamp = message.lamportTimestamp;
     }
@@ -581,6 +603,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   // to determine the acknowledgement status of messages in the outgoing buffer.
   // See https://rfc.vac.dev/vac/raw/sds/#review-ack-status
   private reviewAckStatus(receivedMessage: Message): void {
+    log.info(
+      this.senderId,
+      "reviewing ack status using:",
+      receivedMessage.causalHistory.map((ch) => ch.messageId)
+    );
+    log.info(
+      this.senderId,
+      "current outgoing buffer:",
+      this.outgoingBuffer.map((b) => b.messageId)
+    );
     receivedMessage.causalHistory.forEach(({ messageId }) => {
       this.outgoingBuffer = this.outgoingBuffer.filter(
         ({ messageId: outgoingMessageId }) => {
