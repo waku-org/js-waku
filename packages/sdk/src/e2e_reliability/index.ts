@@ -343,8 +343,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
     if (this.syncMinIntervalMs) {
       // wait up to the interval threshold
-      // random wait so that not all participants send a message at the same time.
-      const intervalMs = this.random() * this.syncMinIntervalMs;
+      // random wait so that not all participants send a message at the same time
+      // Also holding by 100ms as there is network propagation and a surge
+      // Of sync messages would not be helpful to anyone
+
+      // random is between 0.1 and 1
+      const random = this.random() * 0.9 + 0.1;
+      const intervalMs = random * this.syncMinIntervalMs;
 
       this.syncInterval = setInterval(() => {
         void this.sendSyncMessage();
