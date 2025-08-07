@@ -644,84 +644,84 @@ describe("E2E Reliability", () => {
       await delay(200);
       expect(syncMessageSent).to.be.true;
     });
-  });
 
-  it("Sync message is not sent if another sync message was just sent", async function () {
-    this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+    it("Sync message is not sent if another sync message was just sent", async function () {
+      this.timeout(5000);
+      const syncMinIntervalMs = 1000;
 
-    const messageChannel = MessageChannel.create(
-      mockWakuNode,
-      "MyChannel",
-      encoder,
-      { syncMinIntervalMs }
-    );
-    (messageChannel as any).random = () => {
-      return 1;
-    }; // will wait a full second
+      const messageChannel = MessageChannel.create(
+        mockWakuNode,
+        "MyChannel",
+        encoder,
+        { syncMinIntervalMs }
+      );
+      (messageChannel as any).random = () => {
+        return 1;
+      }; // will wait a full second
 
-    let syncMessageSent = false;
-    messageChannel.messageChannel.addEventListener(
-      SdsMessageChannelEvent.OutSyncSent,
-      (_event) => {
-        syncMessageSent = true;
+      let syncMessageSent = false;
+      messageChannel.messageChannel.addEventListener(
+        SdsMessageChannelEvent.OutSyncSent,
+        (_event) => {
+          syncMessageSent = true;
+        }
+      );
+
+      while (!syncMessageSent) {
+        // Will send a sync message as soon as it started, we are waiting for this one
+        await delay(100);
       }
-    );
+      // Let's reset the tracker
+      syncMessageSent = false;
+      // We should be faster than automated sync as it will "randomly" wait a full second
+      await messageChannel.sendSyncMessage();
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
-    // Let's reset the tracker
-    syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
-    await messageChannel.sendSyncMessage();
+      // should be waiting a full second before sending a message after Alice
+      await delay(900);
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
+      // Now, let's wait to send the automated sync message
+      await delay(200);
+      expect(syncMessageSent).to.be.true;
+    });
 
-    // Now, let's wait to send the automated sync message
-    await delay(200);
-    expect(syncMessageSent).to.be.true;
-  });
+    it("Sync message is not sent if another non-ephemeral message was just sent", async function () {
+      this.timeout(5000);
+      const syncMinIntervalMs = 1000;
 
-  it("Sync message is not sent if another non-ephemeral message was just sent", async function () {
-    this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+      const messageChannel = MessageChannel.create(
+        mockWakuNode,
+        "MyChannel",
+        encoder,
+        { syncMinIntervalMs }
+      );
+      (messageChannel as any).random = () => {
+        return 1;
+      }; // will wait a full second
 
-    const messageChannel = MessageChannel.create(
-      mockWakuNode,
-      "MyChannel",
-      encoder,
-      { syncMinIntervalMs }
-    );
-    (messageChannel as any).random = () => {
-      return 1;
-    }; // will wait a full second
+      let syncMessageSent = false;
+      messageChannel.messageChannel.addEventListener(
+        SdsMessageChannelEvent.OutSyncSent,
+        (_event) => {
+          syncMessageSent = true;
+        }
+      );
 
-    let syncMessageSent = false;
-    messageChannel.messageChannel.addEventListener(
-      SdsMessageChannelEvent.OutSyncSent,
-      (_event) => {
-        syncMessageSent = true;
+      while (!syncMessageSent) {
+        // Will send a sync message as soon as it started, we are waiting for this one
+        await delay(100);
       }
-    );
+      // Let's reset the tracker
+      syncMessageSent = false;
+      // We should be faster than automated sync as it will "randomly" wait a full second
+      await messageChannel.send(utf8ToBytes("non-ephemeral message"));
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
-    // Let's reset the tracker
-    syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
-    await messageChannel.send(utf8ToBytes("non-ephemeral message"));
+      // should be waiting a full second before sending a message after Alice
+      await delay(900);
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
-
-    // Now, let's wait to send the automated sync message
-    await delay(200);
-    expect(syncMessageSent).to.be.true;
+      // Now, let's wait to send the automated sync message
+      await delay(200);
+      expect(syncMessageSent).to.be.true;
+    });
   });
 
   describe("Retries", () => {
