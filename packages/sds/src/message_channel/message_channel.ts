@@ -383,12 +383,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
+    // Ephemeral messages SHOULD be delivered immediately
     if (!message.lamportTimestamp) {
       this.deliverMessage(message);
       return;
     }
     if (message.content?.length === 0) {
-      this.safeSendEvent(MessageChannelEvent.InSyncDelivered, {
+      this.safeSendEvent(MessageChannelEvent.InSyncReceived, {
         detail: message
       });
     } else {
