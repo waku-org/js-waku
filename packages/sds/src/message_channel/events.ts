@@ -16,11 +16,13 @@ export enum MessageChannelEvent {
 export type MessageId = string;
 export type HistoryEntry = proto_sds_message.HistoryEntry;
 export type ChannelId = string;
+export type SenderId = string;
 
 export class Message implements proto_sds_message.SdsMessage {
   public constructor(
     public messageId: string,
     public channelId: string,
+    public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
     public lamportTimestamp?: number | undefined,
     public bloomFilter?: Uint8Array<ArrayBufferLike> | undefined,
@@ -35,6 +37,7 @@ export class Message implements proto_sds_message.SdsMessage {
     const {
       messageId,
       channelId,
+      senderId,
       causalHistory,
       lamportTimestamp,
       bloomFilter,
@@ -43,6 +46,7 @@ export class Message implements proto_sds_message.SdsMessage {
     return new Message(
       messageId,
       channelId,
+      senderId,
       causalHistory,
       lamportTimestamp,
       bloomFilter,

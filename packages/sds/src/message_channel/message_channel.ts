@@ -7,12 +7,13 @@ import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
 import { Command, Handlers, ParamsByAction, Task } from "./command_queue.js";
 import {
-  ChannelId,
-  HistoryEntry,
+  type ChannelId,
+  type HistoryEntry,
   Message,
   MessageChannelEvent,
   MessageChannelEvents,
-  type MessageId
+  type MessageId,
+  type SenderId
 } from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -43,6 +44,7 @@ export interface MessageChannelOptions {
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
+  public readonly senderId: SenderId;
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
@@ -50,8 +52,6 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
   private timeReceived: Map<MessageId, number>;
-  // TODO: To be removed once sender id is added to SDS protocol
-  private outgoingMessages: Set<MessageId>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
   private readonly timeoutToMarkMessageIrretrievableMs?: number;
@@ -77,10 +77,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   public constructor(
     channelId: ChannelId,
+    senderId: SenderId,
     options: MessageChannelOptions = {}
   ) {
     super();
     this.channelId = channelId;
+    this.senderId = senderId;
     this.lamportTimestamp = 0;
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
@@ -95,7 +97,6 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.timeReceived = new Map();
     this.timeoutToMarkMessageIrretrievableMs =
       options.timeoutToMarkMessageIrretrievableMs;
-    this.outgoingMessages = new Set();
   }
 
   public static getMessageId(payload: Uint8Array): MessageId {
@@ -338,6 +339,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     const message = new Message(
       MessageChannel.getMessageId(emptyMessage),
       this.channelId,
+      this.senderId,
       this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
@@ -374,11 +376,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
-    const isOwnOutgoingMessage =
-      message.content &&
-      message.content.length > 0 &&
-      this.outgoingMessages.has(MessageChannel.getMessageId(message.content));
-
+    const isOwnOutgoingMessage = this.senderId === message.senderId;
     if (isOwnOutgoingMessage) {
       return;
     }
@@ -458,11 +456,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const messageId = MessageChannel.getMessageId(payload);
 
-    this.outgoingMessages.add(messageId);
-
     const message = new Message(
       messageId,
       this.channelId,
+      this.senderId,
       this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
@@ -504,6 +501,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     const message = new Message(
       MessageChannel.getMessageId(payload),
       this.channelId,
+      this.senderId,
       [],
       undefined,
       undefined,

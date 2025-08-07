@@ -10,7 +10,8 @@ export {
   Message,
   type HistoryEntry,
   type ChannelId,
-  type MessageChannelEvents
+  type MessageChannelEvents,
+  type SenderId
 } from "./message_channel/index.js";
 
 export { BloomFilter };

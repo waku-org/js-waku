@@ -56,7 +56,7 @@ describe("MessageChannel", function () {
 
   describe("sending a message ", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, "alice");
     });
 
     it("should increase lamport timestamp", async () => {
@@ -138,8 +138,8 @@ describe("MessageChannel", function () {
 
   describe("receiving a message", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
-      channelB = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, "alice");
+      channelB = new MessageChannel(channelId, "bob");
     });
 
     it("should increase lamport timestamp", async () => {
@@ -246,8 +246,10 @@ describe("MessageChannel", function () {
 
   describe("reviewing ack status", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
-      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelA = new MessageChannel(channelId, "alice", {
+        causalHistorySize: 2
+      });
+      channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
     });
 
     it("should mark all messages in causal history as acknowledged", async () => {
@@ -414,8 +416,10 @@ describe("MessageChannel", function () {
 
   describe("Sweeping incoming buffer", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
-      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelA = new MessageChannel(channelId, "alice", {
+        causalHistorySize: 2
+      });
+      channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
     });
 
     it("should detect messages with missing dependencies", async () => {
@@ -497,7 +501,7 @@ describe("MessageChannel", function () {
 
     it("should mark a message as irretrievably lost if timeout is exceeded", async () => {
       // Create a channel with very very short timeout
-      const channelC: MessageChannel = new MessageChannel(channelId, {
+      const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
         timeoutToMarkMessageIrretrievableMs: 10
       });
 
@@ -541,7 +545,7 @@ describe("MessageChannel", function () {
     it("should remove messages without delivering if timeout is exceeded", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
-      const channelC: MessageChannel = new MessageChannel(channelId, {
+      const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
         timeoutToMarkMessageIrretrievableMs: 10
       });
 
@@ -573,8 +577,10 @@ describe("MessageChannel", function () {
 
   describe("Sweeping outgoing buffer", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
-      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelA = new MessageChannel(channelId, "alice", {
+        causalHistorySize: 2
+      });
+      channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
     });
 
     it("should partition messages based on acknowledgement status", async () => {
@@ -616,8 +622,10 @@ describe("MessageChannel", function () {
 
   describe("Sync messages", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId, { causalHistorySize: 2 });
-      channelB = new MessageChannel(channelId, { causalHistorySize: 2 });
+      channelA = new MessageChannel(channelId, "alice", {
+        causalHistorySize: 2
+      });
+      channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
     });
 
     it("should be sent with empty content", async () => {
@@ -689,7 +697,7 @@ describe("MessageChannel", function () {
 
   describe("Ephemeral messages", () => {
     beforeEach(() => {
-      channelA = new MessageChannel(channelId);
+      channelA = new MessageChannel(channelId, "alice");
     });
 
     it("should be sent without a timestamp, causal history, or bloom filter", async () => {
@@ -712,7 +720,7 @@ describe("MessageChannel", function () {
     });
 
     it("should be delivered immediately if received", async () => {
-      const channelB = new MessageChannel(channelId);
+      const channelB = new MessageChannel(channelId, "bob");
 
       // Track initial state
       const localHistoryBefore = (channelB as any).localHistory.length;
