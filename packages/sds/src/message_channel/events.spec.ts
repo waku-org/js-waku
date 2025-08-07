@@ -15,6 +15,7 @@ describe("Message serialization", () => {
     const message = new Message(
       "123",
       "my-channel",
+      "me",
       [],
       0,
       bloomFilter.toBytes(),

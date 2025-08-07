@@ -81,6 +81,7 @@ export namespace HistoryEntry {
 }
 
 export interface SdsMessage {
+  senderId: string
   messageId: string
   channelId: string
   lamportTimestamp?: number
@@ -97,6 +98,11 @@ export namespace SdsMessage {
       _codec = message<SdsMessage>((obj, w, opts = {}) => {
         if (opts.lengthDelimited !== false) {
           w.fork()
+        }
+
+        if ((obj.senderId != null && obj.senderId !== '')) {
+          w.uint32(10)
+          w.string(obj.senderId)
         }
 
         if ((obj.messageId != null && obj.messageId !== '')) {
@@ -136,6 +142,7 @@ export namespace SdsMessage {
         }
       }, (reader, length, opts = {}) => {
         const obj: any = {
+          senderId: '',
           messageId: '',
           channelId: '',
           causalHistory: []
@@ -147,6 +154,10 @@ export namespace SdsMessage {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
+            case 1: {
+              obj.senderId = reader.string()
+              break
+            }
             case 2: {
               obj.messageId = reader.string()
               break
