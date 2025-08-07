@@ -578,6 +578,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.lamportTimestamp = message.lamportTimestamp;
     }
 
+    // Check if the entry is already present
+    const existingHistoryEntry = this.localHistory.find(
+      ({ historyEntry }) => historyEntry.messageId === message.messageId
+    );
+
+    // The history entry is already present, no need to re-add
+    if (existingHistoryEntry) {
+      return true;
+    }
+
     // The participant MUST insert the message ID into its local log,
     // based on Lamport timestamp.
     // If one or more message IDs with the same Lamport timestamp already exists,
