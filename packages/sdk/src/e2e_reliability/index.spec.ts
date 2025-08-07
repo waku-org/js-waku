@@ -535,4 +535,112 @@ describe("E2E Reliability", () => {
     // There is randomness to this, but it should not be excessive
     expect(syncMessageSentCount).to.be.lessThan(3);
   });
+
+  it("Sync message is not sent if another sync message was received", async function () {
+    this.timeout(5000);
+
+    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+    const syncMessageFrequencyMs = 1000;
+
+    const messageChannelAlice = MessageChannel.create(
+      mockWakuNodeAlice,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: 0 // does not send sync messages automatically
+      }
+    );
+    const messageChannelBob = MessageChannel.create(
+      mockWakuNodeBob,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: syncMessageFrequencyMs
+      }
+    );
+    (messageChannelBob as any).random = () => {
+      return 1;
+    }; // will wait a full second
+
+    let syncMessageSent = false;
+    messageChannelBob.messageChannel.addEventListener(
+      SdsMessageChannelEvent.OutSyncSent,
+      (_event) => {
+        syncMessageSent = true;
+      }
+    );
+
+    while (!syncMessageSent) {
+      // Bob will send a sync message as soon as it started, we are waiting for this one
+      await delay(100);
+    }
+    // Let's reset the tracker
+    syncMessageSent = false;
+    // We should be faster than Bob as Bob will "randomly" wait a full second
+    await messageChannelAlice.sendSyncMessage();
+
+    // Bob should be waiting a full second before sending a message after Alice
+    await delay(900);
+
+    // Now, let's wait Bob to send the sync message
+    await delay(200);
+    expect(syncMessageSent).to.be.true;
+  });
+
+  it("Sync message is not sent if another non-ephemeral message was received", async function () {
+    this.timeout(5000);
+
+    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+    const syncMessageFrequencyMs = 1000;
+
+    const messageChannelAlice = MessageChannel.create(
+      mockWakuNodeAlice,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: 0 // does not send sync messages automatically
+      }
+    );
+    const messageChannelBob = MessageChannel.create(
+      mockWakuNodeBob,
+      "MyChannel",
+      encoder,
+      {
+        syncMinIntervalMs: syncMessageFrequencyMs
+      }
+    );
+    (messageChannelBob as any).random = () => {
+      return 1;
+    }; // will wait a full second
+
+    let syncMessageSent = false;
+    messageChannelBob.messageChannel.addEventListener(
+      SdsMessageChannelEvent.OutSyncSent,
+      (_event) => {
+        syncMessageSent = true;
+      }
+    );
+
+    while (!syncMessageSent) {
+      // Bob will send a sync message as soon as it started, we are waiting for this one
+      await delay(100);
+    }
+    // Let's reset the tracker
+    syncMessageSent = false;
+    // We should be faster than Bob as Bob will "randomly" wait a full second
+    await messageChannelAlice.send(utf8ToBytes("some message"));
+
+    // Bob should be waiting a full second before sending a message after Alice
+    await delay(900);
+
+    // Now, let's wait Bob to send the sync message
+    await delay(200);
+    expect(syncMessageSent).to.be.true;
+  });
 });

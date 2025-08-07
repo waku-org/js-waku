@@ -344,14 +344,19 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (this.syncMinIntervalMs) {
       // wait up to the interval threshold
       // random wait so that not all participants send a message at the same time.
-      const intervalMs = Math.random() * this.syncMinIntervalMs;
+      const intervalMs = this.random() * this.syncMinIntervalMs;
 
       this.syncInterval = setInterval(() => {
         void this.sendSyncMessage();
-        // Always restart a sync, no matter if a message was sent.
+        // Always restart a sync, no matter whether the message was sent.
         void this.restartSync();
       }, intervalMs);
     }
+  }
+
+  // Used to enable overriding when testing
+  private random(): number {
+    return Math.random();
   }
 
   private safeSendEvent<T extends MessageChannelEvent>(
@@ -365,7 +370,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
   }
 
-  private async sendSyncMessage(): Promise<void> {
+  public async sendSyncMessage(): Promise<void> {
+    log.info("Sending Sync Message");
     await this.messageChannel.pushOutgoingSyncMessage(
       async (sdsMessage: SdsMessage): Promise<boolean> => {
         // Callback is called once message has added to the SDS outgoing queue
@@ -437,6 +443,24 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
               }
             }
           );
+        }
+      }
+    );
+
+    this.messageChannel.addEventListener(
+      SdsMessageChannelEvent.InSyncReceived,
+      (_event) => {
+        // restart the interval when a sync message has been received
+        this.restartSync();
+      }
+    );
+
+    this.messageChannel.addEventListener(
+      SdsMessageChannelEvent.InMessageReceived,
+      (event) => {
+        // restart the interval when a non-ephemeral message has been received
+        if (!event.detail.lamportTimestamp) {
+          this.restartSync();
         }
       }
     );
