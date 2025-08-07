@@ -12,11 +12,13 @@ import {
   SDKProtocolResult
 } from "@waku/interfaces";
 import {
+  type ChannelId,
   type HistoryEntry,
   Message as SdsMessage,
   MessageChannel as SdsMessageChannel,
   MessageChannelEvent as SdsMessageChannelEvent,
-  type MessageChannelOptions as SdsMessageChannelOptions
+  type MessageChannelOptions as SdsMessageChannelOptions,
+  type SenderId
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
@@ -226,16 +228,22 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param node The waku node to use to send and receive messages
    * @param channelId An id for the channel, all participants of the channel should use the same id
+   * @param senderId An id for the sender, to ensure acknowledgements are only valid if originating from someone else; best if persisted between sessions
    * @param encoder A channel operates within a singular encryption layer, hence the same encoder is needed for all messages
    * @param options
    */
   public static create(
     node: IWaku,
-    channelId: string,
+    channelId: ChannelId,
+    senderId: SenderId,
     encoder: IEncoder,
     options?: MessageChannelOptions
   ): MessageChannel {
-    const sdsMessageChannel = new SdsMessageChannel(channelId, options);
+    const sdsMessageChannel = new SdsMessageChannel(
+      channelId,
+      senderId,
+      options
+    );
     const messageChannel = new MessageChannel(
       node,
       sdsMessageChannel,
@@ -253,7 +261,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param messagePayload
    */
-  // TODO: check we are listening before sending other SDS cannot work.
+  // TODO: check we are listening before sending otherwise SDS cannot work.
   public async send(messagePayload: Uint8Array): Promise<void> {
     const send = this.send_.bind(this, messagePayload);
     const messageId = MessageChannel.getMessageId(messagePayload);

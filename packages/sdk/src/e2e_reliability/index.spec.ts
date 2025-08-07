@@ -200,6 +200,7 @@ describe("E2E Reliability", () => {
     const messageChannel = MessageChannel.create(
       mockWakuNode,
       "MyChannel",
+      "alice",
       encoder
     );
 
@@ -229,6 +230,7 @@ describe("E2E Reliability", () => {
     const messageChannel = MessageChannel.create(
       mockWakuNode,
       "MyChannel",
+      "alice",
       encoder
     );
 
@@ -269,6 +271,7 @@ describe("E2E Reliability", () => {
     const messageChannel = MessageChannel.create(
       mockWakuNode,
       "MyChannel",
+      "alice",
       encoder
     );
 
@@ -303,11 +306,13 @@ describe("E2E Reliability", () => {
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
+      "alice",
       encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
       "MyChannel",
+      "bob",
       encoder
     );
 
@@ -342,6 +347,7 @@ describe("E2E Reliability", () => {
     const messageChannel = MessageChannel.create(
       mockWakuNode,
       "MyChannel",
+      "alice",
       encoder
     );
 
@@ -378,11 +384,13 @@ describe("E2E Reliability", () => {
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
+      "alice",
       encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
       "MyChannel",
+      "bob",
       encoder,
       // Bob only includes one message in causal history
       { causalHistorySize: 1 }
@@ -427,11 +435,13 @@ describe("E2E Reliability", () => {
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
+      "alice",
       encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
       "MyChannel",
+      "bob",
       encoder
     );
 
@@ -466,6 +476,7 @@ describe("E2E Reliability", () => {
     const messageChannel = MessageChannel.create(
       mockWakuNode,
       "MyChannel",
+      "alice",
       encoder
     );
 
@@ -493,6 +504,7 @@ describe("E2E Reliability", () => {
       const messageChannel = MessageChannel.create(
         mockWakuNode,
         "MyChannel",
+        "alice",
         encoder,
         {
           syncMinIntervalMs
@@ -517,6 +529,7 @@ describe("E2E Reliability", () => {
       const messageChannel = MessageChannel.create(
         mockWakuNode,
         "MyChannel",
+        "alice",
         encoder,
         {
           syncMinIntervalMs
@@ -549,6 +562,7 @@ describe("E2E Reliability", () => {
       const messageChannelAlice = MessageChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
+        "alice",
         encoder,
         {
           syncMinIntervalMs: 0 // does not send sync messages automatically
@@ -557,6 +571,7 @@ describe("E2E Reliability", () => {
       const messageChannelBob = MessageChannel.create(
         mockWakuNodeBob,
         "MyChannel",
+        "bob",
         encoder,
         {
           syncMinIntervalMs
@@ -603,6 +618,7 @@ describe("E2E Reliability", () => {
       const messageChannelAlice = MessageChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
+        "alice",
         encoder,
         {
           syncMinIntervalMs: 0 // does not send sync messages automatically
@@ -611,6 +627,7 @@ describe("E2E Reliability", () => {
       const messageChannelBob = MessageChannel.create(
         mockWakuNodeBob,
         "MyChannel",
+        "bob",
         encoder,
         {
           syncMinIntervalMs
@@ -652,6 +669,7 @@ describe("E2E Reliability", () => {
       const messageChannel = MessageChannel.create(
         mockWakuNode,
         "MyChannel",
+        "alice",
         encoder,
         { syncMinIntervalMs }
       );
@@ -691,6 +709,7 @@ describe("E2E Reliability", () => {
       const messageChannel = MessageChannel.create(
         mockWakuNode,
         "MyChannel",
+        "alice",
         encoder,
         { syncMinIntervalMs }
       );
@@ -728,6 +747,7 @@ describe("E2E Reliability", () => {
       const messageChannel = MessageChannel.create(
         mockWakuNode,
         "MyChannel",
+        "alice",
         encoder,
         {
           syncMinIntervalMs
@@ -737,15 +757,18 @@ describe("E2E Reliability", () => {
       const subRes = await messageChannel.subscribe(decoder);
       expect(subRes).to.be.true;
 
+      const msg = utf8ToBytes("some message");
+      const msgId = MessageChannel.getMessageId(msg);
+
       let messageAcknowledged = false;
       messageChannel.messageChannel.addEventListener(
         SdsMessageChannelEvent.OutMessageAcknowledged,
-        (_event) => {
-          messageAcknowledged = true;
+        (event) => {
+          if (event.detail === msgId) messageAcknowledged = true;
         }
       );
 
-      await messageChannel.send(utf8ToBytes("some message"));
+      await messageChannel.send(msg);
 
       await delay(syncMinIntervalMs * 2);
 
@@ -763,6 +786,7 @@ describe("E2E Reliability", () => {
       const messageChannelAlice = MessageChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
+        "alice",
         encoder,
         {
           retryIntervalMs: 100 // faster for a quick test
@@ -771,6 +795,7 @@ describe("E2E Reliability", () => {
       const messageChannelBob = MessageChannel.create(
         mockWakuNodeBob,
         "MyChannel",
+        "bob",
         encoder,
         {
           maxRetryAttempts: 0 // This one does not perform retries
