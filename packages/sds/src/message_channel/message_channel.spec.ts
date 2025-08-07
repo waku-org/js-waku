@@ -429,23 +429,17 @@ describe("MessageChannel", function () {
 
       await sendMessage(channelA, firstMessage, callback);
 
-      await sendMessage(
-        channelA,
-        utf8ToBytes("second message"),
-        async (message) => {
-          await receiveMessage(channelB, message);
-          return { success: true };
-        }
-      );
+      const secondMessage = utf8ToBytes("second message");
+      await sendMessage(channelA, secondMessage, async (message) => {
+        await receiveMessage(channelB, message);
+        return { success: true };
+      });
 
-      await sendMessage(
-        channelB,
-        utf8ToBytes("message back, will it ack first message?"),
-        async (message) => {
-          await receiveMessage(channelA, message);
-          return { success: true };
-        }
-      );
+      const thirdMessage = utf8ToBytes("third message");
+      await sendMessage(channelB, thirdMessage, async (message) => {
+        await receiveMessage(channelA, message);
+        return { success: true };
+      });
 
       expect(messageAcked).to.be.false;
 
