@@ -205,10 +205,10 @@ describe("E2E Reliability", () => {
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: utf8ToBytes("message in channel") };
+    const message = utf8ToBytes("message in channel");
 
     // Setting up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let messageSending = false;
     messageChannel.addEventListener(
       MessageChannelEvent.OutMessageSending,
@@ -234,10 +234,10 @@ describe("E2E Reliability", () => {
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: utf8ToBytes("message in channel") };
+    const message = utf8ToBytes("message in channel");
 
     // Setting up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let messageSent = false;
     messageChannel.addEventListener(
       MessageChannelEvent.OutMessageSent,
@@ -274,10 +274,10 @@ describe("E2E Reliability", () => {
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: new Uint8Array() };
+    const message = new Uint8Array();
 
     // Setting up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let irrecoverableError = false;
     messageChannel.addEventListener(
       MessageChannelEvent.OutMessageIrrecoverableError,
@@ -315,10 +315,10 @@ describe("E2E Reliability", () => {
     subRes = await messageChannelBob.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: utf8ToBytes("first message in channel") };
+    const message = utf8ToBytes("first message in channel");
 
     // Alice sets up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let messageAcknowledged = false;
     messageChannelAlice.addEventListener(
       MessageChannelEvent.OutMessageAcknowledged,
@@ -332,9 +332,7 @@ describe("E2E Reliability", () => {
     await messageChannelAlice.send(message);
 
     // Bobs sends a message now, it should include first one in causal history
-    await messageChannelBob.send({
-      payload: utf8ToBytes("second message in channel")
-    });
+    await messageChannelBob.send(utf8ToBytes("second message in channel"));
 
     expect(messageAcknowledged).to.be.true;
   });
@@ -349,10 +347,10 @@ describe("E2E Reliability", () => {
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: utf8ToBytes("first message in channel") };
+    const message = utf8ToBytes("first message in channel");
 
     // Setting up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let messageAcknowledged = false;
     messageChannel.addEventListener(
       MessageChannelEvent.OutMessageAcknowledged,
@@ -366,9 +364,7 @@ describe("E2E Reliability", () => {
     await messageChannel.send(message);
 
     // Sending a second message from the same node should not acknowledge the first one
-    await messageChannel.send({
-      payload: utf8ToBytes("second message in channel")
-    });
+    await messageChannel.send(utf8ToBytes("second message in channel"));
 
     expect(messageAcknowledged).to.be.false;
   });
@@ -397,13 +393,11 @@ describe("E2E Reliability", () => {
     expect(subRes).to.be.true;
 
     const messages = ["first", "second", "third"].map((m) => {
-      return {
-        payload: utf8ToBytes(m)
-      };
+      return utf8ToBytes(m);
     });
 
     // Alice sets up message tracking for first message
-    const firstMessageId = MessageChannel.getMessageId(messages[0].payload);
+    const firstMessageId = MessageChannel.getMessageId(messages[0]);
     let firstMessagePossiblyAcknowledged = false;
     messageChannelAlice.addEventListener(
       MessageChannelEvent.OutMessagePossiblyAcknowledged,
@@ -419,9 +413,7 @@ describe("E2E Reliability", () => {
     }
 
     // Bobs sends a message now, it should include first one in bloom filter
-    await messageChannelBob.send({
-      payload: utf8ToBytes("message back")
-    });
+    await messageChannelBob.send(utf8ToBytes("message back"));
 
     expect(firstMessagePossiblyAcknowledged).to.be.true;
   });
@@ -447,10 +439,10 @@ describe("E2E Reliability", () => {
     subRes = await messageChannelBob.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = { payload: utf8ToBytes("first message in channel") };
+    const message = utf8ToBytes("first message in channel");
 
     // Alice sets up message tracking
-    const messageId = MessageChannel.getMessageId(message.payload);
+    const messageId = MessageChannel.getMessageId(message);
     let messageAcknowledged = false;
     messageChannelAlice.addEventListener(
       MessageChannelEvent.OutMessageAcknowledged,
@@ -464,9 +456,7 @@ describe("E2E Reliability", () => {
     await messageChannelAlice.send(message);
 
     // Bobs sends a message now, it should include first one in causal history
-    await messageChannelBob.send({
-      payload: utf8ToBytes("second message in channel")
-    });
+    await messageChannelBob.send(utf8ToBytes("second message in channel"));
 
     expect(messageAcknowledged).to.be.true;
   });
@@ -489,12 +479,10 @@ describe("E2E Reliability", () => {
       }
     );
 
-    const message = { payload: utf8ToBytes("message in channel") };
+    const message = utf8ToBytes("message in channel");
 
     await messageChannel.send(message);
 
-    expect(bytesToUtf8(receivedMessage!.payload)).to.eq(
-      bytesToUtf8(message.payload)
-    );
+    expect(bytesToUtf8(receivedMessage!.payload)).to.eq(bytesToUtf8(message));
   });
 });

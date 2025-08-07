@@ -154,10 +154,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   /**
    * Used to identify messages, pass the payload of a message you are
    * about to send to track the events for this message.
-   * @param payload
+   * This is pre-sds wrapping
+   * @param messagePayload
    */
-  public static getMessageId(payload: Uint8Array): string {
-    return SdsMessageChannel.getMessageId(payload);
+  public static getMessageId(messagePayload: Uint8Array): string {
+    return SdsMessageChannel.getMessageId(messagePayload);
   }
 
   /**
@@ -191,11 +192,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * Sends a message in the channel, will attempt to re-send if not acknowledged
    * by other participants.
    *
-   * @param message
+   * @param messagePayload
    */
-  public async send(message: IMessage): Promise<void> {
+  public async send(messagePayload: Uint8Array): Promise<void> {
     await this.messageChannel.pushOutgoingMessage(
-      message.payload,
+      messagePayload,
       async (
         sdsMessage: SdsMessage
       ): Promise<{ success: boolean; retrievalHint?: Uint8Array }> => {
@@ -206,9 +207,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         const sdsPayload = sdsMessage.encode();
 
         const wakuMessage = {
-          payload: sdsPayload,
-          timestamp: message.timestamp,
-          rateLimitProof: message.rateLimitProof
+          payload: sdsPayload
         };
 
         // TODO: should the encoder give me the message hash?
@@ -218,7 +217,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           return { success: false };
         }
 
-        const messageId = MessageChannel.getMessageId(message.payload);
+        const messageId = MessageChannel.getMessageId(messagePayload);
         this.safeSendEvent(MessageChannelEvent.OutMessageSending, {
           detail: messageId
         });
