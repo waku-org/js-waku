@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from "@libp2p/interface";
-import { sha256 } from "@noble/hashes/sha256";
+import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex } from "@noble/hashes/utils";
 import { Logger } from "@waku/utils";
 
@@ -7,11 +7,13 @@ import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
 import { Command, Handlers, ParamsByAction, Task } from "./command_queue.js";
 import {
-  ChannelId,
-  HistoryEntry,
+  type ChannelId,
+  type HistoryEntry,
   Message,
   MessageChannelEvent,
-  MessageChannelEvents
+  MessageChannelEvents,
+  type MessageId,
+  type SenderId
 } from "./events.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
@@ -19,73 +21,85 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   errorRate: 0.001
 };
 
-const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
-const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
+const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
+const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
-const log = new Logger("sds:message-channel");
+const log = new Logger("waku:sds:message-channel");
 
-interface MessageChannelOptions {
+export interface MessageChannelOptions {
   causalHistorySize?: number;
-  receivedMessageTimeoutEnabled?: boolean;
-  receivedMessageTimeout?: number;
+  /**
+   * The time in milliseconds after which a message dependencies that could not
+   * be resolved is marked as irretrievable.
+   * Disabled if undefined or `0`.
+   *
+   * @default undefined because it is coupled to processTask calls frequency
+   */
+  timeoutToMarkMessageIrretrievableMs?: number;
+  /**
+   * How many possible acks does it take to consider it a definitive ack.
+   */
+  possibleAcksThreshold?: number;
 }
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
+  public readonly senderId: SenderId;
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: Message[];
-  private acknowledgements: Map<string, number>;
+  private possibleAcks: Map<MessageId, number>;
   private incomingBuffer: Message[];
   private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
-  private causalHistorySize: number;
-  private acknowledgementCount: number;
-  private timeReceived: Map<string, number>;
-  private receivedMessageTimeoutEnabled: boolean;
-  private receivedMessageTimeout: number;
+  private timeReceived: Map<MessageId, number>;
+  private readonly causalHistorySize: number;
+  private readonly possibleAcksThreshold: number;
+  private readonly timeoutToMarkMessageIrretrievableMs?: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
     [Command.Send]: async (
       params: ParamsByAction[Command.Send]
     ): Promise<void> => {
-      await this._sendMessage(params.payload, params.callback);
+      await this._pushOutgoingMessage(params.payload, params.callback);
     },
     [Command.Receive]: async (
       params: ParamsByAction[Command.Receive]
     ): Promise<void> => {
-      this._receiveMessage(params.message);
+      this._pushIncomingMessage(params.message);
     },
     [Command.SendEphemeral]: async (
       params: ParamsByAction[Command.SendEphemeral]
     ): Promise<void> => {
-      await this._sendEphemeralMessage(params.payload, params.callback);
+      await this._pushOutgoingEphemeralMessage(params.payload, params.callback);
     }
   };
 
   public constructor(
     channelId: ChannelId,
+    senderId: SenderId,
     options: MessageChannelOptions = {}
   ) {
     super();
     this.channelId = channelId;
+    this.senderId = senderId;
     this.lamportTimestamp = 0;
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
-    this.acknowledgements = new Map();
+    this.possibleAcks = new Map();
     this.incomingBuffer = [];
     this.localHistory = [];
     this.causalHistorySize =
       options.causalHistorySize ?? DEFAULT_CAUSAL_HISTORY_SIZE;
-    this.acknowledgementCount = this.getAcknowledgementCount();
+    // TODO: this should be determined based on the bloom filter parameters and number of hashes
+    this.possibleAcksThreshold =
+      options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
-    this.receivedMessageTimeoutEnabled =
-      options.receivedMessageTimeoutEnabled ?? false;
-    this.receivedMessageTimeout =
-      options.receivedMessageTimeout ?? DEFAULT_RECEIVED_MESSAGE_TIMEOUT;
+    this.timeoutToMarkMessageIrretrievableMs =
+      options.timeoutToMarkMessageIrretrievableMs;
   }
 
-  public static getMessageId(payload: Uint8Array): string {
+  public static getMessageId(payload: Uint8Array): MessageId {
     return bytesToHex(sha256(payload));
   }
 
@@ -100,14 +114,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("my-channel");
    *
    * // Queue some operations
-   * await channel.sendMessage(payload, callback);
-   * channel.receiveMessage(incomingMessage);
+   * await channel.pushOutgoingMessage(payload, callback);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process all queued operations
    * await channel.processTasks();
    * ```
    *
-   * @throws Will emit a 'taskError' event if any task fails, but continues processing remaining tasks
+   * @emits CustomEvent("taskError", { detail: { command, error, params } }
+   * if any task fails, but continues processing remaining tasks
    */
   public async processTasks(): Promise<void> {
     while (this.tasks.length > 0) {
@@ -127,7 +142,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * This ensures proper lamport timestamp ordering and causal history tracking.
    *
    * @param payload - The message content as a byte array
-   * @param callback - Optional callback function called after the message is processed
+   * @param callback - callback function that should propagate the message
+   * on the routing layer; `success` should be false if sending irremediably fails,
+   * when set to true, the message is finalized into the channel locally.
    * @returns Promise that resolves when the message is queued (not sent)
    *
    * @example
@@ -135,7 +152,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    * const message = new TextEncoder().encode("Hello, world!");
    *
-   * await channel.sendMessage(message, async (processedMessage) => {
+   * await channel.pushOutgoingMessage(message, async (processedMessage) => {
    *   console.log("Message processed:", processedMessage.messageId);
    *   return { success: true };
    * });
@@ -144,9 +161,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * await channel.processTasks();
    * ```
    */
-  public async sendMessage(
+  public async pushOutgoingMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<{
+    callback?: (processedMessage: Message) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
@@ -173,9 +190,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param payload - The payload to send.
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public async sendEphemeralMessage(
+  public async pushOutgoingEphemeralMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (processedMessage: Message) => Promise<boolean>
   ): Promise<void> {
     this.tasks.push({
       command: Command.SendEphemeral,
@@ -199,13 +216,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * const channel = new MessageChannel("chat-room");
    *
    * // Receive a message from the network
-   * channel.receiveMessage(incomingMessage);
+   * channel.pushIncomingMessage(incomingMessage);
    *
    * // Process the received message
    * await channel.processTasks();
    * ```
    */
-  public receiveMessage(message: Message): void {
+  public pushIncomingMessage(message: Message): void {
     this.tasks.push({
       command: Command.Receive,
       params: {
@@ -225,6 +242,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       missing: Set<HistoryEntry>;
     }>(
       ({ buffer, missing }, message) => {
+        log.info(
+          this.senderId,
+          "sweeping incoming buffer",
+          message.messageId,
+          message.causalHistory.map((ch) => ch.messageId)
+        );
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
             !this.localHistory.some(
@@ -233,24 +256,31 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             )
         );
         if (missingDependencies.length === 0) {
-          this.deliverMessage(message);
-          this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-            detail: {
-              messageId: message.messageId,
-              sentOrReceived: "received"
-            }
-          });
+          if (this.deliverMessage(message)) {
+            this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
+              detail: message.messageId
+            });
+          }
           return { buffer, missing };
         }
+        log.info(
+          this.senderId,
+          message.messageId,
+          "is missing dependencies",
+          missingDependencies.map((ch) => ch.messageId)
+        );
 
         // Optionally, if a message has not been received after a predetermined amount of time,
-        // it is marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
-        if (this.receivedMessageTimeoutEnabled) {
+        // its dependencies are marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
+        if (this.timeoutToMarkMessageIrretrievableMs) {
           const timeReceived = this.timeReceived.get(message.messageId);
           if (
             timeReceived &&
-            Date.now() - timeReceived > this.receivedMessageTimeout
+            Date.now() - timeReceived > this.timeoutToMarkMessageIrretrievableMs
           ) {
+            this.safeSendEvent(MessageChannelEvent.InMessageIrretrievablyLost, {
+              detail: Array.from(missingDependencies)
+            });
             return { buffer, missing };
           }
         }
@@ -266,7 +296,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
     this.incomingBuffer = buffer;
 
-    this.safeSendEvent(MessageChannelEvent.MissedMessages, {
+    this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
       detail: Array.from(missing)
     });
 
@@ -283,7 +313,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       possiblyAcknowledged: Message[];
     }>(
       ({ unacknowledged, possiblyAcknowledged }, message) => {
-        if (this.acknowledgements.has(message.messageId)) {
+        if (this.possibleAcks.has(message.messageId)) {
           return {
             unacknowledged,
             possiblyAcknowledged: possiblyAcknowledged.concat(message)
@@ -311,40 +341,44 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
-  public async sendSyncMessage(
+  public async pushOutgoingSyncMessage(
     callback?: (message: Message) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp++;
 
     const emptyMessage = new Uint8Array();
 
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(emptyMessage),
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
+    const message = new Message(
+      MessageChannel.getMessageId(emptyMessage),
+      this.channelId,
+      this.senderId,
+      this.localHistory
         .slice(-this.causalHistorySize)
         .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: emptyMessage
-    };
+      this.lamportTimestamp,
+      this.filter.toBytes(),
+      emptyMessage
+    );
 
     if (callback) {
       try {
         await callback(message);
-        this.safeSendEvent(MessageChannelEvent.SyncSent, {
+        this.safeSendEvent(MessageChannelEvent.OutSyncSent, {
           detail: message
         });
         return true;
       } catch (error) {
-        log.error("Callback execution failed in sendSyncMessage:", error);
+        log.error(
+          "Callback execution failed in pushOutgoingSyncMessage:",
+          error
+        );
         throw error;
       }
     }
     return false;
   }
 
-  private _receiveMessage(message: Message): void {
+  private _pushIncomingMessage(message: Message): void {
     const isDuplicate =
       message.content &&
       message.content.length > 0 &&
@@ -354,16 +388,22 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return;
     }
 
+    const isOwnOutgoingMessage = this.senderId === message.senderId;
+    if (isOwnOutgoingMessage) {
+      return;
+    }
+
+    // Ephemeral messages SHOULD be delivered immediately
     if (!message.lamportTimestamp) {
       this.deliverMessage(message);
       return;
     }
     if (message.content?.length === 0) {
-      this.safeSendEvent(MessageChannelEvent.SyncReceived, {
+      this.safeSendEvent(MessageChannelEvent.InSyncReceived, {
         detail: message
       });
     } else {
-      this.safeSendEvent(MessageChannelEvent.MessageReceived, {
+      this.safeSendEvent(MessageChannelEvent.InMessageReceived, {
         detail: message
       });
     }
@@ -371,23 +411,30 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (message.content?.length && message.content.length > 0) {
       this.filter.insert(message.messageId);
     }
-    const dependenciesMet = message.causalHistory.every((historyEntry) =>
-      this.localHistory.some(
-        ({ historyEntry: { messageId } }) =>
-          messageId === historyEntry.messageId
-      )
+
+    const missingDependencies = message.causalHistory.filter(
+      (messageHistoryEntry) =>
+        !this.localHistory.some(
+          ({ historyEntry: { messageId } }) =>
+            messageId === messageHistoryEntry.messageId
+        )
     );
-    if (!dependenciesMet) {
+
+    if (missingDependencies.length > 0) {
       this.incomingBuffer.push(message);
       this.timeReceived.set(message.messageId, Date.now());
+      log.info(
+        this.senderId,
+        message.messageId,
+        "is missing dependencies",
+        missingDependencies.map((ch) => ch.messageId)
+      );
     } else {
-      this.deliverMessage(message);
-      this.safeSendEvent(MessageChannelEvent.MessageDelivered, {
-        detail: {
-          messageId: message.messageId,
-          sentOrReceived: "received"
-        }
-      });
+      if (this.deliverMessage(message)) {
+        this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
+          detail: message.messageId
+        });
+      }
     }
   }
 
@@ -402,6 +449,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           detail: { command: item.command, error, params: item.params }
         })
       );
+      this.safeSendEvent(MessageChannelEvent.ErrorTask, {
+        detail: { command: item.command, error, params: item.params }
+      });
     }
   }
 
@@ -416,7 +466,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
   }
 
-  private async _sendMessage(
+  private async _pushOutgoingMessage(
     payload: Uint8Array,
     callback?: (message: Message) => Promise<{
       success: boolean;
@@ -427,18 +477,30 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const messageId = MessageChannel.getMessageId(payload);
 
-    const message: Message = {
-      messageId,
-      channelId: this.channelId,
-      lamportTimestamp: this.lamportTimestamp,
-      causalHistory: this.localHistory
-        .slice(-this.causalHistorySize)
-        .map(({ historyEntry }) => historyEntry),
-      bloomFilter: this.filter.toBytes(),
-      content: payload
-    };
+    // if same message id is in the outgoing buffer,
+    // it means it's a retry, and we need to resend the same message
+    // to ensure we do not create a cyclic dependency of any sort.
 
-    this.outgoingBuffer.push(message);
+    let message = this.outgoingBuffer.find(
+      (m: Message) => m.messageId === messageId
+    );
+
+    // It's a new message
+    if (!message) {
+      message = new Message(
+        messageId,
+        this.channelId,
+        this.senderId,
+        this.localHistory
+          .slice(-this.causalHistorySize)
+          .map(({ historyEntry }) => historyEntry),
+        this.lamportTimestamp,
+        this.filter.toBytes(),
+        payload
+      );
+
+      this.outgoingBuffer.push(message);
+    }
 
     if (callback) {
       try {
@@ -453,55 +515,80 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             }
           });
           this.timeReceived.set(messageId, Date.now());
-          this.safeSendEvent(MessageChannelEvent.MessageSent, {
+          this.safeSendEvent(MessageChannelEvent.OutMessageSent, {
             detail: message
           });
         }
       } catch (error) {
-        log.error("Callback execution failed in _sendMessage:", error);
+        log.error("Callback execution failed in _pushOutgoingMessage:", error);
         throw error;
       }
     }
   }
 
-  private async _sendEphemeralMessage(
+  private async _pushOutgoingEphemeralMessage(
     payload: Uint8Array,
     callback?: (message: Message) => Promise<boolean>
   ): Promise<void> {
-    const message: Message = {
-      messageId: MessageChannel.getMessageId(payload),
-      channelId: this.channelId,
-      content: payload,
-      lamportTimestamp: undefined,
-      causalHistory: [],
-      bloomFilter: undefined
-    };
+    const message = new Message(
+      MessageChannel.getMessageId(payload),
+      this.channelId,
+      this.senderId,
+      [],
+      undefined,
+      undefined,
+      payload
+    );
 
     if (callback) {
       try {
         await callback(message);
       } catch (error) {
-        log.error("Callback execution failed in _sendEphemeralMessage:", error);
+        log.error(
+          "Callback execution failed in _pushOutgoingEphemeralMessage:",
+          error
+        );
         throw error;
       }
     }
   }
 
+  /**
+   * Return true if the message was "delivered"
+   *
+   * @param message
+   * @param retrievalHint
+   * @private
+   */
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
-  private deliverMessage(message: Message, retrievalHint?: Uint8Array): void {
-    const messageLamportTimestamp = message.lamportTimestamp ?? 0;
-    if (messageLamportTimestamp > this.lamportTimestamp) {
-      this.lamportTimestamp = messageLamportTimestamp;
-    }
-
+  private deliverMessage(
+    message: Message,
+    retrievalHint?: Uint8Array
+  ): boolean {
     if (
       message.content?.length === 0 ||
       message.lamportTimestamp === undefined
     ) {
       // Messages with empty content are sync messages.
       // Messages with no timestamp are ephemeral messages.
+      // They do not need to be "delivered".
       // They are not added to the local log or bloom filter.
-      return;
+      return false;
+    }
+
+    log.info(this.senderId, "delivering message", message.messageId);
+    if (message.lamportTimestamp > this.lamportTimestamp) {
+      this.lamportTimestamp = message.lamportTimestamp;
+    }
+
+    // Check if the entry is already present
+    const existingHistoryEntry = this.localHistory.find(
+      ({ historyEntry }) => historyEntry.messageId === message.messageId
+    );
+
+    // The history entry is already present, no need to re-add
+    if (existingHistoryEntry) {
+      return true;
     }
 
     // The participant MUST insert the message ID into its local log,
@@ -510,7 +597,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     // the participant MUST follow the Resolve Conflicts procedure.
     // https://rfc.vac.dev/vac/raw/sds/#resolve-conflicts
     this.localHistory.push({
-      timestamp: messageLamportTimestamp,
+      timestamp: message.lamportTimestamp,
       historyEntry: {
         messageId: message.messageId,
         retrievalHint
@@ -522,25 +609,36 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       }
       return a.historyEntry.messageId.localeCompare(b.historyEntry.messageId);
     });
+    return true;
   }
 
   // For each received message (including sync messages), inspect the causal history and bloom filter
   // to determine the acknowledgement status of messages in the outgoing buffer.
   // See https://rfc.vac.dev/vac/raw/sds/#review-ack-status
   private reviewAckStatus(receivedMessage: Message): void {
+    log.info(
+      this.senderId,
+      "reviewing ack status using:",
+      receivedMessage.causalHistory.map((ch) => ch.messageId)
+    );
+    log.info(
+      this.senderId,
+      "current outgoing buffer:",
+      this.outgoingBuffer.map((b) => b.messageId)
+    );
     receivedMessage.causalHistory.forEach(({ messageId }) => {
       this.outgoingBuffer = this.outgoingBuffer.filter(
         ({ messageId: outgoingMessageId }) => {
           if (outgoingMessageId !== messageId) {
             return true;
           }
-          this.safeSendEvent(MessageChannelEvent.MessageAcknowledged, {
+          this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
             detail: messageId
           });
           return false;
         }
       );
-      this.acknowledgements.delete(messageId);
+      this.possibleAcks.delete(messageId);
       if (!this.filter.lookup(messageId)) {
         this.filter.insert(messageId);
       }
@@ -559,10 +657,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       // If a message appears as possibly acknowledged in multiple received bloom filters,
       // the participant MAY mark it as acknowledged based on probabilistic grounds,
       // taking into account the bloom filter size and hash number.
-      const count = (this.acknowledgements.get(message.messageId) ?? 0) + 1;
-      if (count < this.acknowledgementCount) {
-        this.acknowledgements.set(message.messageId, count);
-        this.safeSendEvent(MessageChannelEvent.PartialAcknowledgement, {
+      const count = (this.possibleAcks.get(message.messageId) ?? 0) + 1;
+      if (count < this.possibleAcksThreshold) {
+        this.possibleAcks.set(message.messageId, count);
+        this.safeSendEvent(MessageChannelEvent.OutMessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
             count
@@ -570,13 +668,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         });
         return true;
       }
-      this.acknowledgements.delete(message.messageId);
+      this.possibleAcks.delete(message.messageId);
       return false;
     });
-  }
-
-  // TODO: this should be determined based on the bloom filter parameters and number of hashes
-  private getAcknowledgementCount(): number {
-    return 2;
   }
 }

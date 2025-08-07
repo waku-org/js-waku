@@ -6,7 +6,7 @@ message HistoryEntry {
 }
 
 message SdsMessage {
-  // 1 Reserved for sender/participant id
+  string sender_id = 1;           // Participant ID of the message sender
   string message_id = 2;          // Unique identifier of the message
   string channel_id = 3;          // Identifier of the channel to which the message belongs
   optional int32 lamport_timestamp = 10;    // Logical timestamp for causal ordering in channel
