@@ -10,12 +10,18 @@ import type {
 import {
   type IPeerExchange,
   type Libp2pComponents,
-  type Libp2pEventHandler,
-  Tags
+  type Libp2pEventHandler
 } from "@waku/interfaces";
 import { encodeRelayShard, Logger } from "@waku/utils";
 
-import { PeerExchange, PeerExchangeCodec } from "./peer_exchange.js";
+import {
+  DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
+  DEFAULT_PEER_EXCHANGE_TAG_NAME,
+  DEFAULT_PEER_EXCHANGE_TAG_TTL,
+  DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+  PeerExchangeCodec
+} from "./constants.js";
+import { PeerExchange } from "./peer_exchange.js";
 
 const log = new Logger("peer-exchange-discovery");
 
@@ -36,18 +42,8 @@ interface PeerExchangeDiscoveryOptions {
   tagTTL?: number;
 }
 
-interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
-  "waku:peer-exchange:started": CustomEvent<boolean>;
-}
-
-const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 60; // amount of peers available per specification
-
-const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
-const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
-const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
-
 export class PeerExchangeDiscovery
-  extends TypedEventEmitter<CustomDiscoveryEvent>
+  extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
   private readonly components: Libp2pComponents;
@@ -78,11 +74,6 @@ export class PeerExchangeDiscovery
     if (this.isStarted) {
       return;
     }
-
-    // TODO: remove this event as it is needed only for testing
-    this.dispatchEvent(
-      new CustomEvent("waku:peer-exchange:started", { detail: true })
-    );
 
     log.info("Starting peer exchange node discovery, discovering peers");
 
@@ -137,9 +128,9 @@ export class PeerExchangeDiscovery
       await this.query(peerId);
     } catch (error) {
       log.error("Error querying peer", error);
-    } finally {
-      this.queryingPeers.delete(peerId.toString());
     }
+
+    this.queryingPeers.delete(peerId.toString());
   }
 
   private async query(peerId: PeerId): Promise<void> {

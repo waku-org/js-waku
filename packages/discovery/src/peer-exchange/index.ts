@@ -1,4 +1,3 @@
-export { PeerExchangeCodec } from "./peer_exchange.js";
 export {
   wakuPeerExchangeDiscovery,
   PeerExchangeDiscovery
