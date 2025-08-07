@@ -10,19 +10,14 @@ import type {
 import {
   type IPeerExchange,
   type Libp2pComponents,
-  type PeerExchangeQueryResult,
-  ShardInfo,
+  type Libp2pEventHandler,
   Tags
 } from "@waku/interfaces";
-import { decodeRelayShard, encodeRelayShard, Logger } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 
 import { PeerExchange, PeerExchangeCodec } from "./peer_exchange.js";
 
 const log = new Logger("peer-exchange-discovery");
-
-const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
-const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
-const DEFAULT_MAX_RETRIES = 3;
 
 interface PeerExchangeDiscoveryOptions {
   /**
@@ -39,21 +34,13 @@ interface PeerExchangeDiscoveryOptions {
    * Cause the bootstrap peer tag to be removed after this number of ms (default: 2 minutes)
    */
   tagTTL?: number;
-  /**
-   * The interval between queries to a peer (default: 10 seconds)
-   * The interval will increase by a factor of an incrementing number (starting at 1)
-   * until it reaches the maximum attempts before backoff
-   */
-  queryInterval?: number;
-  /**
-   * The number of attempts before the queries to a peer are aborted (default: 3)
-   */
-  maxRetries?: number;
 }
 
 interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
   "waku:peer-exchange:started": CustomEvent<boolean>;
 }
+
+const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 60; // amount of peers available per specification
 
 const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
@@ -66,40 +53,26 @@ export class PeerExchangeDiscovery
   private readonly components: Libp2pComponents;
   private readonly peerExchange: IPeerExchange;
   private readonly options: PeerExchangeDiscoveryOptions;
-  private isStarted: boolean;
+
+  private isStarted: boolean = false;
   private queryingPeers: Set<string> = new Set();
-  private queryAttempts: Map<string, number> = new Map();
-
-  private readonly handleDiscoveredPeer = (
-    event: CustomEvent<IdentifyResult>
-  ): void => {
-    const { protocols, peerId } = event.detail;
-
-    if (
-      !protocols.includes(PeerExchangeCodec) ||
-      this.queryingPeers.has(peerId.toString())
-    )
-      return;
-
-    this.queryingPeers.add(peerId.toString());
-    this.startRecurringQueries(peerId).catch((error) =>
-      log.error(`Error querying peer ${error}`)
-    );
-  };
 
   public constructor(
     components: Libp2pComponents,
     options: PeerExchangeDiscoveryOptions = {}
   ) {
     super();
+
     this.components = components;
     this.peerExchange = new PeerExchange(components);
     this.options = options;
-    this.isStarted = false;
+
+    this.handleDiscoveredPeer = this.handleDiscoveredPeer.bind(this);
   }
 
   /**
-   * Start emitting events
+   * Start Peer Exchange.
+   * Subscribe to "peer:identify" events and handle them.
    */
   public start(): void {
     if (this.isStarted) {
@@ -113,24 +86,29 @@ export class PeerExchangeDiscovery
 
     log.info("Starting peer exchange node discovery, discovering peers");
 
-    // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
       "peer:identify",
-      this.handleDiscoveredPeer
+      this.handleDiscoveredPeer as Libp2pEventHandler<IdentifyResult>
     );
   }
 
   /**
-   * Remove event listener
+   * Stop Peer Exchange.
+   * Unsubscribe from "peer:identify" events.
    */
   public stop(): void {
-    if (!this.isStarted) return;
+    if (!this.isStarted) {
+      return;
+    }
+
     log.info("Stopping peer exchange node discovery");
+
     this.isStarted = false;
     this.queryingPeers.clear();
+
     this.components.events.removeEventListener(
       "peer:identify",
-      this.handleDiscoveredPeer
+      this.handleDiscoveredPeer as Libp2pEventHandler<IdentifyResult>
     );
   }
 
@@ -142,109 +120,54 @@ export class PeerExchangeDiscovery
     return "@waku/peer-exchange";
   }
 
-  private readonly startRecurringQueries = async (
-    peerId: PeerId
-  ): Promise<void> => {
-    const peerIdStr = peerId.toString();
-    const {
-      queryInterval = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS,
-      maxRetries = DEFAULT_MAX_RETRIES
-    } = this.options;
+  private async handleDiscoveredPeer(
+    event: CustomEvent<IdentifyResult>
+  ): Promise<void> {
+    const { protocols, peerId } = event.detail;
 
-    log.info(
-      `Querying peer: ${peerIdStr} (attempt ${
-        this.queryAttempts.get(peerIdStr) ?? 1
-      })`
-    );
-
-    await this.query(peerId);
-
-    const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
-
-    if (currentAttempt > maxRetries) {
-      this.abortQueriesForPeer(peerIdStr);
+    if (
+      !protocols.includes(PeerExchangeCodec) ||
+      this.queryingPeers.has(peerId.toString())
+    ) {
       return;
     }
 
-    setTimeout(() => {
-      this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-      this.startRecurringQueries(peerId).catch((error) => {
-        log.error(`Error in startRecurringQueries: ${error}`);
-      });
-    }, queryInterval * currentAttempt);
-  };
+    try {
+      this.queryingPeers.add(peerId.toString());
+      await this.query(peerId);
+    } catch (error) {
+      log.error("Error querying peer", error);
+    } finally {
+      this.queryingPeers.delete(peerId.toString());
+    }
+  }
 
-  private async query(peerId: PeerId): Promise<PeerExchangeQueryResult> {
+  private async query(peerId: PeerId): Promise<void> {
     const { error, peerInfos } = await this.peerExchange.query({
       numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
       peerId
     });
+    const peerIdStr = peerId.toString();
 
     if (error) {
-      log.error("Peer exchange query failed", error);
-      return { error, peerInfos: null };
+      log.error(`Peer exchange query to ${peerIdStr} failed`, error);
+      return;
     }
 
-    for (const _peerInfo of peerInfos) {
-      const { ENR } = _peerInfo;
+    for (const { ENR } of peerInfos) {
       if (!ENR) {
-        log.warn("No ENR in peerInfo object, skipping");
+        log.warn(`No ENR in peerInfo object from ${peerIdStr}, skipping`);
         continue;
       }
 
-      const { peerId, peerInfo, shardInfo } = ENR;
-      if (!peerId || !peerInfo) {
+      const { peerInfo, shardInfo } = ENR;
+
+      if (!peerInfo) {
+        log.warn(`No peerInfo in ENR from ${peerIdStr}, skipping`);
         continue;
       }
 
-      const hasPeer = await this.components.peerStore.has(peerId);
-      if (hasPeer) {
-        const { hasMultiaddrDiff, hasShardDiff } = await this.checkPeerInfoDiff(
-          peerInfo,
-          shardInfo
-        );
-
-        if (hasMultiaddrDiff || hasShardDiff) {
-          log.info(
-            `Peer ${peerId.toString()} has updated multiaddrs or shardInfo, updating`
-          );
-
-          if (hasMultiaddrDiff) {
-            log.info(
-              `Peer ${peerId.toString()} has updated multiaddrs, updating`
-            );
-
-            await this.components.peerStore.patch(peerId, {
-              multiaddrs: peerInfo.multiaddrs
-            });
-          }
-
-          if (hasShardDiff && shardInfo) {
-            log.info(
-              `Peer ${peerId.toString()} has updated shardInfo, updating`
-            );
-            await this.components.peerStore.merge(peerId, {
-              metadata: {
-                shardInfo: encodeRelayShard(shardInfo)
-              }
-            });
-
-            this.dispatchEvent(
-              new CustomEvent<PeerInfo>("peer", {
-                detail: {
-                  id: peerId,
-                  multiaddrs: peerInfo.multiaddrs
-                }
-              })
-            );
-          }
-
-          continue;
-        }
-      }
-
-      // update the tags for the peer
-      await this.components.peerStore.save(peerId, {
+      await this.components.peerStore.merge(peerInfo.id, {
         tags: {
           [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
@@ -261,56 +184,17 @@ export class PeerExchangeDiscovery
         })
       });
 
-      log.info(`Discovered peer: ${peerId.toString()}`);
+      log.info(`Discovered peer: ${peerInfo.id.toString()}`);
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
           detail: {
-            id: peerId,
+            id: peerInfo.id,
             multiaddrs: peerInfo.multiaddrs
           }
         })
       );
     }
-
-    return { error: null, peerInfos };
-  }
-
-  private abortQueriesForPeer(peerIdStr: string): void {
-    log.info(`Aborting queries for peer: ${peerIdStr}`);
-    this.queryingPeers.delete(peerIdStr);
-    this.queryAttempts.delete(peerIdStr);
-  }
-
-  private async checkPeerInfoDiff(
-    peerInfo: PeerInfo,
-    shardInfo?: ShardInfo
-  ): Promise<{ hasMultiaddrDiff: boolean; hasShardDiff: boolean }> {
-    const { id: peerId } = peerInfo;
-    const peer = await this.components.peerStore.get(peerId);
-
-    const existingMultiaddrs = peer.addresses.map((a) =>
-      a.multiaddr.toString()
-    );
-    const newMultiaddrs = peerInfo.multiaddrs.map((ma) => ma.toString());
-    const hasMultiaddrDiff = existingMultiaddrs.some(
-      (ma) => !newMultiaddrs.includes(ma)
-    );
-
-    let hasShardDiff: boolean = false;
-    const existingShardInfoBytes = peer.metadata.get("shardInfo");
-    if (existingShardInfoBytes) {
-      const existingShardInfo = decodeRelayShard(existingShardInfoBytes);
-      if (existingShardInfo || shardInfo) {
-        hasShardDiff =
-          existingShardInfo.clusterId !== shardInfo?.clusterId ||
-          existingShardInfo.shards.some(
-            (shard) => !shardInfo?.shards.includes(shard)
-          );
-      }
-    }
-
-    return { hasMultiaddrDiff, hasShardDiff };
   }
 }
 

@@ -5,14 +5,10 @@ export { DnsNodeDiscovery } from "./dns/dns.js";
 
 // Peer Exchange Discovery
 export {
-  wakuPeerExchange,
-  PeerExchangeCodec,
-  WakuPeerExchange
-} from "./peer-exchange/waku_peer_exchange.js";
-export {
   wakuPeerExchangeDiscovery,
-  PeerExchangeDiscovery
-} from "./peer-exchange/waku_peer_exchange_discovery.js";
+  PeerExchangeDiscovery,
+  PeerExchangeCodec
+} from "./peer-exchange/index.js";
 
 // Local Peer Cache Discovery
 export {
