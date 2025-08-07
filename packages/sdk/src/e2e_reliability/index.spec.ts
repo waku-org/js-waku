@@ -723,4 +723,62 @@ describe("E2E Reliability", () => {
     await delay(200);
     expect(syncMessageSent).to.be.true;
   });
+
+  describe("Retries", () => {
+    it("Outgoing message is retried until acknowledged", async () => {
+      const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+      const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+      const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+      const messageChannelAlice = MessageChannel.create(
+        mockWakuNodeAlice,
+        "MyChannel",
+        encoder,
+        {
+          retryIntervalMs: 100 // faster for a quick test
+        }
+      );
+      const messageChannelBob = MessageChannel.create(
+        mockWakuNodeBob,
+        "MyChannel",
+        encoder,
+        {
+          maxRetryAttempts: 0 // This one does not perform retries
+        }
+      );
+
+      let subRes = await messageChannelAlice.subscribe(decoder);
+      expect(subRes).to.be.true;
+      subRes = await messageChannelBob.subscribe(decoder);
+      expect(subRes).to.be.true;
+
+      const msgTxt = "first message in channel";
+      const message = utf8ToBytes(msgTxt);
+
+      // Let's check message from Alice
+      let messageCount = 0;
+      messageChannelBob.addEventListener(
+        MessageChannelEvent.InMessageReceived,
+        (event) => {
+          if (bytesToUtf8(event.detail.payload) === msgTxt) {
+            messageCount++;
+          }
+        }
+      );
+
+      await messageChannelAlice.send(message);
+      expect(messageCount).to.equal(1);
+
+      // No response from Bob should trigger a retry from Alice
+      await delay(110);
+      expect(messageCount).to.equal(2);
+
+      // Bobs sends a message now, it should include first one in causal history
+      await messageChannelBob.send(utf8ToBytes("second message in channel"));
+
+      await delay(110);
+      // Alice should have stopped sending
+      expect(messageCount).to.equal(2);
+    });
+  });
 });

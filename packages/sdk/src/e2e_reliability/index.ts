@@ -20,9 +20,13 @@ import {
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
+import { RetryManager } from "./retry_manager.js";
+
 const log = new Logger("sdk:e2e-reliability");
 
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
+const DEFAULT_RETRY_INTERVAL_MS = 60 * 1000; // 60 seconds
+const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
 
 const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.ENCODE_FAILED,
@@ -120,6 +124,20 @@ export type MessageChannelOptions = SdsMessageChannelOptions & {
    * @default 30,000 (30 seconds) [[DEFAULT_SYNC_MIN_INTERVAL_MS]]
    */
   syncMinIntervalMs?: number;
+
+  /**
+   * How long to wait before re-sending a message that as not acknowledged.
+   *
+   * @default 60,000 (60 seconds) [[DEFAULT_RETRY_INTERVAL_MS]]
+   */
+  retryIntervalMs?: number;
+
+  /**
+   * How many times do we attempt resending messages that were not acknowledged.
+   *
+   * @default 10 [[DEFAULT_MAX_RETRY_ATTEMPTS]]
+   */
+  maxRetryAttempts?: number;
 };
 
 /**
@@ -143,6 +161,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   private readonly syncMinIntervalMs: number;
   private syncTimeout: ReturnType<typeof setTimeout> | undefined;
+  private readonly retryManager: RetryManager;
 
   private constructor(
     public node: IWaku,
@@ -171,6 +190,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     this.syncMinIntervalMs =
       options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS;
+
+    const retryIntervalMs =
+      options?.retryIntervalMs ?? DEFAULT_RETRY_INTERVAL_MS;
+    const maxRetryAttempts =
+      options?.maxRetryAttempts ?? DEFAULT_MAX_RETRY_ATTEMPTS;
+
+    // TODO: there is a lot to improve. e.g. not point retry to send if node is offline.
+    this.retryManager = new RetryManager(retryIntervalMs, maxRetryAttempts);
 
     this.setupEventListeners();
   }
@@ -226,7 +253,16 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @param messagePayload
    */
+  // TODO: check we are listening before sending other SDS cannot work.
   public async send(messagePayload: Uint8Array): Promise<void> {
+    const send = this.send_.bind(this, messagePayload);
+    const messageId = MessageChannel.getMessageId(messagePayload);
+    this.retryManager.startRetries(messageId, send);
+
+    return send();
+  }
+
+  private async send_(messagePayload: Uint8Array): Promise<void> {
     await this.messageChannel.pushOutgoingMessage(
       messagePayload,
       async (
@@ -431,6 +467,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
             detail: event.detail
           });
+
+          // Stopping retries
+          this.retryManager.stopRetries(event.detail);
         }
       }
     );
