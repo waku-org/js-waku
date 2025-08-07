@@ -722,6 +722,36 @@ describe("E2E Reliability", () => {
       await delay(200);
       expect(syncMessageSent).to.be.true;
     });
+
+    it("Own sync message does not acknowledge own messages", async () => {
+      const syncMinIntervalMs = 100;
+      const messageChannel = MessageChannel.create(
+        mockWakuNode,
+        "MyChannel",
+        encoder,
+        {
+          syncMinIntervalMs
+        }
+      );
+
+      const subRes = await messageChannel.subscribe(decoder);
+      expect(subRes).to.be.true;
+
+      let messageAcknowledged = false;
+      messageChannel.messageChannel.addEventListener(
+        SdsMessageChannelEvent.OutMessageAcknowledged,
+        (_event) => {
+          messageAcknowledged = true;
+        }
+      );
+
+      await messageChannel.send(utf8ToBytes("some message"));
+
+      await delay(syncMinIntervalMs * 2);
+
+      // There is randomness to this, but it should not be excessive
+      expect(messageAcknowledged).to.be.false;
+    });
   });
 
   describe("Retries", () => {
