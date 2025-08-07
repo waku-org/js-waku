@@ -453,19 +453,30 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const messageId = MessageChannel.getMessageId(payload);
 
-    const message = new Message(
-      messageId,
-      this.channelId,
-      this.senderId,
-      this.localHistory
-        .slice(-this.causalHistorySize)
-        .map(({ historyEntry }) => historyEntry),
-      this.lamportTimestamp,
-      this.filter.toBytes(),
-      payload
+    // if same message id is in the outgoing buffer,
+    // it means it's a retry, and we need to resend the same message
+    // to ensure we do not create a cyclic dependency of any sort.
+
+    let message = this.outgoingBuffer.find(
+      (m: Message) => m.messageId === messageId
     );
 
-    this.outgoingBuffer.push(message);
+    // It's a new message
+    if (!message) {
+      message = new Message(
+        messageId,
+        this.channelId,
+        this.senderId,
+        this.localHistory
+          .slice(-this.causalHistorySize)
+          .map(({ historyEntry }) => historyEntry),
+        this.lamportTimestamp,
+        this.filter.toBytes(),
+        payload
+      );
+
+      this.outgoingBuffer.push(message);
+    }
 
     if (callback) {
       try {
