@@ -196,7 +196,11 @@ describe("E2E Reliability", () => {
   });
 
   it("Outgoing message is emitted as sending", async () => {
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder
+    );
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
@@ -215,13 +219,17 @@ describe("E2E Reliability", () => {
       }
     );
 
-    await messageChannel.send(encoder, message);
+    await messageChannel.send(message);
 
     expect(messageSending).to.be.true;
   });
 
   it("Outgoing message is emitted as sent", async () => {
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder
+    );
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
@@ -240,7 +248,7 @@ describe("E2E Reliability", () => {
       }
     );
 
-    await messageChannel.send(encoder, message);
+    await messageChannel.send(message);
 
     expect(messageSent).to.be.true;
   });
@@ -257,7 +265,11 @@ describe("E2E Reliability", () => {
       });
     };
 
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder
+    );
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
@@ -277,7 +289,7 @@ describe("E2E Reliability", () => {
     );
 
     encoder.contentTopic = "...";
-    await messageChannel.send(encoder, message);
+    await messageChannel.send(message);
 
     expect(irrecoverableError).to.be.true;
   });
@@ -289,11 +301,13 @@ describe("E2E Reliability", () => {
 
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
-      "MyChannel"
+      "MyChannel",
+      encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
-      "MyChannel"
+      "MyChannel",
+      encoder
     );
 
     let subRes = await messageChannelAlice.subscribe(decoder);
@@ -315,10 +329,10 @@ describe("E2E Reliability", () => {
       }
     );
 
-    await messageChannelAlice.send(encoder, message);
+    await messageChannelAlice.send(message);
 
     // Bobs sends a message now, it should include first one in causal history
-    await messageChannelBob.send(encoder, {
+    await messageChannelBob.send({
       payload: utf8ToBytes("second message in channel")
     });
 
@@ -326,7 +340,11 @@ describe("E2E Reliability", () => {
   });
 
   it("Outgoing message is not emitted as acknowledged from own outgoing messages", async () => {
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder
+    );
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
@@ -345,10 +363,10 @@ describe("E2E Reliability", () => {
       }
     );
 
-    await messageChannel.send(encoder, message);
+    await messageChannel.send(message);
 
     // Sending a second message from the same node should not acknowledge the first one
-    await messageChannel.send(encoder, {
+    await messageChannel.send({
       payload: utf8ToBytes("second message in channel")
     });
 
@@ -362,11 +380,13 @@ describe("E2E Reliability", () => {
 
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
-      "MyChannel"
+      "MyChannel",
+      encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
       "MyChannel",
+      encoder,
       // Bob only includes one message in causal history
       { causalHistorySize: 1 }
     );
@@ -395,11 +415,11 @@ describe("E2E Reliability", () => {
     );
 
     for (const m of messages) {
-      await messageChannelAlice.send(encoder, m);
+      await messageChannelAlice.send(m);
     }
 
     // Bobs sends a message now, it should include first one in bloom filter
-    await messageChannelBob.send(encoder, {
+    await messageChannelBob.send({
       payload: utf8ToBytes("message back")
     });
 
@@ -413,11 +433,13 @@ describe("E2E Reliability", () => {
 
     const messageChannelAlice = MessageChannel.create(
       mockWakuNodeAlice,
-      "MyChannel"
+      "MyChannel",
+      encoder
     );
     const messageChannelBob = MessageChannel.create(
       mockWakuNodeBob,
-      "MyChannel"
+      "MyChannel",
+      encoder
     );
 
     let subRes = await messageChannelAlice.subscribe(decoder);
@@ -439,10 +461,10 @@ describe("E2E Reliability", () => {
       }
     );
 
-    await messageChannelAlice.send(encoder, message);
+    await messageChannelAlice.send(message);
 
     // Bobs sends a message now, it should include first one in causal history
-    await messageChannelBob.send(encoder, {
+    await messageChannelBob.send({
       payload: utf8ToBytes("second message in channel")
     });
 
@@ -450,7 +472,11 @@ describe("E2E Reliability", () => {
   });
 
   it("Incoming message is emitted as received", async () => {
-    const messageChannel = MessageChannel.create(mockWakuNode, "MyChannel");
+    const messageChannel = MessageChannel.create(
+      mockWakuNode,
+      "MyChannel",
+      encoder
+    );
 
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
@@ -465,7 +491,7 @@ describe("E2E Reliability", () => {
 
     const message = { payload: utf8ToBytes("message in channel") };
 
-    await messageChannel.send(encoder, message);
+    await messageChannel.send(message);
 
     expect(bytesToUtf8(receivedMessage!.payload)).to.eq(
       bytesToUtf8(message.payload)

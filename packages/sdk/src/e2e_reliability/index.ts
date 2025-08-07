@@ -126,7 +126,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   private constructor(
     public node: IWaku,
-    public messageChannel: SdsMessageChannel
+    public messageChannel: SdsMessageChannel,
+    private encoder: IEncoder
   ) {
     super();
     if (node.lightPush) {
@@ -171,27 +172,28 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * - all participants must be able to decrypt the messages
    * - all participants must be subscribing to content topic(s) where the messages are sent
    *
-   * @param node
-   * @param channelId
+   * @param node The waku node to use to send and receive messages
+   * @param channelId An id for the channel, all participants of the channel should use the same id
+   * @param encoder A channel operates within a singular encryption layer, hence the same encoder is needed for all messages
    * @param channelOptions
    */
   public static create(
     node: IWaku,
     channelId: string,
+    encoder: IEncoder,
     channelOptions?: MessageChannelOptions
   ): MessageChannel {
     const sdsMessageChannel = new SdsMessageChannel(channelId, channelOptions);
-    return new MessageChannel(node, sdsMessageChannel);
+    return new MessageChannel(node, sdsMessageChannel, encoder);
   }
 
   /**
    * Sends a message in the channel, will attempt to re-send if not acknowledged
    * by other participants.
    *
-   * @param encoder
    * @param message
    */
-  public async send(encoder: IEncoder, message: IMessage): Promise<void> {
+  public async send(message: IMessage): Promise<void> {
     await this.messageChannel.pushOutgoingMessage(
       message.payload,
       async (
@@ -209,8 +211,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           rateLimitProof: message.rateLimitProof
         };
 
-        // TODO: Shouldn't the encoder give me this easily?
-        const protoMessage = await encoder.toProtoObj(wakuMessage);
+        // TODO: should the encoder give me the message hash?
+        // Encoding now to fail early, used later to get message hash
+        const protoMessage = await this.encoder.toProtoObj(wakuMessage);
         if (!protoMessage) {
           return { success: false };
         }
@@ -220,7 +223,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           detail: messageId
         });
 
-        const sendRes = await this._send(encoder, wakuMessage);
+        const sendRes = await this._send(this.encoder, wakuMessage);
 
         // If it's a recoverable failure, we will try again to send later
         // If not, then we should error to the user now
@@ -241,7 +244,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           }
         }
 
-        const retrievalHint = messageHash(encoder.pubsubTopic, protoMessage);
+        const retrievalHint = messageHash(
+          this.encoder.pubsubTopic,
+          protoMessage
+        );
         return {
           success: true,
           retrievalHint
