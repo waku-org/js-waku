@@ -412,6 +412,57 @@ describe("MessageChannel", function () {
 
       expect(possibleAcks.size).to.equal(0);
     });
+
+    it("First message is missed, then re-sent, should be ack'd", async () => {
+      const firstMessage = utf8ToBytes("first message");
+      const firstMessageId = MessageChannel.getMessageId(firstMessage);
+      console.log("firstMessage", firstMessageId);
+      let messageAcked = false;
+      channelA.addEventListener(
+        MessageChannelEvent.OutMessageAcknowledged,
+        (event) => {
+          if (firstMessageId === event.detail) {
+            messageAcked = true;
+          }
+        }
+      );
+
+      await sendMessage(channelA, firstMessage, callback);
+
+      await sendMessage(
+        channelA,
+        utf8ToBytes("second message"),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      await sendMessage(
+        channelB,
+        utf8ToBytes("message back, will it ack first message?"),
+        async (message) => {
+          await receiveMessage(channelA, message);
+          return { success: true };
+        }
+      );
+
+      expect(messageAcked).to.be.false;
+
+      // Now, A resends first message, and B is receiving it.
+      await sendMessage(channelA, firstMessage, async (message) => {
+        await receiveMessage(channelB, message);
+        return { success: true };
+      });
+
+      // And be sends a sync message
+      await channelB.pushOutgoingSyncMessage(async (message) => {
+        await receiveMessage(channelA, message);
+        return true;
+      });
+
+      expect(messageAcked).to.be.true;
+    });
   });
 
   describe("Sweeping incoming buffer", () => {
