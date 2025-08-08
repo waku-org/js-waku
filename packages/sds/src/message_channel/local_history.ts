@@ -14,12 +14,296 @@ type ContentMessage = Message & {
  *
  * Only stores content message: `message.lamportTimestamp` and `message.content` are present.
  */
-export class LocalHistory {
-  private messages: Array<ContentMessage>;
+export class LocalHistory implements Array<ContentMessage> {
+  private readonly messages: Array<ContentMessage>;
 
   public constructor() {
     this.messages = [];
   }
+
+  [n: number]: ContentMessage;
+
+  public get length(): number {
+    return this.messages.length;
+  }
+
+  public toString(): string {
+    return this.messages.toString();
+  }
+
+  public toLocaleString(): string {
+    return this.messages.toLocaleString();
+  }
+
+  public pop(): ContentMessage | undefined {
+    return this.messages.pop();
+  }
+
+  public push(...items: ContentMessage[]): number {
+    for (const item of items) {
+      this._validateAndAddMessage(item);
+    }
+    this._sort();
+    return this.messages.length;
+  }
+
+  public concat(...items: unknown[]): ContentMessage[] {
+    return this.messages.concat(...(items as any));
+  }
+
+  public join(separator?: string): string {
+    return this.messages.join(separator);
+  }
+
+  public reverse(): ContentMessage[] {
+    this.messages.reverse();
+    this._sort();
+    return this.messages;
+  }
+
+  public shift(): ContentMessage | undefined {
+    return this.messages.shift();
+  }
+
+  public slice(start?: number, end?: number): ContentMessage[] {
+    return this.messages.slice(start, end);
+  }
+
+  public sort(
+    compareFn?: ((a: ContentMessage, b: ContentMessage) => number) | undefined
+  ): this {
+    this.messages.sort(compareFn || Message.compare);
+    return this;
+  }
+
+  public splice(
+    start: number,
+    deleteCount?: number,
+    ...items: ContentMessage[]
+  ): ContentMessage[] {
+    const result = this.messages.splice(start, deleteCount!, ...items);
+    this._sort();
+    return result;
+  }
+
+  public unshift(...items: ContentMessage[]): number {
+    for (const item of items) {
+      this._validateMessage(item);
+    }
+    const result = this.messages.unshift(...items);
+    this._sort();
+    return result;
+  }
+
+  public indexOf(searchElement: ContentMessage, fromIndex?: number): number {
+    return this.messages.indexOf(searchElement, fromIndex);
+  }
+
+  public lastIndexOf(
+    searchElement: ContentMessage,
+    fromIndex?: number
+  ): number {
+    return this.messages.lastIndexOf(searchElement, fromIndex);
+  }
+
+  public every<S extends ContentMessage>(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => value is S,
+    thisArg?: any
+  ): this is S[];
+  public every(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): boolean {
+    return this.messages.every(predicate, thisArg);
+  }
+
+  public some(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): boolean {
+    return this.messages.some(predicate, thisArg);
+  }
+
+  public forEach(
+    callbackfn: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => void,
+    thisArg?: any
+  ): void {
+    this.messages.forEach(callbackfn, thisArg);
+  }
+
+  public map<U>(
+    callbackfn: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => U,
+    thisArg?: any
+  ): U[] {
+    return this.messages.map(callbackfn, thisArg);
+  }
+
+  public filter<S extends ContentMessage>(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => value is S,
+    thisArg?: any
+  ): S[];
+  public filter(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): ContentMessage[] {
+    return this.messages.filter(predicate, thisArg);
+  }
+
+  public reduce<U>(
+    callbackfn: (
+      previousValue: U,
+      currentValue: ContentMessage,
+      currentIndex: number,
+      array: ContentMessage[]
+    ) => U,
+    initialValue?: U
+  ): U {
+    if (arguments.length >= 2) {
+      return this.messages.reduce(callbackfn, initialValue!);
+    } else {
+      return this.messages.reduce(callbackfn as any) as U;
+    }
+  }
+
+  public reduceRight<U>(
+    callbackfn: (
+      previousValue: U,
+      currentValue: ContentMessage,
+      currentIndex: number,
+      array: ContentMessage[]
+    ) => U,
+    initialValue?: U
+  ): U {
+    if (arguments.length >= 2) {
+      return this.messages.reduceRight(callbackfn, initialValue!);
+    } else {
+      return this.messages.reduceRight(callbackfn as any) as U;
+    }
+  }
+
+  public find<S extends ContentMessage>(
+    predicate: (
+      this: void,
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => value is S,
+    thisArg?: any
+  ): S | undefined;
+  public find(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): ContentMessage | undefined {
+    return this.messages.find(predicate, thisArg);
+  }
+
+  public findIndex(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): number {
+    return this.messages.findIndex(predicate, thisArg);
+  }
+
+  public fill(value: ContentMessage, start?: number, end?: number): this {
+    this._validateMessage(value);
+    this.messages.fill(value, start, end);
+    this._sort();
+    return this;
+  }
+
+  public copyWithin(target: number, start: number, end?: number): this {
+    this.messages.copyWithin(target, start, end);
+    this._sort();
+    return this;
+  }
+
+  public entries(): ArrayIterator<[number, ContentMessage]> {
+    return this.messages.entries();
+  }
+
+  public keys(): ArrayIterator<number> {
+    return this.messages.keys();
+  }
+
+  public values(): ArrayIterator<ContentMessage> {
+    return this.messages.values();
+  }
+
+  public includes(searchElement: ContentMessage, fromIndex?: number): boolean {
+    return this.messages.includes(searchElement, fromIndex);
+  }
+
+  public flatMap<U, This = undefined>(
+    callback: (
+      this: This,
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => U | readonly U[],
+    thisArg?: This | undefined
+  ): U[] {
+    return this.messages.flatMap(callback, thisArg);
+  }
+
+  public flat<A, D extends number = 1>(
+    this: A,
+    depth?: D | undefined
+  ): FlatArray<A, D>[] {
+    return ((this as any).messages as any).flat(depth);
+  }
+
+  public at(index: number): ContentMessage | undefined {
+    return this.messages.at(index);
+  }
+
+  public [Symbol.iterator](): ArrayIterator<ContentMessage> {
+    return this.messages[Symbol.iterator]();
+  }
+  public readonly [Symbol.unscopables]: any = {
+    copyWithin: true,
+    entries: true,
+    fill: true,
+    find: true,
+    findIndex: true,
+    keys: true,
+    values: true
+  };
 
   /**
    * Push a message,
@@ -29,16 +313,25 @@ export class LocalHistory {
    * @throws Error if `newMessage.lamportTimestamp` or `newMessage.content` are empty or undefined
    */
   public _push(newMessage: ContentMessage): void {
+    this._validateAndAddMessage(newMessage);
+    this._sort();
+  }
+
+  private _validateMessage(message: ContentMessage): void {
     if (
-      !newMessage.lamportTimestamp ||
-      !newMessage.content ||
-      !newMessage.content.length ||
-      !newMessage.messageId
+      !message.lamportTimestamp ||
+      !message.content ||
+      !message.content.length ||
+      !message.messageId
     ) {
       throw new Error(
         "Message must have lamportTimestamp and content defined, sync and ephemeral messages cannot be stored"
       );
     }
+  }
+
+  private _validateAndAddMessage(newMessage: ContentMessage): void {
+    this._validateMessage(newMessage);
 
     // Check if the entry is already present
     const existingHistoryEntry = this.messages.find(
@@ -46,12 +339,9 @@ export class LocalHistory {
     );
 
     // The history entry is already present, no need to re-add
-    if (existingHistoryEntry) {
-      return;
+    if (!existingHistoryEntry) {
+      this.messages.push(newMessage);
     }
-
-    this.messages.push(newMessage);
-    this._sort();
   }
 
   private _sort(): void {
