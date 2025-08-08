@@ -11,6 +11,7 @@ export enum MessageChannelEvent {
   SyncReceived = "syncReceived"
 }
 
+export type MessageId = string;
 export type Message = proto_sds_message.SdsMessage;
 export type HistoryEntry = proto_sds_message.HistoryEntry;
 export type ChannelId = string;
@@ -26,13 +27,13 @@ export function decodeMessage(data: Uint8Array): Message {
 export type MessageChannelEvents = {
   [MessageChannelEvent.MessageSent]: CustomEvent<Message>;
   [MessageChannelEvent.MessageDelivered]: CustomEvent<{
-    messageId: string;
+    messageId: MessageId;
     sentOrReceived: "sent" | "received";
   }>;
   [MessageChannelEvent.MessageReceived]: CustomEvent<Message>;
-  [MessageChannelEvent.MessageAcknowledged]: CustomEvent<string>;
+  [MessageChannelEvent.MessageAcknowledged]: CustomEvent<MessageId>;
   [MessageChannelEvent.PartialAcknowledgement]: CustomEvent<{
-    messageId: string;
+    messageId: MessageId;
     count: number;
   }>;
   [MessageChannelEvent.MissedMessages]: CustomEvent<HistoryEntry[]>;

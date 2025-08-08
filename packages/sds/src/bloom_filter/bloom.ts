@@ -124,7 +124,7 @@ export class BloomFilter {
     hashN: (item: string, n: number, maxValue: number) => number
   ): BloomFilter {
     const bloomFilter = new BloomFilter(options, hashN);
-    const view = new DataView(bytes.buffer);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     for (let i = 0; i < bloomFilter.data.length; i++) {
       bloomFilter.data[i] = view.getBigUint64(i * 8, false);
     }
