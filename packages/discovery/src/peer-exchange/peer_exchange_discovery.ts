@@ -75,6 +75,7 @@ export class PeerExchangeDiscovery
     }
 
     log.info("Starting peer exchange node discovery, discovering peers");
+    this.isStarted = true;
 
     this.components.events.addEventListener(
       "peer:identify",
