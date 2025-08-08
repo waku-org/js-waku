@@ -6,33 +6,11 @@ type SortedArrayInterface<T> = Omit<Array<T>, "reverse" | "sort">;
  */
 export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   protected readonly items: Array<T>;
+  private previousLength = 0;
 
   public constructor() {
     this.items = [];
-
-    // Set up proxy for indexed access
-    return new Proxy(this, {
-      get(target, prop) {
-        if (typeof prop === "string" && /^\d+$/.test(prop)) {
-          const index = parseInt(prop, 10);
-          return target.items[index];
-        }
-        return (target as any)[prop];
-      },
-      set(target, prop, value) {
-        if (typeof prop === "string" && /^\d+$/.test(prop)) {
-          const index = parseInt(prop, 10);
-          // Check for duplicates before setting
-          if (!target.items.includes(value) || target.items[index] === value) {
-            target.items[index] = value;
-            target.sort();
-          }
-          return true;
-        }
-        (target as any)[prop] = value;
-        return true;
-      }
-    });
+    this.updateIndexedProperties();
   }
 
   [n: number]: T;
@@ -41,14 +19,18 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
     return this.items.length;
   }
 
-  // Implement indexed access
-  public get(index: number): T | undefined {
-    return this.items[index];
-  }
+  private updateIndexedProperties(): void {
+    // Remove old properties
+    for (let i = this.items.length; i < this.previousLength; i++) {
+      delete (this as any)[i];
+    }
 
-  public set(index: number, value: T): void {
-    this.items[index] = value;
-    this.sort();
+    // Add/update current properties
+    for (let i = 0; i < this.items.length; i++) {
+      (this as any)[i] = this.items[i];
+    }
+
+    this.previousLength = this.items.length;
   }
 
   public toString(): string {
@@ -60,7 +42,9 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   }
 
   public pop(): T | undefined {
-    return this.items.pop();
+    const result = this.items.pop();
+    this.updateIndexedProperties();
+    return result;
   }
 
   public push(...items: T[]): number {
@@ -73,6 +57,7 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
     }
     this.items.push(...uniqueItems);
     this.sort();
+    this.updateIndexedProperties();
     return this.items.length;
   }
 
@@ -88,7 +73,9 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   }
 
   public shift(): T | undefined {
-    return this.items.shift();
+    const result = this.items.shift();
+    this.updateIndexedProperties();
+    return result;
   }
 
   public slice(start?: number, end?: number): T[] {
@@ -108,6 +95,7 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
     }
     this.items.push(...uniqueItems);
     this.sort();
+    this.updateIndexedProperties();
     return result;
   }
 
@@ -121,6 +109,7 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
     }
     this.items.unshift(...uniqueItems);
     this.sort();
+    this.updateIndexedProperties();
     return this.items.length;
   }
 
@@ -241,12 +230,14 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
     this.items.push(...uniqueItems);
 
     this.sort();
+    this.updateIndexedProperties();
     return this.items;
   }
 
   public copyWithin(target: number, start: number, end?: number): T[] {
     this.items.copyWithin(target, start, end);
     this.sort();
+    this.updateIndexedProperties();
     return this.items;
   }
 
