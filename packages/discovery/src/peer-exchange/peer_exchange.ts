@@ -14,16 +14,15 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { PeerExchangeCodec } from "./constants.js";
 import { PeerExchangeRPC } from "./rpc.js";
-
-export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = new Logger("peer-exchange");
 
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
-export class WakuPeerExchange implements IPeerExchange {
+export class PeerExchange implements IPeerExchange {
   private readonly streamManager: StreamManager;
 
   /**
@@ -45,8 +44,8 @@ export class WakuPeerExchange implements IPeerExchange {
       numPeers: BigInt(numPeers)
     });
 
-    const peer = await this.components.peerStore.get(peerId);
-    if (!peer) {
+    const hasPeer = await this.components.peerStore.has(peerId);
+    if (!hasPeer) {
       return {
         peerInfos: null,
         error: ProtocolError.NO_PEER_AVAILABLE
@@ -110,14 +109,4 @@ export class WakuPeerExchange implements IPeerExchange {
       };
     }
   }
-}
-
-/**
- *
- * @returns A function that creates a new peer exchange protocol
- */
-export function wakuPeerExchange(): (
-  components: Libp2pComponents
-) => WakuPeerExchange {
-  return (components: Libp2pComponents) => new WakuPeerExchange(components);
 }
