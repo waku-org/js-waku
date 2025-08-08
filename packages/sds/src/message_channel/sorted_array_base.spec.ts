@@ -33,7 +33,7 @@ describe("SortedArrayBase", () => {
 
     it("should maintain sorted order after push", () => {
       numberArray.push(3, 1, 4, 1, 5);
-      expect([...numberArray]).to.deep.equal([1, 1, 3, 4, 5]);
+      expect([...numberArray]).to.deep.equal([1, 3, 4, 5]);
     });
 
     it("should maintain sorted order after unshift", () => {
@@ -51,13 +51,13 @@ describe("SortedArrayBase", () => {
     it("should maintain sorted order after fill", () => {
       numberArray.push(1, 2, 3, 4, 5);
       numberArray.fill(10, 1, 3);
-      expect([...numberArray]).to.deep.equal([1, 4, 5, 10, 10]);
+      expect([...numberArray]).to.deep.equal([1, 4, 5, 10]);
     });
 
     it("should maintain sorted order after copyWithin", () => {
       numberArray.push(1, 2, 3, 4, 5);
       numberArray.copyWithin(0, 3, 5);
-      expect([...numberArray]).to.deep.equal([2, 3, 4, 4, 5]);
+      expect([...numberArray]).to.deep.equal([3, 4, 4, 5, 5]);
     });
   });
 
@@ -107,40 +107,40 @@ describe("SortedArrayBase", () => {
 
   describe("Search Methods", () => {
     beforeEach(() => {
-      numberArray.push(1, 2, 3, 2, 4);
+      numberArray.push(1, 2, 3, 4, 5);
     });
 
     it("should find indexOf correctly", () => {
       expect(numberArray.indexOf(2)).to.equal(1);
-      expect(numberArray.indexOf(5)).to.equal(-1);
+      expect(numberArray.indexOf(6)).to.equal(-1);
     });
 
     it("should find indexOf with fromIndex", () => {
-      expect(numberArray.indexOf(2, 2)).to.equal(2);
+      expect(numberArray.indexOf(4, 2)).to.equal(3);
     });
 
     it("should find lastIndexOf correctly", () => {
-      expect(numberArray.lastIndexOf(2)).to.equal(2);
-      expect(numberArray.lastIndexOf(5)).to.equal(-1);
+      expect(numberArray.lastIndexOf(3)).to.equal(2);
+      expect(numberArray.lastIndexOf(6)).to.equal(-1);
     });
 
     it("should find lastIndexOf with fromIndex", () => {
-      expect(numberArray.lastIndexOf(2, 1)).to.equal(1);
+      expect(numberArray.lastIndexOf(3, 1)).to.equal(-1);
     });
 
     it("should check includes correctly", () => {
       expect(numberArray.includes(3)).to.be.true;
-      expect(numberArray.includes(5)).to.be.false;
+      expect(numberArray.includes(6)).to.be.false;
     });
 
     it("should check includes with fromIndex", () => {
-      expect(numberArray.includes(2, 2)).to.be.true;
+      expect(numberArray.includes(4, 2)).to.be.true;
       expect(numberArray.includes(2, 3)).to.be.false;
     });
 
     it("should access elements with at()", () => {
       expect(numberArray.at(0)).to.equal(1);
-      expect(numberArray.at(-1)).to.equal(4);
+      expect(numberArray.at(-1)).to.equal(5);
       expect(numberArray.at(10)).to.be.undefined;
     });
   });
@@ -282,11 +282,10 @@ describe("SortedArrayBase", () => {
       expect(numberArray.includes(42)).to.be.true;
     });
 
-    it("should handle duplicate elements", () => {
-      numberArray.push(1, 1, 1);
-      expect([...numberArray]).to.deep.equal([1, 1, 1]);
-      expect(numberArray.indexOf(1)).to.equal(0);
-      expect(numberArray.lastIndexOf(1)).to.equal(2);
+    it("should prevent duplicate elements", () => {
+      numberArray.push(1, 2, 1, 3, 2);
+      expect([...numberArray]).to.deep.equal([1, 2, 3]);
+      expect(numberArray.length).to.equal(3);
     });
 
     it("should handle splice with no items to add", () => {

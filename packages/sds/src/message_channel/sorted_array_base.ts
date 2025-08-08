@@ -9,12 +9,46 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
 
   public constructor() {
     this.items = [];
+
+    // Set up proxy for indexed access
+    return new Proxy(this, {
+      get(target, prop) {
+        if (typeof prop === "string" && /^\d+$/.test(prop)) {
+          const index = parseInt(prop, 10);
+          return target.items[index];
+        }
+        return (target as any)[prop];
+      },
+      set(target, prop, value) {
+        if (typeof prop === "string" && /^\d+$/.test(prop)) {
+          const index = parseInt(prop, 10);
+          // Check for duplicates before setting
+          if (!target.items.includes(value) || target.items[index] === value) {
+            target.items[index] = value;
+            target.sort();
+          }
+          return true;
+        }
+        (target as any)[prop] = value;
+        return true;
+      }
+    });
   }
 
   [n: number]: T;
 
   public get length(): number {
     return this.items.length;
+  }
+
+  // Implement indexed access
+  public get(index: number): T | undefined {
+    return this.items[index];
+  }
+
+  public set(index: number, value: T): void {
+    this.items[index] = value;
+    this.sort();
   }
 
   public toString(): string {
@@ -30,9 +64,16 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   }
 
   public push(...items: T[]): number {
-    const result = this.items.push(...items);
+    // Filter out duplicates both from existing items and within the new items
+    const uniqueItems: T[] = [];
+    for (const item of items) {
+      if (!this.items.includes(item) && !uniqueItems.includes(item)) {
+        uniqueItems.push(item);
+      }
+    }
+    this.items.push(...uniqueItems);
     this.sort();
-    return result;
+    return this.items.length;
   }
 
   public concat(...items: ConcatArray<T>[]): T[];
@@ -55,15 +96,32 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   }
 
   public splice(start: number, deleteCount?: number, ...items: T[]): T[] {
-    const result = this.items.splice(start, deleteCount!, ...items);
+    // First perform the deletion
+    const result = this.items.splice(start, deleteCount || 0);
+
+    // Then add unique items
+    const uniqueItems: T[] = [];
+    for (const item of items) {
+      if (!this.items.includes(item) && !uniqueItems.includes(item)) {
+        uniqueItems.push(item);
+      }
+    }
+    this.items.push(...uniqueItems);
     this.sort();
     return result;
   }
 
   public unshift(...items: T[]): number {
-    const result = this.items.unshift(...items);
+    // Filter out duplicates both from existing items and within the new items
+    const uniqueItems: T[] = [];
+    for (const item of items) {
+      if (!this.items.includes(item) && !uniqueItems.includes(item)) {
+        uniqueItems.push(item);
+      }
+    }
+    this.items.unshift(...uniqueItems);
     this.sort();
-    return result;
+    return this.items.length;
   }
 
   public indexOf(searchElement: T, fromIndex?: number): number {
@@ -174,7 +232,14 @@ export abstract class SortedArrayBase<T> implements SortedArrayInterface<T> {
   }
 
   public fill(value: T, start?: number, end?: number): T[] {
+    // Perform the fill operation first
     this.items.fill(value, start, end);
+
+    // Then remove duplicates by creating a unique set
+    const uniqueItems = [...new Set(this.items)];
+    this.items.length = 0;
+    this.items.push(...uniqueItems);
+
     this.sort();
     return this.items;
   }
