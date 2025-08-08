@@ -2,13 +2,6 @@ import { expect } from "chai";
 
 import { SortedArrayBase } from "./sorted_array_base.js";
 
-// Test implementation that sorts numbers in ascending order
-class NumberSortedArray extends SortedArrayBase<number> {
-  protected getCompareFn(): (a: number, b: number) => number {
-    return (a, b) => a - b;
-  }
-}
-
 // Test implementation that sorts strings alphabetically
 class StringSortedArray extends SortedArrayBase<string> {
   protected getCompareFn(): (a: string, b: string) => number {
@@ -17,320 +10,359 @@ class StringSortedArray extends SortedArrayBase<string> {
 }
 
 describe("SortedArrayBase", () => {
-  let numberArray: NumberSortedArray;
   let stringArray: StringSortedArray;
 
   beforeEach(() => {
-    numberArray = new NumberSortedArray();
     stringArray = new StringSortedArray();
   });
 
   describe("Basic Operations", () => {
     it("should start empty", () => {
-      expect(numberArray.length).to.equal(0);
       expect(stringArray.length).to.equal(0);
     });
 
     it("should maintain sorted order after push", () => {
-      numberArray.push(3, 1, 4, 1, 5);
-      expect([...numberArray]).to.deep.equal([1, 3, 4, 5]);
+      stringArray.push("c", "a", "d", "a", "e");
+      expect([...stringArray]).to.deep.equal(["a", "c", "d", "e"]);
     });
 
     it("should maintain sorted order after unshift", () => {
-      numberArray.push(3, 5);
-      numberArray.unshift(1, 4);
-      expect([...numberArray]).to.deep.equal([1, 3, 4, 5]);
+      stringArray.push("c", "e");
+      stringArray.unshift("a", "d");
+      expect([...stringArray]).to.deep.equal(["a", "c", "d", "e"]);
     });
 
     it("should maintain sorted order after splice", () => {
-      numberArray.push(1, 3, 5);
-      numberArray.splice(1, 1, 2, 4);
-      expect([...numberArray]).to.deep.equal([1, 2, 4, 5]);
+      stringArray.push("a", "c", "e");
+      stringArray.splice(1, 1, "b", "d");
+      expect([...stringArray]).to.deep.equal(["a", "b", "d", "e"]);
     });
 
     it("should maintain sorted order after fill", () => {
-      numberArray.push(1, 2, 3, 4, 5);
-      numberArray.fill(10, 1, 3);
-      expect([...numberArray]).to.deep.equal([1, 4, 5, 10]);
+      stringArray.push("a", "b", "c", "d", "e");
+      stringArray.fill("z", 1, 3);
+      expect([...stringArray]).to.deep.equal(["a", "d", "e", "z"]);
     });
 
     it("should maintain sorted order after copyWithin", () => {
-      numberArray.push(1, 2, 3, 4, 5);
-      numberArray.copyWithin(0, 3, 5);
-      expect([...numberArray]).to.deep.equal([3, 4, 4, 5, 5]);
+      stringArray.push("a", "b", "c", "d", "e");
+      stringArray.copyWithin(0, 3, 5);
+      expect([...stringArray]).to.deep.equal(["c", "d", "d", "e", "e"]);
     });
   });
 
   describe("Array Methods", () => {
     beforeEach(() => {
-      numberArray.push(5, 2, 8, 1, 9);
-      stringArray.push("zebra", "apple", "banana");
+      stringArray.push("zebra", "apple", "banana", "cherry", "dog");
     });
 
     it("should pop last element", () => {
-      const popped = numberArray.pop();
-      expect(popped).to.equal(9);
-      expect([...numberArray]).to.deep.equal([1, 2, 5, 8]);
+      const popped = stringArray.pop();
+      expect(popped).to.equal("zebra");
+      expect([...stringArray]).to.deep.equal([
+        "apple",
+        "banana",
+        "cherry",
+        "dog"
+      ]);
     });
 
     it("should shift first element", () => {
-      const shifted = numberArray.shift();
-      expect(shifted).to.equal(1);
-      expect([...numberArray]).to.deep.equal([2, 5, 8, 9]);
+      const shifted = stringArray.shift();
+      expect(shifted).to.equal("apple");
+      expect([...stringArray]).to.deep.equal([
+        "banana",
+        "cherry",
+        "dog",
+        "zebra"
+      ]);
     });
 
     it("should slice correctly", () => {
-      const sliced = numberArray.slice(1, 3);
-      expect(sliced).to.deep.equal([2, 5]);
-      expect([...numberArray]).to.deep.equal([1, 2, 5, 8, 9]); // Original unchanged
+      const sliced = stringArray.slice(1, 3);
+      expect(sliced).to.deep.equal(["banana", "cherry"]);
+      expect([...stringArray]).to.deep.equal([
+        "apple",
+        "banana",
+        "cherry",
+        "dog",
+        "zebra"
+      ]); // Original unchanged
     });
 
     it("should concat and return sorted array", () => {
-      const result = numberArray.concat([3, 7]);
-      expect(result).to.deep.equal([1, 2, 3, 5, 7, 8, 9]);
-      expect([...numberArray]).to.deep.equal([1, 2, 5, 8, 9]); // Original unchanged
+      const result = stringArray.concat(["cat", "elephant"]);
+      expect(result).to.deep.equal([
+        "apple",
+        "banana",
+        "cat",
+        "cherry",
+        "dog",
+        "elephant",
+        "zebra"
+      ]);
+      expect([...stringArray]).to.deep.equal([
+        "apple",
+        "banana",
+        "cherry",
+        "dog",
+        "zebra"
+      ]); // Original unchanged
     });
 
     it("should join elements", () => {
-      expect(numberArray.join(",")).to.equal("1,2,5,8,9");
-      expect(stringArray.join(" | ")).to.equal("apple | banana | zebra");
+      expect(stringArray.join(" | ")).to.equal(
+        "apple | banana | cherry | dog | zebra"
+      );
     });
 
     it("should convert to string", () => {
-      expect(numberArray.toString()).to.equal("1,2,5,8,9");
+      expect(stringArray.toString()).to.equal("apple,banana,cherry,dog,zebra");
     });
 
     it("should convert to locale string", () => {
-      expect(numberArray.toLocaleString()).to.be.a("string");
+      expect(stringArray.toLocaleString()).to.be.a("string");
     });
   });
 
   describe("Search Methods", () => {
     beforeEach(() => {
-      numberArray.push(1, 2, 3, 4, 5);
+      stringArray.push("apple", "banana", "cherry", "dog", "elephant");
     });
 
     it("should find indexOf correctly", () => {
-      expect(numberArray.indexOf(2)).to.equal(1);
-      expect(numberArray.indexOf(6)).to.equal(-1);
+      expect(stringArray.indexOf("banana")).to.equal(1);
+      expect(stringArray.indexOf("zebra")).to.equal(-1);
     });
 
     it("should find indexOf with fromIndex", () => {
-      expect(numberArray.indexOf(4, 2)).to.equal(3);
+      expect(stringArray.indexOf("dog", 2)).to.equal(3);
     });
 
     it("should find lastIndexOf correctly", () => {
-      expect(numberArray.lastIndexOf(3)).to.equal(2);
-      expect(numberArray.lastIndexOf(6)).to.equal(-1);
+      expect(stringArray.lastIndexOf("cherry")).to.equal(2);
+      expect(stringArray.lastIndexOf("zebra")).to.equal(-1);
     });
 
     it("should find lastIndexOf with fromIndex", () => {
-      expect(numberArray.lastIndexOf(3, 1)).to.equal(-1);
+      expect(stringArray.lastIndexOf("cherry", 1)).to.equal(-1);
     });
 
     it("should check includes correctly", () => {
-      expect(numberArray.includes(3)).to.be.true;
-      expect(numberArray.includes(6)).to.be.false;
+      expect(stringArray.includes("cherry")).to.be.true;
+      expect(stringArray.includes("zebra")).to.be.false;
     });
 
     it("should check includes with fromIndex", () => {
-      expect(numberArray.includes(4, 2)).to.be.true;
-      expect(numberArray.includes(2, 3)).to.be.false;
+      expect(stringArray.includes("dog", 2)).to.be.true;
+      expect(stringArray.includes("banana", 3)).to.be.false;
     });
 
     it("should access elements with at()", () => {
-      expect(numberArray.at(0)).to.equal(1);
-      expect(numberArray.at(-1)).to.equal(5);
-      expect(numberArray.at(10)).to.be.undefined;
+      expect(stringArray.at(0)).to.equal("apple");
+      expect(stringArray.at(-1)).to.equal("elephant");
+      expect(stringArray.at(10)).to.be.undefined;
     });
   });
 
   describe("Higher-Order Methods", () => {
     beforeEach(() => {
-      numberArray.push(1, 2, 3, 4, 5);
+      stringArray.push("apple", "banana", "cherry", "dog", "elephant");
     });
 
     it("should map correctly", () => {
-      const doubled = numberArray.map((x) => x * 2);
-      expect(doubled).to.deep.equal([2, 4, 6, 8, 10]);
+      const uppercased = stringArray.map((x) => x.toUpperCase());
+      expect(uppercased).to.deep.equal([
+        "APPLE",
+        "BANANA",
+        "CHERRY",
+        "DOG",
+        "ELEPHANT"
+      ]);
     });
 
     it("should filter correctly", () => {
-      const evens = (numberArray as any).filter((x: number) => x % 2 === 0);
-      expect(evens).to.deep.equal([2, 4]);
+      const longWords = (stringArray as any).filter(
+        (x: string) => x.length > 5
+      );
+      expect(longWords).to.deep.equal(["banana", "cherry", "elephant"]);
     });
 
     it("should reduce correctly", () => {
-      const sum = numberArray.reduce((acc, val) => acc + val, 0);
-      expect(sum).to.equal(15);
+      const concatenated = stringArray.reduce((acc, val) => acc + val, "");
+      expect(concatenated).to.equal("applebananacherrydogelephant");
     });
 
     it("should reduce without initial value", () => {
-      const sum = numberArray.reduce((acc: number, val: number) => acc + val);
-      expect(sum).to.equal(15);
+      const concatenated = stringArray.reduce(
+        (acc: string, val: string) => acc + val
+      );
+      expect(concatenated).to.equal("applebananacherrydogelephant");
     });
 
     it("should reduceRight correctly", () => {
-      const result = numberArray.reduceRight(
-        (acc, val) => acc + val.toString(),
-        ""
-      );
-      expect(result).to.equal("54321");
+      const result = stringArray.reduceRight((acc, val) => acc + val, "");
+      expect(result).to.equal("elephantdogcherrybananaapple");
     });
 
     it("should find element", () => {
-      const found = (numberArray as any).find((x: number) => x > 3);
-      expect(found).to.equal(4);
+      const found = (stringArray as any).find((x: string) => x.startsWith("c"));
+      expect(found).to.equal("cherry");
     });
 
     it("should find element index", () => {
-      const index = numberArray.findIndex((x) => x > 3);
-      expect(index).to.equal(3);
+      const index = stringArray.findIndex((x) => x.startsWith("c"));
+      expect(index).to.equal(2);
     });
 
     it("should check every condition", () => {
-      expect((numberArray as any).every((x: number) => x > 0)).to.be.true;
-      expect((numberArray as any).every((x: number) => x > 2)).to.be.false;
+      expect((stringArray as any).every((x: string) => x.length > 0)).to.be
+        .true;
+      expect((stringArray as any).every((x: string) => x.length > 5)).to.be
+        .false;
     });
 
     it("should check some condition", () => {
-      expect(numberArray.some((x) => x > 4)).to.be.true;
-      expect(numberArray.some((x) => x > 10)).to.be.false;
+      expect(stringArray.some((x) => x.length > 7)).to.be.true;
+      expect(stringArray.some((x) => x.length > 10)).to.be.false;
     });
 
     it("should forEach correctly", () => {
-      const results: number[] = [];
-      numberArray.forEach((x) => results.push(x * 2));
-      expect(results).to.deep.equal([2, 4, 6, 8, 10]);
+      const results: string[] = [];
+      stringArray.forEach((x) => results.push(x.toUpperCase()));
+      expect(results).to.deep.equal([
+        "APPLE",
+        "BANANA",
+        "CHERRY",
+        "DOG",
+        "ELEPHANT"
+      ]);
     });
 
     it("should flatMap correctly", () => {
-      const result = numberArray.flatMap((x) => [x, x * 2]);
-      expect(result).to.deep.equal([1, 2, 2, 4, 3, 6, 4, 8, 5, 10]);
+      const result = stringArray.flatMap((x) => [x, x.length]);
+      expect(result).to.deep.equal([
+        "apple",
+        5,
+        "banana",
+        6,
+        "cherry",
+        6,
+        "dog",
+        3,
+        "elephant",
+        8
+      ]);
     });
   });
 
   describe("Iteration", () => {
     beforeEach(() => {
-      numberArray.push(3, 1, 2);
+      stringArray.push("cherry", "apple", "banana");
     });
 
     it("should iterate with for...of", () => {
-      const result: number[] = [];
-      for (const item of numberArray) {
+      const result: string[] = [];
+      for (const item of stringArray) {
         result.push(item);
       }
-      expect(result).to.deep.equal([1, 2, 3]);
+      expect(result).to.deep.equal(["apple", "banana", "cherry"]);
     });
 
     it("should iterate with entries()", () => {
-      const entries = [...numberArray.entries()];
+      const entries = [...stringArray.entries()];
       expect(entries).to.deep.equal([
-        [0, 1],
-        [1, 2],
-        [2, 3]
+        [0, "apple"],
+        [1, "banana"],
+        [2, "cherry"]
       ]);
     });
 
     it("should iterate with keys()", () => {
-      const keys = [...numberArray.keys()];
+      const keys = [...stringArray.keys()];
       expect(keys).to.deep.equal([0, 1, 2]);
     });
 
     it("should iterate with values()", () => {
-      const values = [...numberArray.values()];
-      expect(values).to.deep.equal([1, 2, 3]);
-    });
-  });
-
-  describe("String Sorting", () => {
-    it("should sort strings alphabetically", () => {
-      stringArray.push("zebra", "apple", "banana", "cherry");
-      expect([...stringArray]).to.deep.equal([
-        "apple",
-        "banana",
-        "cherry",
-        "zebra"
-      ]);
-    });
-
-    it("should maintain string sort order after operations", () => {
-      stringArray.push("zebra", "apple");
-      stringArray.unshift("banana");
-      stringArray.splice(1, 0, "cherry");
-      expect([...stringArray]).to.deep.equal([
-        "apple",
-        "banana",
-        "cherry",
-        "zebra"
-      ]);
+      const values = [...stringArray.values()];
+      expect(values).to.deep.equal(["apple", "banana", "cherry"]);
     });
   });
 
   describe("Edge Cases", () => {
     it("should handle empty array operations", () => {
-      expect(numberArray.pop()).to.be.undefined;
-      expect(numberArray.shift()).to.be.undefined;
-      expect(numberArray.indexOf(1)).to.equal(-1);
-      expect(numberArray.includes(1)).to.be.false;
+      expect(stringArray.pop()).to.be.undefined;
+      expect(stringArray.shift()).to.be.undefined;
+      expect(stringArray.indexOf("apple")).to.equal(-1);
+      expect(stringArray.includes("apple")).to.be.false;
     });
 
     it("should handle single element", () => {
-      numberArray.push(42);
-      expect([...numberArray]).to.deep.equal([42]);
-      expect(numberArray.indexOf(42)).to.equal(0);
-      expect(numberArray.includes(42)).to.be.true;
+      stringArray.push("hello");
+      expect([...stringArray]).to.deep.equal(["hello"]);
+      expect(stringArray.indexOf("hello")).to.equal(0);
+      expect(stringArray.includes("hello")).to.be.true;
     });
 
     it("should prevent duplicate elements", () => {
-      numberArray.push(1, 2, 1, 3, 2);
-      expect([...numberArray]).to.deep.equal([1, 2, 3]);
-      expect(numberArray.length).to.equal(3);
+      stringArray.push("apple", "banana", "apple", "cherry", "banana");
+      expect([...stringArray]).to.deep.equal(["apple", "banana", "cherry"]);
+      expect(stringArray.length).to.equal(3);
     });
 
     it("should handle splice with no items to add", () => {
-      numberArray.push(1, 2, 3, 4, 5);
-      const removed = numberArray.splice(2, 2);
-      expect(removed).to.deep.equal([3, 4]);
-      expect([...numberArray]).to.deep.equal([1, 2, 5]);
+      stringArray.push("apple", "banana", "cherry", "dog", "elephant");
+      const removed = stringArray.splice(2, 2);
+      expect(removed).to.deep.equal(["cherry", "dog"]);
+      expect([...stringArray]).to.deep.equal(["apple", "banana", "elephant"]);
     });
 
     it("should handle splice at beginning", () => {
-      numberArray.push(1, 2, 3);
-      numberArray.splice(0, 0, 0);
-      expect([...numberArray]).to.deep.equal([0, 1, 2, 3]);
+      stringArray.push("banana", "cherry", "dog");
+      stringArray.splice(0, 0, "apple");
+      expect([...stringArray]).to.deep.equal([
+        "apple",
+        "banana",
+        "cherry",
+        "dog"
+      ]);
     });
 
     it("should handle splice at end", () => {
-      numberArray.push(1, 2, 3);
-      numberArray.splice(3, 0, 4);
-      expect([...numberArray]).to.deep.equal([1, 2, 3, 4]);
+      stringArray.push("apple", "banana", "cherry");
+      stringArray.splice(3, 0, "dog");
+      expect([...stringArray]).to.deep.equal([
+        "apple",
+        "banana",
+        "cherry",
+        "dog"
+      ]);
     });
   });
 
   describe("Array Interface Compliance", () => {
     it("should have correct length property", () => {
-      expect(numberArray.length).to.equal(0);
-      numberArray.push(1, 2, 3);
-      expect(numberArray.length).to.equal(3);
+      expect(stringArray.length).to.equal(0);
+      stringArray.push("apple", "banana", "cherry");
+      expect(stringArray.length).to.equal(3);
     });
 
     it("should support bracket notation access", () => {
-      numberArray.push(3, 1, 2);
-      expect(numberArray[0]).to.equal(1);
-      expect(numberArray[1]).to.equal(2);
-      expect(numberArray[2]).to.equal(3);
+      stringArray.push("cherry", "apple", "banana");
+      expect(stringArray[0]).to.equal("apple");
+      expect(stringArray[1]).to.equal("banana");
+      expect(stringArray[2]).to.equal("cherry");
     });
 
     it("should have Symbol.unscopables", () => {
-      expect(numberArray[Symbol.unscopables]).to.be.an("object");
+      expect(stringArray[Symbol.unscopables]).to.be.an("object");
     });
 
     it("should be iterable", () => {
-      numberArray.push(3, 1, 2);
-      expect(numberArray[Symbol.iterator]).to.be.a("function");
-      const iterator = numberArray[Symbol.iterator]();
-      expect(iterator.next().value).to.equal(1);
+      stringArray.push("cherry", "apple", "banana");
+      expect(stringArray[Symbol.iterator]).to.be.a("function");
+      const iterator = stringArray[Symbol.iterator]();
+      expect(iterator.next().value).to.equal("apple");
     });
   });
 });
