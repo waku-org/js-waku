@@ -1,4 +1,4 @@
-import type { Message } from "./events.js";
+import { ContentMessage, EphemeralMessage, Message } from "./events.js";
 
 export enum Command {
   Send = "send",
@@ -9,7 +9,7 @@ export enum Command {
 export interface ParamsByAction {
   [Command.Send]: {
     payload: Uint8Array;
-    callback?: (message: Message) => Promise<{
+    callback?: (message: ContentMessage) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>;
@@ -19,7 +19,7 @@ export interface ParamsByAction {
   };
   [Command.SendEphemeral]: {
     payload: Uint8Array;
-    callback?: (message: Message) => Promise<boolean>;
+    callback?: (message: EphemeralMessage) => Promise<boolean>;
   };
 }
 
