@@ -5,16 +5,18 @@ type ContentMessage = Message & {
   content: Uint8Array<ArrayBufferLike>;
 };
 
+type SortedArray<T> = Omit<Array<T>, "reverse" | "sort">;
+
 /**
  * In-Memory implementation of [[ILocalHistory]].
  *
  * Messages are store in SDS chronological order:
  * - messages[0] is the oldest message
- * - mesa
+ * - messages[n] is the newest message
  *
  * Only stores content message: `message.lamportTimestamp` and `message.content` are present.
  */
-export class LocalHistory implements Array<ContentMessage> {
+export class LocalHistory implements SortedArray<ContentMessage> {
   private readonly messages: Array<ContentMessage>;
 
   public constructor() {
@@ -47,18 +49,19 @@ export class LocalHistory implements Array<ContentMessage> {
     return this.messages.length;
   }
 
-  public concat(...items: unknown[]): ContentMessage[] {
-    return this.messages.concat(...(items as any));
+  public concat(...items: ConcatArray<ContentMessage>[]): ContentMessage[];
+  public concat(
+    ...items: (ContentMessage | ConcatArray<ContentMessage>)[]
+  ): ContentMessage[];
+  public concat(
+    ...items: (ContentMessage | ConcatArray<ContentMessage>)[]
+  ): ContentMessage[] {
+    const result = this.messages.concat(...items);
+    return result.sort(Message.compare);
   }
 
   public join(separator?: string): string {
     return this.messages.join(separator);
-  }
-
-  public reverse(): ContentMessage[] {
-    this.messages.reverse();
-    this._sort();
-    return this.messages;
   }
 
   public shift(): ContentMessage | undefined {
@@ -67,13 +70,6 @@ export class LocalHistory implements Array<ContentMessage> {
 
   public slice(start?: number, end?: number): ContentMessage[] {
     return this.messages.slice(start, end);
-  }
-
-  public sort(
-    compareFn?: ((a: ContentMessage, b: ContentMessage) => number) | undefined
-  ): this {
-    this.messages.sort(compareFn || Message.compare);
-    return this;
   }
 
   public splice(
@@ -240,19 +236,6 @@ export class LocalHistory implements Array<ContentMessage> {
     return this.messages.findIndex(predicate, thisArg);
   }
 
-  public fill(value: ContentMessage, start?: number, end?: number): this {
-    this._validateMessage(value);
-    this.messages.fill(value, start, end);
-    this._sort();
-    return this;
-  }
-
-  public copyWithin(target: number, start: number, end?: number): this {
-    this.messages.copyWithin(target, start, end);
-    this._sort();
-    return this;
-  }
-
   public entries(): ArrayIterator<[number, ContentMessage]> {
     return this.messages.entries();
   }
@@ -296,26 +279,12 @@ export class LocalHistory implements Array<ContentMessage> {
     return this.messages[Symbol.iterator]();
   }
   public readonly [Symbol.unscopables]: any = {
-    copyWithin: true,
     entries: true,
-    fill: true,
     find: true,
     findIndex: true,
     keys: true,
     values: true
   };
-
-  /**
-   * Push a message,
-   *
-   * @param newMessage
-   *
-   * @throws Error if `newMessage.lamportTimestamp` or `newMessage.content` are empty or undefined
-   */
-  public _push(newMessage: ContentMessage): void {
-    this._validateAndAddMessage(newMessage);
-    this._sort();
-  }
 
   private _validateMessage(message: ContentMessage): void {
     if (
@@ -338,7 +307,7 @@ export class LocalHistory implements Array<ContentMessage> {
       ({ messageId }) => newMessage.messageId === messageId
     );
 
-    // The history entry is already present, no need to re-add
+    // If history entry is already present, no need to re-add
     if (!existingHistoryEntry) {
       this.messages.push(newMessage);
     }
