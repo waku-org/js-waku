@@ -4,7 +4,8 @@ export { DnsNodeDiscovery } from "./dns/dns.js";
 
 export {
   wakuPeerExchangeDiscovery,
-  PeerExchangeDiscovery
+  PeerExchangeDiscovery,
+  PeerExchangeCodec
 } from "./peer-exchange/index.js";
 
 export {

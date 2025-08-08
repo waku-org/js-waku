@@ -27,19 +27,12 @@ const log = new Logger("peer-exchange-discovery");
 
 interface PeerExchangeDiscoveryOptions {
   /**
-   * Tag a bootstrap peer with this name before "discovering" it (default: 'bootstrap')
+   * Peer TTL in milliseconds.
+   * This is the time after which a peer will be considered stale and will be re-queried via peer exchange.
+   *
+   * @default 30_000
    */
-  tagName?: string;
-
-  /**
-   * The bootstrap peer tag will have this value (default: 50)
-   */
-  tagValue?: number;
-
-  /**
-   * Cause the bootstrap peer tag to be removed after this number of ms (default: 2 minutes)
-   */
-  tagTTL?: number;
+  TTL: number;
 }
 
 export class PeerExchangeDiscovery
@@ -53,15 +46,21 @@ export class PeerExchangeDiscovery
   private isStarted: boolean = false;
   private queryingPeers: Set<string> = new Set();
 
+  private peerExpirationRecords: Map<string, number> = new Map();
+  private continuousDiscoveryInterval: NodeJS.Timeout | null = null;
+
   public constructor(
     components: Libp2pComponents,
-    options: PeerExchangeDiscoveryOptions = {}
+    options: Partial<PeerExchangeDiscoveryOptions> = {}
   ) {
     super();
 
     this.components = components;
     this.peerExchange = new PeerExchange(components);
-    this.options = options;
+    this.options = {
+      ...options,
+      TTL: options.TTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
+    };
 
     this.handleDiscoveredPeer = this.handleDiscoveredPeer.bind(this);
   }
@@ -81,6 +80,10 @@ export class PeerExchangeDiscovery
       "peer:identify",
       this.handleDiscoveredPeer as Libp2pEventHandler<IdentifyResult>
     );
+
+    this.continuousDiscoveryInterval = setInterval(() => {
+      void this.handlePeriodicDiscovery();
+    }, this.options.TTL);
   }
 
   /**
@@ -96,6 +99,11 @@ export class PeerExchangeDiscovery
 
     this.isStarted = false;
     this.queryingPeers.clear();
+    this.peerExpirationRecords.clear();
+
+    if (this.continuousDiscoveryInterval) {
+      clearInterval(this.continuousDiscoveryInterval);
+    }
 
     this.components.events.removeEventListener(
       "peer:identify",
@@ -114,12 +122,45 @@ export class PeerExchangeDiscovery
   private async handleDiscoveredPeer(
     event: CustomEvent<IdentifyResult>
   ): Promise<void> {
-    const { protocols, peerId } = event.detail;
+    void this.runQuery(event.detail.peerId, event.detail.protocols);
+  }
 
+  private async handlePeriodicDiscovery(): Promise<void> {
+    const connections = this.components.connectionManager.getConnections();
+
+    await Promise.all(
+      connections.map(async (connection) => {
+        try {
+          const peer = await this.components.peerStore.get(
+            connection.remotePeer
+          );
+
+          const peerIdStr = peer.id.toString();
+          const shouldQuery = this.peerExpirationRecords.has(peerIdStr)
+            ? this.peerExpirationRecords.get(peerIdStr)! <= Date.now()
+            : true; // default to true, that means we didn't query this peer yet by PX
+
+          if (!shouldQuery) {
+            return null;
+          }
+
+          return this.runQuery(connection.remotePeer, peer.protocols);
+        } catch (error) {
+          log.warn("Error getting peer info", error);
+          return null;
+        }
+      })
+    );
+  }
+
+  private async runQuery(peerId: PeerId, protocols: string[]): Promise<void> {
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
     ) {
+      log.info(
+        `Skipping peer ${peerId} as it is already querying or does not support peer exchange`
+      );
       return;
     }
 
@@ -134,11 +175,13 @@ export class PeerExchangeDiscovery
   }
 
   private async query(peerId: PeerId): Promise<void> {
+    const peerIdStr = peerId.toString();
+    log.info(`Querying peer exchange for ${peerIdStr}`);
+
     const { error, peerInfos } = await this.peerExchange.query({
       numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
       peerId
     });
-    const peerIdStr = peerId.toString();
 
     if (error) {
       log.error(`Peer exchange query to ${peerIdStr} failed`, error);
@@ -158,11 +201,11 @@ export class PeerExchangeDiscovery
         continue;
       }
 
+      // merge is smart enough to overwrite only changed parts
       await this.components.peerStore.merge(peerInfo.id, {
         tags: {
           [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
-            value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
+            value: DEFAULT_PEER_EXCHANGE_TAG_VALUE
           }
         },
         ...(shardInfo && {
@@ -174,6 +217,11 @@ export class PeerExchangeDiscovery
           multiaddrs: peerInfo.multiaddrs
         })
       });
+
+      this.peerExpirationRecords.set(
+        peerInfo.id.toString(),
+        Date.now() + this.options.TTL
+      );
 
       log.info(`Discovered peer: ${peerInfo.id.toString()}`);
 
@@ -189,9 +237,9 @@ export class PeerExchangeDiscovery
   }
 }
 
-export function wakuPeerExchangeDiscovery(): (
-  components: Libp2pComponents
-) => PeerExchangeDiscovery {
+export function wakuPeerExchangeDiscovery(
+  options: Partial<PeerExchangeDiscoveryOptions> = {}
+): (components: Libp2pComponents) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) =>
-    new PeerExchangeDiscovery(components);
+    new PeerExchangeDiscovery(components, options);
 }

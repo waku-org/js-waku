@@ -52,7 +52,6 @@ class MockDNS implements DnsClient {
   public resolveTXT(fqdn: string): Promise<string[]> {
     if (this.fqdnThrows.includes(fqdn)) {
       this.hasThrown = true;
-      console.log("throwing");
       throw "Mock DNS throws.";
     }
 
