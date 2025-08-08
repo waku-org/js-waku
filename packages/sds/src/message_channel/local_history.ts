@@ -236,6 +236,27 @@ export class LocalHistory implements SortedArray<ContentMessage> {
     return this.messages.findIndex(predicate, thisArg);
   }
 
+  public fill(
+    value: ContentMessage,
+    start?: number,
+    end?: number
+  ): ContentMessage[] {
+    this._validateMessage(value);
+    this.messages.fill(value, start, end);
+    this._sort();
+    return this.messages;
+  }
+
+  public copyWithin(
+    target: number,
+    start: number,
+    end?: number
+  ): ContentMessage[] {
+    this.messages.copyWithin(target, start, end);
+    this._sort();
+    return this.messages;
+  }
+
   public entries(): ArrayIterator<[number, ContentMessage]> {
     return this.messages.entries();
   }
@@ -279,7 +300,9 @@ export class LocalHistory implements SortedArray<ContentMessage> {
     return this.messages[Symbol.iterator]();
   }
   public readonly [Symbol.unscopables]: any = {
+    copyWithin: true,
     entries: true,
+    fill: true,
     find: true,
     findIndex: true,
     keys: true,
