@@ -53,6 +53,16 @@ export class Message implements proto_sds_message.SdsMessage {
       content
     );
   }
+
+  public static compare(
+    a: Message & { lamportTimestamp: number },
+    b: Message & { lamportTimestamp: number }
+  ): number {
+    if (a.lamportTimestamp !== b.lamportTimestamp) {
+      return a.lamportTimestamp - b.lamportTimestamp;
+    }
+    return a.messageId.localeCompare(b.messageId);
+  }
 }
 
 export type MessageChannelEvents = {
