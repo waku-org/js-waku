@@ -278,7 +278,7 @@ describe("E2E Reliability", () => {
     const subRes = await messageChannel.subscribe(decoder);
     expect(subRes).to.be.true;
 
-    const message = new Uint8Array();
+    const message = utf8ToBytes("payload doesnt matter");
 
     // Setting up message tracking
     const messageId = MessageChannel.getMessageId(message);
@@ -589,6 +589,11 @@ describe("E2E Reliability", () => {
         }
       );
 
+      let subRes = await messageChannelAlice.subscribe(decoder);
+      expect(subRes).to.be.true;
+      subRes = await messageChannelBob.subscribe(decoder);
+      expect(subRes).to.be.true;
+
       while (!syncMessageSent) {
         // Bob will send a sync message as soon as it started, we are waiting for this one
         await delay(100);
@@ -645,6 +650,11 @@ describe("E2E Reliability", () => {
         }
       );
 
+      let subRes = await messageChannelAlice.subscribe(decoder);
+      expect(subRes).to.be.true;
+      subRes = await messageChannelBob.subscribe(decoder);
+      expect(subRes).to.be.true;
+
       while (!syncMessageSent) {
         // Bob will send a sync message as soon as it started, we are waiting for this one
         await delay(100);
@@ -652,6 +662,7 @@ describe("E2E Reliability", () => {
       // Let's reset the tracker
       syncMessageSent = false;
       // We should be faster than Bob as Bob will "randomly" wait a full second
+      console.log("Alice sends message, should reset Bob");
       await messageChannelAlice.send(utf8ToBytes("some message"));
 
       // Bob should be waiting a full second before sending a message after Alice

@@ -14,11 +14,13 @@ import {
 import {
   type ChannelId,
   type HistoryEntry,
+  isContentMessage,
   Message as SdsMessage,
   MessageChannel as SdsMessageChannel,
   MessageChannelEvent as SdsMessageChannelEvent,
   type MessageChannelOptions as SdsMessageChannelOptions,
-  type SenderId
+  type SenderId,
+  SyncMessage
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
@@ -421,14 +423,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   public async sendSyncMessage(): Promise<void> {
-    log.info("Sending Sync Message");
     await this.messageChannel.pushOutgoingSyncMessage(
-      async (sdsMessage: SdsMessage): Promise<boolean> => {
+      async (syncMessage: SyncMessage): Promise<boolean> => {
         // Callback is called once message has added to the SDS outgoing queue
         // We start by trying to send the message now.
 
         // `payload` wrapped in SDS
-        const sdsPayload = sdsMessage.encode();
+        const sdsPayload = syncMessage.encode();
 
         const wakuMessage = {
           payload: sdsPayload
@@ -438,6 +439,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         // Encoding now to fail early, used later to get message hash
         const protoMessage = await this.encoder.toProtoObj(wakuMessage);
         if (!protoMessage) {
+          log.error("Error sending sync message, could not encode it");
           return false;
         }
 
@@ -511,8 +513,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.InMessageReceived,
       (event) => {
-        // restart the timeout when a non-ephemeral message has been received
-        if (!event.detail.lamportTimestamp) {
+        // restart the timeout when a content message has been received
+        if (isContentMessage(event.detail)) {
           this.restartSync();
         }
       }
@@ -521,8 +523,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.messageChannel.addEventListener(
       SdsMessageChannelEvent.OutMessageSent,
       (event) => {
-        // restart the timeout when a non-ephemeral message has been sent
-        if (!event.detail.lamportTimestamp) {
+        // restart the timeout when a content message has been sent
+        if (isContentMessage(event.detail)) {
           this.restartSync();
         }
       }
