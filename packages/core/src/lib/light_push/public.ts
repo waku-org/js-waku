@@ -104,8 +104,7 @@ export class ProtocolHandler {
             error,
             peerId: peerId,
             statusCode,
-            statusDesc,
-            protocolVersion: "v3"
+            statusDesc
           }
         };
       }
@@ -120,8 +119,7 @@ export class ProtocolHandler {
         success: null,
         failure: {
           error: LightPushError.DECODE_FAILED,
-          peerId: peerId,
-          protocolVersion: "v3"
+          peerId: peerId
         }
       };
     }
@@ -140,8 +138,7 @@ export class ProtocolHandler {
         success: null,
         failure: {
           error: LightPushError.DECODE_FAILED,
-          peerId: peerId,
-          protocolVersion: "v2"
+          peerId: peerId
         }
       };
     }
@@ -151,8 +148,7 @@ export class ProtocolHandler {
         success: null,
         failure: {
           error: LightPushError.NO_RESPONSE,
-          peerId: peerId,
-          protocolVersion: "v2"
+          peerId: peerId
         }
       };
     }
@@ -163,8 +159,7 @@ export class ProtocolHandler {
         success: null,
         failure: {
           error: LightPushError.RLN_PROOF_GENERATION,
-          peerId: peerId,
-          protocolVersion: "v2"
+          peerId: peerId
         }
       };
     }
@@ -176,8 +171,7 @@ export class ProtocolHandler {
         failure: {
           error: LightPushError.REMOTE_PEER_REJECTED,
           peerId: peerId,
-          statusDesc: response.info,
-          protocolVersion: "v2"
+          statusDesc: response.info
         }
       };
     }

@@ -86,9 +86,6 @@ export class LightPush implements ILightPush {
       pubsubTopic: encoder.pubsubTopic
     });
 
-    // Track protocol versions used per peer
-    const protocolVersions: Record<string, string> = {};
-
     const coreResults: LightPushCoreResult[] =
       peerIds?.length > 0
         ? await Promise.all(
@@ -100,42 +97,27 @@ export class LightPush implements ILightPush {
                   peerId
                 );
 
-                // Enhanced error logging with protocol version information
+                // Enhanced error logging
                 if (result.failure) {
                   const peerIdStr = peerId.toString();
-                  const protocolVersion =
-                    result.failure.protocolVersion ||
-                    (result.failure.statusCode !== undefined ? "v3" : "v2");
-                  protocolVersions[peerIdStr] = protocolVersion;
 
                   log.warn(
-                    `Failed to send to peer ${peerIdStr} (${protocolVersion}): ${result.failure.error}`,
+                    `Failed to send to peer ${peerIdStr}: ${result.failure.error}`,
                     {
                       peerId: peerIdStr,
-                      protocolVersion,
                       error: result.failure.error,
                       statusCode: result.failure.statusCode,
                       statusDesc: result.failure.statusDesc
                     }
                   );
-
-                  // Ensure protocolVersion is set in failure
-                  if (!result.failure.protocolVersion) {
-                    result.failure.protocolVersion = protocolVersion;
-                  }
                 } else if (result.success) {
-                  // For successful sends, we need to infer protocol version from peer capabilities
-                  // This is a best-effort approach since success responses don't always contain version info
                   const peerIdStr = peerId.toString();
-                  protocolVersions[peerIdStr] = "v3"; // Assume v3 for successful sends (will be corrected if needed)
-
                   log.info(`Successfully sent to peer ${peerIdStr}`);
                 }
 
                 return result;
               } catch (error) {
                 const peerIdStr = peerId.toString();
-                protocolVersions[peerIdStr] = "unknown";
 
                 log.error(`Exception sending to peer ${peerIdStr}:`, error);
 
@@ -143,8 +125,7 @@ export class LightPush implements ILightPush {
                   success: null,
                   failure: {
                     error: LightPushError.GENERIC_FAIL,
-                    peerId,
-                    protocolVersion: "unknown"
+                    peerId
                   }
                 };
               }
@@ -159,8 +140,7 @@ export class LightPush implements ILightPush {
             .map((v) => v.success) as PeerId[],
           failures: coreResults
             .filter((v) => v.failure)
-            .map((v) => v.failure) as LightPushFailure[],
-          protocolVersions
+            .map((v) => v.failure) as LightPushFailure[]
         }
       : {
           successes: [],
@@ -168,8 +148,7 @@ export class LightPush implements ILightPush {
             {
               error: LightPushError.NO_PEER_AVAILABLE
             }
-          ],
-          protocolVersions: {}
+          ]
         };
 
     if (options.autoRetry && results.successes.length === 0) {
