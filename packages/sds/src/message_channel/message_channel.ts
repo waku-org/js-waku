@@ -12,6 +12,8 @@ import {
   EphemeralMessage,
   type HistoryEntry,
   isContentMessage,
+  isEphemeralMessage,
+  isSyncMessage,
   Message,
   MessageChannelEvent,
   MessageChannelEvents,
@@ -59,7 +61,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private filter: DefaultBloomFilter;
   private outgoingBuffer: ContentMessage[];
   private possibleAcks: Map<MessageId, number>;
-  private incomingBuffer: Message[];
+  private incomingBuffer: Array<ContentMessage | SyncMessage>;
   private localHistory: ILocalHistory;
   private timeReceived: Map<MessageId, number>;
   private readonly causalHistorySize: number;
@@ -254,7 +256,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    */
   public sweepIncomingBuffer(): HistoryEntry[] {
     const { buffer, missing } = this.incomingBuffer.reduce<{
-      buffer: Message[];
+      buffer: Array<ContentMessage | SyncMessage>;
       missing: Set<HistoryEntry>;
     }>(
       ({ buffer, missing }, message) => {
@@ -271,7 +273,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             )
         );
         if (missingDependencies.length === 0) {
-          if (this.deliverMessage(message)) {
+          if (isContentMessage(message) && this.deliverMessage(message)) {
             this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
               detail: message.messageId
             });
@@ -307,7 +309,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           missing
         };
       },
-      { buffer: new Array<Message>(), missing: new Set<HistoryEntry>() }
+      { buffer: new Array<ContentMessage>(), missing: new Set<HistoryEntry>() }
     );
     this.incomingBuffer = buffer;
 
@@ -360,9 +362,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp++;
-
     const message = new SyncMessage(
-      MessageChannel.getMessageId(new Uint8Array()),
+      // does not need to be secure randomness
+      `sync-${Math.random().toString(36).substring(2)}`,
       this.channelId,
       this.senderId,
       this.localHistory
@@ -378,6 +380,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (callback) {
       try {
         await callback(message);
+        log.info(this.senderId, "sync message sent", message.messageId);
         this.safeSendEvent(MessageChannelEvent.OutSyncSent, {
           detail: message
         });
@@ -394,26 +397,41 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   private _pushIncomingMessage(message: Message): void {
+    log.info(this.senderId, "incoming message", message.messageId);
     const isDuplicate =
       message.content &&
       message.content.length > 0 &&
       this.timeReceived.has(message.messageId);
 
     if (isDuplicate) {
+      log.info(
+        this.senderId,
+        "dropping dupe incoming message",
+        message.messageId
+      );
       return;
     }
 
     const isOwnOutgoingMessage = this.senderId === message.senderId;
     if (isOwnOutgoingMessage) {
+      log.info(this.senderId, "ignoring own incoming message");
       return;
     }
 
     // Ephemeral messages SHOULD be delivered immediately
-    if (!message.lamportTimestamp) {
-      this.deliverMessage(message);
+    if (isEphemeralMessage(message)) {
+      log.info(this.senderId, "delivering ephemeral message");
       return;
     }
-    if (message.content?.length === 0) {
+    if (!isSyncMessage(message) && !isContentMessage(message)) {
+      log.error(
+        this.senderId,
+        "internal error, a message is neither sync nor ephemeral nor content, ignoring it",
+        message
+      );
+      return;
+    }
+    if (isSyncMessage(message)) {
       this.safeSendEvent(MessageChannelEvent.InSyncReceived, {
         detail: message
       });
@@ -423,7 +441,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       });
     }
     this.reviewAckStatus(message);
-    if (message.content?.length && message.content.length > 0) {
+    if (isContentMessage(message)) {
       this.filter.insert(message.messageId);
     }
 
@@ -444,7 +462,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         missingDependencies.map((ch) => ch.messageId)
       );
     } else {
-      if (this.deliverMessage(message)) {
+      if (isContentMessage(message) && this.deliverMessage(message)) {
         this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
           detail: message.messageId
         });
@@ -575,14 +593,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    */
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
   private deliverMessage(
-    message: Message,
+    message: ContentMessage,
     retrievalHint?: Uint8Array
   ): boolean {
-    if (
-      message.content?.length === 0 ||
-      message.lamportTimestamp === undefined ||
-      !isContentMessage(message)
-    ) {
+    if (!isContentMessage(message)) {
       // Messages with empty content are sync messages.
       // Messages with no timestamp are ephemeral messages.
       // They do not need to be "delivered".
