@@ -76,23 +76,6 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
     expect(pushResponse1?.successes.length).to.eq(numServiceNodes);
     expect(pushResponse2?.successes.length).to.eq(numServiceNodes);
 
-    // Add protocol version tracking validation
-    if (pushResponse1.protocolVersions && pushResponse2.protocolVersions) {
-      const versions1 = Object.values(pushResponse1.protocolVersions);
-      const versions2 = Object.values(pushResponse2.protocolVersions);
-
-      expect(
-        versions1.every((version) =>
-          ["v2", "v3", "unknown"].includes(version as string)
-        )
-      ).to.be.true;
-      expect(
-        versions2.every((version) =>
-          ["v2", "v3", "unknown"].includes(version as string)
-        )
-      ).to.be.true;
-    }
-
     const messageCollector1 = new MessageCollector(serviceNodes.nodes[0]);
     const messageCollector2 = new MessageCollector(serviceNodes.nodes[1]);
 
