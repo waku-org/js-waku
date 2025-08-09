@@ -26,7 +26,7 @@ const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
 const log = new Logger("waku:sds:message-channel");
 
-interface MessageChannelOptions {
+export interface MessageChannelOptions {
   causalHistorySize?: number;
   /**
    * The time in milliseconds after which a message dependencies that could not
