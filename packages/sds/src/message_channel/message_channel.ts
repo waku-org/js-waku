@@ -8,13 +8,18 @@ import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 import { Command, Handlers, ParamsByAction, Task } from "./command_queue.js";
 import {
   type ChannelId,
+  ContentMessage,
+  EphemeralMessage,
   type HistoryEntry,
+  isContentMessage,
   Message,
   MessageChannelEvent,
   MessageChannelEvents,
   type MessageId,
-  type SenderId
+  type SenderId,
+  SyncMessage
 } from "./events.js";
+import { MemLocalHistory } from "./mem_local_history.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   capacity: 10000,
@@ -42,15 +47,20 @@ export interface MessageChannelOptions {
   possibleAcksThreshold?: number;
 }
 
+export type ILocalHistory = Pick<
+  Array<ContentMessage>,
+  "some" | "push" | "slice" | "find" | "length"
+>;
+
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
   public readonly senderId: SenderId;
   private lamportTimestamp: number;
   private filter: DefaultBloomFilter;
-  private outgoingBuffer: Message[];
+  private outgoingBuffer: ContentMessage[];
   private possibleAcks: Map<MessageId, number>;
   private incomingBuffer: Message[];
-  private localHistory: { timestamp: number; historyEntry: HistoryEntry }[];
+  private localHistory: ILocalHistory;
   private timeReceived: Map<MessageId, number>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
@@ -78,7 +88,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public constructor(
     channelId: ChannelId,
     senderId: SenderId,
-    options: MessageChannelOptions = {}
+    options: MessageChannelOptions = {},
+    localHistory: ILocalHistory = new MemLocalHistory()
   ) {
     super();
     this.channelId = channelId;
@@ -88,7 +99,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
     this.incomingBuffer = [];
-    this.localHistory = [];
+    this.localHistory = localHistory;
     this.causalHistorySize =
       options.causalHistorySize ?? DEFAULT_CAUSAL_HISTORY_SIZE;
     // TODO: this should be determined based on the bloom filter parameters and number of hashes
@@ -160,14 +171,19 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * // Actually send the message
    * await channel.processTasks();
    * ```
+   *
+   * @throws Error if the payload is empty
    */
   public async pushOutgoingMessage(
     payload: Uint8Array,
-    callback?: (processedMessage: Message) => Promise<{
+    callback?: (processedMessage: ContentMessage) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
   ): Promise<void> {
+    if (!payload || !payload.length) {
+      throw Error("Only messages with valid payloads are allowed");
+    }
     this.tasks.push({
       command: Command.Send,
       params: {
@@ -251,8 +267,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
             !this.localHistory.some(
-              ({ historyEntry: { messageId } }) =>
-                messageId === messageHistoryEntry.messageId
+              ({ messageId }) => messageId === messageHistoryEntry.messageId
             )
         );
         if (missingDependencies.length === 0) {
@@ -342,22 +357,22 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * @param callback - A callback function that returns a boolean indicating whether the message was sent successfully.
    */
   public async pushOutgoingSyncMessage(
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp++;
 
-    const emptyMessage = new Uint8Array();
-
-    const message = new Message(
-      MessageChannel.getMessageId(emptyMessage),
+    const message = new SyncMessage(
+      MessageChannel.getMessageId(new Uint8Array()),
       this.channelId,
       this.senderId,
       this.localHistory
         .slice(-this.causalHistorySize)
-        .map(({ historyEntry }) => historyEntry),
+        .map(({ messageId, retrievalHint }) => {
+          return { messageId, retrievalHint };
+        }),
       this.lamportTimestamp,
       this.filter.toBytes(),
-      emptyMessage
+      undefined
     );
 
     if (callback) {
@@ -415,8 +430,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     const missingDependencies = message.causalHistory.filter(
       (messageHistoryEntry) =>
         !this.localHistory.some(
-          ({ historyEntry: { messageId } }) =>
-            messageId === messageHistoryEntry.messageId
+          ({ messageId }) => messageId === messageHistoryEntry.messageId
         )
     );
 
@@ -468,7 +482,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   private async _pushOutgoingMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<{
+    callback?: (message: ContentMessage) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
@@ -487,13 +501,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     // It's a new message
     if (!message) {
-      message = new Message(
+      message = new ContentMessage(
         messageId,
         this.channelId,
         this.senderId,
         this.localHistory
           .slice(-this.causalHistorySize)
-          .map(({ historyEntry }) => historyEntry),
+          .map(({ messageId, retrievalHint }) => {
+            return { messageId, retrievalHint };
+          }),
         this.lamportTimestamp,
         this.filter.toBytes(),
         payload
@@ -505,15 +521,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     if (callback) {
       try {
         const { success, retrievalHint } = await callback(message);
-        if (success) {
+        // isContentMessage should always be true as `this.lamportTimestamp` has been
+        // used to create the message
+        if (success && isContentMessage(message)) {
+          message.retrievalHint = retrievalHint;
           this.filter.insert(messageId);
-          this.localHistory.push({
-            timestamp: this.lamportTimestamp,
-            historyEntry: {
-              messageId,
-              retrievalHint
-            }
-          });
+          this.localHistory.push(message);
           this.timeReceived.set(messageId, Date.now());
           this.safeSendEvent(MessageChannelEvent.OutMessageSent, {
             detail: message
@@ -528,9 +541,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   private async _pushOutgoingEphemeralMessage(
     payload: Uint8Array,
-    callback?: (message: Message) => Promise<boolean>
+    callback?: (message: EphemeralMessage) => Promise<boolean>
   ): Promise<void> {
-    const message = new Message(
+    const message = new EphemeralMessage(
       MessageChannel.getMessageId(payload),
       this.channelId,
       this.senderId,
@@ -567,7 +580,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   ): boolean {
     if (
       message.content?.length === 0 ||
-      message.lamportTimestamp === undefined
+      message.lamportTimestamp === undefined ||
+      !isContentMessage(message)
     ) {
       // Messages with empty content are sync messages.
       // Messages with no timestamp are ephemeral messages.
@@ -583,7 +597,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     // Check if the entry is already present
     const existingHistoryEntry = this.localHistory.find(
-      ({ historyEntry }) => historyEntry.messageId === message.messageId
+      ({ messageId }) => messageId === message.messageId
     );
 
     // The history entry is already present, no need to re-add
@@ -591,24 +605,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return true;
     }
 
-    // The participant MUST insert the message ID into its local log,
-    // based on Lamport timestamp.
-    // If one or more message IDs with the same Lamport timestamp already exists,
-    // the participant MUST follow the Resolve Conflicts procedure.
-    // https://rfc.vac.dev/vac/raw/sds/#resolve-conflicts
-    this.localHistory.push({
-      timestamp: message.lamportTimestamp,
-      historyEntry: {
-        messageId: message.messageId,
-        retrievalHint
-      }
-    });
-    this.localHistory.sort((a, b) => {
-      if (a.timestamp !== b.timestamp) {
-        return a.timestamp - b.timestamp;
-      }
-      return a.historyEntry.messageId.localeCompare(b.historyEntry.messageId);
-    });
+    message.retrievalHint = retrievalHint;
+
+    this.localHistory.push(message);
     return true;
   }
 

@@ -1,10 +1,5 @@
-import { Message } from "./events.js";
+import { ContentMessage } from "./events.js";
 import { SortedArrayBase } from "./sorted_array_base.js";
-
-type ContentMessage = Message & {
-  lamportTimestamp: number;
-  content: Uint8Array<ArrayBufferLike>;
-};
 
 /**
  * In-Memory implementation of a local store of messages.
@@ -15,9 +10,9 @@ type ContentMessage = Message & {
  *
  * Only stores content message: `message.lamportTimestamp` and `message.content` are present.
  */
-export class LocalHistory extends SortedArrayBase<ContentMessage> {
+export class MemLocalHistory extends SortedArrayBase<ContentMessage> {
   protected getCompareFn(): (a: ContentMessage, b: ContentMessage) => number {
-    return Message.compare;
+    return ContentMessage.compare;
   }
 
   public push(...items: ContentMessage[]): number {
