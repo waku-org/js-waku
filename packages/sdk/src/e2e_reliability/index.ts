@@ -508,7 +508,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       (event) => {
         // restart the timeout when a content message has been received
         if (isContentMessage(event.detail)) {
-          this.restartSync();
+          // send a sync message faster to ack someone's else
+          this.restartSync(0.5);
         }
       }
     );
