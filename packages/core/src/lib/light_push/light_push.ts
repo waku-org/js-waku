@@ -28,42 +28,12 @@ export const LightPushCodec = CODECS.v3;
  */
 export class LightPushCore {
   private readonly streamManager: StreamManager;
+  private readonly streamManagerV2: StreamManager;
   public readonly multicodec = CODECS.v3;
 
   public constructor(private libp2p: Libp2p) {
-    this.streamManager = new StreamManager(CODECS.v2, libp2p.components);
-  }
-
-  private async getStream(
-    peerId: PeerId
-  ): Promise<{ stream: Stream; protocol: string }> {
-    const peer = await this.libp2p.peerStore.get(peerId);
-    const connections = this.libp2p.getConnections(peerId);
-    const connection = connections.find((conn) => conn.status === "open");
-
-    if (!connection) {
-      throw new Error("No open connection to peer");
-    }
-
-    // Try v3 first if supported
-    if (peer.protocols.includes(CODECS.v3)) {
-      try {
-        const stream = await connection.newStream(CODECS.v3);
-        return { stream, protocol: CODECS.v3 };
-      } catch (error) {
-        log.info(
-          `Failed to create v3 stream for peer ${peerId}, falling back to v2`
-        );
-      }
-    }
-
-    // Fall back to v2
-    if (peer.protocols.includes(CODECS.v2)) {
-      const stream = await this.streamManager.getStream(peerId);
-      return { stream, protocol: CODECS.v2 };
-    }
-
-    throw new Error("Peer does not support any Light Push protocol");
+    this.streamManager = new StreamManager(CODECS.v3, libp2p.components);
+    this.streamManagerV2 = new StreamManager(CODECS.v2, libp2p.components);
   }
 
   public async send(
@@ -75,6 +45,29 @@ export class LightPushCore {
       log.error(
         `Pubsub topic ${encoder.pubsubTopic} is not configured, aborting send`
       );
+      return {
+        success: null,
+        failure: {
+          error: LightPushError.TOPIC_NOT_CONFIGURED,
+          peerId
+        }
+      };
+    }
+    let stream: Stream;
+    let protocol: string;
+
+    try {
+      const peer = await this.libp2p.peerStore.get(peerId);
+
+      if (peer.protocols.includes(CODECS.v3)) {
+        stream = await this.streamManager.getStream(peerId);
+        protocol = CODECS.v3;
+      } else {
+        stream = await this.streamManagerV2.getStream(peerId);
+        protocol = CODECS.v2;
+      }
+    } catch (error) {
+      log.error("Failed to get stream", error);
       return {
         success: null,
         failure: {
