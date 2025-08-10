@@ -6,11 +6,12 @@ import {
   type IMessage,
   type ISendOptions,
   type Libp2p,
-  type LightPushCoreResult,
+  LightPushCoreResult,
   LightPushError,
-  type LightPushFailure,
-  LightPushProtocolOptions,
-  type LightPushSDKResult,
+  LightPushFailure,
+  type LightPushProtocolOptions,
+  LightPushSDKResult,
+  ProtocolError,
   Protocols
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -86,50 +87,17 @@ export class LightPush implements ILightPush {
       pubsubTopic: encoder.pubsubTopic
     });
 
-    const coreResults: LightPushCoreResult[] =
+    const coreResults =
       peerIds?.length > 0
         ? await Promise.all(
-            peerIds.map(async (peerId) => {
-              try {
-                const result = await this.protocol.send(
-                  encoder,
-                  message,
-                  peerId
-                );
-
-                // Enhanced error logging
-                if (result.failure) {
-                  const peerIdStr = peerId.toString();
-
-                  log.warn(
-                    `Failed to send to peer ${peerIdStr}: ${result.failure.error}`,
-                    {
-                      peerId: peerIdStr,
-                      error: result.failure.error,
-                      statusCode: result.failure.statusCode,
-                      statusDesc: result.failure.statusDesc
-                    }
-                  );
-                } else if (result.success) {
-                  const peerIdStr = peerId.toString();
-                  log.info(`Successfully sent to peer ${peerIdStr}`);
+            peerIds.map((peerId) =>
+              this.protocol.send(encoder, message, peerId).catch((_e) => ({
+                success: null,
+                failure: {
+                  error: ProtocolError.GENERIC_FAIL
                 }
-
-                return result;
-              } catch (error) {
-                const peerIdStr = peerId.toString();
-
-                log.error(`Exception sending to peer ${peerIdStr}:`, error);
-
-                return {
-                  success: null,
-                  failure: {
-                    error: LightPushError.GENERIC_FAIL,
-                    peerId
-                  }
-                };
-              }
-            })
+              }))
+            )
           )
         : [];
 
