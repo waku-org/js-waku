@@ -130,9 +130,7 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
-// LightPush specific errors
 export enum LightPushError {
-  // General errors
   GENERIC_FAIL = "Generic error",
   DECODE_FAILED = "Failed to decode",
   NO_PEER_AVAILABLE = "No peer available",
@@ -140,7 +138,6 @@ export enum LightPushError {
   NO_RESPONSE = "No response received",
   STREAM_ABORTED = "Stream aborted",
 
-  // LightPush specific errors
   ENCODE_FAILED = "Failed to encode",
   EMPTY_PAYLOAD = "Payload is empty",
   SIZE_TOO_BIG = "Size is too big",
@@ -148,7 +145,6 @@ export enum LightPushError {
   RLN_PROOF_GENERATION = "Proof generation failed",
   REMOTE_PEER_REJECTED = "Remote peer rejected",
 
-  // Status code based errors
   BAD_REQUEST = "Bad request format",
   PAYLOAD_TOO_LARGE = "Message payload exceeds maximum size",
   INVALID_MESSAGE = "Message validation failed",
@@ -160,7 +156,6 @@ export enum LightPushError {
   NO_PEERS = "No relay peers available"
 }
 
-// Filter specific errors
 export enum FilterError {
   // General errors
   GENERIC_FAIL = "Generic error",
@@ -185,7 +180,6 @@ export enum FilterError {
   MISSING_PUBSUB_TOPIC = "Pubsub topic missing from push message"
 }
 
-// Protocol-specific failure interfaces
 export interface LightPushFailure {
   error: LightPushError;
   peerId?: PeerId;
@@ -227,7 +221,6 @@ export type FilterSDKResult = ThisAndThat<
   FilterFailure[]
 >;
 
-// Generic SDK result type for protocols like relay
 export type SDKProtocolResult = {
   successes: PeerId[];
   failures: Array<{
@@ -236,7 +229,6 @@ export type SDKProtocolResult = {
   }>;
 };
 
-// Legacy types for backward compatibility (to be deprecated)
 /**
  * @deprecated Use LightPushError or FilterError instead
  */
