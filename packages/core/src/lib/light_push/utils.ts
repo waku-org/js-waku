@@ -1,8 +1,4 @@
-import {
-  LightPushError,
-  LightPushStatusCode,
-  StatusDescriptions
-} from "@waku/interfaces";
+import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
 
 // should match nwaku
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/rln_relay.nim#L309
@@ -62,57 +58,4 @@ export function toLightPushError(
     default:
       return LightPushError.INTERNAL_ERROR;
   }
-}
-
-// Legacy function for backward compatibility
-/**
- * @deprecated Use toLightPushError instead
- */
-export function toProtocolError(
-  statusCode: LightPushStatusCode | number | undefined
-): LightPushError {
-  return toLightPushError(statusCode);
-}
-
-export function getStatusDescription(
-  statusCode: number | undefined,
-  customDesc?: string
-): string {
-  if (customDesc) {
-    return customDesc;
-  }
-
-  if (!statusCode) {
-    return "Unknown error";
-  }
-
-  return (
-    StatusDescriptions[statusCode as LightPushStatusCode] ||
-    `Unknown status code: ${statusCode}`
-  );
-}
-
-/**
- * Maps a protocol codec string to a version identifier
- * @param codec - The protocol codec string (e.g., "/vac/waku/lightpush/3.0.0")
- * @returns Version string (e.g., "v3", "v2") or "unknown" if not recognized
- */
-export function getProtocolVersion(codec: string): string {
-  if (codec.includes("3.0.0")) {
-    return "v3";
-  }
-  if (codec.includes("2.0.0")) {
-    return "v2";
-  }
-  return "unknown";
-}
-
-/**
- * Determines protocol version from status code presence
- * v3 protocols include statusCode, v2 protocols do not
- * @param hasStatusCode - Whether the response includes a status code
- * @returns Version string ("v3" or "v2")
- */
-export function inferProtocolVersion(hasStatusCode: boolean): string {
-  return hasStatusCode ? "v3" : "v2";
 }
