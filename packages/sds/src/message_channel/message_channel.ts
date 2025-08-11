@@ -651,14 +651,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           return false;
         }
       );
-      this.possibleAcks.delete(messageId);
-      if (!this.filter.lookup(messageId)) {
-        this.filter.insert(messageId);
-      }
     });
+
     if (!receivedMessage.bloomFilter) {
       return;
     }
+
     const messageBloomFilter = DefaultBloomFilter.fromBytes(
       receivedMessage.bloomFilter,
       this.filter.options
@@ -679,9 +677,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             count
           }
         });
+        // Not enough possible acks to acknowledge it, keep it in buffer
         return true;
       }
+      // Enough possible acks for it to be acknowledged
       this.possibleAcks.delete(message.messageId);
+      log.info(this.senderId, "message acknowledged", message.messageId, count);
+      this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
+        detail: message.messageId
+      });
       return false;
     });
   }
