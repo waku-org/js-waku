@@ -172,6 +172,11 @@ export class PeerExchangeDiscovery
       log.error("Error querying peer", error);
     }
 
+    this.peerExpirationRecords.set(
+      peerId.toString(),
+      Date.now() + this.options.TTL
+    );
+
     this.queryingPeers.delete(peerId.toString());
   }
 
@@ -218,11 +223,6 @@ export class PeerExchangeDiscovery
           multiaddrs: peerInfo.multiaddrs
         })
       });
-
-      this.peerExpirationRecords.set(
-        peerInfo.id.toString(),
-        Date.now() + this.options.TTL
-      );
 
       log.info(`Discovered peer: ${peerInfo.id.toString()}`);
 
