@@ -23,7 +23,7 @@ export class StreamManager {
     );
   }
 
-  public async getStream(peerId: PeerId): Promise<Stream> {
+  public async getStream(peerId: PeerId): Promise<Stream | undefined> {
     const peerIdStr = peerId.toString();
     const scheduledStream = this.streamPool.get(peerIdStr);
 
@@ -32,30 +32,32 @@ export class StreamManager {
       await scheduledStream;
     }
 
-    let stream = this.getOpenStreamForCodec(peerId);
+    const stream =
+      this.getOpenStreamForCodec(peerId) || (await this.createStream(peerId));
 
-    if (stream) {
-      this.log.info(
-        `Found existing stream peerId=${peerIdStr} multicodec=${this.multicodec}`
-      );
-      this.lockStream(peerIdStr, stream);
-      return stream;
+    if (!stream) {
+      return;
     }
 
-    stream = await this.createStream(peerId);
+    this.log.info(
+      `Found existing stream peerId=${peerIdStr} multicodec=${this.multicodec}`
+    );
     this.lockStream(peerIdStr, stream);
-
     return stream;
   }
 
-  private async createStream(peerId: PeerId, retries = 0): Promise<Stream> {
+  private async createStream(
+    peerId: PeerId,
+    retries = 0
+  ): Promise<Stream | undefined> {
     const connections = this.libp2p.connectionManager.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {
-      throw new Error(
+      this.log.error(
         `Failed to get a connection to the peer peerId=${peerId.toString()} multicodec=${this.multicodec}`
       );
+      return;
     }
 
     let lastError: unknown;
@@ -77,9 +79,10 @@ export class StreamManager {
     }
 
     if (!stream) {
-      throw new Error(
+      this.log.error(
         `Failed to create a new stream for ${peerId.toString()} -- ` + lastError
       );
+      return;
     }
 
     return stream;
