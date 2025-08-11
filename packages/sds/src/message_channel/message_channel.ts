@@ -21,7 +21,7 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   errorRate: 0.001
 };
 
-const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
+const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
 const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
 const log = new Logger("waku:sds:message-channel");
