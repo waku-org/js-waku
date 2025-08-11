@@ -519,6 +519,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     // It's a new message
     if (!message) {
+      log.info(this.senderId, "sending new message", messageId);
       message = new ContentMessage(
         messageId,
         this.channelId,
@@ -534,6 +535,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       );
 
       this.outgoingBuffer.push(message);
+    } else {
+      log.info(this.senderId, "resending message", messageId);
     }
 
     if (callback) {
@@ -631,7 +634,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private reviewAckStatus(receivedMessage: Message): void {
     log.info(
       this.senderId,
-      "reviewing ack status using:",
+      "reviewing ack status using causal history:",
       receivedMessage.causalHistory.map((ch) => ch.messageId)
     );
     log.info(
@@ -641,10 +644,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     );
     receivedMessage.causalHistory.forEach(({ messageId }) => {
       this.outgoingBuffer = this.outgoingBuffer.filter(
-        ({ messageId: outgoingMessageId }) => {
-          if (outgoingMessageId !== messageId) {
+        ({ messageId: bufferMessageId }) => {
+          if (bufferMessageId !== messageId) {
             return true;
           }
+          log.info(this.senderId, "message acknowledged", messageId);
           this.safeSendEvent(MessageChannelEvent.OutMessageAcknowledged, {
             detail: messageId
           });
@@ -671,6 +675,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       const count = (this.possibleAcks.get(message.messageId) ?? 0) + 1;
       if (count < this.possibleAcksThreshold) {
         this.possibleAcks.set(message.messageId, count);
+        log.info(
+          this.senderId,
+          "message possibly acknowledged",
+          message.messageId,
+          count
+        );
         this.safeSendEvent(MessageChannelEvent.OutMessagePossiblyAcknowledged, {
           detail: {
             messageId: message.messageId,
