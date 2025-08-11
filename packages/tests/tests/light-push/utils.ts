@@ -14,7 +14,6 @@ export const TestNetworkConfig = {
 export const TestRoutingInfo = createRoutingInfo(TestNetworkConfig, {
   contentTopic: TestContentTopic
 });
-export const TestShardInfo = TestRoutingInfo; // Alias for backward compatibility
 export const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
   routingInfo: TestRoutingInfo
