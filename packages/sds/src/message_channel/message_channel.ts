@@ -121,7 +121,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * await channel.processTasks();
    * ```
    *
-   * @throws Will emit a 'taskError' event if any task fails, but continues processing remaining tasks
+   * @emits CustomEvent("taskError", { detail: { command, error, params } }
+   * if any task fails, but continues processing remaining tasks
    */
   public async processTasks(): Promise<void> {
     while (this.tasks.length > 0) {
@@ -141,7 +142,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * This ensures proper lamport timestamp ordering and causal history tracking.
    *
    * @param payload - The message content as a byte array
-   * @param callback - Optional callback function called after the message is processed
+   * @param callback - callback function that should propagate the message
+   * on the routing layer; `success` should be false if sending irremediably fails,
+   * when set to true, the message is finalized into the channel locally.
    * @returns Promise that resolves when the message is queued (not sent)
    *
    * @example
