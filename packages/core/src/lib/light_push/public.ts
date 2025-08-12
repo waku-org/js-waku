@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface";
 import type { IEncoder, IMessage, LightPushCoreResult } from "@waku/interfaces";
-import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
+import { LightPushError } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { isMessageSizeUnderCap, Logger } from "@waku/utils";
 import { Uint8ArrayList } from "uint8arraylist";
@@ -18,8 +18,6 @@ export const CODECS = {
   v2: "/vac/waku/lightpush/2.0.0-beta1",
   v3: "/vac/waku/lightpush/3.0.0"
 } as const;
-
-export { LightPushStatusCode };
 
 const log = new Logger("light-push:protocol-handler");
 
@@ -180,19 +178,7 @@ export class ProtocolHandler {
   }
 }
 
-export function isV3(
-  rpc: VersionedPushRpc
-): rpc is { version: "v3" } & PushRpc {
-  return rpc.version === "v3";
-}
-
-export function isV2(
-  rpc: VersionedPushRpc
-): rpc is { version: "v2" } & PushRpcV2 {
-  return rpc.version === "v2";
-}
-
-export function createV2Rpc(
+function createV2Rpc(
   message: WakuMessage,
   pubsubTopic: string
 ): VersionedPushRpc {
@@ -201,7 +187,7 @@ export function createV2Rpc(
   return Object.assign(v2Rpc, { version: "v2" as const });
 }
 
-export function createV3Rpc(
+function createV3Rpc(
   message: WakuMessage,
   pubsubTopic: string
 ): VersionedPushRpc {
