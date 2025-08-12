@@ -568,16 +568,13 @@ describe("MessageChannel", function () {
       const messageToBeLostId = MessageChannel.getMessageId(
         utf8ToBytes(messagesA[0])
       );
-      channelC.addEventListener(
-        MessageChannelEvent.InMessageIrretrievablyLost,
-        (event) => {
-          for (const hist of event.detail) {
-            if (hist.messageId === messageToBeLostId) {
-              irretrievablyLost = true;
-            }
+      channelC.addEventListener(MessageChannelEvent.InMessageLost, (event) => {
+        for (const hist of event.detail) {
+          if (hist.messageId === messageToBeLostId) {
+            irretrievablyLost = true;
           }
         }
-      );
+      });
 
       await sendMessage(
         channelA,

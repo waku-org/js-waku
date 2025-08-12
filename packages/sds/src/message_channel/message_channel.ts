@@ -295,7 +295,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             timeReceived &&
             Date.now() - timeReceived > this.timeoutToMarkMessageIrretrievableMs
           ) {
-            this.safeSendEvent(MessageChannelEvent.InMessageIrretrievablyLost, {
+            this.safeSendEvent(MessageChannelEvent.InMessageLost, {
               detail: Array.from(missingDependencies)
             });
             return { buffer, missing };
