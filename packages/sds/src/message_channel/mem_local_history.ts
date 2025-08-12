@@ -1,5 +1,6 @@
-import { ContentMessage } from "./message.js";
-import { SortedArrayBase } from "./sorted_array_base.js";
+import _ from "lodash";
+
+import { ContentMessage, isContentMessage } from "./message.js";
 
 /**
  * In-Memory implementation of a local store of messages.
@@ -10,63 +11,56 @@ import { SortedArrayBase } from "./sorted_array_base.js";
  *
  * Only stores content message: `message.lamportTimestamp` and `message.content` are present.
  */
-export class MemLocalHistory extends SortedArrayBase<ContentMessage> {
-  protected getCompareFn(): (a: ContentMessage, b: ContentMessage) => number {
-    return ContentMessage.compare;
+export class MemLocalHistory {
+  private items: ContentMessage[] = [];
+
+  public get length(): number {
+    return this.items.length;
   }
 
   public push(...items: ContentMessage[]): number {
     for (const item of items) {
-      this.validateAndAddMessage(item);
+      this.validateMessage(item);
     }
-    this.sort();
+
+    // Add new items and ensure uniqueness by messageId using sortedUniqBy
+    // The valueOf() method on ContentMessage enables native < operator sorting
+    this.items = _.sortedUniqBy([...this.items, ...items], "messageId");
+
     return this.items.length;
   }
 
-  public unshift(...items: ContentMessage[]): number {
-    for (const item of items) {
-      this.validateMessage(item);
-    }
-    const result = this.items.unshift(...items);
-    this.sort();
-    return result;
+  public some(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      array: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): boolean {
+    return this.items.some(predicate, thisArg);
   }
 
-  public fill(
-    value: ContentMessage,
-    start?: number,
-    end?: number
-  ): ContentMessage[] {
-    this.validateMessage(value);
-    this.items.fill(value, start, end);
-    this.sort();
-    return this.items;
+  public slice(start?: number, end?: number): ContentMessage[] {
+    return this.items.slice(start, end);
+  }
+
+  public find(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): ContentMessage | undefined {
+    return this.items.find(predicate, thisArg);
   }
 
   private validateMessage(message: ContentMessage): void {
-    if (
-      !message.lamportTimestamp ||
-      !message.content ||
-      !message.content.length ||
-      !message.messageId
-    ) {
+    if (!isContentMessage(message)) {
       throw new Error(
         "Message must have lamportTimestamp and content defined, sync and ephemeral messages cannot be stored"
       );
-    }
-  }
-
-  private validateAndAddMessage(newMessage: ContentMessage): void {
-    this.validateMessage(newMessage);
-
-    // Check if the entry is already present
-    const existingHistoryEntry = this.items.find(
-      ({ messageId }) => newMessage.messageId === messageId
-    );
-
-    // If history entry is already present, no need to re-add
-    if (!existingHistoryEntry) {
-      this.items.push(newMessage);
     }
   }
 }

@@ -153,11 +153,13 @@ export class ContentMessage extends Message {
     );
   }
 
-  public static compare(a: ContentMessage, b: ContentMessage): number {
-    if (a.lamportTimestamp !== b.lamportTimestamp) {
-      return a.lamportTimestamp - b.lamportTimestamp;
-    }
-    return a.messageId.localeCompare(b.messageId);
+  // `valueOf` is used by comparison operands such as `<`
+  public valueOf(): string {
+    // Create a sortable string representation that matches the compare logic
+    // Pad lamportTimestamp to ensure proper lexicographic ordering
+    // Use 16 digits to handle up to Number.MAX_SAFE_INTEGER (9007199254740991)
+    const paddedTimestamp = this.lamportTimestamp.toString().padStart(16, "0");
+    return `${paddedTimestamp}_${this.messageId}`;
   }
 }
 
