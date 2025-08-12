@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
-import { Message } from "./events.js";
+import { Message } from "./message.js";
 import { DEFAULT_BLOOM_FILTER_OPTIONS } from "./message_channel.js";
 
 describe("Message serialization", () => {

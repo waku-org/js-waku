@@ -1,4 +1,4 @@
-import { ContentMessage, EphemeralMessage, Message } from "./events.js";
+import { ContentMessage, EphemeralMessage, Message } from "./message.js";
 
 export enum Command {
   Send = "send",

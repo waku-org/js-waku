@@ -3,14 +3,14 @@ import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
+import { MessageChannelEvent } from "./events.js";
 import {
   ContentMessage,
   HistoryEntry,
   Message,
-  MessageChannelEvent,
   MessageId,
   SyncMessage
-} from "./events.js";
+} from "./message.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
   ILocalHistory,

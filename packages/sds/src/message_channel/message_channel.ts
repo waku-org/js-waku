@@ -6,22 +6,21 @@ import { Logger } from "@waku/utils";
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
 import { Command, Handlers, ParamsByAction, Task } from "./command_queue.js";
+import { MessageChannelEvent, MessageChannelEvents } from "./events.js";
+import { MemLocalHistory } from "./mem_local_history.js";
 import {
-  type ChannelId,
+  ChannelId,
   ContentMessage,
   EphemeralMessage,
-  type HistoryEntry,
+  HistoryEntry,
   isContentMessage,
   isEphemeralMessage,
   isSyncMessage,
   Message,
-  MessageChannelEvent,
-  MessageChannelEvents,
-  type MessageId,
-  type SenderId,
+  MessageId,
+  SenderId,
   SyncMessage
-} from "./events.js";
-import { MemLocalHistory } from "./mem_local_history.js";
+} from "./message.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   capacity: 10000,

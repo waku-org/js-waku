@@ -1,4 +1,4 @@
-import { ContentMessage } from "./events.js";
+import { ContentMessage } from "./message.js";
 import { SortedArrayBase } from "./sorted_array_base.js";
 
 /**
