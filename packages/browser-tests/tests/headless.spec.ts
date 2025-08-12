@@ -23,7 +23,7 @@ test.describe("waku", () => {
       try {
         await window.wakuAPI.createWakuNode({
           ...config.defaultNodeConfig,
-          networkConfig: config.cluster42.networkConfig
+          networkConfig: config.networkConfig
         });
         await window.wakuAPI.startNode();
         return { success: true };
