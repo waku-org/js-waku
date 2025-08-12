@@ -132,18 +132,18 @@ export class PeerExchangeDiscovery
     await Promise.all(
       connections.map(async (connection) => {
         try {
-          const peer = await this.components.peerStore.get(
-            connection.remotePeer
-          );
-
-          const peerIdStr = peer.id.toString();
+          const peerIdStr = connection.remotePeer.toString();
           const shouldQuery = this.peerExpirationRecords.has(peerIdStr)
             ? this.peerExpirationRecords.get(peerIdStr)! <= Date.now()
-            : true; // default to true, that means we didn't query this peer yet by PX
+            : true;
 
           if (!shouldQuery) {
             return null;
           }
+
+          const peer = await this.components.peerStore.get(
+            connection.remotePeer
+          );
 
           return this.runQuery(connection.remotePeer, peer.protocols);
         } catch (error) {

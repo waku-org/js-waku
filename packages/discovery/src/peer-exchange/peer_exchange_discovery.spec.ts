@@ -61,7 +61,7 @@ describe("PeerExchangeDiscovery", () => {
       peerStore: mockPeerStore
     } as unknown as Libp2pComponents;
 
-    peerExchangeDiscovery = new PeerExchangeDiscovery(mockComponents);
+    peerExchangeDiscovery = new PeerExchangeDiscovery(mockComponents, {});
   });
 
   afterEach(() => {
