@@ -119,7 +119,9 @@ describe("StreamManager", () => {
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
     eventTarget.dispatchEvent(
-      new CustomEvent("peer:update", { detail: { peer: { protocols: [] } } })
+      new CustomEvent("peer:update", {
+        detail: { peer: { id: mockPeer.id, protocols: [] } }
+      })
     );
 
     expect(scheduleNewStreamSpy.calledOnce).to.be.false;
@@ -130,7 +132,7 @@ describe("StreamManager", () => {
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
     eventTarget.dispatchEvent(
       new CustomEvent("peer:update", {
-        detail: { peer: { protocols: [MULTICODEC] } }
+        detail: { peer: { id: mockPeer.id, protocols: [MULTICODEC] } }
       })
     );
 
@@ -155,7 +157,7 @@ describe("StreamManager", () => {
 
     eventTarget.dispatchEvent(
       new CustomEvent("peer:update", {
-        detail: { peer: { protocols: [MULTICODEC] } }
+        detail: { peer: { id: mockPeer.id, protocols: [MULTICODEC] } }
       })
     );
 
