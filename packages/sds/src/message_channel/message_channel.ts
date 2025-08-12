@@ -42,7 +42,7 @@ export interface MessageChannelOptions {
    *
    * @default undefined because it is coupled to processTask calls frequency
    */
-  timeoutToMarkMessageIrretrievableMs?: number;
+  timeoutForLostMessagesMs?: number;
   /**
    * How many possible acks does it take to consider it a definitive ack.
    */
@@ -66,7 +66,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private timeReceived: Map<MessageId, number>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
-  private readonly timeoutToMarkMessageIrretrievableMs?: number;
+  private readonly timeoutForLostMessagesMs?: number;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
@@ -108,8 +108,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.possibleAcksThreshold =
       options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
-    this.timeoutToMarkMessageIrretrievableMs =
-      options.timeoutToMarkMessageIrretrievableMs;
+    this.timeoutForLostMessagesMs = options.timeoutForLostMessagesMs;
   }
 
   public static getMessageId(payload: Uint8Array): MessageId {
@@ -289,11 +288,11 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
         // Optionally, if a message has not been received after a predetermined amount of time,
         // its dependencies are marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
-        if (this.timeoutToMarkMessageIrretrievableMs) {
+        if (this.timeoutForLostMessagesMs) {
           const timeReceived = this.timeReceived.get(message.messageId);
           if (
             timeReceived &&
-            Date.now() - timeReceived > this.timeoutToMarkMessageIrretrievableMs
+            Date.now() - timeReceived > this.timeoutForLostMessagesMs
           ) {
             this.safeSendEvent(MessageChannelEvent.InMessageLost, {
               detail: Array.from(missingDependencies)
