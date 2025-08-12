@@ -53,11 +53,10 @@ export class WakuPeerExchange implements IPeerExchange {
       };
     }
 
-    let stream;
-    try {
-      stream = await this.streamManager.getStream(peerId);
-    } catch (err) {
-      log.error("Failed to get stream", err);
+    const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         peerInfos: null,
         error: ProtocolError.NO_STREAM_AVAILABLE

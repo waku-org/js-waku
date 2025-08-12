@@ -1,5 +1,6 @@
 import type { DnsClient } from "@waku/interfaces";
 import { expect } from "chai";
+import sinon from "sinon";
 
 import { DnsNodeDiscovery } from "./dns.js";
 import testData from "./testdata.json" with { type: "json" };
@@ -225,13 +226,18 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
 
-    const iterator = dnsNodeDiscovery.getNextPeer([mockData.enrTree]);
-    const { value: peer } = await iterator.next();
+    const randomStub = sinon.stub(Math, "random").returns(0);
+    try {
+      const iterator = dnsNodeDiscovery.getNextPeer([mockData.enrTree]);
+      const { value: peer } = await iterator.next();
 
-    expect(peer.peerId?.toString()).to.eq(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
-    );
-    expect(mockDns.hasThrown).to.be.false;
+      expect(peer.peerId?.toString()).to.eq(
+        "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      );
+      expect(mockDns.hasThrown).to.be.false;
+    } finally {
+      randomStub.restore();
+    }
   });
 
   it("retrieves all peers (3) when branch entries are composed of multiple strings", async function () {

@@ -155,7 +155,7 @@ describe("StoreCore", () => {
     });
 
     it("ends if stream creation fails", async () => {
-      mockStreamManager.getStream.rejects(new Error("Stream creation failed"));
+      mockStreamManager.getStream.resolves(undefined as any);
       const generator = storeCore.queryPerPage(queryOpts, decoders, mockPeerId);
       const result = await generator.next();
       expect(result.done).to.be.true;
