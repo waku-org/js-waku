@@ -40,8 +40,9 @@ export class StreamManager {
     }
 
     this.log.info(
-      `Found existing stream peerId=${peerIdStr} multicodec=${this.multicodec}`
+      `Using stream for peerId=${peerIdStr} multicodec=${this.multicodec}`
     );
+
     this.lockStream(peerIdStr, stream);
     return stream;
   }
@@ -144,6 +145,9 @@ export class StreamManager {
     const connection = selectOpenConnection(connections);
 
     if (!connection) {
+      this.log.info(
+        `No open connection found for peerId=${peerId.toString()} multicodec=${this.multicodec}`
+      );
       return;
     }
 
@@ -152,15 +156,26 @@ export class StreamManager {
     );
 
     if (!stream) {
+      this.log.info(
+        `No open stream found for peerId=${peerId.toString()} multicodec=${this.multicodec}`
+      );
       return;
     }
 
     const isStreamUnusable = ["done", "closed", "closing"].includes(
       stream.writeStatus || ""
     );
+
     if (isStreamUnusable || this.isStreamLocked(stream)) {
+      this.log.info(
+        `Stream for peerId=${peerId.toString()} multicodec=${this.multicodec} is unusable`
+      );
       return;
     }
+
+    this.log.info(
+      `Found open stream for peerId=${peerId.toString()} multicodec=${this.multicodec}`
+    );
 
     return stream;
   }
