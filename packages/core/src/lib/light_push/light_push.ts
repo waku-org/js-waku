@@ -1,4 +1,4 @@
-import type { PeerId, Stream } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import {
   type CoreProtocolResult,
   type IEncoder,
@@ -95,11 +95,10 @@ export class LightPushCore {
       };
     }
 
-    let stream: Stream;
-    try {
-      stream = await this.streamManager.getStream(peerId);
-    } catch (error) {
-      log.error("Failed to get stream", error);
+    const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         success: null,
         failure: {
