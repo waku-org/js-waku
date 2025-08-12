@@ -15,7 +15,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { StreamManager } from "../stream_manager/index.js";
 
-import { CODECS, ProtocolHandler } from "./public.js";
+import { CODECS, ProtocolHandler } from "./protocol_handler.js";
 
 const log = new Logger("light-push");
 
