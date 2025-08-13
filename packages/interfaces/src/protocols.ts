@@ -221,13 +221,15 @@ export type FilterSDKResult = ThisAndThat<
   FilterFailure[]
 >;
 
-export type SDKProtocolResult = {
-  successes: PeerId[];
-  failures: Array<{
+export type SDKProtocolResult = ThisAndThat<
+  "successes",
+  PeerId[],
+  "failures",
+  Array<{
     error: ProtocolError;
     peerId?: PeerId;
-  }>;
-};
+  }>
+>;
 
 /**
  * @deprecated Use LightPushError or FilterError instead
