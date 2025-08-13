@@ -87,13 +87,18 @@ export async function createLibp2pAndUpdateOptions(
 
   if (options?.defaultBootstrap) {
     peerDiscovery.push(
-      ...getPeerDiscoveries({
-        ...DEFAULT_DISCOVERIES_ENABLED,
-        ...options.discovery
-      })
+      ...getPeerDiscoveries(
+        {
+          ...DEFAULT_DISCOVERIES_ENABLED,
+          ...options.discovery
+        },
+        options.localPeerCache
+      )
     );
   } else {
-    peerDiscovery.push(...getPeerDiscoveries(options.discovery));
+    peerDiscovery.push(
+      ...getPeerDiscoveries(options.discovery, options.localPeerCache)
+    );
   }
 
   const bootstrapPeers = [
