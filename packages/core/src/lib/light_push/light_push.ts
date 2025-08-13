@@ -22,6 +22,7 @@ const log = new Logger("light-push");
 export { PushResponse };
 
 export const LightPushCodec = CODECS.v3;
+export const LightPushCodecV2 = CODECS.v2;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).

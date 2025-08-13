@@ -250,11 +250,3 @@ export enum ProtocolError {
   TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
   INVALID_DECODER_TOPICS = "Invalid decoder topics"
 }
-
-/**
- * @deprecated Use LightPushFailure or FilterFailure instead
- */
-export interface Failure {
-  error: ProtocolError;
-  peerId?: PeerId;
-}

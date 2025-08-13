@@ -49,9 +49,6 @@ const runTests = (strictCheckNodes: boolean): void => {
           serviceNodes.messageCollector.callback
         );
 
-        // Add a small delay to ensure subscription is fully established
-        await delay(100);
-
         await waku.lightPush.send(TestEncoder, {
           payload: utf8ToBytes(testItem.value)
         });
