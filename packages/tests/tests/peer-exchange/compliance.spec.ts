@@ -37,10 +37,10 @@ describe("Peer Exchange", function () {
         discv5BootstrapNode: enr
       });
 
-      const waitForNodesToMoundPeerExchange = new Promise((resolve) =>
+      const waitForNodesToMountPeerExchange = new Promise((resolve) =>
         setTimeout(resolve, 10_000)
       );
-      await waitForNodesToMoundPeerExchange;
+      await waitForNodesToMountPeerExchange;
     });
 
     tests({
