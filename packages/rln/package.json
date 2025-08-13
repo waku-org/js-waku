@@ -88,6 +88,6 @@
     "chai-as-promised": "^8.0.1",
     "chai-spies": "^1.1.0",
     "chai-subset": "^1.6.0",
-    "sinon": "^19.0.2"
+    "sinon": "^21.0.0"
   }
 }
