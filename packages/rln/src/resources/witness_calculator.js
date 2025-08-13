@@ -1,6 +1,6 @@
 // File generated with https://github.com/iden3/circom
 // following the instructions from:
-// https://github.com/vacp2p/zerokit/tree/master/rln#compiling-circuits
+// https://github.com/vacp2p/zerokit/tree/master/rln#advanced-custom-circuit-compilation
 
 export async function builder(code, options) {
   options = options || {};

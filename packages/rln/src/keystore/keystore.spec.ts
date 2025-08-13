@@ -222,9 +222,7 @@ describe("Keystore", () => {
       ])
     } as unknown as IdentityCredential;
     // Add the missing property for test correctness
-    identity.IDCommitmentBigInt = BytesUtils.buildBigIntFromUint8ArrayBE(
-      identity.IDCommitment
-    );
+    identity.IDCommitmentBigInt = BytesUtils.toBigInt(identity.IDCommitment);
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
@@ -276,9 +274,7 @@ describe("Keystore", () => {
         58, 94, 20, 246, 8, 33, 65, 238, 37, 112, 97, 65, 241, 255, 93, 171, 15
       ]
     } as unknown as IdentityCredential;
-    identity.IDCommitmentBigInt = BytesUtils.buildBigIntFromUint8ArrayBE(
-      identity.IDCommitment
-    );
+    identity.IDCommitmentBigInt = BytesUtils.toBigInt(identity.IDCommitment);
     const membership = {
       chainId: "0xAA36A7",
       treeIndex: 8,
