@@ -69,7 +69,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -130,7 +130,7 @@ export class FilterCore {
     pubsubTopic: PubsubTopic,
     peerId: PeerId,
     contentTopics: ContentTopic[]
-  ): Promise<CoreProtocolResult> {
+  ): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
@@ -179,7 +179,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -227,7 +227,7 @@ export class FilterCore {
     };
   }
 
-  public async ping(peerId: PeerId): Promise<CoreProtocolResult> {
+  public async ping(peerId: PeerId): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
