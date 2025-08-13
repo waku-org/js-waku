@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface";
+import type { PeerId, Stream } from "@libp2p/interface";
 import {
   type IEncoder,
   type IMessage,
@@ -41,19 +41,7 @@ export class LightPushCore {
     message: IMessage,
     peerId: PeerId
   ): Promise<LightPushCoreResult> {
-    if (!this.isTopicConfigured(encoder.pubsubTopic)) {
-      log.error(
-        `Pubsub topic ${encoder.pubsubTopic} is not configured, aborting send`
-      );
-      return {
-        success: null,
-        failure: {
-          error: LightPushError.TOPIC_NOT_CONFIGURED,
-          peerId
-        }
-      };
-    }
-    let stream: Stream;
+    let stream: Stream | undefined;
     let protocol: string;
 
     try {
@@ -71,41 +59,24 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: LightPushError.TOPIC_NOT_CONFIGURED,
+          error: LightPushError.GENERIC_FAIL,
           peerId
         }
       };
     }
-    const { query, error: preparationError } = await this.preparePushMessage(
-      encoder,
-      message
-    );
-
-    if (preparationError || !query) {
-      return {
-        success: null,
-        failure: {
-          error: preparationError,
-          peerId
-        }
-      };
-    }
-
-    const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
       log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: LightPushError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
     }
 
-    // Prepare versioned RPC using the ProtocolHandler abstraction
-    const { rpc, error: prepError } = await ProtocolHandler.processMessage(
+    const { rpc, error: prepError } = await ProtocolHandler.preparePushMessage(
       encoder,
       message,
       protocol
