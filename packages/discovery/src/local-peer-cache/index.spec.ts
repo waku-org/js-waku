@@ -7,13 +7,12 @@ import { peerIdFromPrivateKey, peerIdFromString } from "@libp2p/peer-id";
 import { persistentPeerStore } from "@libp2p/peer-store";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Libp2pComponents } from "@waku/interfaces";
-import { LocalStoragePeerInfo } from "@waku/interfaces";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MemoryDatastore } from "datastore-core/memory";
 import sinon from "sinon";
 
-import { LocalPeerCacheDiscovery } from "./index.js";
+import { LocalPeerCacheDiscovery, LocalStoragePeerInfo } from "./index.js";
 
 chai.use(chaiAsPromised);
 

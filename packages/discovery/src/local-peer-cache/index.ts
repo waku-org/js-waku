@@ -8,64 +8,111 @@ import {
 } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
-import {
-  type Libp2pComponents,
-  type LocalStoragePeerInfo,
-  Tags
+import type {
+  Libp2pComponents,
+  LocalPeerCacheDiscoveryOptions,
+  PartialPeerInfo,
+  PeerCache
 } from "@waku/interfaces";
-import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
-const log = new Logger("local-cache-discovery");
+import {
+  DEFAULT_LOCAL_TAG_NAME,
+  DEFAULT_LOCAL_TAG_VALUE
+} from "./constants.js";
+import { defaultCache } from "./utils.js";
 
-type LocalPeerCacheDiscoveryOptions = {
-  tagName?: string;
-  tagValue?: number;
-  tagTTL?: number;
-};
-
-const DEFAULT_LOCAL_TAG_NAME = Tags.LOCAL;
-const DEFAULT_LOCAL_TAG_VALUE = 50;
-const DEFAULT_LOCAL_TAG_TTL = 100_000_000;
+const log = new Logger("local-peer-cache");
 
 export class LocalPeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
-  private isStarted: boolean;
-  private peers: LocalStoragePeerInfo[] = [];
+  private isStarted: boolean = false;
+  private readonly cache: PeerCache;
 
   public constructor(
     private readonly components: Libp2pComponents,
-    private readonly options?: LocalPeerCacheDiscoveryOptions
+    options?: Partial<LocalPeerCacheDiscoveryOptions>
   ) {
     super();
-    this.isStarted = false;
-    this.peers = this.getPeersFromLocalStorage();
+    this.cache = options?.cache ?? defaultCache();
   }
 
   public get [Symbol.toStringTag](): string {
-    return "@waku/local-peer-cache-discovery";
+    return "@waku/local-peer-cache";
   }
 
   public async start(): Promise<void> {
-    if (this.isStarted) return;
+    if (this.isStarted) {
+      return;
+    }
 
-    log.info("Starting Local Storage Discovery");
+    log.info("Starting Local Peer Discovery");
+
     this.components.events.addEventListener(
       "peer:identify",
-      this.handleNewPeers
+      this.handleDiscoveredPeer
     );
 
-    for (const { id: idStr, address } of this.peers) {
-      const peerId = peerIdFromString(idStr);
-      if (await this.components.peerStore.has(peerId)) continue;
+    await this.discoverLocalPeers();
+
+    this.isStarted = true;
+  }
+
+  public stop(): void | Promise<void> {
+    if (!this.isStarted) {
+      return;
+    }
+
+    log.info("Stopping Local Storage Discovery");
+
+    this.components.events.removeEventListener(
+      "peer:identify",
+      this.handleDiscoveredPeer
+    );
+
+    this.isStarted = false;
+  }
+
+  private handleDiscoveredPeer = (event: CustomEvent<IdentifyResult>): void => {
+    const { peerId, listenAddrs } = event.detail;
+    const multiaddrs = listenAddrs
+      .map((addr) => addr.toString())
+      .filter((addr) => addr.includes("wss"));
+
+    const peerIdStr = peerId.toString();
+    const knownPeers = this.readPeerInfoFromCache();
+    const peerIndex = knownPeers.findIndex((p) => p.id === peerIdStr);
+
+    if (peerIndex !== -1) {
+      knownPeers[peerIndex].multiaddrs = multiaddrs;
+    } else {
+      knownPeers.push({
+        id: peerIdStr,
+        multiaddrs
+      });
+    }
+
+    this.writePeerInfoToCache(knownPeers);
+  };
+
+  private async discoverLocalPeers(): Promise<void> {
+    const knownPeers = this.readPeerInfoFromCache();
+
+    for (const peer of knownPeers) {
+      const peerId = peerIdFromString(peer.id);
+      const multiaddrs = peer.multiaddrs.map((addr) => multiaddr(addr));
+
+      if (await this.components.peerStore.has(peerId)) {
+        continue;
+      }
 
       await this.components.peerStore.save(peerId, {
-        multiaddrs: [multiaddr(address)],
+        multiaddrs,
         tags: {
-          [this.options?.tagName ?? DEFAULT_LOCAL_TAG_NAME]: {
-            value: this.options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
-            ttl: this.options?.tagTTL ?? DEFAULT_LOCAL_TAG_TTL
+          [DEFAULT_LOCAL_TAG_NAME]: {
+            value: DEFAULT_LOCAL_TAG_VALUE
           }
         }
       });
@@ -74,90 +121,34 @@ export class LocalPeerCacheDiscovery
         new CustomEvent<PeerInfo>("peer", {
           detail: {
             id: peerId,
-            multiaddrs: [multiaddr(address)]
+            multiaddrs
           }
         })
       );
     }
-
-    log.info(`Discovered ${this.peers.length} peers`);
-
-    this.isStarted = true;
   }
 
-  public stop(): void | Promise<void> {
-    if (!this.isStarted) return;
-    log.info("Stopping Local Storage Discovery");
-    this.components.events.removeEventListener(
-      "peer:identify",
-      this.handleNewPeers
-    );
-    this.isStarted = false;
-
-    this.savePeersToLocalStorage();
-  }
-
-  public handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
-    const { peerId, listenAddrs } = event.detail;
-
-    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(listenAddrs);
-
-    const localStoragePeers = this.getPeersFromLocalStorage();
-
-    const existingPeerIndex = localStoragePeers.findIndex(
-      (_peer) => _peer.id === peerId.toString()
-    );
-
-    if (existingPeerIndex >= 0) {
-      localStoragePeers[existingPeerIndex].address =
-        websocketMultiaddr.toString();
-    } else {
-      localStoragePeers.push({
-        id: peerId.toString(),
-        address: websocketMultiaddr.toString()
-      });
-    }
-
-    this.peers = localStoragePeers;
-    this.savePeersToLocalStorage();
-  };
-
-  private getPeersFromLocalStorage(): LocalStoragePeerInfo[] {
+  private readPeerInfoFromCache(): PartialPeerInfo[] {
     try {
-      const storedPeersData = localStorage.getItem("waku:peers");
-      if (!storedPeersData) return [];
-      const peers = JSON.parse(storedPeersData);
-      return peers.filter(isValidStoredPeer);
+      return this.cache.get();
     } catch (error) {
       log.error("Error parsing peers from local storage:", error);
       return [];
     }
   }
 
-  private savePeersToLocalStorage(): void {
+  private writePeerInfoToCache(peers: PartialPeerInfo[]): void {
     try {
-      localStorage.setItem("waku:peers", JSON.stringify(this.peers));
+      this.cache.set(peers);
     } catch (error) {
       log.error("Error saving peers to local storage:", error);
     }
   }
 }
 
-function isValidStoredPeer(peer: any): peer is LocalStoragePeerInfo {
-  return (
-    peer &&
-    typeof peer === "object" &&
-    typeof peer.id === "string" &&
-    typeof peer.address === "string"
-  );
-}
-
-export function wakuLocalPeerCacheDiscovery(): (
-  components: Libp2pComponents,
-  options?: LocalPeerCacheDiscoveryOptions
-) => LocalPeerCacheDiscovery {
-  return (
-    components: Libp2pComponents,
-    options?: LocalPeerCacheDiscoveryOptions
-  ) => new LocalPeerCacheDiscovery(components, options);
+export function wakuLocalPeerCacheDiscovery(
+  options: Partial<LocalPeerCacheDiscoveryOptions> = {}
+): (components: Libp2pComponents) => LocalPeerCacheDiscovery {
+  return (components: Libp2pComponents) =>
+    new LocalPeerCacheDiscovery(components, options);
 }
