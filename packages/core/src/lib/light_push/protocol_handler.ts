@@ -25,7 +25,7 @@ export class ProtocolHandler {
   /**
    * Prepare a versioned LightPush RPC based on negotiated protocol
    */
-  public static async processMessage(
+  public static async preparePushMessage(
     encoder: IEncoder,
     message: IMessage,
     protocol: string
