@@ -24,27 +24,32 @@ export class StreamManager {
   }
 
   public async getStream(peerId: PeerId): Promise<Stream | undefined> {
-    const peerIdStr = peerId.toString();
-    const scheduledStream = this.streamPool.get(peerIdStr);
+    try {
+      const peerIdStr = peerId.toString();
+      const scheduledStream = this.streamPool.get(peerIdStr);
 
-    if (scheduledStream) {
-      this.streamPool.delete(peerIdStr);
-      await scheduledStream;
-    }
+      if (scheduledStream) {
+        this.streamPool.delete(peerIdStr);
+        await scheduledStream;
+      }
 
-    const stream =
-      this.getOpenStreamForCodec(peerId) || (await this.createStream(peerId));
+      const stream =
+        this.getOpenStreamForCodec(peerId) || (await this.createStream(peerId));
 
-    if (!stream) {
+      if (!stream) {
+        return;
+      }
+
+      this.log.info(
+        `Using stream for peerId=${peerIdStr} multicodec=${this.multicodec}`
+      );
+
+      this.lockStream(peerIdStr, stream);
+      return stream;
+    } catch (error) {
+      this.log.error(`Failed to getStream:`, error);
       return;
     }
-
-    this.log.info(
-      `Using stream for peerId=${peerIdStr} multicodec=${this.multicodec}`
-    );
-
-    this.lockStream(peerIdStr, stream);
-    return stream;
   }
 
   private async createStream(

@@ -161,7 +161,7 @@ describe("PeerExchange", () => {
     });
 
     it("should return NO_STREAM_AVAILABLE when stream creation fails", async () => {
-      mockStreamManager.getStream.rejects(new Error("Stream creation failed"));
+      mockStreamManager.getStream.returns(undefined);
 
       const result = await peerExchange.query(queryParams);
 
