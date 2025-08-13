@@ -22,7 +22,6 @@ import {
 describe("PeerExchangeDiscovery", () => {
   let peerExchangeDiscovery: PeerExchangeDiscovery;
   let mockComponents: Libp2pComponents;
-  let mockPeerExchange: sinon.SinonStubbedInstance<IPeerExchange>;
   let mockEvents: TypedEventEmitter<PeerDiscoveryEvents>;
   let mockConnectionManager: any;
   let mockPeerStore: any;
@@ -50,10 +49,6 @@ describe("PeerExchangeDiscovery", () => {
       merge: sinon.stub().resolves(undefined),
       has: sinon.stub().resolves(true)
     };
-
-    mockPeerExchange = {
-      query: sinon.stub()
-    } as sinon.SinonStubbedInstance<IPeerExchange>;
 
     mockComponents = {
       events: mockEvents,
@@ -136,6 +131,7 @@ describe("PeerExchangeDiscovery", () => {
     });
 
     it("should handle peer identify event", async () => {
+      const runQuerySpy = sinon.spy(peerExchangeDiscovery as any, "runQuery");
       const mockIdentifyResult: IdentifyResult = {
         peerId: mockPeerId,
         protocols: [PeerExchangeCodec],
@@ -149,7 +145,7 @@ describe("PeerExchangeDiscovery", () => {
 
       await peerExchangeDiscovery["handleDiscoveredPeer"](event);
 
-      expect(mockPeerStore.get.called).to.be.true;
+      expect(runQuerySpy.called).to.be.true;
     });
 
     it("should skip peers without peer exchange protocol", async () => {
@@ -221,51 +217,59 @@ describe("PeerExchangeDiscovery", () => {
     });
 
     it("should query peer with peer exchange protocol", async () => {
+      const querySpy = sinon.spy(peerExchangeDiscovery as any, "query");
       await peerExchangeDiscovery["runQuery"](mockPeerId, [PeerExchangeCodec]);
 
-      expect(mockPeerExchange.query.called).to.be.true;
+      expect(querySpy.called).to.be.true;
     });
 
     it("should skip peers without peer exchange protocol", async () => {
+      const querySpy = sinon.spy(peerExchangeDiscovery as any, "query");
       await peerExchangeDiscovery["runQuery"](mockPeerId, ["other-protocol"]);
 
-      expect(mockPeerExchange.query.called).to.be.false;
+      expect(querySpy.called).to.be.false;
     });
 
     it("should skip already querying peers", async () => {
       peerExchangeDiscovery["queryingPeers"].add(mockPeerId.toString());
+      const querySpy = sinon.spy(peerExchangeDiscovery as any, "query");
 
       await peerExchangeDiscovery["runQuery"](mockPeerId, [PeerExchangeCodec]);
 
-      expect(mockPeerExchange.query.called).to.be.false;
+      expect(querySpy.called).to.be.false;
     });
 
     it("should handle query errors gracefully", async () => {
-      mockPeerExchange.query.rejects(new Error("Query failed"));
+      const queryStub = sinon
+        .stub(peerExchangeDiscovery as any, "query")
+        .rejects(new Error("Query failed"));
 
       await peerExchangeDiscovery["runQuery"](mockPeerId, [PeerExchangeCodec]);
 
-      expect(mockPeerExchange.query.called).to.be.true;
+      expect(queryStub.called).to.be.true;
       expect(peerExchangeDiscovery["queryingPeers"].has(mockPeerId.toString()))
         .to.be.false;
     });
   });
 
   describe("query", () => {
-    const mockENR = {
-      peerInfo: {
-        id: mockPeerId,
-        multiaddrs: []
-      },
-      shardInfo: { clusterId: 1, shards: [1] }
-    };
-
     beforeEach(() => {
       peerExchangeDiscovery.start();
     });
 
     it("should process successful peer exchange query", async () => {
-      mockPeerExchange.query.resolves({
+      const mockENR = {
+        peerInfo: {
+          id: mockPeerId,
+          multiaddrs: []
+        },
+        shardInfo: { clusterId: 1, shards: [1] }
+      };
+
+      const internalPeerExchange = (peerExchangeDiscovery as any)[
+        "peerExchange"
+      ] as IPeerExchange;
+      sinon.stub(internalPeerExchange, "query").resolves({
         peerInfos: [{ ENR: mockENR as any }],
         error: null
       });
@@ -282,7 +286,10 @@ describe("PeerExchangeDiscovery", () => {
     });
 
     it("should handle query errors", async () => {
-      mockPeerExchange.query.resolves({
+      const internalPeerExchange = (peerExchangeDiscovery as any)[
+        "peerExchange"
+      ] as IPeerExchange;
+      sinon.stub(internalPeerExchange, "query").resolves({
         peerInfos: null,
         error: ProtocolError.NO_PEER_AVAILABLE
       });
@@ -293,7 +300,10 @@ describe("PeerExchangeDiscovery", () => {
     });
 
     it("should skip peers without ENR", async () => {
-      mockPeerExchange.query.resolves({
+      const internalPeerExchange = (peerExchangeDiscovery as any)[
+        "peerExchange"
+      ] as IPeerExchange;
+      sinon.stub(internalPeerExchange, "query").resolves({
         peerInfos: [{ ENR: undefined }],
         error: null
       });
@@ -304,7 +314,10 @@ describe("PeerExchangeDiscovery", () => {
     });
 
     it("should skip peers without peerInfo in ENR", async () => {
-      mockPeerExchange.query.resolves({
+      const internalPeerExchange = (peerExchangeDiscovery as any)[
+        "peerExchange"
+      ] as IPeerExchange;
+      sinon.stub(internalPeerExchange, "query").resolves({
         peerInfos: [{ ENR: { peerInfo: undefined } as any }],
         error: null
       });
@@ -322,7 +335,10 @@ describe("PeerExchangeDiscovery", () => {
         }
       };
 
-      mockPeerExchange.query.resolves({
+      const internalPeerExchange = (peerExchangeDiscovery as any)[
+        "peerExchange"
+      ] as IPeerExchange;
+      sinon.stub(internalPeerExchange, "query").resolves({
         peerInfos: [{ ENR: mockENRWithoutShard as any }],
         error: null
       });
