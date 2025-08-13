@@ -1,1 +1,6 @@
-export { LightPushCore, PushResponse, LightPushCodec } from "./light_push.js";
+export {
+  LightPushCore,
+  PushResponse,
+  LightPushCodec,
+  LightPushCodecV2
+} from "./light_push.js";
