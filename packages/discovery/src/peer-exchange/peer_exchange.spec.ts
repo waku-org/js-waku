@@ -68,10 +68,14 @@ describe("PeerExchange", () => {
   });
 
   describe("query", () => {
-    const queryParams = {
-      numPeers: 5,
-      peerId: mockPeerId
-    };
+    let queryParams: any;
+
+    beforeEach(() => {
+      queryParams = {
+        numPeers: 5,
+        peerId: mockPeerId
+      };
+    });
 
     it("should successfully query peers and return peer infos", async () => {
       const mockResponse = {

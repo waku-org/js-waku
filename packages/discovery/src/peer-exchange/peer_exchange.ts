@@ -55,7 +55,9 @@ export class PeerExchange implements IPeerExchange {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
-      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
+      log.error(
+        `Failed to get a stream for remote peer:${peerId?.toString?.()}`
+      );
       return {
         peerInfos: null,
         error: ProtocolError.NO_STREAM_AVAILABLE
