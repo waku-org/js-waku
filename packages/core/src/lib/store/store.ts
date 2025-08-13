@@ -80,11 +80,12 @@ export class StoreCore {
         contentTopics: queryOpts.contentTopics
       });
 
-      let stream;
-      try {
-        stream = await this.streamManager.getStream(peerId);
-      } catch (e) {
-        log.error("Failed to get stream", e);
+      const stream = await this.streamManager.getStream(peerId);
+
+      if (!stream) {
+        log.error(
+          `Failed to get a stream for remote peer:${peerId.toString()}`
+        );
         break;
       }
 

@@ -45,21 +45,13 @@ describe("StreamManager", () => {
     }
   });
 
-  it("should throw if no connection provided", async () => {
+  it("should return undefined if no connection provided", async () => {
     streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _peerId: PeerId | undefined
     ) => [];
 
-    let error: Error | undefined;
-    try {
-      await streamManager.getStream(mockPeer.id);
-    } catch (e) {
-      error = e as Error;
-    }
-
-    expect(error).not.to.be.undefined;
-    expect(error?.message).to.include(mockPeer.id.toString());
-    expect(error?.message).to.include(MULTICODEC);
+    const stream = await streamManager.getStream(mockPeer.id);
+    expect(stream).to.be.undefined;
   });
 
   it("should create a new stream if no existing for protocol found", async () => {
@@ -114,8 +106,11 @@ describe("StreamManager", () => {
       streamManager.getStream(mockPeer.id)
     ]);
 
+    expect(stream1).to.not.be.undefined;
+    expect(stream2).to.not.be.undefined;
+
     const expected = ["1", "2"].toString();
-    const actual = [stream1.id, stream2.id].sort().toString();
+    const actual = [stream1?.id, stream2?.id].sort().toString();
 
     expect(actual).to.be.eq(expected);
   });
@@ -124,7 +119,9 @@ describe("StreamManager", () => {
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
     eventTarget.dispatchEvent(
-      new CustomEvent("peer:update", { detail: { peer: { protocols: [] } } })
+      new CustomEvent("peer:update", {
+        detail: { peer: { id: mockPeer.id, protocols: [] } }
+      })
     );
 
     expect(scheduleNewStreamSpy.calledOnce).to.be.false;
@@ -135,7 +132,7 @@ describe("StreamManager", () => {
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
     eventTarget.dispatchEvent(
       new CustomEvent("peer:update", {
-        detail: { peer: { protocols: [MULTICODEC] } }
+        detail: { peer: { id: mockPeer.id, protocols: [MULTICODEC] } }
       })
     );
 
@@ -160,7 +157,7 @@ describe("StreamManager", () => {
 
     eventTarget.dispatchEvent(
       new CustomEvent("peer:update", {
-        detail: { peer: { protocols: [MULTICODEC] } }
+        detail: { peer: { id: mockPeer.id, protocols: [MULTICODEC] } }
       })
     );
 

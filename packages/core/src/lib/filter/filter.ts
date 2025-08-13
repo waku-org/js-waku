@@ -1,4 +1,4 @@
-import type { PeerId, Stream } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
@@ -65,6 +65,16 @@ export class FilterCore {
   ): Promise<CoreProtocolResult> {
     const stream = await this.streamManager.getStream(peerId);
 
+    if (!stream) {
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.NO_STREAM_AVAILABLE,
+          peerId: peerId
+        }
+      };
+    }
+
     const request = FilterSubscribeRpc.createSubscribeRequest(
       pubsubTopic,
       contentTopics
@@ -121,14 +131,10 @@ export class FilterCore {
     peerId: PeerId,
     contentTopics: ContentTopic[]
   ): Promise<CoreProtocolResult> {
-    let stream: Stream | undefined;
-    try {
-      stream = await this.streamManager.getStream(peerId);
-    } catch (error) {
-      log.error(
-        `Failed to get a stream for remote peer${peerId.toString()}`,
-        error
-      );
+    const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         success: null,
         failure: {
@@ -167,6 +173,17 @@ export class FilterCore {
     peerId: PeerId
   ): Promise<CoreProtocolResult> {
     const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.NO_STREAM_AVAILABLE,
+          peerId: peerId
+        }
+      };
+    }
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
 
@@ -211,14 +228,10 @@ export class FilterCore {
   }
 
   public async ping(peerId: PeerId): Promise<CoreProtocolResult> {
-    let stream: Stream | undefined;
-    try {
-      stream = await this.streamManager.getStream(peerId);
-    } catch (error) {
-      log.error(
-        `Failed to get a stream for remote peer${peerId.toString()}`,
-        error
-      );
+    const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         success: null,
         failure: {

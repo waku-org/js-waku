@@ -57,11 +57,10 @@ class Metadata implements IMetadata {
       };
     }
 
-    let stream;
-    try {
-      stream = await this.streamManager.getStream(peerId);
-    } catch (error) {
-      log.error("Failed to get stream", error);
+    const stream = await this.streamManager.getStream(peerId);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
       return {
         shardInfo: null,
         error: ProtocolError.NO_STREAM_AVAILABLE
