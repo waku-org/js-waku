@@ -72,10 +72,11 @@ export class HealthIndicator implements IHealthIndicator {
       log.info("onPeerDisconnected: has connections, ignoring");
     }
 
-    this.value = HealthStatus.Unhealthy;
-    log.info(`onPeerDisconnected: node identified as ${this.value}`);
+    log.info(
+      `onPeerDisconnected: node identified as ${HealthStatus.Unhealthy}`
+    );
 
-    this.dispatchHealthEvent();
+    this.updateAndDispatchHealthEvent(HealthStatus.Unhealthy);
   }
 
   private async onPeerIdentify(
@@ -101,27 +102,32 @@ export class HealthIndicator implements IHealthIndicator {
       p?.protocols.includes(LightPushCodec)
     ).length;
 
+    let newValue;
     if (filterPeers === 0 || lightPushPeers === 0) {
-      this.value = HealthStatus.Unhealthy;
+      newValue = HealthStatus.Unhealthy;
     } else if (filterPeers >= 2 && lightPushPeers >= 2) {
-      this.value = HealthStatus.SufficientlyHealthy;
+      newValue = HealthStatus.SufficientlyHealthy;
     } else if (filterPeers === 1 && lightPushPeers === 1) {
-      this.value = HealthStatus.MinimallyHealthy;
+      newValue = HealthStatus.MinimallyHealthy;
     } else {
       log.error(
-        `onPeerChange: unexpected state, cannot identify health status of the node: Filter:${filterPeers}; LightPush:${lightPushPeers}`
+        `onPeerIdentify: unexpected state, cannot identify health status of the node: Filter:${filterPeers}; LightPush:${lightPushPeers}`
       );
+      newValue = this.value;
     }
 
-    log.info(`onPeerChange: node identified as ${this.value}`);
-    this.dispatchHealthEvent();
+    log.info(`onPeerIdentify: node identified as ${newValue}`);
+    this.updateAndDispatchHealthEvent(newValue);
   }
 
-  private dispatchHealthEvent(): void {
-    this.events.dispatchEvent(
-      new CustomEvent<HealthStatus>("waku:health", {
-        detail: this.value
-      })
-    );
+  private updateAndDispatchHealthEvent(newValue: HealthStatus): void {
+    if (this.value !== newValue) {
+      this.value = newValue;
+      this.events.dispatchEvent(
+        new CustomEvent<HealthStatus>("waku:health", {
+          detail: this.value
+        })
+      );
+    }
   }
 }
