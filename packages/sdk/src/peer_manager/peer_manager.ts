@@ -4,7 +4,12 @@ import {
   PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
+import {
+  FilterCodecs,
+  LightPushCodec,
+  LightPushCodecV2,
+  StoreCodec
+} from "@waku/core";
 import {
   CONNECTION_LOCKED_TAG,
   type IConnectionManager,
@@ -224,7 +229,9 @@ export class PeerManager {
   }
 
   private hasPeerProtocol(peer: Peer, protocol: Protocols): boolean {
-    return peer.protocols.includes(this.matchProtocolToCodec(protocol));
+    return peer.protocols
+      .join("")
+      .includes(this.matchProtocolToCodec(protocol));
   }
 
   private lockPeer(id: PeerId): void {
@@ -279,7 +286,7 @@ export class PeerManager {
   private matchProtocolToCodec(protocol: Protocols): string {
     const protocolToCodec = {
       [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
-      [Protocols.LightPush]: LightPushCodec,
+      [Protocols.LightPush]: LightPushCodec + LightPushCodecV2,
       [Protocols.Store]: StoreCodec,
       [Protocols.Relay]: ""
     };

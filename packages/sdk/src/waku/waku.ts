@@ -5,7 +5,12 @@ import {
   TypedEventEmitter
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
+import {
+  ConnectionManager,
+  createDecoder,
+  createEncoder,
+  LightPushCodecV2
+} from "@waku/core";
 import type {
   CreateDecoderParams,
   CreateEncoderParams,
@@ -182,6 +187,7 @@ export class WakuNode implements IWaku {
     }
     if (_protocols.includes(Protocols.LightPush)) {
       if (this.lightPush) {
+        codecs.push(LightPushCodecV2);
         codecs.push(this.lightPush.multicodec);
       } else {
         log.error(
