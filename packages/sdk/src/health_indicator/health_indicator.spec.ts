@@ -28,6 +28,10 @@ describe("HealthIndicator", () => {
   });
 
   it("should transition to Unhealthy when no connections", async () => {
+    // Only track transition, starting as healthy
+    (healthIndicator as any).value = HealthStatus.SufficientlyHealthy;
+
+    // Start monitoring
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
         resolve(e.detail)
