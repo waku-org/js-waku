@@ -1,7 +1,7 @@
-import { bootstrap } from "@libp2p/bootstrap";
 import type { LightNode, PartialPeerInfo, PeerCache } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
+import Sinon, { SinonSpy } from "sinon";
 
 import {
   afterEachCustom,
@@ -9,7 +9,6 @@ import {
   DefaultTestClusterId,
   DefaultTestNetworkConfig,
   DefaultTestShardInfo,
-  delay,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -19,12 +18,10 @@ class MockPeerCache implements PeerCache {
   public data: PartialPeerInfo[] = [];
 
   public get(): PartialPeerInfo[] {
-    console.log("get", this.data);
     return this.data;
   }
 
   public set(value: PartialPeerInfo[]): void {
-    console.log("set", value);
     this.data = value;
   }
 
@@ -33,7 +30,7 @@ class MockPeerCache implements PeerCache {
   }
 }
 
-describe.only("Local Peer Cache", function () {
+describe("Local Peer Cache", function () {
   this.timeout(150_000);
   let ctx: Mocha.Context;
   let waku: LightNode;
@@ -41,10 +38,14 @@ describe.only("Local Peer Cache", function () {
   let nwaku1: ServiceNode;
   let nwaku2: ServiceNode;
 
+  let dialPeerSpy: SinonSpy;
+
   beforeEachCustom(this, async () => {
     ctx = this.ctx;
+
     nwaku1 = new ServiceNode(makeLogFileName(ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(ctx) + "2");
+
     await nwaku1.start({
       clusterId: DefaultTestClusterId,
       shard: DefaultTestShardInfo.shards,
@@ -52,6 +53,7 @@ describe.only("Local Peer Cache", function () {
       peerExchange: true,
       relay: true
     });
+
     await nwaku2.start({
       clusterId: DefaultTestClusterId,
       shard: DefaultTestShardInfo.shards,
@@ -60,22 +62,64 @@ describe.only("Local Peer Cache", function () {
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
       relay: true
     });
-
-    await delay(10_000); // wait for peer exchange to finish, nwaku takes ~10s
   });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1, nwaku2], waku);
   });
 
-  it("should store connected peers in cache if discovered from peer exchange", async function () {
+  it("should discover peers from provided peer cache", async function () {
     const mockCache = new MockPeerCache();
+
+    mockCache.set([
+      {
+        id: (await nwaku1.getPeerId()).toString(),
+        multiaddrs: [(await nwaku1.getMultiaddrWithId()).toString()]
+      },
+      {
+        id: (await nwaku2.getPeerId()).toString(),
+        multiaddrs: [(await nwaku2.getMultiaddrWithId()).toString()]
+      }
+    ]);
+
     waku = await createLightNode({
       networkConfig: DefaultTestNetworkConfig,
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] })
-        ]
+      discovery: {
+        peerExchange: true,
+        localPeerCache: true
+      },
+      localPeerCache: {
+        cache: mockCache
+      }
+    });
+
+    dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
+
+    const discoveredPeers = new Set<string>();
+    await new Promise<void>((resolve) => {
+      waku.libp2p.addEventListener("peer:identify", (evt) => {
+        const peerId = evt.detail.peerId;
+        discoveredPeers.add(peerId.toString());
+
+        if (discoveredPeers.size === 2) {
+          resolve();
+        }
+      });
+    });
+
+    expect(dialPeerSpy.callCount).to.equal(2);
+    expect(discoveredPeers.size).to.equal(2);
+  });
+
+  it("should monitor connected peers and store them into cache", async function () {
+    const mockCache = new MockPeerCache();
+
+    waku = await createLightNode({
+      networkConfig: DefaultTestNetworkConfig,
+      bootstrapPeers: [(await nwaku2.getMultiaddrWithId()).toString()],
+      discovery: {
+        peerExchange: true,
+        localPeerCache: true
       },
       localPeerCache: {
         cache: mockCache

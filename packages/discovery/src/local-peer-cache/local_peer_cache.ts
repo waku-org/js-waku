@@ -79,7 +79,7 @@ export class LocalPeerCacheDiscovery
     const { peerId, listenAddrs } = event.detail;
     const multiaddrs = listenAddrs
       .map((addr) => addr.toString())
-      .filter((addr) => addr.includes("wss"));
+      .filter((addr) => addr.includes("ws") || addr.includes("wss"));
 
     const peerIdStr = peerId.toString();
     const knownPeers = this.readPeerInfoFromCache();
