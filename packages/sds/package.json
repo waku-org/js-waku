@@ -64,7 +64,8 @@
         "@noble/hashes": "^1.7.1",
         "@waku/proto": "^0.0.12",
         "@waku/utils": "^0.0.25",
-        "chai": "^5.1.2"
+        "chai": "^5.1.2",
+        "lodash": "^4.17.21"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^25.0.7",
