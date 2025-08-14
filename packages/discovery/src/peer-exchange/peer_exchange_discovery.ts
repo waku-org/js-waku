@@ -207,6 +207,12 @@ export class PeerExchangeDiscovery
         continue;
       }
 
+      const hasPrevShardInfo = await this.hasShardInfo(peerInfo.id);
+      const metadata =
+        !hasPrevShardInfo && shardInfo
+          ? { metadata: { shardInfo: encodeRelayShard(shardInfo) } }
+          : undefined;
+
       // merge is smart enough to overwrite only changed parts
       await this.components.peerStore.merge(peerInfo.id, {
         tags: {
@@ -214,11 +220,7 @@ export class PeerExchangeDiscovery
             value: DEFAULT_PEER_EXCHANGE_TAG_VALUE
           }
         },
-        ...(shardInfo && {
-          metadata: {
-            shardInfo: encodeRelayShard(shardInfo)
-          }
-        }),
+        ...metadata,
         ...(peerInfo.multiaddrs && {
           multiaddrs: peerInfo.multiaddrs
         })
@@ -235,6 +237,22 @@ export class PeerExchangeDiscovery
         })
       );
     }
+  }
+
+  private async hasShardInfo(peerId: PeerId): Promise<boolean> {
+    try {
+      const peer = await this.components.peerStore.get(peerId);
+
+      if (!peer) {
+        return false;
+      }
+
+      return peer.metadata.has("shardInfo");
+    } catch (err) {
+      log.warn(`Error getting shard info for ${peerId.toString()}`, err);
+    }
+
+    return false;
   }
 }
 
