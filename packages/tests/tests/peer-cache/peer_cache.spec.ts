@@ -30,7 +30,7 @@ class MockPeerCache implements PeerCache {
   }
 }
 
-describe("Local Peer Cache", function () {
+describe("Peer Cache Discovery", function () {
   this.timeout(150_000);
   let ctx: Mocha.Context;
   let waku: LightNode;
@@ -119,11 +119,9 @@ describe("Local Peer Cache", function () {
       bootstrapPeers: [(await nwaku2.getMultiaddrWithId()).toString()],
       discovery: {
         peerExchange: true,
-        localPeerCache: true
+        peerCache: true
       },
-      localPeerCache: {
-        cache: mockCache
-      }
+      peerCache: mockCache
     });
 
     const discoveredPeers = new Set<string>();

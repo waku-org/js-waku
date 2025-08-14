@@ -4,7 +4,7 @@
 export type DiscoveryOptions = {
   peerExchange: boolean;
   dns: boolean;
-  localPeerCache: boolean;
+  peerCache: boolean;
 };
 
 /**
@@ -40,9 +40,9 @@ export type PeerCache = {
 };
 
 /**
- * Options for the local peer cache discovery.
+ * Options for the peer cache discovery.
  */
-export type LocalPeerCacheDiscoveryOptions = {
+export type PeerCacheDiscoveryOptions = {
   /**
    * The cache to use for getting and storing cached peer information.
    *

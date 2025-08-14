@@ -68,12 +68,6 @@ export async function defaultLibp2p(
   }) as any as Libp2p; // TODO: make libp2p include it;
 }
 
-const DEFAULT_DISCOVERIES_ENABLED = {
-  dns: true,
-  peerExchange: true,
-  localPeerCache: true
-};
-
 export async function createLibp2pAndUpdateOptions(
   options: CreateNodeOptions
 ): Promise<Libp2p> {
@@ -89,15 +83,17 @@ export async function createLibp2pAndUpdateOptions(
     peerDiscovery.push(
       ...getPeerDiscoveries(
         {
-          ...DEFAULT_DISCOVERIES_ENABLED,
+          dns: true,
+          peerExchange: true,
+          peerCache: true,
           ...options.discovery
         },
-        options.localPeerCache
+        options.peerCache
       )
     );
   } else {
     peerDiscovery.push(
-      ...getPeerDiscoveries(options.discovery, options.localPeerCache)
+      ...getPeerDiscoveries(options.discovery, options.peerCache)
     );
   }
 

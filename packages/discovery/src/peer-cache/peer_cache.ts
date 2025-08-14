@@ -10,21 +10,21 @@ import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import type {
   Libp2pComponents,
-  LocalPeerCacheDiscoveryOptions,
   PartialPeerInfo,
-  PeerCache
+  PeerCache,
+  PeerCacheDiscoveryOptions
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import {
-  DEFAULT_LOCAL_TAG_NAME,
-  DEFAULT_LOCAL_TAG_VALUE
+  DEFAULT_PEER_CACHE_TAG_NAME,
+  DEFAULT_PEER_CACHE_TAG_VALUE
 } from "./constants.js";
 import { defaultCache } from "./utils.js";
 
 const log = new Logger("local-peer-cache");
 
-export class LocalPeerCacheDiscovery
+export class PeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
@@ -33,14 +33,14 @@ export class LocalPeerCacheDiscovery
 
   public constructor(
     private readonly components: Libp2pComponents,
-    options?: Partial<LocalPeerCacheDiscoveryOptions>
+    options?: Partial<PeerCacheDiscoveryOptions>
   ) {
     super();
     this.cache = options?.cache ?? defaultCache();
   }
 
   public get [Symbol.toStringTag](): string {
-    return "@waku/local-peer-cache";
+    return `@waku/${DEFAULT_PEER_CACHE_TAG_NAME}`;
   }
 
   public async start(): Promise<void> {
@@ -48,14 +48,14 @@ export class LocalPeerCacheDiscovery
       return;
     }
 
-    log.info("Starting Local Peer Discovery");
+    log.info("Starting Peer Cache Discovery");
 
     this.components.events.addEventListener(
       "peer:identify",
       this.handleDiscoveredPeer
     );
 
-    await this.discoverLocalPeers();
+    await this.discoverPeers();
 
     this.isStarted = true;
   }
@@ -65,7 +65,7 @@ export class LocalPeerCacheDiscovery
       return;
     }
 
-    log.info("Stopping Local Storage Discovery");
+    log.info("Stopping Peer Cache Discovery");
 
     this.components.events.removeEventListener(
       "peer:identify",
@@ -97,7 +97,7 @@ export class LocalPeerCacheDiscovery
     this.writePeerInfoToCache(knownPeers);
   };
 
-  private async discoverLocalPeers(): Promise<void> {
+  private async discoverPeers(): Promise<void> {
     const knownPeers = this.readPeerInfoFromCache();
 
     for (const peer of knownPeers) {
@@ -111,8 +111,8 @@ export class LocalPeerCacheDiscovery
       await this.components.peerStore.save(peerId, {
         multiaddrs,
         tags: {
-          [DEFAULT_LOCAL_TAG_NAME]: {
-            value: DEFAULT_LOCAL_TAG_VALUE
+          [DEFAULT_PEER_CACHE_TAG_NAME]: {
+            value: DEFAULT_PEER_CACHE_TAG_VALUE
           }
         }
       });
@@ -132,7 +132,7 @@ export class LocalPeerCacheDiscovery
     try {
       return this.cache.get();
     } catch (error) {
-      log.error("Error parsing peers from local storage:", error);
+      log.error("Error parsing peers from cache:", error);
       return [];
     }
   }
@@ -141,14 +141,14 @@ export class LocalPeerCacheDiscovery
     try {
       this.cache.set(peers);
     } catch (error) {
-      log.error("Error saving peers to local storage:", error);
+      log.error("Error saving peers to cache:", error);
     }
   }
 }
 
-export function wakuLocalPeerCacheDiscovery(
-  options: Partial<LocalPeerCacheDiscoveryOptions> = {}
-): (components: Libp2pComponents) => LocalPeerCacheDiscovery {
+export function wakuPeerCacheDiscovery(
+  options: Partial<PeerCacheDiscoveryOptions> = {}
+): (components: Libp2pComponents) => PeerCacheDiscovery {
   return (components: Libp2pComponents) =>
-    new LocalPeerCacheDiscovery(components, options);
+    new PeerCacheDiscovery(components, options);
 }

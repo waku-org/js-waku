@@ -12,7 +12,7 @@ import chaiAsPromised from "chai-as-promised";
 import { MemoryDatastore } from "datastore-core/memory";
 import sinon from "sinon";
 
-import { LocalPeerCacheDiscovery } from "./index.js";
+import { PeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
@@ -55,7 +55,7 @@ async function setPeersInCache(
   cache.set(peers);
 }
 
-describe("Local Storage Discovery", function () {
+describe("Peer Cache Discovery", function () {
   this.timeout(25_000);
   let components: Libp2pComponents;
   let mockCache: MockPeerCache;
@@ -67,7 +67,7 @@ describe("Local Storage Discovery", function () {
         events: new TypedEventEmitter(),
         peerId: await generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
         datastore: new MemoryDatastore(),
-        logger: prefixLogger("local_discovery.spec.ts")
+        logger: prefixLogger("peer_cache_discovery.spec.ts")
       }),
       events: new TypedEventEmitter()
     } as unknown as Libp2pComponents;
@@ -81,17 +81,17 @@ describe("Local Storage Discovery", function () {
 
     tests({
       async setup() {
-        return new LocalPeerCacheDiscovery(components, { cache: mockCache });
+        return new PeerCacheDiscovery(components, { cache: mockCache });
       },
       async teardown() {}
     });
   });
 
   describe("Unit Tests", function () {
-    let discovery: LocalPeerCacheDiscovery;
+    let discovery: PeerCacheDiscovery;
 
     beforeEach(async function () {
-      discovery = new LocalPeerCacheDiscovery(components, { cache: mockCache });
+      discovery = new PeerCacheDiscovery(components, { cache: mockCache });
       await setPeersInCache(mockCache, mockPeers);
     });
 
