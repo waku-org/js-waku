@@ -30,7 +30,7 @@ export const LightPushCodecV2 = CODECS.v2;
 export class LightPushCore {
   private readonly streamManager: StreamManager;
   private readonly streamManagerV2: StreamManager;
-  public readonly multicodec = CODECS.v3;
+  public readonly multicodec = [CODECS.v3, CODECS.v2];
 
   public constructor(private libp2p: Libp2p) {
     this.streamManager = new StreamManager(CODECS.v3, libp2p.components);

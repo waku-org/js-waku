@@ -87,6 +87,13 @@ export async function waitForRemotePeer(
 
 type EventListener = (_: CustomEvent<IdentifyResult>) => void;
 
+function protocolToPeerPromise(
+  codecs: string[],
+  libp2p: Libp2p
+): Promise<void>[] {
+  return codecs.map((codec) => waitForConnectedPeer(codec, libp2p));
+}
+
 /**
  * Waits for required peers to be connected.
  */
@@ -101,17 +108,19 @@ async function waitForProtocols(
   }
 
   if (waku.store && protocols.includes(Protocols.Store)) {
-    promises.push(waitForConnectedPeer(StoreCodec, waku.libp2p));
+    promises.push(...protocolToPeerPromise([StoreCodec], waku.libp2p));
   }
 
   if (waku.lightPush && protocols.includes(Protocols.LightPush)) {
     promises.push(
-      waitForConnectedPeer(LightPushCodec + LightPushCodecV2, waku.libp2p)
+      ...protocolToPeerPromise([LightPushCodec, LightPushCodecV2], waku.libp2p)
     );
   }
 
   if (waku.filter && protocols.includes(Protocols.Filter)) {
-    promises.push(waitForConnectedPeer(FilterCodecs.SUBSCRIBE, waku.libp2p));
+    promises.push(
+      ...protocolToPeerPromise([FilterCodecs.SUBSCRIBE], waku.libp2p)
+    );
   }
 
   return Promise.all(promises);

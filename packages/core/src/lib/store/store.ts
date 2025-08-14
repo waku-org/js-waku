@@ -29,7 +29,7 @@ export const StoreCodec = "/vac/waku/store-query/3.0.0";
 export class StoreCore {
   private readonly streamManager: StreamManager;
 
-  public readonly multicodec = StoreCodec;
+  public readonly multicodec = [StoreCodec];
 
   public constructor(libp2p: Libp2p) {
     this.streamManager = new StreamManager(StoreCodec, libp2p.components);

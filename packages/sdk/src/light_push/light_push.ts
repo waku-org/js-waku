@@ -56,7 +56,7 @@ export class LightPush implements ILightPush {
     });
   }
 
-  public get multicodec(): string {
+  public get multicodec(): string[] {
     return this.protocol.multicodec;
   }
 
