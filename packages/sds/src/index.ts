@@ -3,11 +3,14 @@ import { BloomFilter } from "./bloom_filter/bloom.js";
 export {
   MessageChannel,
   MessageChannelEvent,
-  MessageChannelOptions
-} from "./message_channel/index.js";
-
-export {
+  MessageChannelOptions,
+  isContentMessage,
+  isSyncMessage,
+  isEphemeralMessage,
   Message,
+  ContentMessage,
+  SyncMessage,
+  EphemeralMessage,
   type HistoryEntry,
   type ChannelId,
   type MessageChannelEvents,
