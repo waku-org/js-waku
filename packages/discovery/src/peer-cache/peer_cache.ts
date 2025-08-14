@@ -22,7 +22,7 @@ import {
 } from "./constants.js";
 import { defaultCache } from "./utils.js";
 
-const log = new Logger("local-peer-cache");
+const log = new Logger("peer-cache");
 
 export class PeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
@@ -77,9 +77,7 @@ export class PeerCacheDiscovery
 
   private handleDiscoveredPeer = (event: CustomEvent<IdentifyResult>): void => {
     const { peerId, listenAddrs } = event.detail;
-    const multiaddrs = listenAddrs
-      .map((addr) => addr.toString())
-      .filter((addr) => addr.includes("ws") || addr.includes("wss"));
+    const multiaddrs = listenAddrs.map((addr) => addr.toString());
 
     const peerIdStr = peerId.toString();
     const knownPeers = this.readPeerInfoFromCache();
