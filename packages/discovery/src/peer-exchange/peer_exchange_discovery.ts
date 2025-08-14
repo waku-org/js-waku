@@ -210,7 +210,7 @@ export class PeerExchangeDiscovery
       const hasPrevShardInfo = await this.hasShardInfo(peerInfo.id);
       const metadata =
         !hasPrevShardInfo && shardInfo
-          ? { metadata: { shardInfo: encodeRelayShard(shardInfo!) } }
+          ? { metadata: { shardInfo: encodeRelayShard(shardInfo) } }
           : undefined;
 
       // merge is smart enough to overwrite only changed parts
@@ -247,7 +247,7 @@ export class PeerExchangeDiscovery
         return false;
       }
 
-      return !!peer.metadata.get("shardInfo");
+      return peer.metadata.has("shardInfo");
     } catch (err) {
       log.warn(`Error getting shard info for ${peerId.toString()}`, err);
     }
