@@ -9,6 +9,6 @@ export {
 } from "./peer-exchange/index.js";
 
 export {
-  LocalPeerCacheDiscovery,
-  wakuLocalPeerCacheDiscovery
-} from "./local-peer-cache/index.js";
+  PeerCacheDiscovery,
+  wakuPeerCacheDiscovery
+} from "./peer-cache/index.js";

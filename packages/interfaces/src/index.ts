@@ -15,6 +15,6 @@ export * from "./libp2p.js";
 export * from "./dns_discovery.js";
 export * from "./metadata.js";
 export * from "./constants.js";
-export * from "./local_storage.js";
 export * from "./sharding.js";
 export * from "./health_status.js";
+export * from "./discovery.js";

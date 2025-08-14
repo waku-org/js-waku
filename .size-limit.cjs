@@ -33,9 +33,9 @@ module.exports = [
     import: "{ wakuPeerExchangeDiscovery }",
   },
   {
-    name: "Local Peer Cache Discovery",
+    name: "Peer Cache Discovery",
     path: "packages/discovery/bundle/index.js",
-    import: "{ wakuLocalPeerCacheDiscovery }",
+    import: "{ wakuPeerCacheDiscovery }",
   },
   {
     name: "Privacy preserving protocols",

@@ -7,7 +7,7 @@ import { ShardId } from "./sharding.js";
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
-  LOCAL = "local-peer-cache"
+  PEER_CACHE = "peer-cache"
 }
 
 // Connection tag

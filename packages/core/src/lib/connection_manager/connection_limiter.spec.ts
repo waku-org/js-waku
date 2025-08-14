@@ -508,7 +508,7 @@ describe("ConnectionLimiter", () => {
       pxPeer.addresses = [
         { multiaddr: multiaddr("/dns4/px/tcp/443/wss"), isCertified: false }
       ];
-      const localPeer = createMockPeer("l", [Tags.LOCAL]);
+      const localPeer = createMockPeer("l", [Tags.PEER_CACHE]);
       localPeer.addresses = [
         { multiaddr: multiaddr("/dns4/l/tcp/443/wss"), isCertified: false }
       ];

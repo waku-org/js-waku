@@ -6,70 +6,68 @@ import { prefixLogger } from "@libp2p/logger";
 import { peerIdFromPrivateKey, peerIdFromString } from "@libp2p/peer-id";
 import { persistentPeerStore } from "@libp2p/peer-store";
 import { multiaddr } from "@multiformats/multiaddr";
-import { Libp2pComponents } from "@waku/interfaces";
-import { LocalStoragePeerInfo } from "@waku/interfaces";
+import { Libp2pComponents, PartialPeerInfo, PeerCache } from "@waku/interfaces";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MemoryDatastore } from "datastore-core/memory";
 import sinon from "sinon";
 
-import { LocalPeerCacheDiscovery } from "./index.js";
+import { PeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
-if (typeof window === "undefined") {
-  try {
-    global.localStorage = {
-      store: {} as Record<string, string>,
-      getItem(key: string) {
-        return this.store[key] || null;
-      },
-      setItem(key: string, value: string) {
-        this.store[key] = value;
-      },
-      removeItem(key: string) {
-        delete this.store[key];
-      },
-      clear() {
-        this.store = {};
-      }
-    } as any;
-  } catch (error) {
-    console.error("Failed to load localStorage polyfill:", error);
-  }
-}
-
-const mockPeers = [
+const mockPeers: PartialPeerInfo[] = [
   {
     id: "16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD",
-    address:
-      "/ip4/127.0.0.1/tcp/8000/ws/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD"
+    multiaddrs: [
+      "/ip4/127.0.0.1/tcp/8000/wss/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD"
+    ]
   },
   {
     id: "16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrE",
-    address:
-      "/ip4/127.0.0.1/tcp/8001/ws/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrE"
+    multiaddrs: [
+      "/ip4/127.0.0.1/tcp/8001/wss/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrE"
+    ]
   }
 ];
 
-async function setPeersInLocalStorage(
-  peers: LocalStoragePeerInfo[]
-): Promise<void> {
-  localStorage.setItem("waku:peers", JSON.stringify(peers));
+class MockPeerCache implements PeerCache {
+  public data: PartialPeerInfo[] = [];
+  public throwOnGet = false;
+  public get(): PartialPeerInfo[] {
+    if (this.throwOnGet) {
+      throw new Error("cache get error");
+    }
+    return this.data;
+  }
+  public set(value: PartialPeerInfo[]): void {
+    this.data = value;
+  }
+  public remove(): void {
+    this.data = [];
+  }
 }
 
-describe("Local Storage Discovery", function () {
+async function setPeersInCache(
+  cache: MockPeerCache,
+  peers: PartialPeerInfo[]
+): Promise<void> {
+  cache.set(peers);
+}
+
+describe("Peer Cache Discovery", function () {
   this.timeout(25_000);
   let components: Libp2pComponents;
+  let mockCache: MockPeerCache;
 
   beforeEach(async function () {
-    localStorage.clear();
+    mockCache = new MockPeerCache();
     components = {
       peerStore: persistentPeerStore({
         events: new TypedEventEmitter(),
         peerId: await generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
         datastore: new MemoryDatastore(),
-        logger: prefixLogger("local_discovery.spec.ts")
+        logger: prefixLogger("peer_cache_discovery.spec.ts")
       }),
       events: new TypedEventEmitter()
     } as unknown as Libp2pComponents;
@@ -77,23 +75,24 @@ describe("Local Storage Discovery", function () {
 
   describe("Compliance Tests", function () {
     beforeEach(async function () {
-      await setPeersInLocalStorage([mockPeers[0]]);
+      mockCache = new MockPeerCache();
+      await setPeersInCache(mockCache, [mockPeers[0]]);
     });
 
     tests({
       async setup() {
-        return new LocalPeerCacheDiscovery(components);
+        return new PeerCacheDiscovery(components, { cache: mockCache });
       },
       async teardown() {}
     });
   });
 
   describe("Unit Tests", function () {
-    let discovery: LocalPeerCacheDiscovery;
+    let discovery: PeerCacheDiscovery;
 
     beforeEach(async function () {
-      discovery = new LocalPeerCacheDiscovery(components);
-      await setPeersInLocalStorage(mockPeers);
+      discovery = new PeerCacheDiscovery(components, { cache: mockCache });
+      await setPeersInCache(mockCache, mockPeers);
     });
 
     it("should load peers from local storage and dispatch events", async () => {
@@ -103,43 +102,46 @@ describe("Local Storage Discovery", function () {
 
       expect(dispatchEventSpy.calledWith(sinon.match.has("type", "peer"))).to.be
         .true;
+
+      const dispatchedIds = dispatchEventSpy
+        .getCalls()
+        .map((c) => (c.args[0] as CustomEvent<any>).detail?.id?.toString?.())
+        .filter(Boolean);
+
       mockPeers.forEach((mockPeer) => {
-        expect(
-          dispatchEventSpy.calledWith(
-            sinon.match.hasNested("detail.id", mockPeer.id)
-          )
-        ).to.be.true;
+        expect(dispatchedIds).to.include(mockPeer.id);
       });
     });
 
-    it("should update peers in local storage on 'peer:identify' event", async () => {
-      const newPeerIdentifyEvent = {
-        detail: {
-          peerId: peerIdFromString(mockPeers[1].id.toString()),
-          listenAddrs: [multiaddr(mockPeers[1].address)]
+    it("should update peers in cache on 'peer:identify' event", async () => {
+      await discovery.start();
+
+      const newPeerIdentifyEvent = new CustomEvent<IdentifyResult>(
+        "peer:identify",
+        {
+          detail: {
+            peerId: peerIdFromString(mockPeers[1].id.toString()),
+            listenAddrs: [multiaddr(mockPeers[1].multiaddrs[0])]
+          } as IdentifyResult
         }
-      } as CustomEvent<IdentifyResult>;
-
-      // Directly invoke handleNewPeers to simulate receiving an 'identify' event
-      discovery.handleNewPeers(newPeerIdentifyEvent);
-
-      const updatedPeers = JSON.parse(
-        localStorage.getItem("waku:peers") || "[]"
       );
-      expect(updatedPeers).to.deep.include({
-        id: newPeerIdentifyEvent.detail.peerId.toString(),
-        address: newPeerIdentifyEvent.detail.listenAddrs[0].toString()
+
+      components.events.dispatchEvent(newPeerIdentifyEvent);
+
+      expect(mockCache.get()).to.deep.include({
+        id: mockPeers[1].id,
+        multiaddrs: [mockPeers[1].multiaddrs[0]]
       });
     });
 
-    it("should handle corrupted local storage data gracefully", async () => {
-      localStorage.setItem("waku:peers", "not-a-valid-json");
+    it("should handle cache.get errors gracefully", async () => {
+      mockCache.throwOnGet = true;
 
       try {
         await discovery.start();
       } catch (error) {
         expect.fail(
-          "start() should not have thrown an error for corrupted local storage data"
+          "start() should not have thrown an error when cache.get throws"
         );
       }
     });

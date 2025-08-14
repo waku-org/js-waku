@@ -1,6 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 
 import type { ConnectionManagerOptions } from "./connection_manager.js";
+import type { DiscoveryOptions, PeerCache } from "./discovery.js";
 import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { LightPushProtocolOptions } from "./light_push.js";
@@ -83,13 +84,17 @@ export type CreateNodeOptions = {
   /**
    * Enable or disable specific discovery methods.
    *
-   * @default { peerExchange: true, dns: true, localPeerCache: true }
+   * @default { peerExchange: true, dns: true, peerCache: true }
    */
-  discovery?: {
-    peerExchange: boolean;
-    dns: boolean;
-    localPeerCache: boolean;
-  };
+  discovery?: Partial<DiscoveryOptions>;
+
+  /**
+   * Peer cache to use for storing and retrieving peer information.
+   * If present, enables peer cache discovery.
+   *
+   * @default browser's localStorage
+   */
+  peerCache?: PeerCache;
 
   /**
    * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
