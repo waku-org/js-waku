@@ -164,18 +164,15 @@ describe("Static Sharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
+            wakuPeerExchangeDiscovery({ TTL: 1000 })
           ]
         }
       });
 
       dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
 
-      await waku.start();
-
       const pxPeersDiscovered = new Set<PeerId>();
-
-      await new Promise<void>((resolve) => {
+      const pxPeersDiscoveredPromise = new Promise<void>((resolve) => {
         waku.libp2p.addEventListener("peer:discovery", (evt) => {
           return void (async () => {
             const peerId = evt.detail.id;
@@ -191,7 +188,8 @@ describe("Static Sharding: Peer Management", function () {
         });
       });
 
-      await delay(1000);
+      await delay(10_000);
+      await pxPeersDiscoveredPromise;
       expect(dialPeerSpy.callCount).to.equal(3);
     });
   });

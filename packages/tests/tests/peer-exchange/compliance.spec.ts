@@ -36,6 +36,11 @@ describe("Peer Exchange", function () {
         peerExchange: true,
         discv5BootstrapNode: enr
       });
+
+      const waitForNodesToMountPeerExchange = new Promise((resolve) =>
+        setTimeout(resolve, 10_000)
+      );
+      await waitForNodesToMountPeerExchange;
     });
 
     tests({
@@ -43,22 +48,16 @@ describe("Peer Exchange", function () {
         waku = await createLightNode({
           networkConfig: DefaultTestNetworkConfig
         });
-        await waku.start();
 
-        const nwaku2Ma = await nwaku2.getMultiaddrWithId();
-
+        const nwaku1Ma = await nwaku1.getMultiaddrWithId();
         const peerExchange = new PeerExchangeDiscovery(waku.libp2p.components);
 
-        peerExchange.addEventListener("waku:peer-exchange:started", (event) => {
-          if (event.detail === true) {
-            void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
-          }
-        });
+        await waku.libp2p.dialProtocol(nwaku1Ma, PeerExchangeCodec);
 
         return peerExchange;
       },
       teardown: async () => {
-        this.timeout(15000);
+        this.timeout(15_000);
         await tearDownNodes([nwaku1, nwaku2], waku);
       }
     });
