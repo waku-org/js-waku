@@ -86,11 +86,9 @@ describe("Peer Cache Discovery", function () {
       networkConfig: DefaultTestNetworkConfig,
       discovery: {
         peerExchange: true,
-        localPeerCache: true
+        peerCache: true
       },
-      localPeerCache: {
-        cache: mockCache
-      }
+      peerCache: mockCache
     });
 
     dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
