@@ -12,16 +12,16 @@ describe("Default Peer Discoveries", () => {
     const discoveries = getPeerDiscoveries({
       dns: true,
       peerExchange: true,
-      localPeerCache: true
+      peerCache: true
     });
     expect(discoveries.length).to.equal(3);
   });
 
-  it("should enable only peerExchange and localPeerCache when dns is disabled", () => {
+  it("should enable only peerExchange and peerCache when dns is disabled", () => {
     const discoveries = getPeerDiscoveries({
       dns: false,
       peerExchange: true,
-      localPeerCache: true
+      peerCache: true
     });
     expect(discoveries.length).to.equal(2);
   });
@@ -30,25 +30,25 @@ describe("Default Peer Discoveries", () => {
     const discoveries = getPeerDiscoveries({
       dns: true,
       peerExchange: false,
-      localPeerCache: true
+      peerCache: true
     });
     expect(discoveries.length).to.equal(2);
   });
 
-  it("should enable only dns and peerExchange when localPeerCache is disabled", () => {
+  it("should enable only dns and peerExchange when peerCache is disabled", () => {
     const discoveries = getPeerDiscoveries({
       dns: true,
       peerExchange: true,
-      localPeerCache: false
+      peerCache: false
     });
     expect(discoveries.length).to.equal(2);
   });
 
-  it("should enable only localPeerCache when dns and peerExchange are disabled", () => {
+  it("should enable only peerCache when dns and peerExchange are disabled", () => {
     const discoveries = getPeerDiscoveries({
       dns: false,
       peerExchange: false,
-      localPeerCache: true
+      peerCache: true
     });
     expect(discoveries.length).to.equal(1);
   });

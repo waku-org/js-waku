@@ -231,7 +231,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
    * Returns a list of peers ordered by priority:
    * - bootstrap peers
    * - peers from peer exchange
-   * - peers from local store (last because we are not sure that locally stored information is up to date)
+   * - peers from peer cache (last because we are not sure that locally stored information is up to date)
    */
   private async getPrioritizedPeers(): Promise<Peer[]> {
     const allPeers = await this.libp2p.peerStore.all();
@@ -260,7 +260,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
     );
 
     const localStorePeers = notConnectedPeers.filter((p) =>
-      p.tags.has(Tags.LOCAL)
+      p.tags.has(Tags.PEER_CACHE)
     );
 
     return [...bootstrapPeers, ...peerExchangePeers, ...localStorePeers];
