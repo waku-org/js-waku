@@ -183,8 +183,6 @@ export enum FilterError {
 export interface LightPushFailure {
   error: LightPushError;
   peerId?: PeerId;
-  statusCode?: number;
-  statusDesc?: string;
 }
 
 export interface FilterFailure {
@@ -221,6 +219,9 @@ export type FilterSDKResult = ThisAndThat<
   FilterFailure[]
 >;
 
+/**
+ * @deprecated Use LightPushSDKResult or FilterSDKResult instead
+ */
 export type SDKProtocolResult = ThisAndThat<
   "successes",
   PeerId[],

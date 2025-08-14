@@ -100,9 +100,7 @@ export class ProtocolHandler {
           success: null,
           failure: {
             error,
-            peerId: peerId,
-            statusCode,
-            statusDesc
+            peerId: peerId
           }
         };
       }
@@ -168,8 +166,7 @@ export class ProtocolHandler {
         success: null,
         failure: {
           error: LightPushError.REMOTE_PEER_REJECTED,
-          peerId: peerId,
-          statusDesc: response.info
+          peerId: peerId
         }
       };
     }
