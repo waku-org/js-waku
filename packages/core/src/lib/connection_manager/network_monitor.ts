@@ -1,4 +1,14 @@
-import { IWakuEventEmitter, Libp2p, WakuEventType } from "@waku/interfaces";
+import { IdentifyResult } from "@libp2p/interface";
+import {
+  IWakuEventEmitter,
+  Libp2p,
+  Protocols,
+  WakuEventType
+} from "@waku/interfaces";
+
+import { FilterCodecs } from "../filter/index.js";
+import { LightPushCodec } from "../light_push/index.js";
+import { StoreCodec } from "../store/index.js";
 
 type NetworkMonitorConstructorOptions = {
   libp2p: Libp2p;
@@ -13,6 +23,12 @@ interface INetworkMonitor {
   isBrowserConnected(): boolean;
 }
 
+const codecToProtocol: Record<string, Protocols> = {
+  [FilterCodecs.SUBSCRIBE]: Protocols.Filter,
+  [LightPushCodec]: Protocols.LightPush,
+  [StoreCodec]: Protocols.Store
+};
+
 export class NetworkMonitor implements INetworkMonitor {
   private readonly libp2p: Libp2p;
   private readonly events: IWakuEventEmitter;
@@ -25,12 +41,14 @@ export class NetworkMonitor implements INetworkMonitor {
 
     this.onConnectedEvent = this.onConnectedEvent.bind(this);
     this.onDisconnectedEvent = this.onDisconnectedEvent.bind(this);
+    this.onPeerIdentify = this.onPeerIdentify.bind(this);
     this.dispatchNetworkEvent = this.dispatchNetworkEvent.bind(this);
   }
 
   public start(): void {
     this.libp2p.addEventListener("peer:connect", this.onConnectedEvent);
     this.libp2p.addEventListener("peer:disconnect", this.onDisconnectedEvent);
+    this.libp2p.addEventListener("peer:identify", this.onPeerIdentify);
 
     try {
       globalThis.addEventListener("online", this.dispatchNetworkEvent);
@@ -46,6 +64,7 @@ export class NetworkMonitor implements INetworkMonitor {
       "peer:disconnect",
       this.onDisconnectedEvent
     );
+    this.libp2p.removeEventListener("peer:identify", this.onPeerIdentify);
 
     try {
       globalThis.removeEventListener("online", this.dispatchNetworkEvent);
@@ -99,6 +118,20 @@ export class NetworkMonitor implements INetworkMonitor {
     if (this.isNetworkConnected && this.libp2p.getConnections().length === 0) {
       this.isNetworkConnected = false;
       this.dispatchNetworkEvent();
+    }
+  }
+
+  private onPeerIdentify(event: CustomEvent<IdentifyResult>): void {
+    const protocols = event.detail.protocols
+      .map((codec: string) => codecToProtocol[codec])
+      .filter((p: Protocols | undefined) => Boolean(p));
+
+    if (protocols.length > 0) {
+      this.events.dispatchEvent(
+        new CustomEvent<Protocols[]>(WakuEventType.ConnectedPeer, {
+          detail: protocols
+        })
+      );
     }
   }
 

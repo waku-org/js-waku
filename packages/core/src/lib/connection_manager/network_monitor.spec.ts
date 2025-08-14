@@ -1,6 +1,13 @@
-import { IWakuEventEmitter, Libp2p, WakuEventType } from "@waku/interfaces";
+import {
+  IWakuEventEmitter,
+  Libp2p,
+  Protocols,
+  WakuEventType
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
+
+import { StoreCodec } from "../store/index.js";
 
 import { NetworkMonitor } from "./network_monitor.js";
 
@@ -82,12 +89,14 @@ describe("NetworkMonitor", () => {
       networkMonitor.start();
 
       const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
-      expect(addEventListenerStub.calledTwice).to.be.true;
+      expect(addEventListenerStub.calledThrice).to.be.true;
       expect(addEventListenerStub.calledWith("peer:connect", sinon.match.func))
         .to.be.true;
       expect(
         addEventListenerStub.calledWith("peer:disconnect", sinon.match.func)
       ).to.be.true;
+      expect(addEventListenerStub.calledWith("peer:identify", sinon.match.func))
+        .to.be.true;
     });
 
     it("should add event listeners to globalThis", () => {
@@ -108,7 +117,7 @@ describe("NetworkMonitor", () => {
       expect(() => networkMonitor.start()).to.not.throw();
 
       const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
-      expect(addEventListenerStub.calledTwice).to.be.true;
+      expect(addEventListenerStub.calledThrice).to.be.true;
     });
   });
 
@@ -126,12 +135,15 @@ describe("NetworkMonitor", () => {
 
       const removeEventListenerStub =
         libp2p.removeEventListener as sinon.SinonStub;
-      expect(removeEventListenerStub.calledTwice).to.be.true;
+      expect(removeEventListenerStub.calledThrice).to.be.true;
       expect(
         removeEventListenerStub.calledWith("peer:connect", sinon.match.func)
       ).to.be.true;
       expect(
         removeEventListenerStub.calledWith("peer:disconnect", sinon.match.func)
+      ).to.be.true;
+      expect(
+        removeEventListenerStub.calledWith("peer:identify", sinon.match.func)
       ).to.be.true;
     });
 
@@ -160,7 +172,7 @@ describe("NetworkMonitor", () => {
 
       const removeEventListenerStub =
         libp2p.removeEventListener as sinon.SinonStub;
-      expect(removeEventListenerStub.calledTwice).to.be.true;
+      expect(removeEventListenerStub.calledThrice).to.be.true;
     });
   });
 
@@ -201,7 +213,7 @@ describe("NetworkMonitor", () => {
     });
   });
 
-  describe("peer connection events", () => {
+  describe("connection events", () => {
     let connectHandler: () => void;
     let disconnectHandler: () => void;
 
@@ -378,6 +390,40 @@ describe("NetworkMonitor", () => {
       });
 
       expect(networkMonitor.isConnected()).to.be.false;
+    });
+  });
+
+  describe("connected peer events", () => {
+    let identifyHandler: (event: CustomEvent) => void;
+
+    beforeEach(() => {
+      networkMonitor = new NetworkMonitor({
+        libp2p,
+        events
+      });
+      networkMonitor.start();
+
+      const addEventListenerStub = libp2p.addEventListener as sinon.SinonStub;
+
+      identifyHandler = addEventListenerStub.getCall(2).args[1];
+    });
+
+    it("should handle peer identify event", () => {
+      const mockIdentifyEvent = new CustomEvent("peer:identify", {
+        detail: {
+          protocols: [StoreCodec, "/not/waku/related/codec"]
+        }
+      });
+
+      identifyHandler(mockIdentifyEvent);
+
+      const dispatchEventStub = events.dispatchEvent as sinon.SinonStub;
+      expect(dispatchEventStub.calledOnce).to.be.true;
+
+      const dispatchedEvent = dispatchEventStub.getCall(0)
+        .args[0] as CustomEvent<Protocols[]>;
+      expect(dispatchedEvent.type).to.equal(WakuEventType.ConnectedPeer);
+      expect(dispatchedEvent.detail).to.deep.equal([Protocols.Store]);
     });
   });
 

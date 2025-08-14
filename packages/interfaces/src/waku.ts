@@ -27,7 +27,8 @@ export type CreateEncoderParams = CreateDecoderParams & {
 
 export enum WakuEventType {
   Connection = "waku:connection",
-  Health = "waku:health"
+  Health = "waku:health",
+  ConnectedPeer = "waku:connected-peer"
 }
 
 export interface IWakuEvents {
@@ -52,6 +53,16 @@ export interface IWakuEvents {
    * });
    */
   [WakuEventType.Health]: CustomEvent<HealthStatus>;
+
+  /**
+   * Emitted when the node connects to a peer, and returns the Waku protocol the peer
+   * supports. Useful if specific actions need a specific protocol (e.g. store query
+   * when connecting to a store node).
+   *
+   * Aims to replace [[waitForRemotePeerWithCodec]]
+   */
+
+  [WakuEventType.ConnectedPeer]: CustomEvent<Protocols[]>;
 }
 
 export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
