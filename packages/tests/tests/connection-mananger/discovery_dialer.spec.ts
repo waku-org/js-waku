@@ -94,7 +94,6 @@ describe.skip("DiscoveryDialer", function () {
       });
     });
 
-    // TODO(weboko): investigate why peer-exchange discovery is not working https://github.com/waku-org/js-waku/issues/2446
     await waku.libp2p.peerStore.save(secondPeerId, {
       multiaddrs: [maddrs[1]]
     });
