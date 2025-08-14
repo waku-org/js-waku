@@ -96,11 +96,7 @@ export async function runMultipleNodes(
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
-    if (customArgs?.contentTopic && isAutoShardingRoutingInfo(routingInfo)) {
-      // For autosharding, use content topics
-      await node.ensureSubscriptionsAutosharding(customArgs.contentTopic);
-    } else if (pubsubTopics.length > 0) {
-      // For static sharding, use pubsub topics
+    if (pubsubTopics.length > 0) {
       await node.ensureSubscriptions(pubsubTopics);
     }
 

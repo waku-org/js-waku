@@ -203,8 +203,8 @@ export class PeerManager {
 
   private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {
     const result = event.detail;
-    const isFilterPeer = result.protocols.includes(
-      this.matchProtocolToCodec(Protocols.Filter)
+    const isFilterPeer = result.protocols.some((protocol) =>
+      this.getProtocolCodecs(Protocols.Filter).includes(protocol)
     );
 
     if (isFilterPeer) {
@@ -229,9 +229,10 @@ export class PeerManager {
   }
 
   private hasPeerProtocol(peer: Peer, protocol: Protocols): boolean {
-    return peer.protocols
-      .join("")
-      .includes(this.matchProtocolToCodec(protocol));
+    const codecsToMatch = this.getProtocolCodecs(protocol);
+
+    // Check if peer supports any of the protocol codecs
+    return codecsToMatch.some((codec) => peer.protocols.includes(codec));
   }
 
   private lockPeer(id: PeerId): void {
@@ -283,14 +284,14 @@ export class PeerManager {
     );
   }
 
-  private matchProtocolToCodec(protocol: Protocols): string {
-    const protocolToCodec = {
-      [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
-      [Protocols.LightPush]: LightPushCodec + LightPushCodecV2,
-      [Protocols.Store]: StoreCodec,
-      [Protocols.Relay]: ""
+  private getProtocolCodecs(protocol: Protocols): string[] {
+    const protocolToCodecs = {
+      [Protocols.Filter]: [FilterCodecs.SUBSCRIBE],
+      [Protocols.LightPush]: [LightPushCodec, LightPushCodecV2],
+      [Protocols.Store]: [StoreCodec],
+      [Protocols.Relay]: [""]
     };
 
-    return protocolToCodec[protocol];
+    return protocolToCodecs[protocol];
   }
 }

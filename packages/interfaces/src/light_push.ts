@@ -18,7 +18,7 @@ export type LightPushProtocolOptions = ISendOptions & {
 };
 
 export type ILightPush = {
-  readonly multicodec: string;
+  readonly multicodec: string[];
   start: () => void;
   stop: () => void;
   send: (encoder: IEncoder, message: IMessage) => Promise<LightPushSDKResult>;
