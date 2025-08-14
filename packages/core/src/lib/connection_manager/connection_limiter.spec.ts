@@ -3,7 +3,8 @@ import { multiaddr } from "@multiformats/multiaddr";
 import {
   CONNECTION_LOCKED_TAG,
   IWakuEventEmitter,
-  Tags
+  Tags,
+  WakuEventType
 } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -143,7 +144,7 @@ describe("ConnectionLimiter", () => {
         .true;
       expect(
         (events.addEventListener as sinon.SinonStub).calledWith(
-          "waku:connection",
+          WakuEventType.Connection,
           sinon.match.func
         )
       ).to.be.true;
@@ -178,7 +179,7 @@ describe("ConnectionLimiter", () => {
         .true;
       expect(
         (events.removeEventListener as sinon.SinonStub).calledWith(
-          "waku:connection",
+          WakuEventType.Connection,
           sinon.match.func
         )
       ).to.be.true;
