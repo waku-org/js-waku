@@ -1,4 +1,4 @@
-import { IdentifyResult } from "@libp2p/interface";
+import { IdentifyResult, PeerId } from "@libp2p/interface";
 import {
   IWakuEventEmitter,
   Libp2p,
@@ -128,9 +128,15 @@ export class NetworkMonitor implements INetworkMonitor {
 
     if (protocols.length > 0) {
       this.events.dispatchEvent(
-        new CustomEvent<Protocols[]>(WakuEventType.ConnectedPeer, {
-          detail: protocols
-        })
+        new CustomEvent<{ peerId: PeerId; protocols: Protocols[] }>(
+          WakuEventType.ConnectedPeer,
+          {
+            detail: {
+              peerId: event.detail.peerId,
+              protocols
+            }
+          }
+        )
       );
     }
   }

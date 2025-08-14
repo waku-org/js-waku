@@ -1,3 +1,4 @@
+import type { PeerId } from "@libp2p/interface";
 import {
   IWakuEventEmitter,
   Libp2p,
@@ -10,6 +11,16 @@ import sinon from "sinon";
 import { StoreCodec } from "../store/index.js";
 
 import { NetworkMonitor } from "./network_monitor.js";
+
+const createMockPeerId = (id: string): PeerId =>
+  ({
+    toString: () => id,
+    equals: function (other: PeerId) {
+      return (
+        other && typeof other.toString === "function" && other.toString() === id
+      );
+    }
+  }) as PeerId;
 
 describe("NetworkMonitor", () => {
   let libp2p: Libp2p;
@@ -409,8 +420,10 @@ describe("NetworkMonitor", () => {
     });
 
     it("should handle peer identify event", () => {
+      const peerId = createMockPeerId("12D3KooWTest1");
       const mockIdentifyEvent = new CustomEvent("peer:identify", {
         detail: {
+          peerId,
           protocols: [StoreCodec, "/not/waku/related/codec"]
         }
       });
@@ -421,9 +434,12 @@ describe("NetworkMonitor", () => {
       expect(dispatchEventStub.calledOnce).to.be.true;
 
       const dispatchedEvent = dispatchEventStub.getCall(0)
-        .args[0] as CustomEvent<Protocols[]>;
+        .args[0] as CustomEvent<{ protocols: Protocols[]; peerId: PeerId }>;
       expect(dispatchedEvent.type).to.equal(WakuEventType.ConnectedPeer);
-      expect(dispatchedEvent.detail).to.deep.equal([Protocols.Store]);
+      expect(dispatchedEvent.detail.protocols).to.deep.equal([Protocols.Store]);
+      expect(dispatchedEvent.detail.peerId.toString()).to.equal(
+        "12D3KooWTest1"
+      );
     });
   });
 

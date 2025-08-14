@@ -62,7 +62,10 @@ export interface IWakuEvents {
    * Aims to replace [[waitForRemotePeerWithCodec]]
    */
 
-  [WakuEventType.ConnectedPeer]: CustomEvent<Protocols[]>;
+  [WakuEventType.ConnectedPeer]: CustomEvent<{
+    protocols: Protocols[];
+    peerId: PeerId;
+  }>;
 }
 
 export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
