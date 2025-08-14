@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/sds-v0.0.5...sds-v0.0.6) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* SDS acknowledgements ([#2549](https://github.com/waku-org/js-waku/issues/2549))
+* SDS improvements and fixes ([#2539](https://github.com/waku-org/js-waku/issues/2539))
+
+### Features
+
+* SDS improvements and fixes ([#2539](https://github.com/waku-org/js-waku/issues/2539)) ([dc51550](https://github.com/waku-org/js-waku/commit/dc5155056b2f8583ffc4340701466f4820501c4a))
+
+
+### Bug Fixes
+
+* Bloom filter protobuf decoding ([#2529](https://github.com/waku-org/js-waku/issues/2529)) ([449797d](https://github.com/waku-org/js-waku/commit/449797d5c15c278b14952ac4db828e50116e1a61))
+* SDS acknowledgements ([#2549](https://github.com/waku-org/js-waku/issues/2549)) ([c161b37](https://github.com/waku-org/js-waku/commit/c161b37d080419dce26cb019617226d8f706f5de))
+* Should not self-acknowledge messages ([#2528](https://github.com/waku-org/js-waku/issues/2528)) ([459fe96](https://github.com/waku-org/js-waku/commit/459fe96fe6beeec61f1403829b49bd07d2d559ef))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.12 to ^0.0.13
+    * @waku/utils bumped from ^0.0.25 to ^0.0.26
+
 ## [0.0.5](https://github.com/waku-org/js-waku/compare/sds-v0.0.4...sds-v0.0.5) (2025-07-18)
 
 

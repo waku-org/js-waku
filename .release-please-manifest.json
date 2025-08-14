@@ -1,13 +1,13 @@
 {
-  "packages/utils": "0.0.25",
-  "packages/proto": "0.0.12",
-  "packages/interfaces": "0.0.32",
-  "packages/enr": "0.0.31",
-  "packages/core": "0.0.37",
-  "packages/message-encryption": "0.0.35",
-  "packages/relay": "0.0.20",
-  "packages/sdk": "0.0.33",
-  "packages/discovery": "0.0.10",
-  "packages/sds": "0.0.5",
-  "packages/rln": "0.1.7"
+  "packages/utils": "0.0.26",
+  "packages/proto": "0.0.13",
+  "packages/interfaces": "0.0.33",
+  "packages/enr": "0.0.32",
+  "packages/core": "0.0.38",
+  "packages/message-encryption": "0.0.36",
+  "packages/relay": "0.0.21",
+  "packages/sdk": "0.0.34",
+  "packages/discovery": "0.0.11",
+  "packages/sds": "0.0.6",
+  "packages/rln": "0.1.8"
 }

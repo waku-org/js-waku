@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.0.11](https://github.com/waku-org/js-waku/compare/discovery-v0.0.10...discovery-v0.0.11) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557))
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+* Local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557)) ([eab8ce8](https://github.com/waku-org/js-waku/commit/eab8ce81b431b11d79dcbec31aea759319853336))
+* Peer exchange discovery improvements ([#2537](https://github.com/waku-org/js-waku/issues/2537)) ([95da57a](https://github.com/waku-org/js-waku/commit/95da57a8705fa195529ef52a6c908642da5e120c))
+* Retrieve peers from all passed enrtree URLs ([25f884e](https://github.com/waku-org/js-waku/commit/25f884e05b430cebe3b6650c16026d771d1b7626))
+
+
+### Bug Fixes
+
+* Do not limit DNS Peer Discovery on capability ([0dfe352](https://github.com/waku-org/js-waku/commit/0dfe35281c677e91c064557a83a50e6a1ca6d0ac))
+* Improve error handling for stream manager ([#2546](https://github.com/waku-org/js-waku/issues/2546)) ([ada2657](https://github.com/waku-org/js-waku/commit/ada265731acfeddc2bfe2e8e963bc2be37f13900))
+* Prevent setting shard info from PX if it exists ([#2561](https://github.com/waku-org/js-waku/issues/2561)) ([dfb2baf](https://github.com/waku-org/js-waku/commit/dfb2baf004a58c29f7afd0144c82a8d2e6710d5a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.37 to 0.0.38
+    * @waku/enr bumped from 0.0.31 to 0.0.32
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+    * @waku/proto bumped from ^0.0.12 to ^0.0.13
+    * @waku/utils bumped from 0.0.25 to 0.0.26
+
 ## [0.0.10](https://github.com/waku-org/js-waku/compare/discovery-v0.0.9...discovery-v0.0.10) (2025-07-18)
 
 

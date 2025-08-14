@@ -99,6 +99,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.27 to 0.0.28
 
+## [0.0.32](https://github.com/waku-org/js-waku/compare/enr-v0.0.31...enr-v0.0.32) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.25 to 0.0.26
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+
 ## [0.0.31](https://github.com/waku-org/js-waku/compare/enr-v0.0.30...enr-v0.0.31) (2025-07-18)
 
 
