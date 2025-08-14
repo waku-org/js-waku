@@ -5,7 +5,8 @@ import {
   IWakuEventEmitter,
   Libp2p,
   Libp2pEventHandler,
-  Tags
+  Tags,
+  WakuEventType
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -69,7 +70,10 @@ export class ConnectionLimiter implements IConnectionLimiter {
       );
     }
 
-    this.events.addEventListener("waku:connection", this.onWakuConnectionEvent);
+    this.events.addEventListener(
+      WakuEventType.Connection,
+      this.onWakuConnectionEvent
+    );
 
     /**
      * NOTE: Event is not being emitted on closing nor losing a connection.
@@ -90,7 +94,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
   public stop(): void {
     this.events.removeEventListener(
-      "waku:connection",
+      WakuEventType.Connection,
       this.onWakuConnectionEvent
     );
 

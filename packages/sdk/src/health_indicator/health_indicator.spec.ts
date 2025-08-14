@@ -1,6 +1,11 @@
 import { Connection, Peer } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec } from "@waku/core";
-import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import {
+  HealthStatus,
+  IWakuEventEmitter,
+  Libp2p,
+  WakuEventType
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -34,8 +39,9 @@ describe("HealthIndicator", () => {
 
     // Start monitoring
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEventType.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -53,8 +59,9 @@ describe("HealthIndicator", () => {
     healthIndicator.start();
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEventType.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -76,8 +83,9 @@ describe("HealthIndicator", () => {
     healthIndicator.start();
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEventType.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
