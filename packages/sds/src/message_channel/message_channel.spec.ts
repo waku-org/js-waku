@@ -3,14 +3,17 @@ import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
 
+import { MessageChannelEvent } from "./events.js";
 import {
+  ContentMessage,
   HistoryEntry,
   Message,
-  MessageChannelEvent,
-  MessageId
-} from "./events.js";
+  MessageId,
+  SyncMessage
+} from "./message.js";
 import {
   DEFAULT_BLOOM_FILTER_OPTIONS,
+  ILocalHistory,
   MessageChannel
 } from "./message_channel.js";
 
@@ -35,9 +38,17 @@ const messagesB = [
 const sendMessage = async (
   channel: MessageChannel,
   payload: Uint8Array,
-  callback: (message: Message) => Promise<{ success: boolean }>
+  callback: (message: ContentMessage) => Promise<{ success: boolean }>
 ): Promise<void> => {
   await channel.pushOutgoingMessage(payload, callback);
+  await channel.processTasks();
+};
+
+const sendSyncMessage = async (
+  channel: MessageChannel,
+  callback: (message: SyncMessage) => Promise<boolean>
+): Promise<void> => {
+  await channel.pushOutgoingSyncMessage(callback);
   await channel.processTasks();
 };
 
@@ -61,39 +72,38 @@ describe("MessageChannel", function () {
 
     it("should increase lamport timestamp", async () => {
       const timestampBefore = (channelA as any).lamportTimestamp;
-      await sendMessage(channelA, new Uint8Array(), callback);
+      await sendMessage(channelA, utf8ToBytes("message"), callback);
       const timestampAfter = (channelA as any).lamportTimestamp;
       expect(timestampAfter).to.equal(timestampBefore + 1);
     });
 
     it("should push the message to the outgoing buffer", async () => {
       const bufferLengthBefore = (channelA as any).outgoingBuffer.length;
-      await sendMessage(channelA, new Uint8Array(), callback);
+      await sendMessage(channelA, utf8ToBytes("message"), callback);
       const bufferLengthAfter = (channelA as any).outgoingBuffer.length;
       expect(bufferLengthAfter).to.equal(bufferLengthBefore + 1);
     });
 
     it("should insert message into bloom filter", async () => {
-      const messageId = MessageChannel.getMessageId(new Uint8Array());
-      await sendMessage(channelA, new Uint8Array(), callback);
+      const payload = utf8ToBytes("message");
+      const messageId = MessageChannel.getMessageId(payload);
+      await sendMessage(channelA, payload, callback);
       const bloomFilter = getBloomFilter(channelA);
       expect(bloomFilter.lookup(messageId)).to.equal(true);
     });
 
     it("should insert message id into causal history", async () => {
+      const payload = utf8ToBytes("message");
       const expectedTimestamp = (channelA as any).lamportTimestamp + 1;
-      const messageId = MessageChannel.getMessageId(new Uint8Array());
-      await sendMessage(channelA, new Uint8Array(), callback);
-      const messageIdLog = (channelA as any).localHistory as {
-        timestamp: number;
-        historyEntry: HistoryEntry;
-      }[];
+      const messageId = MessageChannel.getMessageId(payload);
+      await sendMessage(channelA, payload, callback);
+      const messageIdLog = (channelA as any).localHistory as ILocalHistory;
       expect(messageIdLog.length).to.equal(1);
       expect(
         messageIdLog.some(
           (log) =>
-            log.timestamp === expectedTimestamp &&
-            log.historyEntry.messageId === messageId
+            log.lamportTimestamp === expectedTimestamp &&
+            log.messageId === messageId
         )
       ).to.equal(true);
     });
@@ -547,7 +557,7 @@ describe("MessageChannel", function () {
     it("should mark a message as irretrievably lost if timeout is exceeded", async () => {
       // Create a channel with very very short timeout
       const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
-        timeoutToMarkMessageIrretrievableMs: 10
+        timeoutForLostMessagesMs: 10
       });
 
       for (const m of messagesA) {
@@ -558,16 +568,13 @@ describe("MessageChannel", function () {
       const messageToBeLostId = MessageChannel.getMessageId(
         utf8ToBytes(messagesA[0])
       );
-      channelC.addEventListener(
-        MessageChannelEvent.InMessageIrretrievablyLost,
-        (event) => {
-          for (const hist of event.detail) {
-            if (hist.messageId === messageToBeLostId) {
-              irretrievablyLost = true;
-            }
+      channelC.addEventListener(MessageChannelEvent.InMessageLost, (event) => {
+        for (const hist of event.detail) {
+          if (hist.messageId === messageToBeLostId) {
+            irretrievablyLost = true;
           }
         }
-      );
+      });
 
       await sendMessage(
         channelA,
@@ -591,7 +598,7 @@ describe("MessageChannel", function () {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
       const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
-        timeoutToMarkMessageIrretrievableMs: 10
+        timeoutForLostMessagesMs: 10
       });
 
       for (const m of messagesA) {
@@ -675,7 +682,7 @@ describe("MessageChannel", function () {
 
     it("should be sent with empty content", async () => {
       await channelA.pushOutgoingSyncMessage(async (message) => {
-        expect(message.content?.length).to.equal(0);
+        expect(message.content).to.be.undefined;
         return true;
       });
     });
@@ -727,9 +734,9 @@ describe("MessageChannel", function () {
         });
       }
 
-      await sendMessage(channelB, new Uint8Array(), async (message) => {
+      await sendSyncMessage(channelB, async (message) => {
         await receiveMessage(channelA, message);
-        return { success: true };
+        return true;
       });
 
       const causalHistorySize = (channelA as any).causalHistorySize;
