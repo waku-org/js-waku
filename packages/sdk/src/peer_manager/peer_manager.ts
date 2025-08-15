@@ -39,7 +39,7 @@ export enum PeerManagerEventNames {
   StoreConnect = "store:connect"
 }
 
-interface IPeerManagerEvents {
+export interface IPeerManagerEvents {
   /**
    * Notifies about Filter peer being connected.
    */
