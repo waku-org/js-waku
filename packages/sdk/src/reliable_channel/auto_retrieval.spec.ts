@@ -7,6 +7,7 @@ import {
   QueryRequestParams,
   WakuEventType
 } from "@waku/interfaces";
+import { delay } from "@waku/utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -449,6 +450,300 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).maybeRetrieve();
 
       expect(mockRetrieve.calledOnce).to.be.true;
+    });
+  });
+
+  describe("end-to-end message emission tests", () => {
+    let storeConnectCallback: () => void;
+    let healthEventCallback: (event: CustomEvent<HealthStatus>) => void;
+    let messageEventPromise: Promise<IDecodedMessage>;
+    let resolveMessageEvent: (message: IDecodedMessage) => void;
+    let rejectMessageEvent: (reason: string) => void;
+
+    beforeEach(() => {
+      // Create a promise that resolves when a message event is emitted
+      messageEventPromise = new Promise<IDecodedMessage>((resolve, reject) => {
+        resolveMessageEvent = resolve;
+        rejectMessageEvent = reject;
+      });
+
+      // Setup event listener capture with proper binding
+      mockPeerManagerEventEmitter.addEventListener = sinon
+        .stub()
+        .callsFake((eventType, callback) => {
+          if (eventType === PeerManagerEventNames.StoreConnect) {
+            storeConnectCallback = callback;
+          }
+        });
+
+      mockWakuEventEmitter.addEventListener = sinon
+        .stub()
+        .callsFake((eventType, callback) => {
+          if (eventType === WakuEventType.Health) {
+            healthEventCallback = callback;
+          }
+        });
+
+      autoRetrieval = new AutoRetrieval(
+        mockDecoders,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockRetrieve,
+        options
+      );
+
+      // Listen for message events
+      autoRetrieval.addEventListener("message" as any, (event: any) => {
+        resolveMessageEvent(event.detail);
+      });
+
+      // Set a timeout to reject if no message is received
+      setTimeout(
+        () => rejectMessageEvent("No message received within timeout"),
+        500
+      );
+    });
+
+    it("should emit message when we went offline since last successful query and store reconnect event occurs", async () => {
+      const mockMessage: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/offline/content",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([1, 2, 3]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      // Setup retrieve function to return the mock message
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(mockMessage)];
+      };
+      mockRetrieve.returns(mockAsyncGenerator());
+
+      autoRetrieval.start();
+
+      // Step 1: Simulate successful query in the past
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000; // 10 seconds ago
+
+      // Step 2: Simulate going offline after the successful query
+      const healthEvent = new CustomEvent<HealthStatus>("health", {
+        detail: HealthStatus.Unhealthy
+      });
+      healthEventCallback.call(autoRetrieval, healthEvent);
+
+      // Step 3: Simulate store peer reconnection
+      storeConnectCallback.call(autoRetrieval);
+
+      // Step 4: Wait for message emission
+      const receivedMessage = await messageEventPromise;
+
+      expect(receivedMessage).to.deep.equal(mockMessage);
+      expect(mockRetrieve.calledOnce).to.be.true;
+    });
+
+    it("should emit message when store reconnect event occurs and last query was over max time threshold", async () => {
+      const mockMessage: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/timeout/content",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([4, 5, 6]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      // Setup retrieve function to return the mock message
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(mockMessage)];
+      };
+      mockRetrieve.returns(mockAsyncGenerator());
+
+      autoRetrieval = new AutoRetrieval(
+        mockDecoders,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockRetrieve,
+        { forceQueryThresholdMs: 5000 } // 5 second threshold
+      );
+
+      // Re-setup event listeners for new instance
+      autoRetrieval.addEventListener("message" as any, (event: any) => {
+        resolveMessageEvent(event.detail);
+      });
+
+      autoRetrieval.start();
+
+      // Step 1: Simulate old successful query (over threshold)
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 6000; // 6 seconds ago
+
+      // Step 2: Keep healthy status (no offline period)
+      (autoRetrieval as any).lastTimeOffline = 0;
+
+      // Step 3: Simulate store peer reconnection
+      storeConnectCallback.call(autoRetrieval);
+
+      // Step 4: Wait for message emission
+      const receivedMessage = await messageEventPromise;
+
+      expect(receivedMessage).to.deep.equal(mockMessage);
+      expect(mockRetrieve.calledOnce).to.be.true;
+    });
+
+    it("should emit multiple messages when retrieve returns multiple messages", async () => {
+      const mockMessage1: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/multi/content1",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([1, 2, 3]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      const mockMessage2: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/multi/content2",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([4, 5, 6]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      // Setup retrieve function to return multiple messages
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(mockMessage1)];
+        yield [Promise.resolve(mockMessage2)];
+      };
+      mockRetrieve.returns(mockAsyncGenerator());
+
+      const receivedMessages: IDecodedMessage[] = [];
+      let messageCount = 0;
+
+      // Create a new promise for multiple messages
+      const multipleMessagesPromise = new Promise<void>((resolve) => {
+        autoRetrieval.addEventListener("message" as any, (event: any) => {
+          receivedMessages.push(event.detail);
+          messageCount++;
+          if (messageCount === 2) {
+            resolve();
+          }
+        });
+      });
+
+      autoRetrieval.start();
+
+      // Trigger retrieval with offline condition
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000;
+      (autoRetrieval as any).lastTimeOffline = Date.now();
+
+      await delay(10);
+      storeConnectCallback.call(autoRetrieval);
+
+      // Wait for all messages with timeout
+      await Promise.race([
+        multipleMessagesPromise,
+        delay(200).then(() =>
+          Promise.reject(new Error("Timeout waiting for messages"))
+        )
+      ]);
+
+      expect(receivedMessages).to.have.length(2);
+      expect(receivedMessages[0]).to.deep.equal(mockMessage1);
+      expect(receivedMessages[1]).to.deep.equal(mockMessage2);
+      expect(mockRetrieve.calledOnce).to.be.true;
+    });
+
+    it("should not emit message when conditions are not met (recent query, no offline)", async () => {
+      autoRetrieval.start();
+
+      // Set recent successful query and no offline period
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000; // 1 second ago
+      (autoRetrieval as any).lastTimeOffline = 0; // Never went offline
+
+      // Override promise to reject if any message is received
+      autoRetrieval.addEventListener("message" as any, () => {
+        rejectMessageEvent("Unexpected message emission");
+      });
+
+      await delay(10);
+      storeConnectCallback.call(autoRetrieval);
+
+      // Wait briefly to ensure no message is emitted
+      await delay(50);
+
+      expect(mockRetrieve.called).to.be.false;
+    });
+
+    it("should handle retrieve errors gracefully without emitting messages", async () => {
+      // Setup retrieve function to throw an error
+      mockRetrieve.rejects(new Error("Retrieval failed"));
+
+      autoRetrieval.start();
+
+      // Override promise to reject if any message is received
+      autoRetrieval.addEventListener("message" as any, () => {
+        rejectMessageEvent("Unexpected message emission after error");
+      });
+
+      // Set conditions that would normally trigger retrieval
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000;
+      (autoRetrieval as any).lastTimeOffline = Date.now();
+
+      storeConnectCallback.call(autoRetrieval);
+
+      // Wait briefly to ensure no message is emitted
+      await delay(100);
+
+      expect(mockRetrieve.calledOnce).to.be.true;
+    });
+
+    it("should update lastSuccessfulQuery timestamp after successful retrieval", async () => {
+      const mockMessage: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/timestamp/content",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([7, 8, 9]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(mockMessage)];
+      };
+      mockRetrieve.returns(mockAsyncGenerator());
+
+      autoRetrieval.start();
+
+      const initialTimestamp = (autoRetrieval as any).lastSuccessfulQuery;
+
+      // Trigger retrieval
+      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000;
+      (autoRetrieval as any).lastTimeOffline = Date.now();
+
+      storeConnectCallback.call(autoRetrieval);
+
+      // Wait for retrieval to complete
+      await messageEventPromise;
+      await delay(10);
+
+      const updatedTimestamp = (autoRetrieval as any).lastSuccessfulQuery;
+      expect(updatedTimestamp).to.be.greaterThan(initialTimestamp);
     });
   });
 });
