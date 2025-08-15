@@ -131,7 +131,7 @@ export class ReliableChannel<
   private readonly retrieveFrequencyMs: number;
   private retrieveInterval: ReturnType<typeof setInterval> | undefined;
   private missingMessages: Map<MessageId, Uint8Array<ArrayBufferLike>>; // Waku Message Ids
-  private autoRetrieval?: AutoRetrieval<T>;
+  private readonly autoRetrieval?: AutoRetrieval<T>;
   public isStarted: boolean;
 
   private constructor(
