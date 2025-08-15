@@ -34,20 +34,20 @@ type GetPeersParams = {
 };
 
 export enum PeerManagerEventNames {
-  Connect = "filter:connect",
-  Disconnect = "filter:disconnect"
+  FilterConnect = "filter:connect",
+  FilterDisconnect = "filter:disconnect"
 }
 
 interface IPeerManagerEvents {
   /**
    * Notifies about Filter peer being connected.
    */
-  [PeerManagerEventNames.Connect]: CustomEvent<PeerId>;
+  [PeerManagerEventNames.FilterConnect]: CustomEvent<PeerId>;
 
   /**
    * Notifies about Filter peer being disconnected.
    */
-  [PeerManagerEventNames.Disconnect]: CustomEvent<PeerId>;
+  [PeerManagerEventNames.FilterDisconnect]: CustomEvent<PeerId>;
 }
 
 /**
@@ -266,13 +266,13 @@ export class PeerManager {
 
   private dispatchFilterPeerConnect(id: PeerId): void {
     this.events.dispatchEvent(
-      new CustomEvent(PeerManagerEventNames.Connect, { detail: id })
+      new CustomEvent(PeerManagerEventNames.FilterConnect, { detail: id })
     );
   }
 
   private dispatchFilterPeerDisconnect(id: PeerId): void {
     this.events.dispatchEvent(
-      new CustomEvent(PeerManagerEventNames.Disconnect, { detail: id })
+      new CustomEvent(PeerManagerEventNames.FilterDisconnect, { detail: id })
     );
   }
 

@@ -154,11 +154,11 @@ describe("PeerManager", () => {
     const connectSpy = sinon.spy();
     const disconnectSpy = sinon.spy();
     peerManager.events.addEventListener(
-      PeerManagerEventNames.Connect,
+      PeerManagerEventNames.FilterConnect,
       connectSpy
     );
     peerManager.events.addEventListener(
-      PeerManagerEventNames.Disconnect,
+      PeerManagerEventNames.FilterDisconnect,
       disconnectSpy
     );
     peerManager["dispatchFilterPeerConnect"](peers[0].id);
