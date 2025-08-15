@@ -119,6 +119,13 @@ export type CreateNodeOptions = {
    * If not specified - default values are applied.
    */
   lightPush?: Partial<LightPushProtocolOptions>;
+
+  /**
+   * Perform store queries automatically after re-connection is detected.
+   *
+   * @default false
+   */
+  autoRetrieval?: boolean;
 };
 
 export type Callback<T extends IDecodedMessage> = (
