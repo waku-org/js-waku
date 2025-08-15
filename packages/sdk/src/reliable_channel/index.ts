@@ -90,7 +90,7 @@ export type ReliableChannelOptions = MessageChannelOptions & {
   autoRetrieval?: boolean;
 
   /**
-   * Whether to auto start the message channel
+   * Whether to auto start the waku node and message channel
    *
    * @default true
    */
@@ -241,6 +241,7 @@ export class ReliableChannel<
 
     const autoStart = options?.autoStart ?? true;
     if (autoStart) {
+      await node.start();
       await messageChannel.start();
     }
 
