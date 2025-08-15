@@ -2,9 +2,9 @@ import type { PeerId } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
-  type CoreProtocolResult,
+  type FilterCoreResult,
+  FilterError,
   type Libp2p,
-  ProtocolError,
   type PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -38,7 +38,7 @@ type IncomingMessageHandler = (
 export class FilterCore {
   private streamManager: StreamManager;
 
-  public readonly multicodec = FilterCodecs.SUBSCRIBE;
+  public readonly multicodec = [FilterCodecs.SUBSCRIBE];
 
   public constructor(
     private handleIncomingMessage: IncomingMessageHandler,
@@ -62,14 +62,14 @@ export class FilterCore {
     pubsubTopic: PubsubTopic,
     peerId: PeerId,
     contentTopics: ContentTopic[]
-  ): Promise<CoreProtocolResult> {
+  ): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -98,7 +98,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.GENERIC_FAIL,
+          error: FilterError.SUBSCRIPTION_FAILED,
           peerId: peerId
         }
       };
@@ -113,7 +113,7 @@ export class FilterCore {
       );
       return {
         failure: {
-          error: ProtocolError.REMOTE_PEER_REJECTED,
+          error: FilterError.REMOTE_PEER_REJECTED,
           peerId: peerId
         },
         success: null
@@ -130,7 +130,7 @@ export class FilterCore {
     pubsubTopic: PubsubTopic,
     peerId: PeerId,
     contentTopics: ContentTopic[]
-  ): Promise<CoreProtocolResult> {
+  ): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
@@ -138,7 +138,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -156,7 +156,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.GENERIC_FAIL,
+          error: FilterError.GENERIC_FAIL,
           peerId: peerId
         }
       };
@@ -171,7 +171,7 @@ export class FilterCore {
   public async unsubscribeAll(
     pubsubTopic: PubsubTopic,
     peerId: PeerId
-  ): Promise<CoreProtocolResult> {
+  ): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
@@ -179,7 +179,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -198,7 +198,7 @@ export class FilterCore {
     if (!res || !res.length) {
       return {
         failure: {
-          error: ProtocolError.NO_RESPONSE,
+          error: FilterError.NO_RESPONSE,
           peerId: peerId
         },
         success: null
@@ -214,7 +214,7 @@ export class FilterCore {
       );
       return {
         failure: {
-          error: ProtocolError.REMOTE_PEER_REJECTED,
+          error: FilterError.REMOTE_PEER_REJECTED,
           peerId: peerId
         },
         success: null
@@ -227,7 +227,7 @@ export class FilterCore {
     };
   }
 
-  public async ping(peerId: PeerId): Promise<CoreProtocolResult> {
+  public async ping(peerId: PeerId): Promise<FilterCoreResult> {
     const stream = await this.streamManager.getStream(peerId);
 
     if (!stream) {
@@ -235,7 +235,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_STREAM_AVAILABLE,
+          error: FilterError.NO_STREAM_AVAILABLE,
           peerId: peerId
         }
       };
@@ -257,7 +257,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.GENERIC_FAIL,
+          error: FilterError.GENERIC_FAIL,
           peerId: peerId
         }
       };
@@ -267,7 +267,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.NO_RESPONSE,
+          error: FilterError.NO_RESPONSE,
           peerId: peerId
         }
       };
@@ -283,7 +283,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_REJECTED,
+          error: FilterError.REMOTE_PEER_REJECTED,
           peerId: peerId
         }
       };
