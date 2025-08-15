@@ -83,6 +83,13 @@ export type ReliableChannelOptions = MessageChannelOptions & {
   retrieveFrequencyMs?: number;
 
   /**
+   * Whether to automatically do a store query after re-connection
+   *
+   * @default true
+   */
+  autoRetrieval?: boolean;
+
+  /**
    * Whether to auto start the message channel
    *
    * @default true
@@ -156,7 +163,7 @@ export class ReliableChannel<
     if (node.store) {
       this._retrieve = node.store.queryGenerator.bind(node.store);
       const peerManagerEvents = (node as any).peerManager.events;
-      if (peerManagerEvents) {
+      if (peerManagerEvents && (options?.autoRetrieval ?? true)) {
         this.autoRetrieval = new AutoRetrieval(
           [this.decoder],
           peerManagerEvents,
