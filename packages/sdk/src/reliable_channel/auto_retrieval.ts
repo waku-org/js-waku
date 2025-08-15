@@ -95,7 +95,7 @@ export class AutoRetrieval<
 
   private async retrieve(): Promise<void> {
     log.info("perform retrieval");
-    const { timeStart, timeEnd } = this.queryTimeRangeMs();
+    const { timeStart, timeEnd } = this.queryTimeRange();
     try {
       // TODO: pass peer id so we use the peer we just connected to
       for await (const page of this._retrieve(this.decoders, {
@@ -116,7 +116,7 @@ export class AutoRetrieval<
     }
   }
 
-  private queryTimeRangeMs(): { timeStart: Date; timeEnd: Date } {
+  private queryTimeRange(): { timeStart: Date; timeEnd: Date } {
     return calculateTimeRange(
       Date.now(),
       this.lastSuccessfulQuery,
