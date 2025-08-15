@@ -20,6 +20,7 @@ import {
   AutoRetrieval,
   AutoRetrievalEvent,
   AutoRetrievalOptions,
+  calculateTimeRange,
   DEFAULT_FORCE_QUERY_THRESHOLD_MS
 } from "./auto_retrieval.js";
 
@@ -797,5 +798,61 @@ describe("AutoRetrieval", () => {
       const updatedTimestamp = (autoRetrieval as any).lastSuccessfulQuery;
       expect(updatedTimestamp).to.be.greaterThan(initialTimestamp);
     });
+  });
+});
+
+describe("calculateTimeRange", () => {
+  it("should return start time to last successful query since last query is less than max range", () => {
+    const now = 1000000; // Some arbitrary timestamp
+    const lastSuccessfulQuery = now - 100; // 100ms ago
+    const maxTimeRangeQueryMs = 500; // 500ms max range
+
+    const result = calculateTimeRange(
+      now,
+      lastSuccessfulQuery,
+      maxTimeRangeQueryMs
+    );
+
+    const expectedTimeStart = new Date(lastSuccessfulQuery);
+    const expectedTimeEnd = new Date(now);
+
+    expect(result.timeStart).to.deep.equal(expectedTimeStart);
+    expect(result.timeEnd).to.deep.equal(expectedTimeEnd);
+  });
+
+  it("should return start time to match max range", () => {
+    const now = 1000000;
+    const lastSuccessfulQuery = 1000000 - 800; // 800ms ago
+    const maxTimeRangeQueryMs = 500; // 500ms max range
+
+    const result = calculateTimeRange(
+      now,
+      lastSuccessfulQuery,
+      maxTimeRangeQueryMs
+    );
+
+    const expectedTimeStart = new Date(now - maxTimeRangeQueryMs);
+    const expectedTimeEnd = new Date(now);
+
+    expect(result.timeStart).to.deep.equal(expectedTimeStart);
+    expect(result.timeEnd).to.deep.equal(expectedTimeEnd);
+  });
+
+  it("should handle zero lastSuccessfulQuery (never queried before)", () => {
+    const now = 1000000;
+    const lastSuccessfulQuery = 0; // Never queried
+    const maxTimeRangeQueryMs = 500;
+
+    const result = calculateTimeRange(
+      now,
+      lastSuccessfulQuery,
+      maxTimeRangeQueryMs
+    );
+
+    const expectedTimeStart = new Date(now - maxTimeRangeQueryMs); // 1000000 - 1000000 = 0
+    const expectedTimeEnd = new Date(now); // 1000000
+
+    expect(result.timeStart).to.deep.equal(expectedTimeStart);
+    expect(result.timeEnd).to.deep.equal(expectedTimeEnd);
   });
 });

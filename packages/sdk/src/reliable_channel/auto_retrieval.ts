@@ -169,7 +169,7 @@ export function calculateTimeRange(
   lastSuccessfulQuery: number,
   maxTimeRangeQueryMs: number
 ): { timeStart: Date; timeEnd: Date } {
-  const timeRange = Math.max(now - lastSuccessfulQuery, maxTimeRangeQueryMs);
+  const timeRange = Math.min(now - lastSuccessfulQuery, maxTimeRangeQueryMs);
   const timeStart = new Date(now - timeRange);
   const timeEnd = new Date(now);
   return { timeStart, timeEnd };
