@@ -18,6 +18,7 @@ import {
 
 import {
   AutoRetrieval,
+  AutoRetrievalEvent,
   AutoRetrievalOptions,
   DEFAULT_FORCE_QUERY_THRESHOLD_MS
 } from "./auto_retrieval.js";
@@ -493,9 +494,12 @@ describe("AutoRetrieval", () => {
       );
 
       // Listen for message events
-      autoRetrieval.addEventListener("message" as any, (event: any) => {
-        resolveMessageEvent(event.detail);
-      });
+      autoRetrieval.addEventListener(
+        AutoRetrievalEvent.MessageRetrieved as any,
+        (event: any) => {
+          resolveMessageEvent(event.detail);
+        }
+      );
 
       // Set a timeout to reject if no message is received
       setTimeout(
@@ -574,9 +578,12 @@ describe("AutoRetrieval", () => {
       );
 
       // Re-setup event listeners for new instance
-      autoRetrieval.addEventListener("message" as any, (event: any) => {
-        resolveMessageEvent(event.detail);
-      });
+      autoRetrieval.addEventListener(
+        AutoRetrievalEvent.MessageRetrieved as any,
+        (event: any) => {
+          resolveMessageEvent(event.detail);
+        }
+      );
 
       autoRetrieval.start();
 
@@ -633,13 +640,16 @@ describe("AutoRetrieval", () => {
 
       // Create a new promise for multiple messages
       const multipleMessagesPromise = new Promise<void>((resolve) => {
-        autoRetrieval.addEventListener("message" as any, (event: any) => {
-          receivedMessages.push(event.detail);
-          messageCount++;
-          if (messageCount === 2) {
-            resolve();
+        autoRetrieval.addEventListener(
+          AutoRetrievalEvent.MessageRetrieved as any,
+          (event: any) => {
+            receivedMessages.push(event.detail);
+            messageCount++;
+            if (messageCount === 2) {
+              resolve();
+            }
           }
-        });
+        );
       });
 
       autoRetrieval.start();
@@ -673,9 +683,12 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).lastTimeOffline = 0; // Never went offline
 
       // Override promise to reject if any message is received
-      autoRetrieval.addEventListener("message" as any, () => {
-        rejectMessageEvent("Unexpected message emission");
-      });
+      autoRetrieval.addEventListener(
+        AutoRetrievalEvent.MessageRetrieved as any,
+        () => {
+          rejectMessageEvent("Unexpected message emission");
+        }
+      );
 
       await delay(10);
       storeConnectCallback.call(autoRetrieval);
@@ -693,9 +706,12 @@ describe("AutoRetrieval", () => {
       autoRetrieval.start();
 
       // Override promise to reject if any message is received
-      autoRetrieval.addEventListener("message" as any, () => {
-        rejectMessageEvent("Unexpected message emission after error");
-      });
+      autoRetrieval.addEventListener(
+        AutoRetrievalEvent.MessageRetrieved as any,
+        () => {
+          rejectMessageEvent("Unexpected message emission after error");
+        }
+      );
 
       // Set conditions that would normally trigger retrieval
       (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000;
