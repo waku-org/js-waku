@@ -1,4 +1,4 @@
-import { IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import { IWakuEventEmitter, Libp2p, WakuEventType } from "@waku/interfaces";
 
 type NetworkMonitorConstructorOptions = {
   libp2p: Libp2p;
@@ -104,7 +104,7 @@ export class NetworkMonitor implements INetworkMonitor {
 
   private dispatchNetworkEvent(): void {
     this.events.dispatchEvent(
-      new CustomEvent<boolean>("waku:connection", {
+      new CustomEvent<boolean>(WakuEventType.Connection, {
         detail: this.isConnected()
       })
     );

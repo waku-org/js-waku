@@ -363,11 +363,11 @@ export class Subscription {
 
   private setupEventListeners(): void {
     this.peerManager.events.addEventListener(
-      PeerManagerEventNames.Connect,
+      PeerManagerEventNames.FilterConnect,
       this.onPeerConnected as Libp2pEventHandler
     );
     this.peerManager.events.addEventListener(
-      PeerManagerEventNames.Disconnect,
+      PeerManagerEventNames.FilterDisconnect,
       this.onPeerDisconnected as Libp2pEventHandler
     );
   }
@@ -398,11 +398,11 @@ export class Subscription {
 
   private disposeEventListeners(): void {
     this.peerManager.events.removeEventListener(
-      PeerManagerEventNames.Connect,
+      PeerManagerEventNames.FilterConnect,
       this.onPeerConnected as Libp2pEventHandler
     );
     this.peerManager.events.removeEventListener(
-      PeerManagerEventNames.Disconnect,
+      PeerManagerEventNames.FilterDisconnect,
       this.onPeerDisconnected as Libp2pEventHandler
     );
   }
