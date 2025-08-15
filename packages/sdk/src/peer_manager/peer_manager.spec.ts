@@ -43,10 +43,7 @@ describe("PeerManager", () => {
   };
 
   const skipIfNoPeers = (result: PeerId[] | null): boolean => {
-    if (!result || result.length === 0) {
-      return true;
-    }
-    return false;
+    return !result || result.length === 0;
   };
 
   beforeEach(() => {
