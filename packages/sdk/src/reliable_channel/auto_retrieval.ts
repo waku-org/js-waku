@@ -127,7 +127,9 @@ export class AutoRetrieval<
 
   private dispatchMessage<T extends IDecodedMessage>(message: T): void {
     this.dispatchEvent(
-      new CustomEvent<IDecodedMessage>("message", { detail: message })
+      new CustomEvent<IDecodedMessage>(AutoRetrievalEvent.MessageRetrieved, {
+        detail: message
+      })
     );
   }
 
