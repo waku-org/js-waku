@@ -79,22 +79,13 @@ export class AutoRetrieval<
   }
 
   private maybeRetrieve(): void {
-    const now = Date.now();
-    const lastSuccessfulQuery = this.lastSuccessfulQuery;
-    const lastTimeOffline = this.lastTimeOffline;
-    const forceQueryThresholdMs = this.forceQueryThresholdMs;
-    log.info("maybe retrieve", {
-      now,
-      lastSuccessfulQuery,
-      lastTimeOffline,
-      forceQueryThresholdMs
-    });
-    const timeSinceLastQuery = now - lastSuccessfulQuery;
+    log.info("maybe retrieve");
+    const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
     // if we were marked as "offline" after last successful query
     // OR, last successful query was too long ago
     if (
-      lastTimeOffline > lastSuccessfulQuery ||
-      timeSinceLastQuery > forceQueryThresholdMs
+      this.lastTimeOffline > this.lastSuccessfulQuery ||
+      timeSinceLastQuery > this.forceQueryThresholdMs
     ) {
       this.retrieve().catch((err) =>
         log.error("Error retrieving messages", err)
@@ -126,15 +117,11 @@ export class AutoRetrieval<
   }
 
   private queryTimeRangeMs(): { timeStart: Date; timeEnd: Date } {
-    const timeEnd = new Date();
-
-    const timeRange = Math.max(
-      timeEnd.valueOf() - this.lastSuccessfulQuery,
+    return calculateTimeRange(
+      Date.now(),
+      this.lastSuccessfulQuery,
       MAX_TIME_RANGE_QUERY_MS
     );
-    const timeStart = new Date(timeEnd.valueOf() - timeRange);
-
-    return { timeStart, timeEnd };
   }
 
   private dispatchMessage<T extends IDecodedMessage>(message: T): void {
@@ -149,24 +136,24 @@ export class AutoRetrieval<
   private setupEventListeners(): void {
     this.peerManagerEventEmitter.addEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeRetrieve
+      this.maybeRetrieve.bind(this)
     );
 
     this.wakuEventEmitter.addEventListener(
       WakuEventType.Health,
-      this.updateLastOfflineDate
+      this.updateLastOfflineDate.bind(this)
     );
   }
 
   private unsetEventListeners(): void {
     this.peerManagerEventEmitter.removeEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeRetrieve
+      this.maybeRetrieve.bind(this)
     );
 
     this.wakuEventEmitter.removeEventListener(
       WakuEventType.Health,
-      this.updateLastOfflineDate
+      this.updateLastOfflineDate.bind(this)
     );
   }
 
@@ -175,4 +162,15 @@ export class AutoRetrieval<
       this.lastTimeOffline = Date.now();
     }
   }
+}
+
+export function calculateTimeRange(
+  now: number,
+  lastSuccessfulQuery: number,
+  maxTimeRangeQueryMs: number
+): { timeStart: Date; timeEnd: Date } {
+  const timeRange = Math.max(now - lastSuccessfulQuery, maxTimeRangeQueryMs);
+  const timeStart = new Date(now - timeRange);
+  const timeEnd = new Date(now);
+  return { timeStart, timeEnd };
 }
