@@ -25,7 +25,7 @@ import {
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
-import { AutoRetrieval } from "./auto_retrieval.js";
+import { AutoRetrieval, AutoRetrievalEvent } from "./auto_retrieval.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { RetryManager } from "./retry_manager.js";
 
@@ -184,8 +184,6 @@ export class ReliableChannel<
     this.missingMessages = new Map();
 
     this.isStarted = false;
-
-    this.setupEventListeners();
   }
 
   /**
@@ -370,6 +368,7 @@ export class ReliableChannel<
   public async start(): Promise<boolean> {
     if (this.isStarted) return true;
     this.isStarted = true;
+    this.setupEventListeners();
     this.restartSync();
     if (this._retrieve) {
       this.startRetrieveMissingMessagesLoop();
@@ -385,6 +384,7 @@ export class ReliableChannel<
     this.stopRetrieveMissingMessagesLoop();
     this.autoRetrieval?.stop();
     // TODO unsubscribe
+    // TODO unsetMessageListeners
   }
 
   private assertStarted(): void {
@@ -587,5 +587,14 @@ export class ReliableChannel<
         }
       }
     );
+
+    if (this.autoRetrieval) {
+      this.autoRetrieval.addEventListener(
+        AutoRetrievalEvent.MessageRetrieved,
+        (event) => {
+          void this.processIncomingMessage(event.detail);
+        }
+      );
+    }
   }
 }
