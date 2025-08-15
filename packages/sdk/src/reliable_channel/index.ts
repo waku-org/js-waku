@@ -334,7 +334,7 @@ export class ReliableChannel<
   ): Promise<void> {
     // New message arrives, we need to unwrap it first
     const sdsMessage = SdsMessage.decode(msg.payload);
-
+    log.info("processing message", sdsMessage.messageId);
     // SDS Message decoded, let's pass it to the channel so we can learn about
     // missing messages or the status of previous outgoing messages
     this.messageChannel.pushIncomingMessage(sdsMessage);
