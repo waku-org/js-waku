@@ -508,6 +508,42 @@ describe("AutoRetrieval", () => {
       );
     });
 
+    it("should emit message when we just started and store connect event occurs", async () => {
+      const mockMessage: IDecodedMessage = {
+        version: 1,
+        timestamp: new Date(),
+        contentTopic: "/test/offline/content",
+        pubsubTopic: "/waku/2/default-waku/proto",
+        payload: new Uint8Array([1, 2, 3]),
+        rateLimitProof: undefined,
+        ephemeral: false,
+        meta: undefined
+      };
+
+      // Setup retrieve function to return the mock message
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(mockMessage)];
+      };
+      mockRetrieve.returns(mockAsyncGenerator());
+
+      autoRetrieval.start();
+
+      // Step 1: Simulate fresh start
+      (autoRetrieval as any).lastSuccessfulQuery = 0;
+      (autoRetrieval as any).lastTimeOffline = 0;
+
+      // Step 2: Simulate store peer reconnection
+      storeConnectCallback.call(autoRetrieval);
+
+      // Step 4: Wait for message emission
+      const receivedMessage = await messageEventPromise;
+
+      expect(receivedMessage).to.deep.equal(mockMessage);
+      expect(mockRetrieve.calledOnce).to.be.true;
+    });
+
     it("should emit message when we went offline since last successful query and store reconnect event occurs", async () => {
       const mockMessage: IDecodedMessage = {
         version: 1,
