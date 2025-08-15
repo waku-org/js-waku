@@ -70,6 +70,7 @@ export class AutoRetrieval<
   }
 
   public start(): void {
+    log.info("starting auto retrieval service");
     this.setupEventListeners();
   }
 
@@ -78,12 +79,22 @@ export class AutoRetrieval<
   }
 
   private maybeRetrieve(): void {
-    const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
+    const now = Date.now();
+    const lastSuccessfulQuery = this.lastSuccessfulQuery;
+    const lastTimeOffline = this.lastTimeOffline;
+    const forceQueryThresholdMs = this.forceQueryThresholdMs;
+    log.info("maybe retrieve", {
+      now,
+      lastSuccessfulQuery,
+      lastTimeOffline,
+      forceQueryThresholdMs
+    });
+    const timeSinceLastQuery = now - lastSuccessfulQuery;
     // if we were marked as "offline" after last successful query
     // OR, last successful query was too long ago
     if (
-      this.lastTimeOffline > this.lastSuccessfulQuery ||
-      timeSinceLastQuery > this.forceQueryThresholdMs
+      lastTimeOffline > lastSuccessfulQuery ||
+      timeSinceLastQuery > forceQueryThresholdMs
     ) {
       this.retrieve().catch((err) =>
         log.error("Error retrieving messages", err)
@@ -92,6 +103,7 @@ export class AutoRetrieval<
   }
 
   private async retrieve(): Promise<void> {
+    log.info("perform retrieval");
     const { timeStart, timeEnd } = this.queryTimeRangeMs();
     try {
       // TODO: pass peer id so we use the peer we just connected to
@@ -126,6 +138,7 @@ export class AutoRetrieval<
   }
 
   private dispatchMessage<T extends IDecodedMessage>(message: T): void {
+    log.info("dispatching message");
     this.dispatchEvent(
       new CustomEvent<IDecodedMessage>(AutoRetrievalEvent.MessageRetrieved, {
         detail: message
