@@ -268,7 +268,7 @@ export class PeerManager {
     }
 
     const wasUnlocked = new Date(value).getTime();
-    return Date.now() - wasUnlocked >= 10_000 ? true : false;
+    return Date.now() - wasUnlocked >= 10_000;
   }
 
   private dispatchFilterPeerConnect(id: PeerId): void {
