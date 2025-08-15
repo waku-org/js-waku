@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.13](https://github.com/waku-org/js-waku/compare/proto-v0.0.12...proto-v0.0.13) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* SDS improvements and fixes ([#2539](https://github.com/waku-org/js-waku/issues/2539))
+
+### Features
+
+* SDS improvements and fixes ([#2539](https://github.com/waku-org/js-waku/issues/2539)) ([dc51550](https://github.com/waku-org/js-waku/commit/dc5155056b2f8583ffc4340701466f4820501c4a))
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/proto-v0.0.11...proto-v0.0.12) (2025-07-18)
 
 

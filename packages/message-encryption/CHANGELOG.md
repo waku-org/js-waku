@@ -101,6 +101,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.27 to 0.0.28
     * @waku/utils bumped from 0.0.20 to 0.0.21
 
+## [0.0.36](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.35...message-encryption-v0.0.36) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.37 to 0.0.38
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+    * @waku/proto bumped from 0.0.12 to 0.0.13
+    * @waku/utils bumped from 0.0.25 to 0.0.26
+
 ## [0.0.35](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.34...message-encryption-v0.0.35) (2025-07-18)
 
 

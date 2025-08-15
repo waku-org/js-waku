@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.8](https://github.com/waku-org/js-waku/compare/rln-v0.1.7...rln-v0.1.8) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.37 to ^0.0.38
+    * @waku/utils bumped from ^0.0.25 to ^0.0.26
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+    * @waku/message-encryption bumped from ^0.0.35 to ^0.0.36
+
 ## [0.1.7](https://github.com/waku-org/js-waku/compare/rln-v0.1.6...rln-v0.1.7) (2025-07-18)
 
 

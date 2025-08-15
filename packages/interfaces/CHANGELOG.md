@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.33](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.32...interfaces-v0.0.33) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557))
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+* Local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557)) ([eab8ce8](https://github.com/waku-org/js-waku/commit/eab8ce81b431b11d79dcbec31aea759319853336))
+
+
+### Bug Fixes
+
+* Do not limit DNS Peer Discovery on capability ([0dfe352](https://github.com/waku-org/js-waku/commit/0dfe35281c677e91c064557a83a50e6a1ca6d0ac))
+
 ## [0.0.32](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.31...interfaces-v0.0.32) (2025-07-18)
 
 

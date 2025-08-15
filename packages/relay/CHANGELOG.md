@@ -25,6 +25,28 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.21](https://github.com/waku-org/js-waku/compare/relay-v0.0.20...relay-v0.0.21) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.37 to 0.0.38
+    * @waku/sdk bumped from 0.0.33 to 0.0.34
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+    * @waku/proto bumped from 0.0.12 to 0.0.13
+    * @waku/utils bumped from 0.0.25 to 0.0.26
+
 ## [0.0.20](https://github.com/waku-org/js-waku/compare/relay-v0.0.19...relay-v0.0.20) (2025-07-18)
 
 

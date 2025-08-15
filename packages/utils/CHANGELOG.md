@@ -12,6 +12,27 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.26](https://github.com/waku-org/js-waku/compare/utils-v0.0.25...utils-v0.0.26) (2025-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557))
+* Introduce routing info concept
+
+### Features
+
+* Introduce routing info concept ([3842d84](https://github.com/waku-org/js-waku/commit/3842d84b55eb96728f6b05b9307ff823fac58a54))
+* Local peer discovery improvements ([#2557](https://github.com/waku-org/js-waku/issues/2557)) ([eab8ce8](https://github.com/waku-org/js-waku/commit/eab8ce81b431b11d79dcbec31aea759319853336))
+* Retrieve peers from all passed enrtree URLs ([25f884e](https://github.com/waku-org/js-waku/commit/25f884e05b430cebe3b6650c16026d771d1b7626))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.32 to 0.0.33
+
 ## [0.0.25](https://github.com/waku-org/js-waku/compare/utils-v0.0.24...utils-v0.0.25) (2025-07-18)
 
 
