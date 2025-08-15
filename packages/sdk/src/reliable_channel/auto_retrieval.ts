@@ -28,9 +28,17 @@ export interface AutoRetrievalOptions {
   forceQueryThresholdMs?: number;
 }
 
-export interface AutoRetrievalEvents {
-  message: CustomEvent<IDecodedMessage>;
+export enum AutoRetrievalEvent {
+  /**
+   * A message has been retrieved.
+   */
+  MessageRetrieved = "message:retrieved"
 }
+
+export type AutoRetrievalEvents = {
+  [AutoRetrievalEvent.MessageRetrieved]: CustomEvent<IDecodedMessage>;
+};
+
 /**
  * Proceed with time-range store queries after re-connection.
  * Partial implementation of [Waku P2P Reliability](https://github.com/waku-org/specs/blob/master/standards/application/p2p-reliability.md)
