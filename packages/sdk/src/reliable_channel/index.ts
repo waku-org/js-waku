@@ -25,6 +25,7 @@ import {
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
+import { AutoRetrieval } from "./auto_retrieval.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { RetryManager } from "./retry_manager.js";
 
@@ -98,14 +99,16 @@ export type ReliableChannelOptions = MessageChannelOptions & {
  * @emits [[ReliableChannelEvents]]
  *
  */
-export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
+export class ReliableChannel<
+  T extends IDecodedMessage
+> extends TypedEventEmitter<ReliableChannelEvents> {
   private readonly _send: (
     encoder: IEncoder,
     message: IMessage,
     sendOptions?: ISendOptions
   ) => Promise<SDKProtocolResult>;
 
-  private readonly _subscribe: <T extends IDecodedMessage>(
+  private readonly _subscribe: (
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ) => Promise<boolean>;
@@ -121,13 +124,14 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
   private readonly retrieveFrequencyMs: number;
   private retrieveInterval: ReturnType<typeof setInterval> | undefined;
   private missingMessages: Map<MessageId, Uint8Array<ArrayBufferLike>>; // Waku Message Ids
+  private autoRetrieval?: AutoRetrieval<T>;
   public isStarted: boolean;
 
   private constructor(
     public node: IWaku,
     public messageChannel: MessageChannel,
     private encoder: IEncoder,
-    private decoder: IDecoder<IDecodedMessage>,
+    private decoder: IDecoder<T>,
     options?: ReliableChannelOptions
   ) {
     super();
@@ -151,6 +155,15 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
 
     if (node.store) {
       this._retrieve = node.store.queryGenerator.bind(node.store);
+      const peerManagerEvents = (node as any).peerManager.events;
+      if (peerManagerEvents) {
+        this.autoRetrieval = new AutoRetrieval(
+          [this.decoder],
+          peerManagerEvents,
+          node.events,
+          this._retrieve.bind(this)
+        );
+      }
     }
 
     this.syncMinIntervalMs =
@@ -204,14 +217,14 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
    * @param decoder A channel operates within a singular encryption layer, hence the same decoder is needed for all messages
    * @param options
    */
-  public static async create(
+  public static async create<T extends IDecodedMessage>(
     node: IWaku,
     channelId: ChannelId,
     senderId: SenderId,
     encoder: IEncoder,
-    decoder: IDecoder<IDecodedMessage>,
+    decoder: IDecoder<T>,
     options?: ReliableChannelOptions
-  ): Promise<ReliableChannel> {
+  ): Promise<ReliableChannel<T>> {
     const sdsMessageChannel = new MessageChannel(channelId, senderId, options);
     const messageChannel = new ReliableChannel(
       node,
@@ -310,20 +323,12 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
     this.messageChannel.sweepOutgoingBuffer();
   }
 
-  /**
-   * Subscribe to a content topic to receive messages. Received messages will
-   * be used to determined if a previous message was sent, and whether
-   * messages are missed.
-   *
-   * emits events about incoming messages, see [[`ReliableChannel`]] docs.
-   *
-   * @param decoders[]
-   */
-  public async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<boolean> {
+  private async subscribe(): Promise<boolean> {
     this.assertStarted();
-    return this._subscribe(decoders, this.processIncomingMessage.bind(this));
+    return this._subscribe(
+      this.decoder,
+      this.processIncomingMessage.bind(this)
+    );
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
@@ -367,16 +372,18 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
     this.isStarted = true;
     this.restartSync();
     if (this._retrieve) {
-      this.startRetrieveLoop();
+      this.startRetrieveMissingMessagesLoop();
+      this.autoRetrieval?.start();
     }
-    return this.subscribe([this.decoder]);
+    return this.subscribe();
   }
 
   public stop(): void {
     if (!this.isStarted) return;
     this.isStarted = false;
     this.stopSync();
-    this.stopRetrieveLoop();
+    this.stopRetrieveMissingMessagesLoop();
+    this.autoRetrieval?.stop();
     // TODO unsubscribe
   }
 
@@ -460,7 +467,7 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
     this.messageChannel.sweepOutgoingBuffer();
   }
 
-  private startRetrieveLoop(): void {
+  private startRetrieveMissingMessagesLoop(): void {
     if (this.retrieveInterval) {
       clearInterval(this.retrieveInterval);
     }
@@ -472,7 +479,7 @@ export class ReliableChannel extends TypedEventEmitter<ReliableChannelEvents> {
     }
   }
 
-  private stopRetrieveLoop(): void {
+  private stopRetrieveMissingMessagesLoop(): void {
     if (this.retrieveInterval) {
       clearInterval(this.retrieveInterval);
     }
