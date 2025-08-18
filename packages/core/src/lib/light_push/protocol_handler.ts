@@ -9,7 +9,6 @@ import { PushRpcV2 } from "./push_rpc.js";
 import { PushRpc } from "./push_rpc_v3.js";
 import { isRLNResponseError, isSuccess as isV3Success } from "./utils.js";
 
-// Union type representing a LightPush RPC annotated with its protocol version
 export type VersionedPushRpc =
   | ({ version: "v2" } & PushRpcV2)
   | ({ version: "v3" } & PushRpc);
@@ -22,9 +21,6 @@ export const CODECS = {
 const log = new Logger("light-push:protocol-handler");
 
 export class ProtocolHandler {
-  /**
-   * Prepare a versioned LightPush RPC based on negotiated protocol
-   */
   public static async preparePushMessage(
     encoder: IEncoder,
     message: IMessage,
@@ -180,7 +176,6 @@ function createV2Rpc(
   pubsubTopic: string
 ): VersionedPushRpc {
   const v2Rpc = PushRpcV2.createRequest(message, pubsubTopic);
-  // Return the actual RPC object with version property to preserve methods
   return Object.assign(v2Rpc, { version: "v2" as const });
 }
 
@@ -188,7 +183,10 @@ function createV3Rpc(
   message: WakuMessage,
   pubsubTopic: string
 ): VersionedPushRpc {
+  if (!message.timestamp) {
+    message.timestamp = BigInt(Date.now()) * BigInt(1_000_000);
+  }
+
   const v3Rpc = PushRpc.createRequest(message, pubsubTopic);
-  // Return the actual RPC object with version property to preserve methods
   return Object.assign(v3Rpc, { version: "v3" as const });
 }
