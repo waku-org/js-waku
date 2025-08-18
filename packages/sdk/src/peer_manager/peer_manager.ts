@@ -118,7 +118,7 @@ export class PeerManager {
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
+      const hasSamePubsub = await this.isPeerOnPubsub(
         peer.id,
         params.pubsubTopic
       );
@@ -285,11 +285,14 @@ export class PeerManager {
   }
 
   private getProtocolCodecs(protocol: Protocols): string[] {
+    if (protocol === Protocols.Relay) {
+      throw new Error("Relay protocol is not supported");
+    }
+
     const protocolToCodecs = {
       [Protocols.Filter]: [FilterCodecs.SUBSCRIBE],
       [Protocols.LightPush]: [LightPushCodec, LightPushCodecV2],
-      [Protocols.Store]: [StoreCodec],
-      [Protocols.Relay]: [""]
+      [Protocols.Store]: [StoreCodec]
     };
 
     return protocolToCodecs[protocol];

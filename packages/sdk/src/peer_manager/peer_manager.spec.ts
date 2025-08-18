@@ -88,7 +88,8 @@ describe("PeerManager", () => {
         _clusterId: ClusterId,
         _shardId: ShardId
       ) => true,
-      isPeerOnTopic: async (_id: PeerId, _topic: string) => true
+      isPeerOnTopic: async (_id: PeerId, _topic: string) => true,
+      hasShardInfo: async (_id: PeerId) => true
     } as unknown as IConnectionManager;
     peerManager = new PeerManager({
       libp2p,

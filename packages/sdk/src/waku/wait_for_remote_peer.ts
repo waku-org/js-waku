@@ -112,9 +112,11 @@ async function waitForProtocols(
   }
 
   if (waku.lightPush && protocols.includes(Protocols.LightPush)) {
-    promises.push(
-      ...protocolToPeerPromise([LightPushCodec, LightPushCodecV2], waku.libp2p)
+    const lpPromises = protocolToPeerPromise(
+      [LightPushCodec, LightPushCodecV2],
+      waku.libp2p
     );
+    promises.push(Promise.any(lpPromises));
   }
 
   if (waku.filter && protocols.includes(Protocols.Filter)) {
