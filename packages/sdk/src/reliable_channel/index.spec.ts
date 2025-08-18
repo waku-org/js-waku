@@ -154,7 +154,7 @@ class MockWakuNode {
     throw new Error("Method not implemented.");
   }
   public start(): Promise<void> {
-    throw new Error("Method not implemented.");
+    return Promise.resolve();
   }
   public stop(): Promise<void> {
     throw new Error("Method not implemented.");
@@ -983,6 +983,67 @@ describe("Reliable Channel", () => {
       const callArgs = queryGeneratorStub.getCall(0).args;
       expect(callArgs[1]).to.have.property("messageHashes");
       expect(callArgs[1].messageHashes).to.be.an("array");
+    });
+
+    it("Missed message with retrieval hint is added to missedMessages property", async () => {
+      const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+      const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+
+      const reliableChannelAlice = await ReliableChannel.create(
+        mockWakuNodeAlice,
+        "MyChannel",
+        "alice",
+        encoder,
+        decoder,
+        {
+          retryIntervalMs: 0,
+          syncMinIntervalMs: 0,
+          retrieveFrequencyMs: 0
+        }
+      );
+
+      // Alice sends a message that Bob won't receive directly
+      const message = utf8ToBytes("missed message with hint");
+      const messageId = ReliableChannel.getMessageId(message);
+
+      // Send message from Alice
+      await reliableChannelAlice.send(message);
+
+      const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+      const reliableChannelBob = await ReliableChannel.create(
+        mockWakuNodeBob,
+        "MyChannel",
+        "bob",
+        encoder,
+        decoder,
+        {
+          retryIntervalMs: 0,
+          syncMinIntervalMs: 0,
+          retrieveFrequencyMs: 0
+        }
+      );
+
+      // Get the missedMessages map from Bob's reliable channel (accessing private property for testing)
+      const bobMissedMessages = (reliableChannelBob as any)
+        .missingMessages as Map<string, Uint8Array>;
+      expect(bobMissedMessages.size).to.equal(0);
+
+      // Alice sends a sync message which should contain the message Bob missed
+      // This will trigger the InMessageMissing event on Bob's side
+      await reliableChannelAlice.sendSyncMessage();
+
+      // Wait for processing
+      await delay(100);
+
+      // Verify that Bob's missedMessages map now contains the message with its retrieval hint
+      expect(bobMissedMessages.size).to.equal(1);
+      expect(bobMissedMessages.has(messageId)).to.be.true;
+
+      // Verify the retrieval hint is the correct Uint8Array (not undefined)
+      const retrievalHint = bobMissedMessages.get(messageId);
+      expect(retrievalHint).to.exist;
+      expect(retrievalHint).to.be.instanceOf(Uint8Array);
+      expect(retrievalHint!.length).to.be.greaterThan(0);
     });
   });
 
