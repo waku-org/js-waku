@@ -594,6 +594,72 @@ describe("MessageChannel", function () {
       expect(irretrievablyLost).to.be.true;
     });
 
+    it("should emit InMessageLost event with retrievalHint when timeout is exceeded", async () => {
+      const testRetrievalHint = utf8ToBytes("lost-message-hint");
+      let lostMessages: HistoryEntry[] = [];
+
+      // Create a channel with very short timeout
+      const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
+        timeoutForLostMessagesMs: 10
+      });
+
+      channelC.addEventListener(MessageChannelEvent.InMessageLost, (event) => {
+        lostMessages = event.detail;
+      });
+
+      // Send message from A with retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint;
+          return { success: true, retrievalHint: testRetrievalHint };
+        }
+      );
+
+      // Send another message from A
+      await sendMessage(channelA, utf8ToBytes(messagesA[1]), callback);
+
+      // Send a message to C that depends on the previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelC, message);
+          return { success: true };
+        }
+      );
+
+      // First sweep - should detect missing messages
+      channelC.sweepIncomingBuffer();
+
+      // Wait for timeout
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second sweep - should mark messages as lost
+      channelC.sweepIncomingBuffer();
+
+      expect(lostMessages.length).to.equal(2);
+
+      // Verify retrievalHint is included in the lost message
+      const lostMessageWithHint = lostMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(lostMessageWithHint).to.exist;
+      expect(lostMessageWithHint!.retrievalHint).to.deep.equal(
+        testRetrievalHint
+      );
+
+      // Verify message without retrievalHint has undefined
+      const lostMessageWithoutHint = lostMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[1]))
+      );
+      expect(lostMessageWithoutHint).to.exist;
+      expect(lostMessageWithoutHint!.retrievalHint).to.be.undefined;
+    });
+
     it("should remove messages without delivering if timeout is exceeded", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
@@ -624,6 +690,164 @@ describe("MessageChannel", function () {
       channelC.sweepIncomingBuffer();
       incomingBuffer = (channelC as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(0);
+    });
+
+    it("should return HistoryEntry with retrievalHint from sweepIncomingBuffer", async () => {
+      const testRetrievalHint = utf8ToBytes("test-retrieval-hint");
+
+      // Send message from A with a retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint;
+          return { success: true, retrievalHint: testRetrievalHint };
+        }
+      );
+
+      // Send another message from A that depends on the first one
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[1]),
+        async (_message) => {
+          // Don't send to B yet - we want B to have missing dependencies
+          return { success: true };
+        }
+      );
+
+      // Send a message from A to B that depends on previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should detect missing dependencies and return them with retrievalHint
+      const missingMessages = channelB.sweepIncomingBuffer();
+      expect(missingMessages.length).to.equal(2);
+
+      // Find the first message in missing dependencies
+      const firstMissingMessage = missingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(firstMissingMessage).to.exist;
+      expect(firstMissingMessage!.retrievalHint).to.deep.equal(
+        testRetrievalHint
+      );
+    });
+
+    it("should emit InMessageMissing event with retrievalHint", async () => {
+      const testRetrievalHint1 = utf8ToBytes("hint-for-message-1");
+      const testRetrievalHint2 = utf8ToBytes("hint-for-message-2");
+      let eventReceived = false;
+      let emittedMissingMessages: HistoryEntry[] = [];
+
+      // Listen for InMessageMissing event
+      channelB.addEventListener(
+        MessageChannelEvent.InMessageMissing,
+        (event) => {
+          eventReceived = true;
+          emittedMissingMessages = event.detail;
+        }
+      );
+
+      // Send messages from A with retrievalHints
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint1;
+          return { success: true, retrievalHint: testRetrievalHint1 };
+        }
+      );
+
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[1]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint2;
+          return { success: true, retrievalHint: testRetrievalHint2 };
+        }
+      );
+
+      // Send a message to B that depends on the previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should trigger InMessageMissing event
+      channelB.sweepIncomingBuffer();
+
+      expect(eventReceived).to.be.true;
+      expect(emittedMissingMessages.length).to.equal(2);
+
+      // Verify retrievalHints are included in the event
+      const firstMissing = emittedMissingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      const secondMissing = emittedMissingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[1]))
+      );
+
+      expect(firstMissing).to.exist;
+      expect(firstMissing!.retrievalHint).to.deep.equal(testRetrievalHint1);
+      expect(secondMissing).to.exist;
+      expect(secondMissing!.retrievalHint).to.deep.equal(testRetrievalHint2);
+    });
+
+    it("should handle missing messages with undefined retrievalHint", async () => {
+      let emittedMissingMessages: HistoryEntry[] = [];
+
+      channelB.addEventListener(
+        MessageChannelEvent.InMessageMissing,
+        (event) => {
+          emittedMissingMessages = event.detail;
+        }
+      );
+
+      // Send message from A without retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (_message) => {
+          // Don't set retrievalHint
+          return { success: true };
+        }
+      );
+
+      // Send a message to B that depends on the previous message
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should handle missing message with undefined retrievalHint
+      const missingMessages = channelB.sweepIncomingBuffer();
+
+      expect(missingMessages.length).to.equal(1);
+      expect(missingMessages[0].messageId).to.equal(
+        MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(missingMessages[0].retrievalHint).to.be.undefined;
+
+      // Event should also reflect undefined retrievalHint
+      expect(emittedMissingMessages.length).to.equal(1);
+      expect(emittedMissingMessages[0].retrievalHint).to.be.undefined;
     });
   });
 
