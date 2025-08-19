@@ -24,6 +24,7 @@ import {
   SyncMessage
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
+import { bytesToHex } from "@waku/utils/bytes";
 
 import { AutoRetrieval, AutoRetrievalEvent } from "./auto_retrieval.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
@@ -285,6 +286,10 @@ export class ReliableChannel<
         if (!protoMessage) {
           return { success: false };
         }
+        const retrievalHint = messageHash(
+          this.encoder.pubsubTopic,
+          protoMessage
+        );
 
         const messageId = ReliableChannel.getMessageId(messagePayload);
         this.safeSendEvent(ReliableChannelEvent.OutMessageSending, {
@@ -308,14 +313,10 @@ export class ReliableChannel<
                 }
               }
             );
-            return { success: false };
+            return { success: false, retrievalHint };
           }
         }
 
-        const retrievalHint = messageHash(
-          this.encoder.pubsubTopic,
-          protoMessage
-        );
         return {
           success: true,
           retrievalHint
@@ -347,10 +348,14 @@ export class ReliableChannel<
   ): Promise<void> {
     // New message arrives, we need to unwrap it first
     const sdsMessage = SdsMessage.decode(msg.payload);
-    log.info("processing message", sdsMessage.messageId);
+
+    const retrievalHint = messageHash(msg.pubsubTopic, msg);
+    log.info(
+      `processing message ${sdsMessage.messageId} with hint ${bytesToHex(retrievalHint)}`
+    );
     // SDS Message decoded, let's pass it to the channel so we can learn about
     // missing messages or the status of previous outgoing messages
-    this.messageChannel.pushIncomingMessage(sdsMessage);
+    this.messageChannel.pushIncomingMessage(sdsMessage, retrievalHint);
 
     if (this.missingMessages.has(sdsMessage.messageId)) {
       this.missingMessages.delete(sdsMessage.messageId);
@@ -464,14 +469,6 @@ export class ReliableChannel<
         const wakuMessage = {
           payload: sdsPayload
         };
-
-        // TODO: should the encoder give me the message hash?
-        // Encoding now to fail early, used later to get message hash
-        const protoMessage = await this.encoder.toProtoObj(wakuMessage);
-        if (!protoMessage) {
-          log.error("Error sending sync message, could not encode it");
-          return false;
-        }
 
         const sendRes = await this._send(this.encoder, wakuMessage);
         if (sendRes.failures.length > 0) {
@@ -603,6 +600,7 @@ export class ReliableChannel<
       MessageChannelEvent.InMessageMissing,
       (event) => {
         for (const { messageId, retrievalHint } of event.detail) {
+          log.info("missing message notice", messageId, retrievalHint);
           if (retrievalHint) {
             this.missingMessages.set(messageId, retrievalHint);
           }
