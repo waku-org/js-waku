@@ -2,8 +2,10 @@ import {
   CreateNodeOptions,
   IWaku,
   LightNode,
-  Protocols
+  Protocols,
+  RelayNode
 } from "@waku/interfaces";
+import { createRelayNode, RelayCreateOptions } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
@@ -14,12 +16,56 @@ import {
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { NOISE_KEY_1 } from "../constants.js";
+import {
+  DefaultTestNetworkConfig,
+  DefaultTestRoutingInfo,
+  NOISE_KEY_1
+} from "../constants.js";
 import { ServiceNodesFleet } from "../lib/index.js";
 import { DEFAULT_DISCOVERIES_ENABLED } from "../lib/runNodes.js";
+import { ServiceNode } from "../lib/service_node.js";
 import { Args } from "../types.js";
 
+import { makeLogFileName } from "./log_file.js";
 import { waitForConnections } from "./waitForConnections.js";
+
+export async function startServiceNode(
+  context: Context,
+  options: Args = {}
+): Promise<ServiceNode> {
+  const node = new ServiceNode(makeLogFileName(context));
+  await node.start({ filter: true, store: true, lightpush: true, ...options });
+  return node;
+}
+
+export async function startLightNode(
+  options: CreateNodeOptions = {}
+): Promise<LightNode> {
+  const node = await createLightNode({
+    staticNoiseKey: NOISE_KEY_1,
+    networkConfig: DefaultTestNetworkConfig,
+    ...options
+  });
+  await node.start();
+  return node;
+}
+
+export async function startRelayNode(
+  options: Partial<RelayCreateOptions> = {}
+): Promise<RelayNode> {
+  const relayOptions: RelayCreateOptions = {
+    staticNoiseKey: NOISE_KEY_1,
+    networkConfig: DefaultTestNetworkConfig,
+    routingInfos: [DefaultTestRoutingInfo],
+    ...options
+  } as RelayCreateOptions;
+
+  const node = await createRelayNode(relayOptions);
+  if (relayOptions.autoStart === false) {
+    await node.start();
+  }
+  return node;
+}
 
 /**
  * Runs both js-waku and nwaku nodes.

@@ -1,7 +1,5 @@
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRelayNode } from "@waku/relay";
-import { createLightNode } from "@waku/sdk";
 import { formatPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
@@ -13,9 +11,10 @@ import {
   DefaultTestNumShardsInCluster,
   DefaultTestRoutingInfo,
   delay,
-  makeLogFileName,
-  NOISE_KEY_1,
   ServiceNode,
+  startLightNode,
+  startRelayNode,
+  startServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
@@ -49,8 +48,7 @@ describe("Wait for remote peer", function () {
 
   it("Relay - dialed after", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       relay: true,
       store: false,
       filter: false,
@@ -61,12 +59,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig,
-      routingInfos: [DefaultTestRoutingInfo]
-    });
-    await waku1.start();
+    waku1 = await startRelayNode();
 
     const waitPromise = waku1.waitForPeers([Protocols.Relay]);
     await delay(1000);
@@ -82,12 +75,7 @@ describe("Wait for remote peer", function () {
 
   it("Relay - times out", function (done) {
     this.timeout(5000);
-    createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig,
-      routingInfos: [DefaultTestRoutingInfo]
-    })
-      .then((waku1) => waku1.start().then(() => waku1))
+    startRelayNode()
       .then((waku1) => {
         waku1.waitForPeers([Protocols.Relay], 200).then(
           () => {
@@ -106,8 +94,7 @@ describe("Wait for remote peer", function () {
 
   it("Store - dialed first", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       store: true,
       relay: false,
       lightpush: false,
@@ -115,11 +102,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig
-    });
-    await waku2.start();
+    waku2 = await startLightNode();
     await waku2.dial(multiAddrWithId);
     await delay(1000);
     await waku2.waitForPeers([Protocols.Store]);
@@ -135,8 +118,7 @@ describe("Wait for remote peer", function () {
 
   it("Store - dialed after - with timeout", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       store: true,
       relay: false,
       lightpush: false,
@@ -144,11 +126,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig
-    });
-    await waku2.start();
+    waku2 = await startLightNode();
     const waitPromise = waku2.waitForPeers([Protocols.Store], 2000);
     await delay(1000);
     await waku2.dial(multiAddrWithId);
@@ -166,8 +144,7 @@ describe("Wait for remote peer", function () {
 
   it("LightPush", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       lightpush: true,
       filter: false,
       relay: false,
@@ -175,11 +152,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig
-    });
-    await waku2.start();
+    waku2 = await startLightNode();
     await waku2.dial(multiAddrWithId);
     await waku2.waitForPeers([Protocols.LightPush]);
 
@@ -195,8 +168,7 @@ describe("Wait for remote peer", function () {
 
   it("Filter", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       filter: true,
       lightpush: false,
       relay: false,
@@ -204,11 +176,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig
-    });
-    await waku2.start();
+    waku2 = await startLightNode();
     await waku2.dial(multiAddrWithId);
     await waku2.waitForPeers([Protocols.Filter]);
 
@@ -225,8 +193,7 @@ describe("Wait for remote peer", function () {
   // TODO: re-enable store once https://github.com/waku-org/js-waku/issues/2162 is fixed
   it("Light Node - default protocols", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       filter: true,
       lightpush: true,
       relay: false
@@ -234,11 +201,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig
-    });
-    await waku2.start();
+    waku2 = await startLightNode();
     await waku2.dial(multiAddrWithId);
     await waku2.waitForPeers([
       Protocols.Filter,

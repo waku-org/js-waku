@@ -12,11 +12,7 @@ import {
   createDecoder,
   createEncoder
 } from "@waku/message-encryption/symmetric";
-import { createRelayNode } from "@waku/relay";
-import {
-  createLightNode,
-  createEncoder as createPlainEncoder
-} from "@waku/sdk";
+import { createEncoder as createPlainEncoder } from "@waku/sdk";
 import { createRoutingInfo } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -27,9 +23,11 @@ import {
   DefaultTestNetworkConfig,
   DefaultTestRoutingInfo,
   makeLogFileName,
-  NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
+  startLightNode,
+  startRelayNode,
+  startServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
@@ -53,19 +51,10 @@ describe("Waku Dial [node only]", function () {
 
     it("connects to nwaku", async function () {
       this.timeout(20_000);
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        filter: true,
-        store: true,
-        lightpush: true
-      });
+      nwaku = await startServiceNode(this);
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestNetworkConfig
-      });
-      await waku.start();
+      waku = await startLightNode();
       await waku.dial(multiAddrWithId);
       await waku.waitForPeers([
         Protocols.Store,
@@ -87,19 +76,10 @@ describe("Waku Dial [node only]", function () {
         expect.fail("uncaughtException", e)
       );
 
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        filter: true,
-        store: true,
-        lightpush: true
-      });
+      nwaku = await startServiceNode(this);
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestNetworkConfig
-      });
-      await waku.start();
+      waku = await startLightNode();
       await waku.dial(multiAddrWithId);
 
       await tearDownNodes(nwaku, []);
@@ -120,17 +100,13 @@ describe("Waku Dial [node only]", function () {
     it("Passing an array", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start();
+      nwaku = await startServiceNode(this);
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestNetworkConfig,
+      waku = await startLightNode({
         libp2p: {
           peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })]
         }
       });
-      await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
@@ -144,19 +120,15 @@ describe("Waku Dial [node only]", function () {
     it("Using a function", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start();
+      nwaku = await startServiceNode(this);
 
       const nwakuMa = await nwaku.getMultiaddrWithId();
 
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestNetworkConfig,
+      waku = await startLightNode({
         libp2p: {
           peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })]
         }
       });
-      await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
@@ -181,17 +153,11 @@ describe("Decryption Keys", function () {
   let waku2: RelayNode;
   beforeEachCustom(this, async () => {
     [waku1, waku2] = await Promise.all([
-      createRelayNode({
-        staticNoiseKey: NOISE_KEY_1,
-        networkConfig: DefaultTestNetworkConfig,
-        routingInfos: [DefaultTestRoutingInfo]
-      }).then((waku) => waku.start().then(() => waku)),
-      createRelayNode({
+      startRelayNode(),
+      startRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        networkConfig: DefaultTestNetworkConfig,
-        routingInfos: [DefaultTestRoutingInfo],
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
+      })
     ]);
 
     await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
@@ -258,18 +224,11 @@ describe("User Agent", function () {
     const waku1UserAgent = "test-user-agent";
 
     [waku1, waku2] = await Promise.all([
-      createRelayNode({
-        staticNoiseKey: NOISE_KEY_1,
-        userAgent: waku1UserAgent,
-        networkConfig: DefaultTestNetworkConfig,
-        routingInfos: [DefaultTestRoutingInfo]
-      }).then((waku) => waku.start().then(() => waku)),
-      createRelayNode({
+      startRelayNode({ userAgent: waku1UserAgent }),
+      startRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        networkConfig: DefaultTestNetworkConfig,
-        routingInfos: [DefaultTestRoutingInfo],
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
+      })
     ]);
 
     await waku1.libp2p.peerStore.save(waku2.libp2p.peerId, {

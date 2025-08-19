@@ -1,16 +1,15 @@
 import { MetadataCodec } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
 import { decodeRelayShard } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
   afterEachCustom,
-  beforeEachCustom,
   delay,
-  makeLogFileName,
   ServiceNode,
+  startLightNode,
+  startServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
@@ -20,10 +19,6 @@ describe("Metadata Protocol", function () {
   this.timeout(55000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
-
-  beforeEachCustom(this, async () => {
-    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
-  });
 
   afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1], waku);
@@ -35,7 +30,7 @@ describe("Metadata Protocol", function () {
       const shards = [1];
       const numShardsInCluster = 8;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -47,10 +42,9 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: { clusterId, numShardsInCluster }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       if (!waku.libp2p.services.metadata) {
@@ -80,7 +74,7 @@ describe("Metadata Protocol", function () {
       const shards = [1];
       const numShardsInCluster = 8;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -91,10 +85,9 @@ describe("Metadata Protocol", function () {
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: { clusterId: custerIdJsWaku, numShardsInCluster }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // ensure the connection is closed from the other side
@@ -115,7 +108,7 @@ describe("Metadata Protocol", function () {
       const shards = [1];
       const numShardsInCluster = 8;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -127,10 +120,9 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: { clusterId, numShardsInCluster }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // delay to ensure the connection is estabilished and shardInfo is updated
@@ -153,7 +145,7 @@ describe("Metadata Protocol", function () {
       const shards = [1];
       const numShardsInCluster = 0; //static sharding
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -165,7 +157,7 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: {
           clusterId,
           numShardsInCluster
@@ -174,7 +166,6 @@ describe("Metadata Protocol", function () {
           pingKeepAlive: 1
         }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // delay to ensure the connection is estabilished, shardInfo is updated, and there is a ping
@@ -193,7 +184,7 @@ describe("Metadata Protocol", function () {
       const contentTopic = "/foo/1/bar/proto";
       const numShardsInCluster = 0;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -205,10 +196,9 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: { clusterId, numShardsInCluster }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       if (!waku.libp2p.services.metadata) {
@@ -239,7 +229,7 @@ describe("Metadata Protocol", function () {
       const contentTopic = ["/foo/1/bar/proto"];
       const numShardsInCluster = 0;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -250,13 +240,12 @@ describe("Metadata Protocol", function () {
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: {
           clusterId: clusterIdJSWaku,
           numShardsInCluster
         }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // ensure the connection is closed from the other side
@@ -278,7 +267,7 @@ describe("Metadata Protocol", function () {
       const contentTopic = ["/foo/1/bar/proto"];
       const numShardsInCluster = 0;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -289,10 +278,9 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: { clusterId, numShardsInCluster }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // delay to ensure the connection is estabilished and shardInfo is updated
@@ -316,7 +304,7 @@ describe("Metadata Protocol", function () {
       const contentTopic = ["/foo/1/bar/proto"];
       const numShardsInCluster = 0;
 
-      await nwaku1.start({
+      nwaku1 = await startServiceNode(this, {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -327,7 +315,7 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({
+      waku = await startLightNode({
         networkConfig: {
           clusterId,
           numShardsInCluster
@@ -336,7 +324,6 @@ describe("Metadata Protocol", function () {
           pingKeepAlive: 1
         }
       });
-      await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
       // delay to ensure the connection is estabilished, shardInfo is updated, and there is a ping

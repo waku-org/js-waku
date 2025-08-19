@@ -1,19 +1,17 @@
 import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRelayNode } from "@waku/relay";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
   DefaultTestClusterId,
   DefaultTestContentTopic,
-  DefaultTestNetworkConfig,
   DefaultTestNumShardsInCluster,
   DefaultTestRoutingInfo,
-  makeLogFileName,
-  NOISE_KEY_1,
   ServiceNode,
+  startRelayNode,
+  startServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
@@ -27,8 +25,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("Relay", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       relay: true,
       store: false,
       filter: false,
@@ -39,12 +36,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig,
-      routingInfos: [DefaultTestRoutingInfo]
-    });
-    await waku.start();
+    waku = await startRelayNode();
     await waku.dial(multiAddrWithId);
     await waku.waitForPeers([Protocols.Relay]);
 
@@ -64,8 +56,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("Relay + Store", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       relay: true,
       store: true,
       filter: false,
@@ -76,12 +67,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig,
-      routingInfos: [DefaultTestRoutingInfo]
-    });
-    await waku.start();
+    waku = await startRelayNode();
     await waku.dial(multiAddrWithId);
     await waku.waitForPeers([Protocols.Relay]);
 
@@ -101,8 +87,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("All", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
+    nwaku = await startServiceNode(this, {
       relay: true,
       store: true,
       filter: true,
@@ -113,12 +98,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
-      networkConfig: DefaultTestNetworkConfig,
-      routingInfos: [DefaultTestRoutingInfo]
-    });
-    await waku.start();
+    waku = await startRelayNode();
     await waku.dial(multiAddrWithId);
     await waku.waitForPeers([Protocols.Relay]);
 
