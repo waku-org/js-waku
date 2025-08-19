@@ -499,7 +499,7 @@ export class ReliableChannel<
       clearInterval(this.retrieveInterval);
     }
     if (this._retrieve && this.retrieveFrequencyMs) {
-      log.info("start retrieve loop every (ms)", this.retrieveFrequencyMs);
+      log.info(`start retrieve loop every ${this.retrieveFrequencyMs}ms`);
       this.retrieveInterval = setInterval(() => {
         void this.retrieveMissingMessage();
       }, this.retrieveFrequencyMs);
