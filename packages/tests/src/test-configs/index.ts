@@ -9,6 +9,7 @@ export interface ProtocolTestConfig {
   messageText: string;
   loggerName: string;
   numShardsInCluster?: number;
+  shardIndex?: number;
 }
 
 export const DEFAULT_NUM_SHARDS_IN_CLUSTER = 8;

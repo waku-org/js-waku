@@ -13,7 +13,7 @@ import {
   runMultipleNodes,
   ServiceNodesFleet,
   teardownNodesWithRedundancy
-} from "../lib/index.js";
+} from "../index.js";
 
 import {
   createTestSuiteDescription,
@@ -62,7 +62,9 @@ export function buildStandardTestSuite(config: TestSuiteConfig): void {
         });
 
         afterEachCustom(this, async () => {
-          await teardownNodesWithRedundancy(serviceNodes, waku);
+          if (serviceNodes && waku) {
+            await teardownNodesWithRedundancy(serviceNodes, waku);
+          }
         });
 
         it("Subscribe and receive single message", async function () {
@@ -106,7 +108,9 @@ export function buildSubscriptionTestSuite(
       });
 
       afterEachCustom(this, async () => {
-        await teardownNodesWithRedundancy(serviceNodes, waku);
+        if (serviceNodes && waku) {
+          await teardownNodesWithRedundancy(serviceNodes, waku);
+        }
       });
 
       it("Basic subscription and message receipt", async function () {
@@ -133,7 +137,9 @@ export function buildSubscriptionTestSuite(
 
       // Run custom tests if provided
       if (customTests) {
-        customTests(utilities, { waku, serviceNodes });
+        it("Custom tests", async function () {
+          customTests(utilities, { waku, serviceNodes });
+        });
       }
     }
   );
@@ -163,7 +169,9 @@ export function buildPerformanceTestSuite(
       });
 
       afterEachCustom(this, async () => {
-        await teardownNodesWithRedundancy(serviceNodes, waku);
+        if (serviceNodes && waku) {
+          await teardownNodesWithRedundancy(serviceNodes, waku);
+        }
       });
 
       it(`Send and receive ${messageCount} messages`, async function () {

@@ -32,12 +32,13 @@ export function createTestUtilities(protocol: string): TestUtilities {
   // Placeholder implementation for when imports are available
   const networkConfig = {
     clusterId: config.clusterId,
-    numShardsInCluster: config.numShardsInCluster || 8
+    numShardsInCluster: config.numShardsInCluster || 8,
+    shardIndex: config.shardIndex || 1
   };
 
   // These will be replaced with proper implementations when imports work
   const routingInfo = {
-    pubsubTopic: `/waku/2/rs/${config.clusterId}/1`
+    pubsubTopic: `/waku/2/rs/${config.clusterId}/${networkConfig.shardIndex}`
   };
 
   const encoder = {};
