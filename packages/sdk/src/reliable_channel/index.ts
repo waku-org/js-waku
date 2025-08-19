@@ -331,12 +331,17 @@ export class ReliableChannel<
 
   private async subscribe(): Promise<boolean> {
     this.assertStarted();
-    return this._subscribe(
-      this.decoder,
-      this.processIncomingMessage.bind(this)
-    );
+    return this._subscribe(this.decoder, async (message: T) => {
+      await this.processIncomingMessage(message);
+      this.messageChannel.sweepIncomingBuffer();
+    });
   }
 
+  /**
+   * Don't forget to call `this.messageChannel.sweepIncomingBuffer();` once done.
+   * @param msg
+   * @private
+   */
   private async processIncomingMessage<T extends IDecodedMessage>(
     msg: T
   ): Promise<void> {
@@ -370,6 +375,15 @@ export class ReliableChannel<
     // Do a process straight away
     // TODO: review and optimize
     await this.messageChannel.processTasks();
+    this.messageChannel.sweepIncomingBuffer();
+  }
+
+  private async processIncomingMessages<T extends IDecodedMessage>(
+    messages: T[]
+  ): Promise<void> {
+    for (const message of messages) {
+      await this.processIncomingMessage(message);
+    }
     this.messageChannel.sweepIncomingBuffer();
   }
 
@@ -598,9 +612,9 @@ export class ReliableChannel<
 
     if (this.autoRetrieval) {
       this.autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessageRetrieved,
+        AutoRetrievalEvent.MessagesRetrieved,
         (event) => {
-          void this.processIncomingMessage(event.detail);
+          void this.processIncomingMessages(event.detail);
         }
       );
     }

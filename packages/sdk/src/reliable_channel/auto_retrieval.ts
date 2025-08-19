@@ -32,11 +32,11 @@ export enum AutoRetrievalEvent {
   /**
    * A message has been retrieved.
    */
-  MessageRetrieved = "message:retrieved"
+  MessagesRetrieved = "message:retrieved"
 }
 
 export type AutoRetrievalEvents = {
-  [AutoRetrievalEvent.MessageRetrieved]: CustomEvent<IDecodedMessage>;
+  [AutoRetrievalEvent.MessagesRetrieved]: CustomEvent<IDecodedMessage[]>;
 };
 
 /**
@@ -102,11 +102,14 @@ export class AutoRetrieval<
         timeStart,
         timeEnd
       })) {
+        const messages = [];
         for await (const message of page) {
           if (message) {
-            this.dispatchMessage(message);
+            messages.push(message);
           }
         }
+        // Bundle the messages to help batch process by sds
+        this.dispatchMessages(messages);
       }
 
       // Didn't throw, so it didn't fail
@@ -124,11 +127,11 @@ export class AutoRetrieval<
     );
   }
 
-  private dispatchMessage<T extends IDecodedMessage>(message: T): void {
+  private dispatchMessages<T extends IDecodedMessage>(messages: T[]): void {
     log.info("dispatching message");
     this.dispatchEvent(
-      new CustomEvent<IDecodedMessage>(AutoRetrievalEvent.MessageRetrieved, {
-        detail: message
+      new CustomEvent<IDecodedMessage[]>(AutoRetrievalEvent.MessagesRetrieved, {
+        detail: messages
       })
     );
   }

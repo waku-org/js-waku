@@ -496,7 +496,7 @@ describe("AutoRetrieval", () => {
 
       // Listen for message events
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessageRetrieved as any,
+        AutoRetrievalEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
@@ -616,7 +616,7 @@ describe("AutoRetrieval", () => {
 
       // Re-setup event listeners for new instance
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessageRetrieved as any,
+        AutoRetrievalEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
@@ -678,7 +678,7 @@ describe("AutoRetrieval", () => {
       // Create a new promise for multiple messages
       const multipleMessagesPromise = new Promise<void>((resolve) => {
         autoRetrieval.addEventListener(
-          AutoRetrievalEvent.MessageRetrieved as any,
+          AutoRetrievalEvent.MessagesRetrieved as any,
           (event: any) => {
             receivedMessages.push(event.detail);
             messageCount++;
@@ -721,7 +721,7 @@ describe("AutoRetrieval", () => {
 
       // Override promise to reject if any message is received
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessageRetrieved as any,
+        AutoRetrievalEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission");
         }
@@ -744,7 +744,7 @@ describe("AutoRetrieval", () => {
 
       // Override promise to reject if any message is received
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessageRetrieved as any,
+        AutoRetrievalEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission after error");
         }
