@@ -82,7 +82,7 @@
     "@waku/message-encryption": "*",
     "@waku/relay": "*",
     "@waku/sdk": "*",
-    "allure-commandline": "^2.27.0",
+    "allure-commandline": "^2.34.1",
     "allure-mocha": "^2.9.2",
     "chai": "^4.3.10",
     "cspell": "^8.6.1",
