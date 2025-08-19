@@ -73,6 +73,11 @@ export type IFilter = {
    * await filter.subscribe(newDecoder, newCallback);
    */
   unsubscribeAll(): void;
+
+  /**
+   * Stops the Filter protocol and removes any registered handlers.
+   */
+  stop(): Promise<void>;
 };
 
 export type FilterProtocolOptions = {

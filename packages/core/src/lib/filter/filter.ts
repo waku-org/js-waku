@@ -37,6 +37,8 @@ type IncomingMessageHandler = (
 
 export class FilterCore {
   private streamManager: StreamManager;
+  private unregister?: () => void | Promise<void>;
+  private handlePromise: Promise<void | (() => void | Promise<void>)>;
 
   public readonly multicodec = FilterCodecs.SUBSCRIBE;
 
@@ -49,13 +51,28 @@ export class FilterCore {
       libp2p.components
     );
 
-    libp2p
-      .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
+    this.handlePromise = (
+      libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
         maxInboundStreams: 100
+      }) as unknown as Promise<() => void | Promise<void>>
+    )
+      .then((unhandle) => {
+        this.unregister = unhandle;
+        return unhandle;
       })
       .catch((e) => {
         log.error("Failed to register ", FilterCodecs.PUSH, e);
       });
+  }
+
+  public async stop(): Promise<void> {
+    await this.handlePromise;
+
+    try {
+      await this.unregister?.();
+    } catch (e) {
+      log.error("Failed to unregister ", FilterCodecs.PUSH, e);
+    }
   }
 
   public async subscribe(

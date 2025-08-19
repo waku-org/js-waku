@@ -98,26 +98,27 @@ describe("Filter SDK", () => {
     expect(subscriptionInvokeStub.firstCall.args[1]).to.equal(peerId);
   });
 
-  it("should successfully stop", async () => {
+  it("should stop and remove handler", async () => {
     const contentTopic2 = "/test/1/waku-filter-2/utf8";
     const decoder2 = createDecoder(
       contentTopic2,
       createRoutingInfo(testNetworkconfig, { contentTopic: contentTopic2 })
     );
-    const stopStub = sinon.stub(Subscription.prototype, "stop");
-
+    const subscriptionStopStub = sinon.stub(Subscription.prototype, "stop");
     sinon.stub(Subscription.prototype, "add").resolves(true);
     sinon.stub(Subscription.prototype, "start");
 
     await filter.subscribe(decoder, callback);
     await filter.subscribe(decoder2, callback);
 
-    filter.unsubscribeAll();
+    const protocolStopStub = sinon
+      .stub((filter as any)["protocol"], "stop")
+      .resolves();
 
-    expect(stopStub.calledOnce).to.be.true;
+    await filter.stop();
 
-    const result = await filter.unsubscribe(decoder);
-    expect(result).to.be.false;
+    expect(subscriptionStopStub.calledOnce).to.be.true;
+    expect(protocolStopStub.calledOnce).to.be.true;
   });
 });
 

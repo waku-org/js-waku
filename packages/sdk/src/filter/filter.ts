@@ -45,6 +45,11 @@ export class Filter implements IFilter {
     return this.protocol.multicodec;
   }
 
+  public async stop(): Promise<void> {
+    this.unsubscribeAll();
+    await this.protocol.stop();
+  }
+
   public unsubscribeAll(): void {
     for (const subscription of this.subscriptions.values()) {
       subscription.stop();
