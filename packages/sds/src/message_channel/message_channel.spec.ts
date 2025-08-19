@@ -54,9 +54,10 @@ const sendSyncMessage = async (
 
 const receiveMessage = async (
   channel: MessageChannel,
-  message: Message
+  message: Message,
+  retrievalHint?: Uint8Array
 ): Promise<void> => {
-  channel.pushIncomingMessage(message);
+  channel.pushIncomingMessage(message, retrievalHint);
   await channel.processTasks();
 };
 
@@ -106,6 +107,27 @@ describe("MessageChannel", function () {
             log.messageId === messageId
         )
       ).to.equal(true);
+    });
+
+    it("should add sent message to localHistory with retrievalHint", async () => {
+      const payload = utf8ToBytes("message with retrieval hint");
+      const messageId = MessageChannel.getMessageId(payload);
+      const testRetrievalHint = utf8ToBytes("test-retrieval-hint-data");
+
+      await sendMessage(channelA, payload, async (_message) => {
+        // Simulate successful sending with retrievalHint
+        return { success: true, retrievalHint: testRetrievalHint };
+      });
+
+      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      expect(localHistory.length).to.equal(1);
+
+      // Find the message in local history
+      const historyEntry = localHistory.find(
+        (entry) => entry.messageId === messageId
+      );
+      expect(historyEntry).to.exist;
+      expect(historyEntry!.retrievalHint).to.deep.equal(testRetrievalHint);
     });
 
     it("should attach causal history and bloom filter to each message", async () => {
@@ -251,6 +273,143 @@ describe("MessageChannel", function () {
             messageId === receivedMessage!.messageId
         )
       ).to.equal(false);
+    });
+
+    it("should add received message to localHistory with retrievalHint", async () => {
+      const payload = utf8ToBytes("message with retrieval hint");
+      const messageId = MessageChannel.getMessageId(payload);
+      const testRetrievalHint = utf8ToBytes("test-retrieval-hint-data");
+
+      await receiveMessage(
+        channelA,
+        new Message(
+          messageId,
+          channelA.channelId,
+          "not-alice",
+          [],
+          1,
+          undefined,
+          payload,
+          testRetrievalHint
+        ),
+        testRetrievalHint
+      );
+
+      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      console.log("localHistory", localHistory);
+      expect(localHistory.length).to.equal(1);
+
+      // Find the message in local history
+      const historyEntry = localHistory.find(
+        (entry) => entry.messageId === messageId
+      );
+      console.log("history entry", historyEntry);
+      expect(historyEntry).to.exist;
+      expect(historyEntry!.retrievalHint).to.deep.equal(testRetrievalHint);
+    });
+
+    it("should maintain chronological order of messages in localHistory", async () => {
+      // Send messages with different timestamps (including own messages)
+      const message1Payload = utf8ToBytes("message 1");
+      const message2Payload = utf8ToBytes("message 2");
+      const message3Payload = utf8ToBytes("message 3");
+
+      const message1Id = MessageChannel.getMessageId(message1Payload);
+      const message2Id = MessageChannel.getMessageId(message2Payload);
+      const message3Id = MessageChannel.getMessageId(message3Payload);
+
+      // Send own message first (timestamp will be 1)
+      await sendMessage(channelA, message1Payload, callback);
+
+      // Receive a message from another sender with higher timestamp (3)
+      await receiveMessage(
+        channelA,
+        new ContentMessage(
+          message3Id,
+          channelA.channelId,
+          "bob",
+          [],
+          3, // Higher timestamp
+          undefined,
+          message3Payload
+        )
+      );
+
+      // Receive a message from another sender with middle timestamp (2)
+      await receiveMessage(
+        channelA,
+        new ContentMessage(
+          message2Id,
+          channelA.channelId,
+          "carol",
+          [],
+          2, // Middle timestamp
+          undefined,
+          message2Payload
+        )
+      );
+
+      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      expect(localHistory.length).to.equal(3);
+
+      // Verify chronological order: message1 (ts=1), message2 (ts=2), message3 (ts=3)
+      expect(localHistory[0].messageId).to.equal(message1Id);
+      expect(localHistory[0].lamportTimestamp).to.equal(1);
+
+      expect(localHistory[1].messageId).to.equal(message2Id);
+      expect(localHistory[1].lamportTimestamp).to.equal(2);
+
+      expect(localHistory[2].messageId).to.equal(message3Id);
+      expect(localHistory[2].lamportTimestamp).to.equal(3);
+    });
+
+    it("should handle messages with same timestamp ordered by messageId", async () => {
+      const message1Payload = utf8ToBytes("message a");
+      const message2Payload = utf8ToBytes("message b");
+
+      const message1Id = MessageChannel.getMessageId(message1Payload);
+      const message2Id = MessageChannel.getMessageId(message2Payload);
+
+      // Receive messages with same timestamp but different message IDs
+      // The valueOf() method ensures ordering by messageId when timestamps are equal
+      await receiveMessage(
+        channelA,
+        new ContentMessage(
+          message2Id, // This will come second alphabetically by messageId
+          channelA.channelId,
+          "bob",
+          [],
+          5, // Same timestamp
+          undefined,
+          message2Payload
+        )
+      );
+
+      await receiveMessage(
+        channelA,
+        new ContentMessage(
+          message1Id, // This will come first alphabetically by messageId
+          channelA.channelId,
+          "carol",
+          [],
+          5, // Same timestamp
+          undefined,
+          message1Payload
+        )
+      );
+
+      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      expect(localHistory.length).to.equal(2);
+
+      // When timestamps are equal, should be ordered by messageId lexicographically
+      // The valueOf() method creates "000000000000005_messageId" for comparison
+      const expectedOrder = [message1Id, message2Id].sort();
+      expect(localHistory[0].messageId).to.equal(expectedOrder[0]);
+      expect(localHistory[1].messageId).to.equal(expectedOrder[1]);
+
+      // Both should have the same timestamp
+      expect(localHistory[0].lamportTimestamp).to.equal(5);
+      expect(localHistory[1].lamportTimestamp).to.equal(5);
     });
   });
 
@@ -594,6 +753,72 @@ describe("MessageChannel", function () {
       expect(irretrievablyLost).to.be.true;
     });
 
+    it("should emit InMessageLost event with retrievalHint when timeout is exceeded", async () => {
+      const testRetrievalHint = utf8ToBytes("lost-message-hint");
+      let lostMessages: HistoryEntry[] = [];
+
+      // Create a channel with very short timeout
+      const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
+        timeoutForLostMessagesMs: 10
+      });
+
+      channelC.addEventListener(MessageChannelEvent.InMessageLost, (event) => {
+        lostMessages = event.detail;
+      });
+
+      // Send message from A with retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint;
+          return { success: true, retrievalHint: testRetrievalHint };
+        }
+      );
+
+      // Send another message from A
+      await sendMessage(channelA, utf8ToBytes(messagesA[1]), callback);
+
+      // Send a message to C that depends on the previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelC, message);
+          return { success: true };
+        }
+      );
+
+      // First sweep - should detect missing messages
+      channelC.sweepIncomingBuffer();
+
+      // Wait for timeout
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second sweep - should mark messages as lost
+      channelC.sweepIncomingBuffer();
+
+      expect(lostMessages.length).to.equal(2);
+
+      // Verify retrievalHint is included in the lost message
+      const lostMessageWithHint = lostMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(lostMessageWithHint).to.exist;
+      expect(lostMessageWithHint!.retrievalHint).to.deep.equal(
+        testRetrievalHint
+      );
+
+      // Verify message without retrievalHint has undefined
+      const lostMessageWithoutHint = lostMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[1]))
+      );
+      expect(lostMessageWithoutHint).to.exist;
+      expect(lostMessageWithoutHint!.retrievalHint).to.be.undefined;
+    });
+
     it("should remove messages without delivering if timeout is exceeded", async () => {
       const causalHistorySize = (channelA as any).causalHistorySize;
       // Create a channel with very very short timeout
@@ -624,6 +849,164 @@ describe("MessageChannel", function () {
       channelC.sweepIncomingBuffer();
       incomingBuffer = (channelC as any).incomingBuffer as Message[];
       expect(incomingBuffer.length).to.equal(0);
+    });
+
+    it("should return HistoryEntry with retrievalHint from sweepIncomingBuffer", async () => {
+      const testRetrievalHint = utf8ToBytes("test-retrieval-hint");
+
+      // Send message from A with a retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint;
+          return { success: true, retrievalHint: testRetrievalHint };
+        }
+      );
+
+      // Send another message from A that depends on the first one
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[1]),
+        async (_message) => {
+          // Don't send to B yet - we want B to have missing dependencies
+          return { success: true };
+        }
+      );
+
+      // Send a message from A to B that depends on previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should detect missing dependencies and return them with retrievalHint
+      const missingMessages = channelB.sweepIncomingBuffer();
+      expect(missingMessages.length).to.equal(2);
+
+      // Find the first message in missing dependencies
+      const firstMissingMessage = missingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(firstMissingMessage).to.exist;
+      expect(firstMissingMessage!.retrievalHint).to.deep.equal(
+        testRetrievalHint
+      );
+    });
+
+    it("should emit InMessageMissing event with retrievalHint", async () => {
+      const testRetrievalHint1 = utf8ToBytes("hint-for-message-1");
+      const testRetrievalHint2 = utf8ToBytes("hint-for-message-2");
+      let eventReceived = false;
+      let emittedMissingMessages: HistoryEntry[] = [];
+
+      // Listen for InMessageMissing event
+      channelB.addEventListener(
+        MessageChannelEvent.InMessageMissing,
+        (event) => {
+          eventReceived = true;
+          emittedMissingMessages = event.detail;
+        }
+      );
+
+      // Send messages from A with retrievalHints
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint1;
+          return { success: true, retrievalHint: testRetrievalHint1 };
+        }
+      );
+
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[1]),
+        async (message) => {
+          message.retrievalHint = testRetrievalHint2;
+          return { success: true, retrievalHint: testRetrievalHint2 };
+        }
+      );
+
+      // Send a message to B that depends on the previous messages
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should trigger InMessageMissing event
+      channelB.sweepIncomingBuffer();
+
+      expect(eventReceived).to.be.true;
+      expect(emittedMissingMessages.length).to.equal(2);
+
+      // Verify retrievalHints are included in the event
+      const firstMissing = emittedMissingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      const secondMissing = emittedMissingMessages.find(
+        (m) =>
+          m.messageId === MessageChannel.getMessageId(utf8ToBytes(messagesA[1]))
+      );
+
+      expect(firstMissing).to.exist;
+      expect(firstMissing!.retrievalHint).to.deep.equal(testRetrievalHint1);
+      expect(secondMissing).to.exist;
+      expect(secondMissing!.retrievalHint).to.deep.equal(testRetrievalHint2);
+    });
+
+    it("should handle missing messages with undefined retrievalHint", async () => {
+      let emittedMissingMessages: HistoryEntry[] = [];
+
+      channelB.addEventListener(
+        MessageChannelEvent.InMessageMissing,
+        (event) => {
+          emittedMissingMessages = event.detail;
+        }
+      );
+
+      // Send message from A without retrievalHint
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesA[0]),
+        async (_message) => {
+          // Don't set retrievalHint
+          return { success: true };
+        }
+      );
+
+      // Send a message to B that depends on the previous message
+      await sendMessage(
+        channelA,
+        utf8ToBytes(messagesB[0]),
+        async (message) => {
+          await receiveMessage(channelB, message);
+          return { success: true };
+        }
+      );
+
+      // Sweep should handle missing message with undefined retrievalHint
+      const missingMessages = channelB.sweepIncomingBuffer();
+
+      expect(missingMessages.length).to.equal(1);
+      expect(missingMessages[0].messageId).to.equal(
+        MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+      expect(missingMessages[0].retrievalHint).to.be.undefined;
+
+      // Event should also reflect undefined retrievalHint
+      expect(emittedMissingMessages.length).to.equal(1);
+      expect(emittedMissingMessages[0].retrievalHint).to.be.undefined;
     });
   });
 

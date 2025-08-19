@@ -61,7 +61,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private outgoingBuffer: ContentMessage[];
   private possibleAcks: Map<MessageId, number>;
   private incomingBuffer: Array<ContentMessage | SyncMessage>;
-  private localHistory: ILocalHistory;
+  private readonly localHistory: ILocalHistory;
   private timeReceived: Map<MessageId, number>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
@@ -226,7 +226,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * proper dependency resolution and causal ordering.
    *
    * @param message - The message to receive and process
-   *
+   * @param retrievalHint - The retrieval hint for the message, provided by the transport layer
    * @example
    * ```typescript
    * const channel = new MessageChannel("chat-room");
@@ -238,7 +238,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * await channel.processTasks();
    * ```
    */
-  public pushIncomingMessage(message: Message): void {
+  public pushIncomingMessage(
+    message: Message,
+    retrievalHint: Uint8Array | undefined
+  ): void {
+    message.retrievalHint = retrievalHint;
+
     this.tasks.push({
       command: Command.Receive,
       params: {
@@ -282,7 +287,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           this.senderId,
           message.messageId,
           "is missing dependencies",
-          missingDependencies.map((ch) => ch.messageId)
+          missingDependencies.map(({ messageId, retrievalHint }) => {
+            return { messageId, retrievalHint };
+          })
         );
 
         // Optionally, if a message has not been received after a predetermined amount of time,
@@ -395,7 +402,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   private _pushIncomingMessage(message: Message): void {
-    log.info(this.senderId, "incoming message", message.messageId);
+    if (message.channelId !== this.channelId) {
+      log.warn("dropping message on different channel", message.channelId);
+      return;
+    }
+
+    log.info(
+      `${this.senderId} incoming message ${message.messageId}`,
+      `retrieval hint: ${bytesToHex(message.retrievalHint ?? new Uint8Array())}`
+    );
     const isDuplicate =
       message.content &&
       message.content.length > 0 &&
@@ -589,14 +604,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * Return true if the message was "delivered"
    *
    * @param message
-   * @param retrievalHint
    * @private
    */
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
-  private deliverMessage(
-    message: ContentMessage,
-    retrievalHint?: Uint8Array
-  ): boolean {
+  private deliverMessage(message: ContentMessage): boolean {
     if (!isContentMessage(message)) {
       // Messages with empty content are sync messages.
       // Messages with no timestamp are ephemeral messages.
@@ -605,7 +616,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return false;
     }
 
-    log.info(this.senderId, "delivering message", message.messageId);
+    log.info(
+      this.senderId,
+      "delivering message",
+      message.messageId,
+      message.retrievalHint
+    );
     if (message.lamportTimestamp > this.lamportTimestamp) {
       this.lamportTimestamp = message.lamportTimestamp;
     }
@@ -620,7 +636,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return true;
     }
 
-    message.retrievalHint = retrievalHint;
+    if (!message.retrievalHint) {
+      log.warn("message delivered without a retrieval hint", message.messageId);
+    }
 
     this.localHistory.push(message);
     return true;
