@@ -1,5 +1,3 @@
-import { LightPushStatusCode } from "@waku/interfaces";
-
 // should match nwaku
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/rln_relay.nim#L309
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/tests/waku_rln_relay/rln/waku_rln_relay_utils.nim#L20
@@ -23,7 +21,3 @@ export const isRLNResponseError = (info?: string): boolean => {
     info.includes(RLN_REMOTE_VALIDATION)
   );
 };
-
-export function isSuccess(statusCode: number | undefined): boolean {
-  return statusCode === LightPushStatusCode.SUCCESS;
-}

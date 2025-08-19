@@ -1,13 +1,13 @@
 import type { PeerId } from "@libp2p/interface";
 import type { IEncoder, IMessage, LightPushCoreResult } from "@waku/interfaces";
-import { LightPushError } from "@waku/interfaces";
+import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { isMessageSizeUnderCap, Logger } from "@waku/utils";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushRpcV2 } from "./push_rpc.js";
 import { PushRpc } from "./push_rpc_v3.js";
-import { isRLNResponseError, isSuccess as isV3Success } from "./utils.js";
+import { isRLNResponseError } from "./utils.js";
 
 export type VersionedPushRpc =
   | ({ version: "v2" } & PushRpcV2)
@@ -87,7 +87,7 @@ export class ProtocolHandler {
       const statusCode = decodedRpcV3.statusCode;
       const statusDesc = decodedRpcV3.statusDesc;
 
-      if (!isV3Success(statusCode)) {
+      if (statusCode !== LightPushStatusCode.SUCCESS) {
         const error = LightPushError.REMOTE_PEER_REJECTED;
         log.error(
           `Remote peer rejected with v3 status code ${statusCode}: ${statusDesc}`
