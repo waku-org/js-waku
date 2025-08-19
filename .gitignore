@@ -13,6 +13,7 @@ test-results
 playwright-report
 example
 packages/discovery/mock_local_storage
+allure-results
 .cursorrules
 .giga
 .cursor
