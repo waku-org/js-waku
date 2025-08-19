@@ -162,7 +162,7 @@ export class ReliableChannel<
 
     if (node.store) {
       this._retrieve = node.store.queryGenerator.bind(node.store);
-      const peerManagerEvents = (node as any).peerManager.events;
+      const peerManagerEvents = (node as any)?.peerManager?.events;
       if (peerManagerEvents && (options?.autoRetrieval ?? true)) {
         this.autoRetrieval = new AutoRetrieval(
           [this.decoder],
