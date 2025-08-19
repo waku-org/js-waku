@@ -1,4 +1,5 @@
 import { PeerId } from "@libp2p/interface";
+import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import {
   ClusterId,
   CONNECTION_LOCKED_TAG,
@@ -295,6 +296,33 @@ describe("PeerManager", () => {
 
     expect(otherConnection).to.exist;
     expect(otherConnection.tags).to.not.include(CONNECTION_LOCKED_TAG);
+  });
+
+  it("should evaluate pubsub topic concurrently", async function () {
+    const delay = 50;
+    peers = Array.from({ length: 5 }, (_, i) => ({
+      id: makePeerId(`peer-${i + 1}`),
+      protocols: [LightPushCodec, FilterCodecs.SUBSCRIBE, StoreCodec]
+    }));
+    mockConnections = peers.map((p) => ({
+      remotePeer: p.id,
+      tags: [] as string[]
+    }));
+    (libp2p.getConnections as sinon.SinonStub).returns(mockConnections);
+
+    const isPeerOnTopicStub = sinon.stub().callsFake(async () => {
+      await new Promise((r) => setTimeout(r, delay));
+      return true;
+    });
+
+    connectionManager.isPeerOnTopic = isPeerOnTopicStub as any;
+
+    const start = Date.now();
+    await getPeersForTest();
+    const duration = Date.now() - start;
+
+    expect(duration).to.be.lessThan(delay * 2);
+    expect(isPeerOnTopicStub.callCount).to.equal(peers.length);
   });
 });
 

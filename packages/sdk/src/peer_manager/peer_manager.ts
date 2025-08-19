@@ -109,17 +109,35 @@ export class PeerManager {
     const connectedPeers = await this.connectionManager.getConnectedPeers();
     log.info(`Found ${connectedPeers.length} connected peers`);
 
-    let results: Peer[] = [];
+    const candidates: Peer[] = [];
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
-        peer.id,
-        params.pubsubTopic
-      );
       const isPeerAvailableForUse = this.isPeerAvailableForUse(peer.id);
 
-      if (hasProtocol && hasSamePubsub && isPeerAvailableForUse) {
+      if (hasProtocol && isPeerAvailableForUse) {
+        candidates.push(peer);
+      }
+    }
+
+    const CONCURRENCY_LIMIT = 10;
+    const topicChecks: PromiseSettledResult<boolean>[] = [];
+    for (let i = 0; i < candidates.length; i += CONCURRENCY_LIMIT) {
+      const slice = candidates.slice(i, i + CONCURRENCY_LIMIT);
+      const sliceResults = await Promise.allSettled(
+        slice.map((p) =>
+          this.connectionManager.isPeerOnTopic(p.id, params.pubsubTopic)
+        )
+      );
+      topicChecks.push(...sliceResults);
+    }
+
+    let results: Peer[] = [];
+    for (let i = 0; i < candidates.length; i++) {
+      const hasSamePubsub =
+        topicChecks[i].status === "fulfilled" && topicChecks[i].value;
+      if (hasSamePubsub) {
+        const peer = candidates[i];
         results.push(peer);
         log.info(`Peer ${peer.id} qualifies for protocol ${params.protocol}`);
       }
