@@ -349,6 +349,14 @@ export class ReliableChannel<
     // New message arrives, we need to unwrap it first
     const sdsMessage = SdsMessage.decode(msg.payload);
 
+    if (sdsMessage.channelId !== this.messageChannel.channelId) {
+      log.warn(
+        "ignoring message with different channel id",
+        sdsMessage.channelId
+      );
+      return;
+    }
+
     const retrievalHint = messageHash(msg.pubsubTopic, msg);
     log.info(
       `processing message ${sdsMessage.messageId} with hint ${bytesToHex(retrievalHint)}`
