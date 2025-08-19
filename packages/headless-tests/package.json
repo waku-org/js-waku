@@ -5,7 +5,7 @@
     "homepage": "/headless",
     "type": "module",
     "devDependencies": {
-        "@babel/core": "^7.24.0",
+        "@babel/core": "^7.28.3",
         "@babel/preset-env": "^7.24.0",
         "@babel/preset-typescript": "^7.23.3",
         "babel-loader": "^9.1.3",
