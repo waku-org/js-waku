@@ -1,4 +1,4 @@
-import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
+import { LightPushStatusCode } from "@waku/interfaces";
 
 // should match nwaku
 // https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/rln_relay.nim#L309
@@ -26,36 +26,4 @@ export const isRLNResponseError = (info?: string): boolean => {
 
 export function isSuccess(statusCode: number | undefined): boolean {
   return statusCode === LightPushStatusCode.SUCCESS;
-}
-
-export function toLightPushError(
-  statusCode: LightPushStatusCode | number | undefined
-): LightPushError {
-  if (!statusCode) {
-    return LightPushError.GENERIC_FAIL;
-  }
-
-  switch (statusCode) {
-    case LightPushStatusCode.SUCCESS:
-      return LightPushError.GENERIC_FAIL;
-    case LightPushStatusCode.BAD_REQUEST:
-      return LightPushError.BAD_REQUEST;
-    case LightPushStatusCode.INVALID_MESSAGE:
-      return LightPushError.INVALID_MESSAGE;
-    case LightPushStatusCode.TOO_MANY_REQUESTS:
-      return LightPushError.TOO_MANY_REQUESTS;
-    case LightPushStatusCode.PAYLOAD_TOO_LARGE:
-      return LightPushError.PAYLOAD_TOO_LARGE;
-    case LightPushStatusCode.UNSUPPORTED_TOPIC:
-      return LightPushError.UNSUPPORTED_TOPIC;
-    case LightPushStatusCode.UNAVAILABLE:
-      return LightPushError.UNAVAILABLE;
-    case LightPushStatusCode.NO_PEERS:
-      return LightPushError.NO_PEERS;
-    case LightPushStatusCode.NO_RLN_PROOF:
-      return LightPushError.NO_RLN_PROOF;
-    case LightPushStatusCode.INTERNAL_ERROR:
-    default:
-      return LightPushError.INTERNAL_ERROR;
-  }
 }
