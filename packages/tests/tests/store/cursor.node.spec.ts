@@ -1,4 +1,4 @@
-import { DecodedMessage } from "@waku/core";
+import { DecodedMessage, messageHash } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -65,7 +65,10 @@ describe("Waku Store, cursor", function () {
       }
 
       // create cursor to extract messages after the cursorIndex
-      const cursor = waku.store.createCursor(messages[cursorIndex]);
+      const cursor = messageHash(
+        messages[cursorIndex].pubsubTopic,
+        messages[cursorIndex]
+      );
 
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
@@ -114,7 +117,7 @@ describe("Waku Store, cursor", function () {
     }
 
     // create cursor to extract messages after the cursorIndex
-    const cursor = waku.store.createCursor(messages[5]);
+    const cursor = messageHash(messages[5].pubsubTopic, messages[5]);
 
     // query node2 with the cursor from node1
     const messagesAfterCursor: DecodedMessage[] = [];

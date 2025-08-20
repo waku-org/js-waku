@@ -1,7 +1,5 @@
 import type { IDecodedMessage, IDecoder } from "./message.js";
 
-export type StoreCursor = Uint8Array;
-
 /**
  * Parameters for a store query request, as specified in the Waku Store v3 RFC.
  */
@@ -77,8 +75,6 @@ export type QueryRequestParams = {
 
 export type IStore = {
   readonly multicodec: string;
-
-  createCursor(message: IDecodedMessage): StoreCursor;
   queryGenerator: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     options?: Partial<QueryRequestParams>

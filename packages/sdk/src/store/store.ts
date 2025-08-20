@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
-import { messageHash, StoreCore } from "@waku/core";
+import { StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
@@ -9,7 +9,6 @@ import {
   Libp2p,
   Protocols,
   QueryRequestParams,
-  StoreCursor,
   StoreProtocolOptions
 } from "@waku/interfaces";
 import { isDefined, Logger } from "@waku/utils";
@@ -158,16 +157,6 @@ export class Store implements IStore {
     );
 
     return abort;
-  }
-
-  /**
-   * Creates a cursor based on the provided decoded message.
-   *
-   * @param message - The decoded message.
-   * @returns A StoreCursor representing the message.
-   */
-  public createCursor(message: IDecodedMessage): StoreCursor {
-    return messageHash(message.pubsubTopic, message);
   }
 
   /**
