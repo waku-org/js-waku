@@ -98,7 +98,7 @@ export class FilterCore {
       return {
         success: null,
         failure: {
-          error: FilterError.SUBSCRIPTION_FAILED,
+          error: FilterError.GENERIC_FAIL,
           peerId: peerId
         }
       };
