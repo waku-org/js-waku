@@ -92,7 +92,13 @@ describe("BloomFilter", () => {
     }
 
     const actualErrorRate = falsePositives / testSize;
-    expect(actualErrorRate).to.be.lessThan(bloomFilter.errorRate * 1.5);
+    const expectedErrorRate = bloomFilter.errorRate;
+    const zScore = 2;
+    const stdError = Math.sqrt(
+      (expectedErrorRate * (1 - expectedErrorRate)) / testSize
+    );
+    const upperBound = expectedErrorRate + zScore * stdError;
+    expect(actualErrorRate).to.be.lessThan(upperBound);
   });
 
   it("should never report false negatives", () => {
@@ -153,6 +159,12 @@ describe("BloomFilter with special patterns", () => {
     }
 
     const fpRate = falsePositives / testSize;
-    expect(fpRate).to.be.lessThan(bloomFilter.errorRate * 1.5);
+    const expectedErrorRate = bloomFilter.errorRate;
+    const zScore = 2;
+    const stdError = Math.sqrt(
+      (expectedErrorRate * (1 - expectedErrorRate)) / testSize
+    );
+    const upperBound = expectedErrorRate + zScore * stdError;
+    expect(fpRate).to.be.lessThan(upperBound);
   });
 });
