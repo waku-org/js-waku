@@ -24,8 +24,6 @@ const log = new Logger("peer-exchange");
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
 export class WakuPeerExchange implements IPeerExchange {
-  private readonly streamManager: StreamManager;
-
   /**
    * @param components - libp2p components
    */
@@ -110,6 +108,8 @@ export class WakuPeerExchange implements IPeerExchange {
       };
     }
   }
+
+  private readonly streamManager: StreamManager;
 }
 
 /**

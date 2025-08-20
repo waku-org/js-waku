@@ -31,9 +31,6 @@ export class LocalPeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
-  private isStarted: boolean;
-  private peers: LocalStoragePeerInfo[] = [];
-
   public constructor(
     private readonly components: Libp2pComponents,
     private readonly options?: LocalPeerCacheDiscoveryOptions
@@ -121,6 +118,9 @@ export class LocalPeerCacheDiscovery
     this.peers = localStoragePeers;
     this.savePeersToLocalStorage();
   };
+
+  private isStarted: boolean;
+  private peers: LocalStoragePeerInfo[] = [];
 
   private getPeersFromLocalStorage(): LocalStoragePeerInfo[] {
     try {

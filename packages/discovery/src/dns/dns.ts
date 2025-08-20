@@ -17,10 +17,6 @@ import {
 const log = new Logger("discovery:dns");
 
 export class DnsNodeDiscovery {
-  private readonly dns: DnsClient;
-  private readonly _DNSTreeCache: { [key: string]: string };
-  private readonly _errorTolerance: number = 10;
-
   public static async dnsOverHttp(
     dnsClient?: DnsClient
   ): Promise<DnsNodeDiscovery> {
@@ -28,6 +24,11 @@ export class DnsNodeDiscovery {
       dnsClient = await DnsOverHttps.create();
     }
     return new DnsNodeDiscovery(dnsClient);
+  }
+
+  public constructor(dns: DnsClient) {
+    this.dns = dns;
+    this._DNSTreeCache = {};
   }
 
   /**
@@ -66,11 +67,6 @@ export class DnsNodeDiscovery {
     return peers;
   }
 
-  public constructor(dns: DnsClient) {
-    this._DNSTreeCache = {};
-    this.dns = dns;
-  }
-
   /**
    * {@inheritDoc getPeers}
    */
@@ -94,6 +90,10 @@ export class DnsNodeDiscovery {
       yield peer;
     }
   }
+
+  private readonly dns: DnsClient;
+  private readonly _DNSTreeCache: { [key: string]: string };
+  private readonly _errorTolerance: number = 10;
 
   /**
    * Runs a recursive, randomized descent of the DNS tree to retrieve a single

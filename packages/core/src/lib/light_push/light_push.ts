@@ -33,50 +33,11 @@ type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
  */
 export class LightPushCore {
   public readonly multicodec = LightPushCodec;
+  public readonly pubsubTopics: PubsubTopic[];
 
-  public constructor(
-    public readonly pubsubTopics: PubsubTopic[],
-    libp2p: Libp2p
-  ) {
+  public constructor(pubsubTopics: PubsubTopic[], libp2p: Libp2p) {
+    this.pubsubTopics = pubsubTopics;
     this.streamManager = new StreamManager(LightPushCodec, libp2p.components);
-  }
-
-  private readonly streamManager: StreamManager;
-
-  private async preparePushMessage(
-    encoder: IEncoder,
-    message: IMessage
-  ): Promise<PreparePushMessageResult> {
-    try {
-      if (!message.payload || message.payload.length === 0) {
-        log.error("Failed to send waku light push: payload is empty");
-        return { query: null, error: ProtocolError.EMPTY_PAYLOAD };
-      }
-
-      if (!(await isMessageSizeUnderCap(encoder, message))) {
-        log.error("Failed to send waku light push: message is bigger than 1MB");
-        return { query: null, error: ProtocolError.SIZE_TOO_BIG };
-      }
-
-      const protoMessage = await encoder.toProtoObj(message);
-      if (!protoMessage) {
-        log.error("Failed to encode to protoMessage, aborting push");
-        return {
-          query: null,
-          error: ProtocolError.ENCODE_FAILED
-        };
-      }
-
-      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
-      return { query, error: null };
-    } catch (error) {
-      log.error("Failed to prepare push message", error);
-
-      return {
-        query: null,
-        error: ProtocolError.GENERIC_FAIL
-      };
-    }
   }
 
   public async send(
@@ -187,5 +148,43 @@ export class LightPushCore {
     }
 
     return { success: peerId, failure: null };
+  }
+
+  private readonly streamManager: StreamManager;
+
+  private async preparePushMessage(
+    encoder: IEncoder,
+    message: IMessage
+  ): Promise<PreparePushMessageResult> {
+    try {
+      if (!message.payload || message.payload.length === 0) {
+        log.error("Failed to send waku light push: payload is empty");
+        return { query: null, error: ProtocolError.EMPTY_PAYLOAD };
+      }
+
+      if (!(await isMessageSizeUnderCap(encoder, message))) {
+        log.error("Failed to send waku light push: message is bigger than 1MB");
+        return { query: null, error: ProtocolError.SIZE_TOO_BIG };
+      }
+
+      const protoMessage = await encoder.toProtoObj(message);
+      if (!protoMessage) {
+        log.error("Failed to encode to protoMessage, aborting push");
+        return {
+          query: null,
+          error: ProtocolError.ENCODE_FAILED
+        };
+      }
+
+      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
+      return { query, error: null };
+    } catch (error) {
+      log.error("Failed to prepare push message", error);
+
+      return {
+        query: null,
+        error: ProtocolError.GENERIC_FAIL
+      };
+    }
   }
 }

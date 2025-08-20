@@ -32,11 +32,6 @@ export class PeerDiscoveryDns
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, DiscoveryTrigger
 {
-  private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
-  private _started: boolean;
-  private _components: DnsDiscoveryComponents;
-  private _options: DnsDiscOptions;
-
   public constructor(
     components: DnsDiscoveryComponents,
     options: DnsDiscOptions
@@ -140,6 +135,11 @@ export class PeerDiscoveryDns
   public get [Symbol.toStringTag](): string {
     return DNS_DISCOVERY_TAG;
   }
+
+  private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
+  private _started: boolean;
+  private _components: DnsDiscoveryComponents;
+  private _options: DnsDiscOptions;
 }
 
 export function wakuDnsDiscovery(

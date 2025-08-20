@@ -20,16 +20,6 @@ type CreateKeepAliveManagerOptions = {
 };
 
 export class KeepAliveManager {
-  private readonly relay?: IRelay;
-  private readonly libp2p: Libp2p;
-
-  private readonly options: KeepAliveOptions;
-
-  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
-    new Map();
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
-    new Map();
-
   public constructor({
     options,
     relay,
@@ -128,6 +118,16 @@ export class KeepAliveManager {
       this.pingKeepAliveTimers.size > 0 || this.relayKeepAliveTimers.size > 0
     );
   }
+
+  private readonly relay?: IRelay;
+  private readonly libp2p: Libp2p;
+
+  private readonly options: KeepAliveOptions;
+
+  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
+    new Map();
+  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
+    new Map();
 
   private scheduleRelayPings(
     relay: IRelay,

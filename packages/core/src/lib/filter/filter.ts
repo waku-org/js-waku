@@ -36,15 +36,15 @@ type IncomingMessageHandler = (
 ) => Promise<void>;
 
 export class FilterCore {
-  private streamManager: StreamManager;
-
   public readonly multicodec = FilterCodecs.SUBSCRIBE;
+  public readonly pubsubTopics: PubsubTopic[];
 
   public constructor(
     private handleIncomingMessage: IncomingMessageHandler,
-    public readonly pubsubTopics: PubsubTopic[],
+    pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
+    this.pubsubTopics = pubsubTopics;
     this.streamManager = new StreamManager(
       FilterCodecs.SUBSCRIBE,
       libp2p.components
@@ -281,6 +281,9 @@ export class FilterCore {
       failure: null
     };
   }
+
+  private streamManager: StreamManager;
+  private handleIncomingMessage: IncomingMessageHandler;
 
   private onRequest(streamData: IncomingStreamData): void {
     const { connection, stream } = streamData;

@@ -7,11 +7,6 @@ import { selectOpenConnection } from "./utils.js";
 const STREAM_LOCK_KEY = "consumed";
 
 export class StreamManager {
-  private readonly log: Logger;
-
-  private ongoingCreation: Set<string> = new Set();
-  private streamPool: Map<string, Promise<void>> = new Map();
-
   public constructor(
     private multicodec: string,
     private readonly libp2p: Libp2pComponents
@@ -47,6 +42,11 @@ export class StreamManager {
 
     return stream;
   }
+
+  private readonly log: Logger;
+
+  private ongoingCreation: Set<string> = new Set();
+  private streamPool: Map<string, Promise<void>> = new Map();
 
   private async createStream(peerId: PeerId, retries = 0): Promise<Stream> {
     const connections = this.libp2p.connectionManager.getConnections(peerId);
