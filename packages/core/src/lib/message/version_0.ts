@@ -13,10 +13,10 @@ import type {
 import { proto_message as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-const log = new Logger("message:version-0");
-const OneMillion = BigInt(1_000_000);
+import { OneMillion, Version } from "./constants.js";
 
-export const Version = 0;
+const log = new Logger("message:version-0");
+
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
