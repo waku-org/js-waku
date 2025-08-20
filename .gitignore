@@ -18,3 +18,4 @@ packages/discovery/mock_local_storage
 .cursor
 .DS_Store
 CLAUDE.md
+packages/*/allure-results
