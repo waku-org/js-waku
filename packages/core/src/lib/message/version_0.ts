@@ -23,16 +23,13 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  private _hash: Uint8Array;
-  private _hashStr: string;
+  private _hash: Uint8Array | undefined;
+  private _hashStr: string | undefined;
 
   public constructor(
     public pubsubTopic: string,
     private proto: proto.WakuMessage
-  ) {
-    this._hash = messageHash(this.pubsubTopic, this.proto as IProtoMessage);
-    this._hashStr = bytesToHex(this._hash);
-  }
+  ) {}
 
   public get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -47,10 +44,16 @@ export class DecodedMessage implements IDecodedMessage {
   }
 
   public get hash(): Uint8Array {
+    if (this._hash === undefined) {
+      this._hash = messageHash(this.pubsubTopic, this.proto as IProtoMessage);
+    }
     return this._hash;
   }
 
   public get hashStr(): string {
+    if (this._hashStr === undefined) {
+      this._hashStr = bytesToHex(this.hash);
+    }
     return this._hashStr;
   }
 
