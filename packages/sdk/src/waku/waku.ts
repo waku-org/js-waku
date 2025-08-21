@@ -5,11 +5,18 @@ import {
   TypedEventEmitter
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
+import {
+  ConnectionManager,
+  createCodec,
+  createDecoder,
+  createEncoder
+} from "@waku/core";
 import type {
+  CreateCodecParams,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
+  ICodec,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -264,6 +271,7 @@ export class WakuNode implements IWaku {
       params.contentTopic,
       params.shardId
     );
+
     return createDecoder(params.contentTopic, routingInfo);
   }
 
@@ -276,6 +284,19 @@ export class WakuNode implements IWaku {
     return createEncoder({
       contentTopic: params.contentTopic,
       ephemeral: params.ephemeral,
+      routingInfo: routingInfo
+    });
+  }
+
+  public createCodec(params: CreateCodecParams): ICodec<IDecodedMessage> {
+    const routingInfo = this.createRoutingInfo(
+      params.contentTopic,
+      params.shardId
+    );
+
+    return createCodec({
+      contentTopic: params.contentTopic,
+      ephemeral: params.ephemeral ?? false,
       routingInfo: routingInfo
     });
   }

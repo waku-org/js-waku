@@ -16,10 +16,10 @@ import { bytesToHex } from "@waku/utils/bytes";
 
 import { messageHash } from "../message_hash/index.js";
 
-const log = new Logger("message:version-0");
-const OneMillion = BigInt(1_000_000);
+import { OneMillion, Version } from "./constants.js";
 
-export const Version = 0;
+const log = new Logger("message:version-0");
+
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
