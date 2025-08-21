@@ -20,20 +20,20 @@ export class PeerExchangeRPC {
   }
 
   /**
-   * Encode the current PeerExchangeRPC request to bytes
-   * @returns Uint8Array
-   */
-  public encode(): Uint8Array {
-    return proto.PeerExchangeRPC.encode(this.proto);
-  }
-
-  /**
    * Decode the current PeerExchangeRPC request to bytes
    * @returns Uint8Array
    */
   public static decode(bytes: Uint8ArrayList): PeerExchangeRPC {
     const res = proto.PeerExchangeRPC.decode(bytes);
     return new PeerExchangeRPC(res);
+  }
+
+  /**
+   * Encode the current PeerExchangeRPC request to bytes
+   * @returns Uint8Array
+   */
+  public encode(): Uint8Array {
+    return proto.PeerExchangeRPC.encode(this.proto);
   }
 
   public get query(): proto.PeerExchangeQuery | undefined {

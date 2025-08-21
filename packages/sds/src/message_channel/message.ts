@@ -20,10 +20,6 @@ export class Message implements proto_sds_message.SdsMessage {
     public retrievalHint?: Uint8Array | undefined
   ) {}
 
-  public encode(): Uint8Array {
-    return proto_sds_message.SdsMessage.encode(this);
-  }
-
   public static decode(data: Uint8Array): Message {
     const {
       messageId,
@@ -43,6 +39,10 @@ export class Message implements proto_sds_message.SdsMessage {
       bloomFilter,
       content
     );
+  }
+
+  public encode(): Uint8Array {
+    return proto_sds_message.SdsMessage.encode(this);
   }
 }
 

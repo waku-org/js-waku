@@ -93,6 +93,105 @@ export class RLNBaseContract {
     return instance;
   }
 
+  public static async queryFilter(
+    contract: ethers.Contract,
+    options: CustomQueryOptions
+  ): Promise<ethers.Event[]> {
+    const FETCH_CHUNK = 5;
+    const BLOCK_RANGE = 3000;
+
+    const {
+      fromBlock,
+      membersFilter,
+      fetchRange = BLOCK_RANGE,
+      fetchChunks = FETCH_CHUNK
+    } = options;
+
+    if (fromBlock === undefined) {
+      return contract.queryFilter(membersFilter);
+    }
+
+    if (!contract.provider) {
+      throw Error("No provider found on the contract.");
+    }
+
+    const toBlock = await contract.provider.getBlockNumber();
+
+    if (toBlock - fromBlock < fetchRange) {
+      return contract.queryFilter(membersFilter, fromBlock, toBlock);
+    }
+
+    const events: ethers.Event[][] = [];
+    const chunks = RLNBaseContract.splitToChunks(
+      fromBlock,
+      toBlock,
+      fetchRange
+    );
+
+    for (const portion of RLNBaseContract.takeN<[number, number]>(
+      chunks,
+      fetchChunks
+    )) {
+      const promises = portion.map(([left, right]) =>
+        RLNBaseContract.ignoreErrors(
+          contract.queryFilter(membersFilter, left, right),
+          []
+        )
+      );
+      const fetchedEvents = await Promise.all(promises);
+      events.push(fetchedEvents.flatMap((v) => v));
+    }
+
+    return events.flatMap((v) => v);
+  }
+
+  public static splitToChunks(
+    from: number,
+    to: number,
+    step: number
+  ): Array<[number, number]> {
+    const chunks: Array<[number, number]> = [];
+
+    let left = from;
+    while (left < to) {
+      const right = left + step < to ? left + step : to;
+
+      chunks.push([left, right] as [number, number]);
+
+      left = right;
+    }
+
+    return chunks;
+  }
+
+  public static *takeN<T>(array: T[], size: number): Iterable<T[]> {
+    let start = 0;
+
+    while (start < array.length) {
+      const portion = array.slice(start, start + size);
+
+      yield portion;
+
+      start += size;
+    }
+  }
+
+  public static async ignoreErrors<T>(
+    promise: Promise<T>,
+    defaultValue: T
+  ): Promise<T> {
+    try {
+      return await promise;
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        log.info(`Ignoring an error during query: ${err.message}`);
+      } else {
+        log.info(`Ignoring an unknown error during query`);
+      }
+      return defaultValue;
+    }
+  }
+
   /**
    * Gets the current rate limit for this contract instance
    */
@@ -212,58 +311,6 @@ export class RLNBaseContract {
     this.processEvents(events);
   }
 
-  public static async queryFilter(
-    contract: ethers.Contract,
-    options: CustomQueryOptions
-  ): Promise<ethers.Event[]> {
-    const FETCH_CHUNK = 5;
-    const BLOCK_RANGE = 3000;
-
-    const {
-      fromBlock,
-      membersFilter,
-      fetchRange = BLOCK_RANGE,
-      fetchChunks = FETCH_CHUNK
-    } = options;
-
-    if (fromBlock === undefined) {
-      return contract.queryFilter(membersFilter);
-    }
-
-    if (!contract.provider) {
-      throw Error("No provider found on the contract.");
-    }
-
-    const toBlock = await contract.provider.getBlockNumber();
-
-    if (toBlock - fromBlock < fetchRange) {
-      return contract.queryFilter(membersFilter, fromBlock, toBlock);
-    }
-
-    const events: ethers.Event[][] = [];
-    const chunks = RLNBaseContract.splitToChunks(
-      fromBlock,
-      toBlock,
-      fetchRange
-    );
-
-    for (const portion of RLNBaseContract.takeN<[number, number]>(
-      chunks,
-      fetchChunks
-    )) {
-      const promises = portion.map(([left, right]) =>
-        RLNBaseContract.ignoreErrors(
-          contract.queryFilter(membersFilter, left, right),
-          []
-        )
-      );
-      const fetchedEvents = await Promise.all(promises);
-      events.push(fetchedEvents.flatMap((v) => v));
-    }
-
-    return events.flatMap((v) => v);
-  }
-
   public processEvents(events: ethers.Event[]): void {
     const toRemoveTable = new Map<number, number[]>();
     const toInsertTable = new Map<number, ethers.Event[]>();
@@ -304,53 +351,6 @@ export class RLNBaseContract {
         toInsertTable.set(evt.blockNumber, eventsPerBlock);
       }
     });
-  }
-
-  public static splitToChunks(
-    from: number,
-    to: number,
-    step: number
-  ): Array<[number, number]> {
-    const chunks: Array<[number, number]> = [];
-
-    let left = from;
-    while (left < to) {
-      const right = left + step < to ? left + step : to;
-
-      chunks.push([left, right] as [number, number]);
-
-      left = right;
-    }
-
-    return chunks;
-  }
-
-  public static *takeN<T>(array: T[], size: number): Iterable<T[]> {
-    let start = 0;
-
-    while (start < array.length) {
-      const portion = array.slice(start, start + size);
-
-      yield portion;
-
-      start += size;
-    }
-  }
-
-  public static async ignoreErrors<T>(
-    promise: Promise<T>,
-    defaultValue: T
-  ): Promise<T> {
-    try {
-      return await promise;
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        log.info(`Ignoring an error during query: ${err.message}`);
-      } else {
-        log.info(`Ignoring an unknown error during query`);
-      }
-      return defaultValue;
-    }
   }
 
   public subscribeToMembers(): void {
@@ -681,59 +681,6 @@ export class RLNBaseContract {
     }
   }
 
-  /**
-   * Validates that the rate limit is within the allowed range (sync)
-   * @throws Error if the rate limit is outside the allowed range
-   */
-  private validateRateLimit(rateLimit: number): void {
-    if (this.minRateLimit === undefined || this.maxRateLimit === undefined) {
-      throw new Error("Rate limits not initialized");
-    }
-    if (rateLimit < this.minRateLimit || rateLimit > this.maxRateLimit) {
-      throw new Error(
-        `Rate limit must be between ${this.minRateLimit} and ${this.maxRateLimit} messages per epoch`
-      );
-    }
-  }
-
-  private get membersFilter(): ethers.EventFilter {
-    if (!this._membersFilter) {
-      throw Error("Members filter was not initialized.");
-    }
-    return this._membersFilter;
-  }
-
-  private get membershipErasedFilter(): ethers.EventFilter {
-    if (!this._membershipErasedFilter) {
-      throw Error("MembershipErased filter was not initialized.");
-    }
-    return this._membershipErasedFilter;
-  }
-
-  private get membersExpiredFilter(): ethers.EventFilter {
-    if (!this._membersExpiredFilter) {
-      throw Error("MembersExpired filter was not initialized.");
-    }
-    return this._membersExpiredFilter;
-  }
-
-  private async getMemberIndex(
-    idCommitmentBigInt: bigint
-  ): Promise<ethers.BigNumber | undefined> {
-    try {
-      const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitmentBigInt)
-      );
-      if (events.length === 0) return undefined;
-
-      // Get the most recent registration event
-      const event = events[events.length - 1];
-      return event.args?.index;
-    } catch (error) {
-      return undefined;
-    }
-  }
-
   public async getMembershipStatus(
     idCommitment: bigint
   ): Promise<"expired" | "grace" | "active"> {
@@ -800,5 +747,58 @@ export class RLNBaseContract {
       return { token: null, price: null };
     }
     return { token, price };
+  }
+
+  private get membersFilter(): ethers.EventFilter {
+    if (!this._membersFilter) {
+      throw Error("Members filter was not initialized.");
+    }
+    return this._membersFilter;
+  }
+
+  private get membershipErasedFilter(): ethers.EventFilter {
+    if (!this._membershipErasedFilter) {
+      throw Error("MembershipErased filter was not initialized.");
+    }
+    return this._membershipErasedFilter;
+  }
+
+  private get membersExpiredFilter(): ethers.EventFilter {
+    if (!this._membersExpiredFilter) {
+      throw Error("MembersExpired filter was not initialized.");
+    }
+    return this._membersExpiredFilter;
+  }
+
+  private async getMemberIndex(
+    idCommitmentBigInt: bigint
+  ): Promise<ethers.BigNumber | undefined> {
+    try {
+      const events = await this.contract.queryFilter(
+        this.contract.filters.MembershipRegistered(idCommitmentBigInt)
+      );
+      if (events.length === 0) return undefined;
+
+      // Get the most recent registration event
+      const event = events[events.length - 1];
+      return event.args?.index;
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  /**
+   * Validates that the rate limit is within the allowed range (sync)
+   * @throws Error if the rate limit is outside the allowed range
+   */
+  private validateRateLimit(rateLimit: number): void {
+    if (this.minRateLimit === undefined || this.maxRateLimit === undefined) {
+      throw new Error("Rate limits not initialized");
+    }
+    if (rateLimit < this.minRateLimit || rateLimit > this.maxRateLimit) {
+      throw new Error(
+        `Rate limit must be between ${this.minRateLimit} and ${this.maxRateLimit} messages per epoch`
+      );
+    }
   }
 }
