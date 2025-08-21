@@ -48,6 +48,14 @@ export class RlnMessage<T extends IDecodedMessage> implements IRlnMessage {
     return this.msg.payload;
   }
 
+  public get hash(): Uint8Array {
+    return this.msg.hash;
+  }
+
+  public get hashStr(): string {
+    return this.msg.hashStr;
+  }
+
   public get contentTopic(): string {
     return this.msg.contentTopic;
   }

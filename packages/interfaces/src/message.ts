@@ -20,6 +20,8 @@ export interface IDecodedMessage {
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
   meta: Uint8Array | undefined;
+  hash: Uint8Array;
+  hashStr: string;
 }
 
 export interface IRlnMessage extends IDecodedMessage {

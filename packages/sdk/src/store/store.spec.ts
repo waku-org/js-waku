@@ -76,7 +76,9 @@ describe("Store", () => {
       timestamp: new Date(),
       rateLimitProof: undefined,
       ephemeral: undefined,
-      meta: undefined
+      meta: undefined,
+      hash: new Uint8Array([1, 2, 3]),
+      hashStr: "010203"
     };
 
     it("should successfully query store with valid decoders and options", async () => {
