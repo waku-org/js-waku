@@ -43,6 +43,8 @@ export class HealthIndicator implements IHealthIndicator {
       "peer:disconnect",
       this.onPeerDisconnected as PeerEvent<PeerId>
     );
+
+    void this.assessHealth();
   }
 
   public stop(): void {
@@ -64,40 +66,42 @@ export class HealthIndicator implements IHealthIndicator {
 
   private async onPeerDisconnected(_event: CustomEvent<PeerId>): Promise<void> {
     log.info(`onPeerDisconnected: received libp2p event`);
-
-    const connections = this.libp2p.getConnections();
-
-    // we handle only Unhealthy here and onPeerIdentify will cover other cases
-    if (connections.length > 0) {
-      log.info("onPeerDisconnected: has connections, ignoring");
-    }
-
-    log.info(
-      `onPeerDisconnected: node identified as ${HealthStatus.Unhealthy}`
-    );
-
-    this.updateAndDispatchHealthEvent(HealthStatus.Unhealthy);
+    await this.assessHealth();
   }
 
   private async onPeerIdentify(
     _event: CustomEvent<IdentifyResult>
   ): Promise<void> {
     log.info(`onPeerIdentify: received libp2p event`);
+    await this.assessHealth();
+  }
 
+  private async assessHealth(): Promise<void> {
     const connections = this.libp2p.getConnections();
+
+    if (connections.length === 0) {
+      log.info("assessHealth: no connections, setting to Unhealthy");
+      this.updateAndDispatchHealthEvent(HealthStatus.Unhealthy);
+      return;
+    }
 
     const peers = await Promise.all(
       connections.map(async (c) => {
         try {
           return await this.libp2p.peerStore.get(c.remotePeer);
         } catch (e) {
+          log.warn(
+            `assessHealth: failed to get peer ${c.remotePeer}, skipping`
+          );
           return null;
         }
       })
     );
+
     const filterPeers = peers.filter((p) =>
       p?.protocols.includes(FilterCodecs.SUBSCRIBE)
     ).length;
+
     const lightPushPeers = peers.filter((p) =>
       p?.protocols.includes(LightPushCodec)
     ).length;
@@ -111,12 +115,14 @@ export class HealthIndicator implements IHealthIndicator {
       newValue = HealthStatus.MinimallyHealthy;
     } else {
       log.error(
-        `onPeerIdentify: unexpected state, cannot identify health status of the node: Filter:${filterPeers}; LightPush:${lightPushPeers}`
+        `assessHealth: unexpected state, cannot identify health status of the node: Filter:${filterPeers}; LightPush:${lightPushPeers}`
       );
       newValue = this.value;
     }
 
-    log.info(`onPeerIdentify: node identified as ${newValue}`);
+    log.info(
+      `assessHealth: node identified as ${newValue} Filter:${filterPeers}; LightPush:${lightPushPeers}`
+    );
     this.updateAndDispatchHealthEvent(newValue);
   }
 

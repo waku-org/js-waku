@@ -14,6 +14,12 @@ export class TopicOnlyMessage implements ITopicOnlyMessage {
   public get payload(): Uint8Array {
     throw "Only content topic can be accessed on this message";
   }
+  public get hash(): Uint8Array {
+    throw "Only content topic can be accessed on this message";
+  }
+  public get hashStr(): string {
+    throw "Only content topic can be accessed on this message";
+  }
   public rateLimitProof: undefined;
   public timestamp: undefined;
   public meta: undefined;
