@@ -17,20 +17,20 @@ import {
 } from "../peer_manager/peer_manager.js";
 
 import {
-  AutoRetrieval,
-  AutoRetrievalEvent,
-  AutoRetrievalOptions,
+  AutoQuery,
+  AutoQueryEvent,
+  AutoQueryOptions,
   calculateTimeRange,
   DEFAULT_FORCE_QUERY_THRESHOLD_MS
-} from "./auto_retrieval.js";
+} from "./auto_query.js";
 
 describe("AutoRetrieval", () => {
-  let autoRetrieval: AutoRetrieval<IDecodedMessage>;
+  let autoRetrieval: AutoQuery<IDecodedMessage>;
   let mockDecoders: IDecoder<IDecodedMessage>[];
   let mockPeerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>;
   let mockWakuEventEmitter: IWakuEventEmitter;
   let mockRetrieve: sinon.SinonStub;
-  let options: AutoRetrievalOptions;
+  let options: AutoQueryOptions;
 
   beforeEach(() => {
     // Mock decoders
@@ -86,8 +86,8 @@ describe("AutoRetrieval", () => {
   });
 
   describe("constructor", () => {
-    it("should create AutoRetrieval instance with all required parameters", () => {
-      autoRetrieval = new AutoRetrieval(
+    it("should create AutoQuery instance with all required parameters", () => {
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -95,24 +95,24 @@ describe("AutoRetrieval", () => {
         options
       );
 
-      expect(autoRetrieval).to.be.instanceOf(AutoRetrieval);
+      expect(autoRetrieval).to.be.instanceOf(AutoQuery);
       expect(autoRetrieval.decoders).to.equal(mockDecoders);
     });
 
-    it("should create AutoRetrieval instance without options", () => {
-      autoRetrieval = new AutoRetrieval(
+    it("should create AutoQuery instance without options", () => {
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockRetrieve
       );
 
-      expect(autoRetrieval).to.be.instanceOf(AutoRetrieval);
+      expect(autoRetrieval).to.be.instanceOf(AutoQuery);
       expect(autoRetrieval.decoders).to.equal(mockDecoders);
     });
 
     it("should accept empty decoders array", () => {
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         [],
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -124,7 +124,7 @@ describe("AutoRetrieval", () => {
     });
 
     it("should use default forceQueryThresholdMs when not provided in options", () => {
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -139,7 +139,7 @@ describe("AutoRetrieval", () => {
 
     it("should use custom forceQueryThresholdMs when provided in options", () => {
       const customThreshold = 15000;
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -155,7 +155,7 @@ describe("AutoRetrieval", () => {
 
   describe("start and stop", () => {
     beforeEach(() => {
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -194,7 +194,7 @@ describe("AutoRetrieval", () => {
 
   describe("mock validation", () => {
     beforeEach(() => {
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -245,7 +245,7 @@ describe("AutoRetrieval", () => {
           }
         });
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -295,7 +295,7 @@ describe("AutoRetrieval", () => {
 
       mockRetrieve.returns(mockAsyncGenerator());
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -317,7 +317,7 @@ describe("AutoRetrieval", () => {
         timeEnd: new Date()
       };
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -337,7 +337,7 @@ describe("AutoRetrieval", () => {
     beforeEach(() => {
       mockClock = sinon.useFakeTimers();
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -430,11 +430,11 @@ describe("AutoRetrieval", () => {
 
     it("should respect custom forceQueryThresholdMs in retrieval conditions", () => {
       const customThreshold = 2000;
-      const customOptions: AutoRetrievalOptions = {
+      const customOptions: AutoQueryOptions = {
         forceQueryThresholdMs: customThreshold
       };
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -486,7 +486,7 @@ describe("AutoRetrieval", () => {
           }
         });
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -496,7 +496,7 @@ describe("AutoRetrieval", () => {
 
       // Listen for message events
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessagesRetrieved as any,
+        AutoQueryEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
@@ -606,7 +606,7 @@ describe("AutoRetrieval", () => {
       };
       mockRetrieve.returns(mockAsyncGenerator());
 
-      autoRetrieval = new AutoRetrieval(
+      autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -616,7 +616,7 @@ describe("AutoRetrieval", () => {
 
       // Re-setup event listeners for new instance
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessagesRetrieved as any,
+        AutoQueryEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
@@ -678,7 +678,7 @@ describe("AutoRetrieval", () => {
       // Create a new promise for multiple messages
       const multipleMessagesPromise = new Promise<void>((resolve) => {
         autoRetrieval.addEventListener(
-          AutoRetrievalEvent.MessagesRetrieved as any,
+          AutoQueryEvent.MessagesRetrieved as any,
           (event: any) => {
             receivedMessages.push(event.detail);
             messageCount++;
@@ -721,7 +721,7 @@ describe("AutoRetrieval", () => {
 
       // Override promise to reject if any message is received
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessagesRetrieved as any,
+        AutoQueryEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission");
         }
@@ -744,7 +744,7 @@ describe("AutoRetrieval", () => {
 
       // Override promise to reject if any message is received
       autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessagesRetrieved as any,
+        AutoQueryEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission after error");
         }

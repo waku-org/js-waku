@@ -26,7 +26,7 @@ import {
 import { Logger } from "@waku/utils";
 import { bytesToHex } from "@waku/utils/bytes";
 
-import { AutoRetrieval, AutoRetrievalEvent } from "./auto_retrieval.js";
+import { AutoQuery, AutoQueryEvent } from "./auto_query.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { RetryManager } from "./retry_manager.js";
 
@@ -132,7 +132,7 @@ export class ReliableChannel<
   private readonly retrieveFrequencyMs: number;
   private retrieveInterval: ReturnType<typeof setInterval> | undefined;
   private missingMessages: Map<MessageId, Uint8Array<ArrayBufferLike>>; // Waku Message Ids
-  private readonly autoRetrieval?: AutoRetrieval<T>;
+  private readonly autoRetrieval?: AutoQuery<T>;
   public isStarted: boolean;
 
   private constructor(
@@ -165,7 +165,7 @@ export class ReliableChannel<
       this._retrieve = node.store.queryGenerator.bind(node.store);
       const peerManagerEvents = (node as any)?.peerManager?.events;
       if (peerManagerEvents && (options?.autoRetrieval ?? true)) {
-        this.autoRetrieval = new AutoRetrieval(
+        this.autoRetrieval = new AutoQuery(
           [this.decoder],
           peerManagerEvents,
           node.events,
@@ -618,7 +618,7 @@ export class ReliableChannel<
 
     if (this.autoRetrieval) {
       this.autoRetrieval.addEventListener(
-        AutoRetrievalEvent.MessagesRetrieved,
+        AutoQueryEvent.MessagesRetrieved,
         (event) => {
           void this.processIncomingMessages(event.detail);
         }

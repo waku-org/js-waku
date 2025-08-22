@@ -14,12 +14,12 @@ import {
   PeerManagerEventNames
 } from "../peer_manager/peer_manager.js";
 
-const log = new Logger("sdk:auto-retrieval");
+const log = new Logger("sdk:auto-query");
 
 export const DEFAULT_FORCE_QUERY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 export const MAX_TIME_RANGE_QUERY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-export interface AutoRetrievalOptions {
+export interface AutoQueryOptions {
   /**
    * Elapsed time since the last successful query, after which we proceed with
    * a store query, on a connection event, no matter the conditions.
@@ -28,15 +28,15 @@ export interface AutoRetrievalOptions {
   forceQueryThresholdMs?: number;
 }
 
-export enum AutoRetrievalEvent {
+export enum AutoQueryEvent {
   /**
    * A message has been retrieved.
    */
   MessagesRetrieved = "message:retrieved"
 }
 
-export type AutoRetrievalEvents = {
-  [AutoRetrievalEvent.MessagesRetrieved]: CustomEvent<IDecodedMessage[]>;
+export type AutoQueryEvents = {
+  [AutoQueryEvent.MessagesRetrieved]: CustomEvent<IDecodedMessage[]>;
 };
 
 /**
@@ -45,9 +45,9 @@ export type AutoRetrievalEvents = {
  *
  * @emits <T extends IDecodedMessage> message retrieved on "messages"
  */
-export class AutoRetrieval<
+export class AutoQuery<
   T extends IDecodedMessage
-> extends TypedEventEmitter<AutoRetrievalEvents> {
+> extends TypedEventEmitter<AutoQueryEvents> {
   private lastSuccessfulQuery: number;
   private lastTimeOffline: number;
   private readonly forceQueryThresholdMs: number;
@@ -56,11 +56,11 @@ export class AutoRetrieval<
     public decoders: IDecoder<T>[],
     private readonly peerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>,
     private readonly wakuEventEmitter: IWakuEventEmitter,
-    private readonly _retrieve: <T extends IDecodedMessage>(
+    private readonly _queryGenerator: <T extends IDecodedMessage>(
       decoders: IDecoder<T>[],
       options?: Partial<QueryRequestParams>
     ) => AsyncGenerator<Promise<T | undefined>[]>,
-    options?: AutoRetrievalOptions
+    options?: AutoQueryOptions
   ) {
     super();
     this.lastSuccessfulQuery = 0;
@@ -70,7 +70,7 @@ export class AutoRetrieval<
   }
 
   public start(): void {
-    log.info("starting auto retrieval service");
+    log.info("starting auto query service");
     this.setupEventListeners();
   }
 
@@ -78,8 +78,8 @@ export class AutoRetrieval<
     this.unsetEventListeners();
   }
 
-  private maybeRetrieve(): void {
-    log.info("maybe retrieve");
+  private maybeQuery(): void {
+    log.info("maybe auto-query");
     const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
     // if we were marked as "offline" after last successful query
     // OR, last successful query was too long ago
@@ -87,18 +87,16 @@ export class AutoRetrieval<
       this.lastTimeOffline > this.lastSuccessfulQuery ||
       timeSinceLastQuery > this.forceQueryThresholdMs
     ) {
-      this.retrieve().catch((err) =>
-        log.error("Error retrieving messages", err)
-      );
+      this.query().catch((err) => log.error("Error auto-query", err));
     }
   }
 
-  private async retrieve(): Promise<void> {
-    log.info("perform retrieval");
+  private async query(): Promise<void> {
+    log.info("perform auto-query");
     const { timeStart, timeEnd } = this.queryTimeRange();
     try {
       // TODO: pass peer id so we use the peer we just connected to
-      for await (const page of this._retrieve(this.decoders, {
+      for await (const page of this._queryGenerator(this.decoders, {
         timeStart,
         timeEnd
       })) {
@@ -130,7 +128,7 @@ export class AutoRetrieval<
   private dispatchMessages<T extends IDecodedMessage>(messages: T[]): void {
     log.info("dispatching message");
     this.dispatchEvent(
-      new CustomEvent<IDecodedMessage[]>(AutoRetrievalEvent.MessagesRetrieved, {
+      new CustomEvent<IDecodedMessage[]>(AutoQueryEvent.MessagesRetrieved, {
         detail: messages
       })
     );
@@ -139,7 +137,7 @@ export class AutoRetrieval<
   private setupEventListeners(): void {
     this.peerManagerEventEmitter.addEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeRetrieve.bind(this)
+      this.maybeQuery.bind(this)
     );
 
     this.wakuEventEmitter.addEventListener(
@@ -151,7 +149,7 @@ export class AutoRetrieval<
   private unsetEventListeners(): void {
     this.peerManagerEventEmitter.removeEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeRetrieve.bind(this)
+      this.maybeQuery.bind(this)
     );
 
     this.wakuEventEmitter.removeEventListener(
