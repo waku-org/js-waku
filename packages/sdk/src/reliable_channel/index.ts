@@ -388,7 +388,6 @@ export class ReliableChannel<
     // Do a process straight away
     // TODO: review and optimize
     await this.messageChannel.processTasks();
-    this.messageChannel.sweepIncomingBuffer();
   }
 
   private async processIncomingMessages<T extends IDecodedMessage>(
