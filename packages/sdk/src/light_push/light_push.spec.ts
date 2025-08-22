@@ -1,5 +1,10 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { createEncoder, Encoder, LightPushCodec } from "@waku/core";
+import {
+  createEncoder,
+  Encoder,
+  LightPushCodec,
+  LightPushCodecV2
+} from "@waku/core";
 import { Libp2p, LightPushError, LightPushStatusCode } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -243,7 +248,7 @@ function mockV3Peer(id: string): Peer {
 }
 
 function mockV2AndV3Peer(id: string): Peer {
-  return mockPeer(id, [LightPushCodec, LightPushCodec]);
+  return mockPeer(id, [LightPushCodec, LightPushCodecV2]);
 }
 
 function mockV3SuccessResponse(relayPeerCount?: number): {

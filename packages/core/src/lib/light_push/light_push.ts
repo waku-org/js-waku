@@ -32,9 +32,14 @@ export class LightPushCore {
   private readonly streamManagerV2: StreamManager;
   public readonly multicodec = [CODECS.v3, CODECS.v2];
 
-  public constructor(private libp2p: Libp2p) {
-    this.streamManager = new StreamManager(CODECS.v3, libp2p.components);
+  public constructor(
+    private libp2p: Libp2p,
+    legacy?: boolean
+  ) {
     this.streamManagerV2 = new StreamManager(CODECS.v2, libp2p.components);
+    this.streamManager = legacy
+      ? this.streamManagerV2
+      : new StreamManager(CODECS.v3, libp2p.components);
   }
 
   public async send(
@@ -48,7 +53,10 @@ export class LightPushCore {
     try {
       const peer = await this.libp2p.peerStore.get(peerId);
 
-      if (peer.protocols.includes(CODECS.v3)) {
+      if (
+        this.streamManager.multicodec === CODECS.v3 &&
+        peer.protocols.includes(CODECS.v3)
+      ) {
         stream = await this.streamManager.getStream(peerId);
         protocol = CODECS.v3;
       } else {

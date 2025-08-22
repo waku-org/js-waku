@@ -111,10 +111,12 @@ export class WakuNode implements IWaku {
     }
 
     if (protocolsEnabled.lightpush) {
+      const legacyFlag = (options?.lightPush as any)?.legacy;
       this.lightPush = new LightPush({
         libp2p,
         peerManager: this.peerManager,
-        options: options?.lightPush
+        options: options?.lightPush,
+        legacy: legacyFlag
       });
     }
 

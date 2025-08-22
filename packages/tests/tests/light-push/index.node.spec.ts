@@ -21,9 +21,9 @@ import {
   TestRoutingInfo
 } from "./utils.js";
 
-const runTests = (strictNodeCheck: boolean): void => {
+const runTests = (strictNodeCheck: boolean, legacy: boolean): void => {
   const numServiceNodes = 2;
-  describe(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
+  describe(`Waku Light Push (legacy=${legacy ? "v2" : "v3"}): Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(15000);
     let waku: LightNode;
@@ -36,7 +36,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         { lightpush: true, filter: true },
         strictNodeCheck,
         numServiceNodes,
-        true
+        true,
+        {
+          // Pass legacy flag to createLightNode so that LightPush uses v2 when true
+          lightPush: { legacy }
+        } as any
       );
     });
 
@@ -257,4 +261,6 @@ const runTests = (strictNodeCheck: boolean): void => {
   });
 };
 
-[true, false].map(runTests);
+[true, false].forEach((strictNodeCheck) => {
+  [true, false].forEach((legacy) => runTests(strictNodeCheck, legacy));
+});
