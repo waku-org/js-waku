@@ -5,6 +5,16 @@ export type IFilter = {
   readonly multicodec: string;
 
   /**
+   * Starts the filter protocol.
+   */
+  start(): Promise<void>;
+
+  /**
+   * Stops the filter protocol.
+   */
+  stop(): Promise<void>;
+
+  /**
    * Subscribes to messages that match the filtering criteria defined in the specified decoders.
    * Executes a callback upon receiving each message.
    * Checks for a valid peer connection before starting. Will wait until a peer is available.
