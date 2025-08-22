@@ -375,7 +375,8 @@ export class ReliableChannel<
 
       // Overrides msg.payload with unwrapped payload
       // TODO: can we do better?
-      const unwrappedMessage = Object.assign(msg, {
+      const { payload: _p, ...allButPayload } = msg;
+      const unwrappedMessage = Object.assign(allButPayload, {
         payload: sdsMessage.content,
         hash: msg.hash,
         hashStr: msg.hashStr,
