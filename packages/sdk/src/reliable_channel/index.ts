@@ -24,7 +24,6 @@ import {
   SyncMessage
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
-import { bytesToHex } from "@waku/utils/bytes";
 
 import { AutoQuery, AutoQueryEvent } from "./auto_query.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
@@ -32,7 +31,7 @@ import { RetryManager } from "./retry_manager.js";
 
 export { ReliableChannelEvents, ReliableChannelEvent };
 
-const log = new Logger("sdk:reliable-channel");
+const log = new Logger("waku:sdk:reliable-channel");
 
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
@@ -358,9 +357,7 @@ export class ReliableChannel<
     }
 
     const retrievalHint = msg.hash;
-    log.info(
-      `processing message ${sdsMessage.messageId} with hint ${bytesToHex(retrievalHint)}`
-    );
+    log.info(`processing message ${sdsMessage.messageId}:${msg.hashStr}`);
     // SDS Message decoded, let's pass it to the channel so we can learn about
     // missing messages or the status of previous outgoing messages
     this.messageChannel.pushIncomingMessage(sdsMessage, retrievalHint);
@@ -373,11 +370,18 @@ export class ReliableChannel<
       // Now, process the message with callback
 
       // Overrides msg.payload with unwrapped payload
-      // `payload` is just here to be discarded
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { payload, ...allButPayload } = msg;
-      const unwrappedMessage = Object.assign(allButPayload, {
-        payload: sdsMessage.content
+      // TODO: can we do better?
+      const unwrappedMessage = Object.assign(msg, {
+        payload: sdsMessage.content,
+        hash: msg.hash,
+        hashStr: msg.hashStr,
+        version: msg.version,
+        contentTopic: msg.contentTopic,
+        pubsubTopic: msg.pubsubTopic,
+        timestamp: msg.timestamp,
+        rateLimitProof: msg.rateLimitProof,
+        ephemeral: msg.ephemeral,
+        meta: msg.meta
       });
 
       this.safeSendEvent(ReliableChannelEvent.InMessageReceived, {
