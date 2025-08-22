@@ -1,87 +1,228 @@
-import { createEncoder } from "@waku/core";
-import { LightNode, Protocols } from "@waku/interfaces";
-import { createLightNode, utf8ToBytes } from "@waku/sdk";
-import { createRoutingInfo } from "@waku/utils";
+import { bootstrap } from "@libp2p/bootstrap";
+import type { PeerId } from "@libp2p/interface";
+import { wakuPeerExchangeDiscovery } from "@waku/discovery";
+import type { LightNode } from "@waku/interfaces";
+import { createLightNode, Tags } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { expect } from "chai";
+import Sinon, { SinonSpy } from "sinon";
 
 import {
-  DefaultTestContentTopic,
-  DefaultTestNetworkConfig
-} from "../../src/constants.js";
-import { applyDefaultArgs, ServiceNode } from "../../src/index.js";
-import { waitForConnections } from "../../src/utils/waitForConnections.js";
+  afterEachCustom,
+  beforeEachCustom,
+  DefaultTestClusterId,
+  DefaultTestNetworkConfig,
+  DefaultTestShardInfo,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../../src/index.js";
 
-const routingInfo = createRoutingInfo(DefaultTestNetworkConfig, {
-  contentTopic: DefaultTestContentTopic
-});
+export const log = new Logger("test:light-push:protocol-handler");
 
-const testMatrix: Array<{ name: string; versions: ("v2" | "v3")[] }> = [
-  { name: "all-v2", versions: ["v2", "v2"] },
-  { name: "all-v3", versions: ["v3", "v3"] },
-  { name: "mixed-v2-v3", versions: ["v2", "v3"] }
-];
-
-const encoder = createEncoder({
-  routingInfo,
-  contentTopic: DefaultTestContentTopic
-});
-const payloadText = "Hello test";
-
-describe("LightPush compatibility with v2/v3 nwaku versions", function () {
-  this.timeout(20_000);
-
+describe("Light Push: v2/v3 protocol handler", function () {
+  this.timeout(150_000);
   let waku: LightNode;
+  let nwaku1: ServiceNode;
+  let nwaku2: ServiceNode;
+  let nwaku3: ServiceNode;
+  let dialPeerSpy: SinonSpy;
 
-  describe("LightPush compatibility with v2/v3 nwaku versions", function () {
-    testMatrix.forEach(({ versions }) => {
-      it(`sends to nodes with versions: ${versions}`, async () => {
-        const imageMap: Record<"v2" | "v3", string> = {
-          v2: process.env.NWAKU_IMAGE_V2 || "wakuorg/nwaku:v0.35.0",
-          v3: process.env.NWAKU_IMAGE_V3 || "wakuorg/nwaku:v0.35.1"
-        };
+  beforeEachCustom(this, async () => {
+    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    await nwaku1.start({
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestShardInfo.shards,
+      discv5Discovery: true,
+      peerExchange: true,
+      relay: true
+    });
+    await nwaku2.start({
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestShardInfo.shards,
+      discv5Discovery: true,
+      peerExchange: true,
+      discv5BootstrapNode: (await nwaku1.info()).enrUri,
+      relay: true
+    });
+  });
 
-        const nodes: ServiceNode[] = [];
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+  });
 
-        for (const ver of versions) {
-          const node = new ServiceNode(
-            `lp_${ver}_${Math.random().toString(36).substring(7)}`,
-            imageMap[ver]
-          );
-          let addr: string | undefined;
-          if (nodes[0]) {
-            addr = await nodes[0].getExternalMultiaddr();
+  it("peer exchange sets tag", async function () {
+    waku = await createLightNode({
+      networkConfig: DefaultTestNetworkConfig,
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
+          wakuPeerExchangeDiscovery()
+        ]
+      }
+    });
+    await waku.start();
+
+    dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
+    const pxPeersDiscovered = new Set<PeerId>();
+
+    await new Promise<void>((resolve) => {
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        return void (async () => {
+          const peerId = evt.detail.id;
+          const peer = await waku.libp2p.peerStore.get(peerId);
+          const tags = Array.from(peer.tags.keys());
+          if (tags.includes(Tags.PEER_EXCHANGE)) {
+            pxPeersDiscovered.add(peerId);
+            if (pxPeersDiscovered.size === 1) {
+              resolve();
+            }
           }
-          const args = applyDefaultArgs(routingInfo, {
-            staticnode: addr
-          });
-          await node.start(args, { retries: 3 });
-          nodes.push(node);
-        }
-
-        waku = await createLightNode({
-          libp2p: {
-            addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
-          },
-          networkConfig: DefaultTestNetworkConfig,
-          staticNoiseKey: new Uint8Array(32)
-        });
-        await waku.start();
-
-        // Dial all service nodes
-        for (const n of nodes) {
-          await n.ensureSubscriptions([routingInfo.pubsubTopic]);
-          await waku.dial(await n.getMultiaddrWithId());
-        }
-
-        await waitForConnections(nodes.length, waku);
-        await waku.waitForPeers([Protocols.LightPush]);
-
-        const result = await waku.lightPush.send(encoder, {
-          payload: utf8ToBytes(payloadText)
-        });
-        expect(result.failures.length).to.equal(0);
-        expect(result.successes.length).to.be.at.least(1);
+        })();
       });
     });
+
+    expect(dialPeerSpy.callCount).to.equal(1);
+    expect(pxPeersDiscovered.size).to.equal(1);
+  });
+
+  // will be skipped until https://github.com/waku-org/js-waku/issues/1860 is fixed
+  it.skip("new peer added after a peer was already found", async function () {
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
+          wakuPeerExchangeDiscovery()
+        ]
+      }
+    });
+    await waku.start();
+
+    dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+    const pxPeersDiscovered = new Set<PeerId>();
+    await new Promise<void>((resolve) => {
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        return void (async () => {
+          const peerId = evt.detail.id;
+          const peer = await waku.libp2p.peerStore.get(peerId);
+          const tags = Array.from(peer.tags.keys());
+          if (tags.includes(Tags.PEER_EXCHANGE)) {
+            pxPeersDiscovered.add(peerId);
+            if (pxPeersDiscovered.size === 1) {
+              resolve();
+            }
+          }
+        })();
+      });
+    });
+
+    nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+    await nwaku3.start({
+      clusterId: DefaultTestClusterId,
+      shard: DefaultTestShardInfo.shards,
+      discv5Discovery: true,
+      peerExchange: true,
+      discv5BootstrapNode: (await nwaku1.info()).enrUri,
+      relay: true,
+      lightpush: true,
+      filter: true
+    });
+
+    await new Promise<void>((resolve) => {
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        return void (async () => {
+          const peerId = evt.detail.id;
+          const peer = await waku.libp2p.peerStore.get(peerId);
+          const tags = Array.from(peer.tags.keys());
+          if (tags.includes(Tags.PEER_EXCHANGE)) {
+            pxPeersDiscovered.add(peerId);
+            if (pxPeersDiscovered.size === 2) {
+              resolve();
+            }
+          }
+        })();
+      });
+    });
+  });
+
+  // will be skipped until https://github.com/waku-org/js-waku/issues/1858 is fixed
+  it.skip("wrong wakuPeerExchangeDiscovery pubsub topic", async function () {
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
+          wakuPeerExchangeDiscovery()
+        ]
+      }
+    });
+    await waku.start();
+    dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
+
+    const pxPeersDiscovered = new Set<PeerId>();
+    await new Promise<void>((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve();
+      }, 40000);
+
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        return void (async () => {
+          const peerId = evt.detail.id;
+          const peer = await waku.libp2p.peerStore.get(peerId);
+          const tags = Array.from(peer.tags.keys());
+          if (tags.includes(Tags.PEER_EXCHANGE)) {
+            pxPeersDiscovered.add(peerId);
+            if (pxPeersDiscovered.size === 1) {
+              clearTimeout(timeoutId);
+              resolve();
+            }
+          }
+        })();
+      });
+    });
+
+    expect(
+      pxPeersDiscovered.size,
+      "No peer should have been discovered"
+    ).to.equal(0);
+  });
+
+  it("peerDiscovery without wakuPeerExchangeDiscovery", async function () {
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] })
+        ]
+      }
+    });
+    await waku.start();
+    dialPeerSpy = Sinon.spy((waku as any).libp2p, "dial");
+
+    const pxPeersDiscovered = new Set<PeerId>();
+    await new Promise<void>((resolve) => {
+      const timeoutId = setTimeout(() => {
+        resolve();
+      }, 40000);
+
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        return void (async () => {
+          const peerId = evt.detail.id;
+          const peer = await waku.libp2p.peerStore.get(peerId);
+          const tags = Array.from(peer.tags.keys());
+          if (tags.includes(Tags.PEER_EXCHANGE)) {
+            pxPeersDiscovered.add(peerId);
+            if (pxPeersDiscovered.size === 1) {
+              clearTimeout(timeoutId);
+              resolve();
+            }
+          }
+        })();
+      });
+    });
+
+    expect(
+      pxPeersDiscovered.size,
+      "No peer should have been discovered"
+    ).to.equal(0);
   });
 });

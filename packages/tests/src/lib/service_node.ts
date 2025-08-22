@@ -58,7 +58,6 @@ export class ServiceNode {
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
   private readonly logPath: string;
-  private readonly dockerImageName: string;
   private restPort?: number;
   private args?: Args;
 
@@ -89,13 +88,10 @@ export class ServiceNode {
     };
   }
 
-  public constructor(
-    logName: string,
-    dockerImageName: string = DOCKER_IMAGE_NAME
-  ) {
+  public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
-    this.dockerImageName = dockerImageName;
-    const nwakuVersion = dockerImageName.split(":")[1];
+    const nwakuImage = process.env.WAKUNODE_IMAGE;
+    const nwakuVersion = nwakuImage?.split(":")[1];
 
     if (nwakuVersion && nwakuVersion.startsWith("v")) {
       const versionParts = nwakuVersion.substring(1).split(".");
@@ -122,7 +118,7 @@ export class ServiceNode {
     await pRetry(
       async () => {
         try {
-          this.docker = await Dockerode.createInstance(this.dockerImageName);
+          this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
           try {
             await existsAsync(LOG_DIR);
           } catch (e) {

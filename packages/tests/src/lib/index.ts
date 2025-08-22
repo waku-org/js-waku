@@ -254,7 +254,7 @@ class MultipleNodesMessageCollector {
   }
 }
 
-export function applyDefaultArgs(routingInfo: RoutingInfo, args?: Args): Args {
+function applyDefaultArgs(routingInfo: RoutingInfo, args?: Args): Args {
   const defaultArgs: Args = {
     lightpush: true,
     filter: true,
