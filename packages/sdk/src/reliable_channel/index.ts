@@ -357,7 +357,7 @@ export class ReliableChannel<
       return;
     }
 
-    const retrievalHint = messageHash(msg.pubsubTopic, msg);
+    const retrievalHint = msg.hash;
     log.info(
       `processing message ${sdsMessage.messageId} with hint ${bytesToHex(retrievalHint)}`
     );
