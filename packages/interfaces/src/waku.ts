@@ -53,9 +53,22 @@ export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
 
 export interface IWaku {
   libp2p: Libp2p;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.send} and {@link IWaku.subscribe} instead
+   */
   relay?: IRelay;
+
   store?: IStore;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.subscribe} instead
+   */
   filter?: IFilter;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.send} instead
+   */
   lightPush?: ILightPush;
 
   /**
