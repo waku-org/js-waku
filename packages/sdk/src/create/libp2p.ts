@@ -4,7 +4,7 @@ import { identify } from "@libp2p/identify";
 import { mplex } from "@libp2p/mplex";
 import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
-import { all as filterAll, wss } from "@libp2p/websockets/filters";
+import { WebSockets, WebSocketsSecure } from "@multiformats/multiaddr-matcher";
 import { wakuMetadata } from "@waku/core";
 import {
   type ClusterId,
@@ -44,16 +44,32 @@ export async function defaultLibp2p(
     /* eslint-enable no-console */
   }
 
-  const filter =
-    options?.filterMultiaddrs === false || isTestEnvironment()
-      ? filterAll
-      : wss;
+  // Create connection gater that replaces deprecated websocket filters
+  const allowWsConnections =
+    options?.filterMultiaddrs === false || isTestEnvironment();
 
   return createLibp2p({
-    transports: [webSockets({ filter: filter })],
+    transports: [webSockets()],
     streamMuxers: [mplex()],
     connectionEncrypters: [noise()],
     ...options,
+    connectionGater: {
+      denyDialMultiaddr: async (multiaddr) => {
+        // Allow WSS (secure websockets) connections
+        if (WebSocketsSecure.matches(multiaddr)) {
+          return false;
+        }
+
+        // Allow WS (non-secure websockets) only if explicitly enabled
+        if (WebSockets.matches(multiaddr)) {
+          return !allowWsConnections;
+        }
+
+        // Allow all other types of connections
+        return false;
+      },
+      ...options?.connectionGater
+    },
     services: {
       identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent

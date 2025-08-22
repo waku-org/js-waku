@@ -31,7 +31,9 @@ export type CreateLibp2pOptions = Libp2pOptions & {
   hideWebSocketInfo?: boolean;
   pingMaxInboundStreams?: number;
   /**
-   * Applies secure web socket filters.
+   * Controls WebSocket connection filtering via connection gater.
+   * When true (default), only secure WebSocket (WSS) connections are allowed.
+   * When false, both secure (WSS) and non-secure (WS) WebSocket connections are allowed.
    * @default true
    */
   filterMultiaddrs?: boolean;
