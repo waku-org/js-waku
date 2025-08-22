@@ -26,7 +26,7 @@ import {
 } from "@waku/interfaces";
 import { ContentMessage, MessageChannelEvent } from "@waku/sds";
 import { createRoutingInfo, delay } from "@waku/utils";
-import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
+import { bytesToUtf8, hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 import sinon from "sinon";
@@ -1094,6 +1094,8 @@ describe("Reliable Channel", () => {
       );
 
       const testMessage: IDecodedMessage = {
+        hash: hexToBytes("1234"),
+        hashStr: "1234",
         version: 1,
         timestamp: new Date(),
         contentTopic: TEST_CONTENT_TOPIC,
@@ -1164,6 +1166,8 @@ describe("Reliable Channel", () => {
       );
 
       const autoRetrievedMessage: IDecodedMessage = {
+        hash: hexToBytes("1234"),
+        hashStr: "1234",
         version: 1,
         timestamp: new Date(),
         contentTopic: TEST_CONTENT_TOPIC,
@@ -1239,6 +1243,8 @@ describe("Reliable Channel", () => {
       );
 
       const autoRetrievedMessage1: IDecodedMessage = {
+        hash: hexToBytes("5678"),
+        hashStr: "5678",
         version: 1,
         timestamp: new Date(Date.now() - 1000),
         contentTopic: TEST_CONTENT_TOPIC,
@@ -1250,6 +1256,8 @@ describe("Reliable Channel", () => {
       };
 
       const autoRetrievedMessage2: IDecodedMessage = {
+        hash: hexToBytes("9abc"),
+        hashStr: "9abc",
         version: 1,
         timestamp: new Date(),
         contentTopic: TEST_CONTENT_TOPIC,

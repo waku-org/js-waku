@@ -18,7 +18,6 @@ import {
   MessageChannel,
   MessageChannelEvent,
   type MessageChannelOptions,
-  type MessageId,
   Message as SdsMessage,
   type SenderId,
   SyncMessage
@@ -27,6 +26,7 @@ import { Logger } from "@waku/utils";
 
 import { AutoQuery, AutoQueryEvent } from "./auto_query.js";
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
+import { MissingMessageRetriever } from "./missing_message_retriever.js";
 import { RetryManager } from "./retry_manager.js";
 
 export { ReliableChannelEvents, ReliableChannelEvent };
@@ -36,7 +36,6 @@ const log = new Logger("waku:sdk:reliable-channel");
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
-const DEFAULT_RETRIEVE_FREQUENCY_MS = 10 * 1000; // 10 seconds
 
 const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.ENCODE_FAILED,
@@ -128,9 +127,7 @@ export class ReliableChannel<
   private readonly syncMinIntervalMs: number;
   private syncTimeout: ReturnType<typeof setTimeout> | undefined;
   private readonly retryManager: RetryManager | undefined;
-  private readonly retrieveFrequencyMs: number;
-  private retrieveInterval: ReturnType<typeof setInterval> | undefined;
-  private missingMessages: Map<MessageId, Uint8Array<ArrayBufferLike>>; // Waku Message Ids
+  private readonly missingMessageRetriever?: MissingMessageRetriever<T>;
   private readonly autoRetrieval?: AutoQuery<T>;
   public isStarted: boolean;
 
@@ -186,9 +183,18 @@ export class ReliableChannel<
       this.retryManager = new RetryManager(retryIntervalMs, maxRetryAttempts);
     }
 
-    this.retrieveFrequencyMs =
-      options?.retrieveFrequencyMs ?? DEFAULT_RETRIEVE_FREQUENCY_MS;
-    this.missingMessages = new Map();
+    if (this._retrieve) {
+      this.missingMessageRetriever = new MissingMessageRetriever(
+        this.decoder,
+        options?.retrieveFrequencyMs,
+        this._retrieve,
+        async (msg: T) => {
+          await this.processIncomingMessage(msg);
+          await this.messageChannel.processTasks();
+          this.messageChannel.sweepIncomingBuffer();
+        }
+      );
+    }
 
     this.isStarted = false;
   }
@@ -362,9 +368,7 @@ export class ReliableChannel<
     // missing messages or the status of previous outgoing messages
     this.messageChannel.pushIncomingMessage(sdsMessage, retrievalHint);
 
-    if (this.missingMessages.has(sdsMessage.messageId)) {
-      this.missingMessages.delete(sdsMessage.messageId);
-    }
+    this.missingMessageRetriever?.removeMissingMessage(sdsMessage.messageId);
 
     if (sdsMessage.content && sdsMessage.content.length > 0) {
       // Now, process the message with callback
@@ -409,7 +413,7 @@ export class ReliableChannel<
     this.setupEventListeners();
     this.restartSync();
     if (this._retrieve) {
-      this.startRetrieveMissingMessagesLoop();
+      this.missingMessageRetriever?.start();
       this.autoRetrieval?.start();
     }
     return this.subscribe();
@@ -419,7 +423,7 @@ export class ReliableChannel<
     if (!this.isStarted) return;
     this.isStarted = false;
     this.stopSync();
-    this.stopRetrieveMissingMessagesLoop();
+    this.missingMessageRetriever?.stop();
     this.autoRetrieval?.stop();
     // TODO unsubscribe
     // TODO unsetMessageListeners
@@ -495,43 +499,6 @@ export class ReliableChannel<
     // TODO: review and optimize
     await this.messageChannel.processTasks();
     this.messageChannel.sweepOutgoingBuffer();
-  }
-
-  private startRetrieveMissingMessagesLoop(): void {
-    if (this.retrieveInterval) {
-      clearInterval(this.retrieveInterval);
-    }
-    if (this._retrieve && this.retrieveFrequencyMs) {
-      log.info(`start retrieve loop every ${this.retrieveFrequencyMs}ms`);
-      this.retrieveInterval = setInterval(() => {
-        void this.retrieveMissingMessage();
-      }, this.retrieveFrequencyMs);
-    }
-  }
-
-  private stopRetrieveMissingMessagesLoop(): void {
-    if (this.retrieveInterval) {
-      clearInterval(this.retrieveInterval);
-    }
-  }
-
-  private async retrieveMissingMessage(): Promise<void> {
-    if (this._retrieve && this.missingMessages.size) {
-      const messageHashes = Array.from(this.missingMessages.values());
-      log.info("attempting to retrieve missing message", messageHashes.length);
-      for await (const page of this._retrieve([this.decoder], {
-        messageHashes
-      })) {
-        for await (const msg of page) {
-          if (msg) {
-            await this.processIncomingMessage(msg);
-          }
-        }
-      }
-
-      await this.messageChannel.processTasks();
-      this.messageChannel.sweepIncomingBuffer();
-    }
   }
 
   private setupEventListeners(): void {
@@ -611,9 +578,11 @@ export class ReliableChannel<
       MessageChannelEvent.InMessageMissing,
       (event) => {
         for (const { messageId, retrievalHint } of event.detail) {
-          log.info("missing message notice", messageId, retrievalHint);
-          if (retrievalHint) {
-            this.missingMessages.set(messageId, retrievalHint);
+          if (retrievalHint && this.missingMessageRetriever) {
+            this.missingMessageRetriever.addMissingMessage(
+              messageId,
+              retrievalHint
+            );
           }
         }
       }
