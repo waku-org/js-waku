@@ -37,7 +37,7 @@ const log = new Logger("sdk:reliable-channel");
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
-const DEFAULT_RETRIEVE_FREQUENCY_MS = 10 * 10000; // 10 seconds
+const DEFAULT_RETRIEVE_FREQUENCY_MS = 10 * 1000; // 10 seconds
 
 const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.ENCODE_FAILED,
