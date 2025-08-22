@@ -276,6 +276,8 @@ describe("AutoRetrieval", () => {
   describe("async generator retrieve function mock", () => {
     it("should work with async generator that yields promises", async () => {
       const mockMessage: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/1/content",
@@ -511,6 +513,8 @@ describe("AutoRetrieval", () => {
 
     it("should emit message when we just started and store connect event occurs", async () => {
       const mockMessage: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
@@ -547,6 +551,8 @@ describe("AutoRetrieval", () => {
 
     it("should emit message when we went offline since last successful query and store reconnect event occurs", async () => {
       const mockMessage: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
@@ -588,6 +594,8 @@ describe("AutoRetrieval", () => {
 
     it("should emit message when store reconnect event occurs and last query was over max time threshold", async () => {
       const mockMessage: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/timeout/content",
@@ -642,6 +650,8 @@ describe("AutoRetrieval", () => {
 
     it("should emit multiple messages when retrieve returns multiple messages", async () => {
       const mockMessage1: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/multi/content1",
@@ -653,6 +663,8 @@ describe("AutoRetrieval", () => {
       };
 
       const mockMessage2: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/multi/content2",
@@ -764,6 +776,8 @@ describe("AutoRetrieval", () => {
 
     it("should update lastSuccessfulQuery timestamp after successful retrieval", async () => {
       const mockMessage: IDecodedMessage = {
+        hash: new Uint8Array(),
+        hashStr: "",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/timestamp/content",
