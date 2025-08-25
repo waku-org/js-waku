@@ -1,5 +1,10 @@
 import type { Connection, Peer, PeerStore } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
+import {
+  FilterCodecs,
+  LightPushCodec,
+  LightPushCodecV2,
+  StoreCodec
+} from "@waku/core";
 import { IRelay, Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -114,7 +119,10 @@ describe("waitForRemotePeer", () => {
       err = e as Error;
     }
 
-    expect(addEventListenerSpy.calledOnceWith("peer:identify")).to.be.true;
+    expect(addEventListenerSpy.calledTwice).to.be.true;
+    addEventListenerSpy
+      .getCalls()
+      .forEach((c) => expect(c.firstArg).to.equal("peer:identify"));
 
     expect(err).not.to.be.undefined;
     expect(err!.message).to.be.eq("Timed out waiting for a remote peer.");
@@ -148,9 +156,12 @@ describe("waitForRemotePeer", () => {
   });
 
   it("should wait for LightPush peer to be connected", async () => {
+    let call = 0;
     const addEventListenerSpy = sinon.spy(
       (_type: string, _cb: (e: any) => void) => {
-        _cb({ detail: { protocols: [LightPushCodec] } });
+        const proto = call === 0 ? LightPushCodec : LightPushCodecV2;
+        call++;
+        _cb({ detail: { protocols: [proto] } });
       }
     );
     eventTarget.addEventListener = addEventListenerSpy;
@@ -174,7 +185,10 @@ describe("waitForRemotePeer", () => {
       err = e as Error;
     }
 
-    expect(addEventListenerSpy.calledOnceWith("peer:identify")).to.be.true;
+    expect(addEventListenerSpy.calledTwice).to.be.true;
+    addEventListenerSpy
+      .getCalls()
+      .forEach((c) => expect(c.firstArg).to.equal("peer:identify"));
     expect(err).to.be.undefined;
 
     // check with metadata serivice
@@ -196,8 +210,10 @@ describe("waitForRemotePeer", () => {
       err = e as Error;
     }
 
-    expect(addEventListenerSpy.calledTwice).to.be.true;
-    expect(addEventListenerSpy.lastCall.calledWith("peer:identify")).to.be.true;
+    expect(addEventListenerSpy.callCount).to.equal(4);
+    addEventListenerSpy
+      .getCalls()
+      .forEach((c) => expect(c.firstArg).to.equal("peer:identify"));
     expect(err).to.be.undefined;
   });
 

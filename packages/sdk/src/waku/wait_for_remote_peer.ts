@@ -1,5 +1,10 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
+import {
+  FilterCodecs,
+  LightPushCodec,
+  LightPushCodecV2,
+  StoreCodec
+} from "@waku/core";
 import type { IWaku, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -82,6 +87,13 @@ export async function waitForRemotePeer(
 
 type EventListener = (_: CustomEvent<IdentifyResult>) => void;
 
+function protocolToPeerPromise(
+  codecs: string[],
+  libp2p: Libp2p
+): Promise<void>[] {
+  return codecs.map((codec) => waitForConnectedPeer(codec, libp2p));
+}
+
 /**
  * Waits for required peers to be connected.
  */
@@ -96,15 +108,21 @@ async function waitForProtocols(
   }
 
   if (waku.store && protocols.includes(Protocols.Store)) {
-    promises.push(waitForConnectedPeer(StoreCodec, waku.libp2p));
+    promises.push(...protocolToPeerPromise([StoreCodec], waku.libp2p));
   }
 
   if (waku.lightPush && protocols.includes(Protocols.LightPush)) {
-    promises.push(waitForConnectedPeer(LightPushCodec, waku.libp2p));
+    const lpPromises = protocolToPeerPromise(
+      [LightPushCodec, LightPushCodecV2],
+      waku.libp2p
+    );
+    promises.push(Promise.any(lpPromises));
   }
 
   if (waku.filter && protocols.includes(Protocols.Filter)) {
-    promises.push(waitForConnectedPeer(FilterCodecs.SUBSCRIBE, waku.libp2p));
+    promises.push(
+      ...protocolToPeerPromise([FilterCodecs.SUBSCRIBE], waku.libp2p)
+    );
   }
 
   return Promise.all(promises);
@@ -122,7 +140,7 @@ async function waitForConnectedPeer(
 
   await new Promise<void>((resolve) => {
     const cb = (async (evt: CustomEvent<IdentifyResult>): Promise<void> => {
-      if (evt.detail?.protocols?.includes(codec)) {
+      if (evt.detail?.protocols?.some((c) => codec.includes(c))) {
         const metadataService = libp2p.services.metadata;
 
         if (!metadataService) {

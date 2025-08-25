@@ -13,7 +13,7 @@ export class StreamManager {
   private streamPool: Map<string, Promise<void>> = new Map();
 
   public constructor(
-    private multicodec: string,
+    public multicodec: string,
     private readonly libp2p: Libp2pComponents
   ) {
     this.log = new Logger(`stream-manager:${multicodec}`);
