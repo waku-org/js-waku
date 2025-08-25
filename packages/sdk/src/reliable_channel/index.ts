@@ -160,7 +160,8 @@ export class ReliableChannel<
     if (node.store) {
       this._retrieve = node.store.queryGenerator.bind(node.store);
       const peerManagerEvents = (node as any)?.peerManager?.events;
-      if (peerManagerEvents && (options?.autoRetrieval ?? true)) {
+      if (peerManagerEvents !== undefined && (options?.autoRetrieval ?? true)) {
+        log.info("auto-query enabled");
         this.autoQuery = new AutoQuery(
           [this.decoder],
           peerManagerEvents,
