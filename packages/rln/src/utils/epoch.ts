@@ -2,7 +2,7 @@ import { Logger } from "@waku/utils";
 
 const DefaultEpochUnitSeconds = 10; // the rln-relay epoch length in seconds
 
-const log = new Logger("waku:rln:epoch");
+const log = new Logger("rln:epoch");
 
 export function dateToEpoch(
   timestamp: Date,

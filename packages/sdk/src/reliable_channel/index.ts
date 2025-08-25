@@ -31,7 +31,7 @@ import { RetryManager } from "./retry_manager.js";
 
 export { ReliableChannelEvents, ReliableChannelEvent };
 
-const log = new Logger("waku:sdk:reliable-channel");
+const log = new Logger("sdk:reliable-channel");
 
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds

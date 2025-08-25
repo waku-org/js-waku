@@ -6,7 +6,7 @@ import type {
 import type { MessageId } from "@waku/sds";
 import { Logger } from "@waku/utils";
 
-const log = new Logger("waku:sdk:missing-message-retriever");
+const log = new Logger("sdk:missing-message-retriever");
 
 const DEFAULT_RETRIEVE_FREQUENCY_MS = 10 * 1000; // 10 seconds
 

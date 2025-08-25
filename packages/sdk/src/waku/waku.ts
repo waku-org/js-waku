@@ -38,7 +38,7 @@ import { Store } from "../store/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
-const log = new Logger("waku");
+const log = new Logger("sdk:waku");
 
 type ProtocolsEnabled = {
   filter?: boolean;

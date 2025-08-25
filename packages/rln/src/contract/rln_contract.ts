@@ -9,7 +9,7 @@ import { BytesUtils } from "../utils/bytes.js";
 import { RLNBaseContract } from "./rln_base_contract.js";
 import { RLNContractInitOptions } from "./types.js";
 
-const log = new Logger("waku:rln:contract");
+const log = new Logger("rln:contract");
 
 export class RLNContract extends RLNBaseContract {
   private instance: RLNInstance;
