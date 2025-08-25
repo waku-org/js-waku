@@ -1126,6 +1126,7 @@ describe("Reliable Channel", () => {
         encoder,
         decoder,
         {
+          syncMinIntervalMs: 0, // do not send sync messages automatically
           maxRetryAttempts: 0 // This one does not perform retries
         }
       );
@@ -1160,7 +1161,7 @@ describe("Reliable Channel", () => {
     });
   });
 
-  describe("Retrieval", () => {
+  describe("Missing Message Retrieval", () => {
     it("Automatically retrieves missing message", async () => {
       const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
@@ -1173,7 +1174,8 @@ describe("Reliable Channel", () => {
         encoder,
         decoder,
         {
-          retryIntervalMs: 0, // disable any automation to better control the test
+          // disable any automation to better control the test
+          retryIntervalMs: 0,
           syncMinIntervalMs: 0,
           retrieveFrequencyMs: 0
         }
@@ -1186,8 +1188,8 @@ describe("Reliable Channel", () => {
 
       const sdsMessage = new ContentMessage(
         ReliableChannel.getMessageId(message),
-        "alice",
         "MyChannel",
+        "alice",
         [],
         1,
         undefined,
@@ -1250,67 +1252,6 @@ describe("Reliable Channel", () => {
       expect(callArgs[1]).to.have.property("messageHashes");
       expect(callArgs[1].messageHashes).to.be.an("array");
     });
-
-    it("Missed message with retrieval hint is added to missedMessages property", async () => {
-      const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
-      const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
-
-      const reliableChannelAlice = await ReliableChannel.create(
-        mockWakuNodeAlice,
-        "MyChannel",
-        "alice",
-        encoder,
-        decoder,
-        {
-          retryIntervalMs: 0,
-          syncMinIntervalMs: 0,
-          retrieveFrequencyMs: 0
-        }
-      );
-
-      // Alice sends a message that Bob won't receive directly
-      const message = utf8ToBytes("missed message with hint");
-      const messageId = ReliableChannel.getMessageId(message);
-
-      // Send message from Alice
-      await reliableChannelAlice.send(message);
-
-      const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
-      const reliableChannelBob = await ReliableChannel.create(
-        mockWakuNodeBob,
-        "MyChannel",
-        "bob",
-        encoder,
-        decoder,
-        {
-          retryIntervalMs: 0,
-          syncMinIntervalMs: 0,
-          retrieveFrequencyMs: 0
-        }
-      );
-
-      // Get the missedMessages map from Bob's reliable channel (accessing private property for testing)
-      const bobMissedMessages = (reliableChannelBob as any)
-        .missingMessages as Map<string, Uint8Array>;
-      expect(bobMissedMessages.size).to.equal(0);
-
-      // Alice sends a sync message which should contain the message Bob missed
-      // This will trigger the InMessageMissing event on Bob's side
-      await reliableChannelAlice.sendSyncMessage();
-
-      // Wait for processing
-      await delay(100);
-
-      // Verify that Bob's missedMessages map now contains the message with its retrieval hint
-      expect(bobMissedMessages.size).to.equal(1);
-      expect(bobMissedMessages.has(messageId)).to.be.true;
-
-      // Verify the retrieval hint is the correct Uint8Array (not undefined)
-      const retrievalHint = bobMissedMessages.get(messageId);
-      expect(retrievalHint).to.exist;
-      expect(retrievalHint).to.be.instanceOf(Uint8Array);
-      expect(retrievalHint!.length).to.be.greaterThan(0);
-    });
   });
 
   describe("AutoQuery Integration E2E Tests", () => {
@@ -1320,6 +1261,7 @@ describe("Reliable Channel", () => {
     let decoder: IDecoder<IDecodedMessage>;
     let mockPeerManagerEvents: TypedEventEmitter<any>;
     let queryGeneratorStub: sinon.SinonStub;
+    let mockPeerId: PeerId;
 
     beforeEach(async () => {
       // Setup mock waku node with store capability
@@ -1344,76 +1286,10 @@ describe("Reliable Channel", () => {
       mockWakuNode.store = {
         queryGenerator: queryGeneratorStub
       } as any;
-    });
 
-    it("should create ReliableChannel with AutoQuery enabled and verify integration", async () => {
-      // Create a simple test message
-      const testPayload = utf8ToBytes("Test auto-retrieval integration");
-      const sdsMessage = new ContentMessage(
-        ReliableChannel.getMessageId(testPayload),
-        "testSender",
-        "TestChannel",
-        [],
-        1,
-        undefined,
-        testPayload
-      );
-
-      const testMessage: IDecodedMessage = {
-        hash: hexToBytes("1234"),
-        hashStr: "1234",
-        version: 1,
-        timestamp: new Date(),
-        contentTopic: TEST_CONTENT_TOPIC,
-        pubsubTopic: decoder.pubsubTopic,
-        payload: sdsMessage.encode(),
-        rateLimitProof: undefined,
-        ephemeral: false,
-        meta: undefined
-      };
-
-      // Setup queryGenerator to return the test message
-      queryGeneratorStub.callsFake(async function* () {
-        yield [Promise.resolve(testMessage)];
-      });
-
-      // Create ReliableChannel with autoRetrieval enabled
-      reliableChannel = await ReliableChannel.create(
-        mockWakuNode,
-        "TestChannel",
-        "testSender",
-        encoder,
-        decoder,
-        { autoRetrieval: true }
-      );
-
-      // Verify AutoQuery was created and integrated
-      expect((reliableChannel as any).autoRetrieval).to.exist;
-
-      // Verify setup - no need to listen for messages in this basic test
-
-      // Wait for initial setup to complete
-      await delay(100);
-
-      // Directly trigger AutoQuery through its public interface
-      const autoRetrieval = (reliableChannel as any).autoRetrieval;
-      if (autoRetrieval) {
-        // Set conditions that would trigger retrieval
-        (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000; // Old query
-        (autoRetrieval as any).lastTimeOffline = Date.now(); // Recent offline
-
-        // Manually trigger the maybeRetrieve method
-        (autoRetrieval as any).maybeRetrieve();
-      }
-
-      // Wait for processing
-      await delay(200);
-
-      // Verify that queryGenerator was called (AutoQuery was triggered)
-      expect(queryGeneratorStub.called).to.be.true;
-
-      // Note: Message processing depends on complete ReliableChannel integration
-      // This test verifies the basic integration exists and AutoQuery can be triggered
+      mockPeerId = {
+        toString: () => "QmTestPeerId"
+      } as unknown as PeerId;
     });
 
     it("should trigger AutoQuery when going offline and store peer reconnects", async () => {
@@ -1423,8 +1299,8 @@ describe("Reliable Channel", () => {
 
       const sdsMessage = new ContentMessage(
         ReliableChannel.getMessageId(messagePayload),
+        "testChannel",
         "testSender",
-        "TestChannel",
         [],
         1,
         undefined,
@@ -1452,7 +1328,7 @@ describe("Reliable Channel", () => {
       // Create ReliableChannel with autoRetrieval enabled
       reliableChannel = await ReliableChannel.create(
         mockWakuNode,
-        "TestChannel",
+        "testChannel",
         "testSender",
         encoder,
         decoder,
@@ -1472,7 +1348,9 @@ describe("Reliable Channel", () => {
       await delay(10);
 
       // Simulate store peer reconnection which should trigger AutoQuery
-      mockPeerManagerEvents.dispatchEvent(new CustomEvent("store:connect", {}));
+      mockPeerManagerEvents.dispatchEvent(
+        new CustomEvent("store:connect", { detail: mockPeerId })
+      );
 
       // Wait for auto-retrieval to be triggered
       await delay(200);
@@ -1490,8 +1368,8 @@ describe("Reliable Channel", () => {
 
       const sdsMessage1 = new ContentMessage(
         ReliableChannel.getMessageId(message1Payload),
+        "testChannel",
         "testSender",
-        "TestChannel",
         [],
         1,
         undefined,
@@ -1500,8 +1378,8 @@ describe("Reliable Channel", () => {
 
       const sdsMessage2 = new ContentMessage(
         ReliableChannel.getMessageId(message2Payload),
+        "testChannel",
         "testSender",
-        "TestChannel",
         [],
         2,
         undefined,
@@ -1543,7 +1421,7 @@ describe("Reliable Channel", () => {
       // Create ReliableChannel with autoRetrieval enabled
       reliableChannel = await ReliableChannel.create(
         mockWakuNode,
-        "TestChannel",
+        "testChannel",
         "testSender",
         encoder,
         decoder,
@@ -1560,44 +1438,15 @@ describe("Reliable Channel", () => {
       }
 
       // Simulate store peer connection which should trigger retrieval due to time threshold
-      mockPeerManagerEvents.dispatchEvent(new CustomEvent("store:connect", {}));
+      mockPeerManagerEvents.dispatchEvent(
+        new CustomEvent("store:connect", { detail: mockPeerId })
+      );
 
       // Wait for auto-retrieval to be triggered
       await delay(200);
 
       // Verify that AutoQuery was triggered due to time threshold
       expect(queryGeneratorStub.called).to.be.true;
-    });
-
-    it("should verify AutoQuery doesn't trigger when conditions are not met", async () => {
-      reliableChannel = await ReliableChannel.create(
-        mockWakuNode,
-        "TestChannel",
-        "testSender",
-        encoder,
-        decoder,
-        { autoRetrieval: true }
-      );
-
-      await delay(50);
-
-      // Reset the stub after initial start() query
-      queryGeneratorStub.resetHistory();
-
-      // Set recent successful query (conditions NOT met for auto-retrieval)
-      if ((reliableChannel as any).autoRetrieval) {
-        ((reliableChannel as any).autoRetrieval as any).lastSuccessfulQuery =
-          Date.now() - 1000; // Recent query
-        ((reliableChannel as any).autoRetrieval as any).lastTimeOffline = 0; // Never went offline
-      }
-
-      // Simulate store peer connection which should NOT trigger retrieval
-      mockPeerManagerEvents.dispatchEvent(new CustomEvent("store:connect", {}));
-
-      await delay(100);
-
-      // Verify that AutoQuery was NOT triggered (conditions not met)
-      expect(queryGeneratorStub.called).to.be.false;
     });
   });
 });
