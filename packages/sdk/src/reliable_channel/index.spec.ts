@@ -1331,8 +1331,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         encoder,
-        decoder,
-        { autoRetrieval: true }
+        decoder
       );
 
       // Wait for initial setup
