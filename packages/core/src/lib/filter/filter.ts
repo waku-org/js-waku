@@ -38,7 +38,7 @@ type IncomingMessageHandler = (
 export class FilterCore {
   private streamManager: StreamManager;
 
-  public readonly multicodec = [FilterCodecs.SUBSCRIBE];
+  public readonly multicodec = FilterCodecs.SUBSCRIBE;
 
   public constructor(
     private handleIncomingMessage: IncomingMessageHandler,

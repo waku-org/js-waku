@@ -190,7 +190,6 @@ export interface FilterFailure {
   peerId?: PeerId;
 }
 
-// Protocol-specific result types
 export type LightPushCoreResult = ThisOrThat<
   "success",
   PeerId,
@@ -220,7 +219,7 @@ export type FilterSDKResult = ThisAndThat<
 >;
 
 /**
- * @deprecated Use LightPushSDKResult or FilterSDKResult instead
+ * @deprecated replace usage by specific result types
  */
 export type SDKProtocolResult = ThisAndThat<
   "successes",
@@ -233,7 +232,7 @@ export type SDKProtocolResult = ThisAndThat<
 >;
 
 /**
- * @deprecated Use LightPushError or FilterError instead
+ * @deprecated replace usage by specific result types
  */
 export enum ProtocolError {
   GENERIC_FAIL = "Generic error",

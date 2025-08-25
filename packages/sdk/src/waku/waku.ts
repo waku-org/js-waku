@@ -173,7 +173,7 @@ export class WakuNode implements IWaku {
     }
     if (_protocols.includes(Protocols.Store)) {
       if (this.store) {
-        codecs.push(...this.store.multicodec);
+        codecs.push(this.store.multicodec);
       } else {
         log.error(
           "Store codec not included in dial codec: protocol not mounted locally"
@@ -191,7 +191,7 @@ export class WakuNode implements IWaku {
     }
     if (_protocols.includes(Protocols.Filter)) {
       if (this.filter) {
-        codecs.push(...this.filter.multicodec);
+        codecs.push(this.filter.multicodec);
       } else {
         log.error(
           "Filter codec not included in dial codec: protocol not mounted locally"

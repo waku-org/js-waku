@@ -42,7 +42,7 @@ export class Store implements IStore {
     this.protocol = new StoreCore(params.libp2p);
   }
 
-  public get multicodec(): string[] {
+  public get multicodec(): string {
     return this.protocol.multicodec;
   }
 

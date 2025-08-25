@@ -27,7 +27,7 @@ class Metadata implements IMetadata {
   private readonly libp2pComponents: Libp2pComponents;
   protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
 
-  public readonly multicodec = [MetadataCodec];
+  public readonly multicodec = MetadataCodec;
 
   public constructor(
     public clusterId: ClusterId,
