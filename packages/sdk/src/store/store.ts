@@ -134,6 +134,16 @@ export class Store implements IStore {
   }
 
   /**
+   * Creates a cursor based on the provided decoded message.
+   *
+   * @param message - The decoded message.
+   * @returns A StoreCursor representing the message.
+   */
+  public createCursor(message: IDecodedMessage): StoreCursor {
+    return messageHash(message.pubsubTopic, message);
+  }
+
+  /**
    * Processes messages based on the provided callback and options.
    *
    * @param messages - An array of promises of decoded messages.
@@ -158,16 +168,6 @@ export class Store implements IStore {
     );
 
     return abort;
-  }
-
-  /**
-   * Creates a cursor based on the provided decoded message.
-   *
-   * @param message - The decoded message.
-   * @returns A StoreCursor representing the message.
-   */
-  public createCursor(message: IDecodedMessage): StoreCursor {
-    return messageHash(message.pubsubTopic, message);
   }
 
   /**

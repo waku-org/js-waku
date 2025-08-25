@@ -289,34 +289,6 @@ export class ServiceNode {
     throw "Content topic, shard or pubsubTopic must be set";
   }
 
-  private async contentTopicMessages(
-    contentTopic: ContentTopic
-  ): Promise<MessageRpcResponse[]> {
-    return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/auto/messages/${encodeURIComponent(contentTopic)}`,
-      "GET",
-      null,
-      async (response) => {
-        const data = await response.json();
-        return data?.length ? data : [];
-      }
-    );
-  }
-
-  private async pubsubTopicMessages(
-    pubsubTopic: PubsubTopic
-  ): Promise<MessageRpcResponse[]> {
-    return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
-      "GET",
-      null,
-      async (response) => {
-        const data = await response.json();
-        return data?.length ? data : [];
-      }
-    );
-  }
-
   public async ensureSubscriptionsAutosharding(
     contentTopics: string[]
   ): Promise<boolean> {
@@ -341,41 +313,6 @@ export class ServiceNode {
       return this.sendMessageStaticSharding(message, routingInfo.pubsubTopic);
     }
     throw "Invalid network config";
-  }
-
-  private async sendMessageStaticSharding(
-    message: MessageRpcQuery,
-    pubsubTopic: PubsubTopic
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (typeof message.timestamp === "undefined") {
-      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
-    }
-
-    return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
-      "POST",
-      message,
-      async (response) => response.status === 200
-    );
-  }
-
-  private async sendMessageAutoSharding(
-    message: MessageRpcQuery
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (typeof message.timestamp === "undefined") {
-      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
-    }
-
-    return this.restCall<boolean>(
-      `/relay/v1/auto/messages`,
-      "POST",
-      message,
-      async (response) => response.status === 200
-    );
   }
 
   public async messagesAutosharding(
@@ -409,22 +346,6 @@ export class ServiceNode {
       `/ip4/127.0.0.1/tcp/${this.websocketPort}/ws/p2p/${peerId.toString()}`
     );
     return this.multiaddrWithId;
-  }
-
-  private async _getPeerId(): Promise<PeerId> {
-    if (this.peerId) {
-      return this.peerId;
-    }
-    const res = await this.info();
-    const multiaddrWithId = res.listenAddresses
-      .map((ma) => multiaddr(ma))
-      .find((ma) => ma.protoNames().includes("ws"));
-    if (!multiaddrWithId) throw `Did not return a ws multiaddr`;
-    const peerIdStr = multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw `Multiaddr does not contain peerId`;
-    this.peerId = peerIdFromString(peerIdStr);
-
-    return this.peerId;
   }
 
   public get httpUrl(): string {
@@ -463,6 +384,85 @@ export class ServiceNode {
     const containerIp = this.docker.containerIp;
     const peerId = await this.getPeerId();
     return `/ip4/${containerIp}/tcp/${this.websocketPort}/ws/p2p/${peerId}`;
+  }
+
+  private async pubsubTopicMessages(
+    pubsubTopic: PubsubTopic
+  ): Promise<MessageRpcResponse[]> {
+    return this.restCall<MessageRpcResponse[]>(
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      "GET",
+      null,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
+  }
+
+  private async sendMessageStaticSharding(
+    message: MessageRpcQuery,
+    pubsubTopic: PubsubTopic
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    if (typeof message.timestamp === "undefined") {
+      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
+    }
+
+    return this.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      "POST",
+      message,
+      async (response) => response.status === 200
+    );
+  }
+
+  private async sendMessageAutoSharding(
+    message: MessageRpcQuery
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    if (typeof message.timestamp === "undefined") {
+      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
+    }
+
+    return this.restCall<boolean>(
+      `/relay/v1/auto/messages`,
+      "POST",
+      message,
+      async (response) => response.status === 200
+    );
+  }
+
+  private async _getPeerId(): Promise<PeerId> {
+    if (this.peerId) {
+      return this.peerId;
+    }
+    const res = await this.info();
+    const multiaddrWithId = res.listenAddresses
+      .map((ma) => multiaddr(ma))
+      .find((ma) => ma.protoNames().includes("ws"));
+    if (!multiaddrWithId) throw `Did not return a ws multiaddr`;
+    const peerIdStr = multiaddrWithId.getPeerId();
+    if (!peerIdStr) throw `Multiaddr does not contain peerId`;
+    this.peerId = peerIdFromString(peerIdStr);
+
+    return this.peerId;
+  }
+
+  private async contentTopicMessages(
+    contentTopic: ContentTopic
+  ): Promise<MessageRpcResponse[]> {
+    return this.restCall<MessageRpcResponse[]>(
+      `/relay/v1/auto/messages/${encodeURIComponent(contentTopic)}`,
+      "GET",
+      null,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
   }
 
   private checkProcess(): void {

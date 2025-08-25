@@ -90,6 +90,22 @@
         "ts": "always",
         "tsx": "never"
       }
+    ],
+    "@typescript-eslint/member-ordering": [
+      "error",
+      {
+        "default": {
+          "memberTypes": [
+            "public-static-method",
+            "protected-static-method",
+            "private-static-method",
+            "public-instance-method",
+            "protected-instance-method",
+            "private-instance-method"
+          ],
+          "order": "as-written"
+        }
+      }
     ]
   },
   "overrides": [
