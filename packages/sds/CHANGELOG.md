@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/sds-v0.0.6...sds-v0.0.7) (2025-08-25)
+
+
+### Bug Fixes
+
+* Make health events emission consistent ([#2570](https://github.com/waku-org/js-waku/issues/2570)) ([c8dfdb1](https://github.com/waku-org/js-waku/commit/c8dfdb1ace8f0f8f668d8f2bb6e0eaed90041782))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from ^0.0.26 to ^0.0.27
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/sds-v0.0.5...sds-v0.0.6) (2025-08-14)
 
 
