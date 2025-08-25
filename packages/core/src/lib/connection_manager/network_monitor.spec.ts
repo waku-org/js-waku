@@ -1,4 +1,4 @@
-import { IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import { IWakuEventEmitter, Libp2p, WakuEventType } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -341,7 +341,7 @@ describe("NetworkMonitor", () => {
       const dispatchedEvent = dispatchEventStub.getCall(0)
         .args[0] as CustomEvent<boolean>;
       expect(dispatchedEvent).to.be.instanceOf(CustomEvent);
-      expect(dispatchedEvent.type).to.equal("waku:connection");
+      expect(dispatchedEvent.type).to.equal(WakuEventType.Connection);
       expect(dispatchedEvent.detail).to.be.true;
     });
   });

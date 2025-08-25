@@ -13,7 +13,7 @@ import type { IdentityCredential } from "./identity.js";
 import { RlnMessage, toRLNSignal } from "./message.js";
 import { RLNInstance } from "./rln.js";
 
-const log = new Logger("waku:rln:encoder");
+const log = new Logger("rln:encoder");
 
 export class RLNEncoder implements IEncoder {
   private readonly idSecretHash: Uint8Array;

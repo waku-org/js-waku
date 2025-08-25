@@ -27,7 +27,7 @@ import type {
   Sha256Hash
 } from "./types.js";
 
-const log = new Logger("waku:rln:keystore");
+const log = new Logger("rln:keystore");
 
 type NwakuCredential = {
   crypto: {

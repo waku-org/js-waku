@@ -65,8 +65,8 @@ export class Store implements IStore {
     );
 
     for (const queryOption of queryOptions) {
-      const peer = await this.getPeerToUse(queryOption.pubsubTopic);
-
+      const peer =
+        options?.peerId ?? (await this.getPeerToUse(queryOption.pubsubTopic));
       if (!peer) {
         log.error("No peers available to query");
         throw new Error("No peers available to query");

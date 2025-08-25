@@ -21,7 +21,7 @@ import {
   RLNContractInitOptions
 } from "./types.js";
 
-const log = new Logger("waku:rln:contract:base");
+const log = new Logger("rln:contract:base");
 
 export class RLNBaseContract {
   public contract: ethers.Contract;
