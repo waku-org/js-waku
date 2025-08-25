@@ -47,6 +47,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.35](https://github.com/waku-org/js-waku/compare/sdk-v0.0.34...sdk-v0.0.35) (2025-08-25)
+
+
+### Features
+
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+
+
+### Bug Fixes
+
+* Make health events emission consistent ([#2570](https://github.com/waku-org/js-waku/issues/2570)) ([c8dfdb1](https://github.com/waku-org/js-waku/commit/c8dfdb1ace8f0f8f668d8f2bb6e0eaed90041782))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.38 to 0.0.39
+    * @waku/discovery bumped from 0.0.11 to 0.0.12
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/utils bumped from 0.0.26 to 0.0.27
+
 ## [0.0.34](https://github.com/waku-org/js-waku/compare/sdk-v0.0.33...sdk-v0.0.34) (2025-08-14)
 
 

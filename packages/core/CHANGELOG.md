@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.39](https://github.com/waku-org/js-waku/compare/core-v0.0.38...core-v0.0.39) (2025-08-25)
+
+
+### Features
+
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.32 to ^0.0.33
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/utils bumped from 0.0.26 to 0.0.27
+
 ## [0.0.38](https://github.com/waku-org/js-waku/compare/core-v0.0.37...core-v0.0.38) (2025-08-14)
 
 
