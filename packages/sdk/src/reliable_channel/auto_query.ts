@@ -78,23 +78,42 @@ export class AutoQuery<
     this.unsetEventListeners();
   }
 
-  private maybeQuery(event: CustomEvent<PeerId>): void {
-    log.info("maybe auto-query");
+  /**
+   * Mainly exposed for testing. Only use if you know what you are doing.
+   *
+   * Proceed with a query if:
+   * - No successful query has happened
+   * - OR, We detected that we were offline since last successful query
+   * - OR, It bas been more than `forceQueryThresholdMs` than last query
+   *
+   * [[AutoQuery]] handles the listening to event to call this function.
+   *
+   * @param peerId A store peer id. Must be passed as we expect this to be trigger
+   * upon a detected connection to a store peer.
+   */
+  public async maybeQuery(peerId: PeerId): Promise<void> {
     const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
-    // if we were marked as "offline" after last successful query
-    // OR, last successful query was too long ago
+    log.info(
+      `maybe auto-query ${peerId.toString()}`,
+      this.lastSuccessfulQuery,
+      this.lastTimeOffline,
+      timeSinceLastQuery,
+      this.forceQueryThresholdMs
+    );
+
     if (
+      this.lastSuccessfulQuery === 0 ||
       this.lastTimeOffline > this.lastSuccessfulQuery ||
       timeSinceLastQuery > this.forceQueryThresholdMs
     ) {
-      this.query(event.detail).catch((err) =>
-        log.error("Error auto-query", err)
-      );
+      await this.query(peerId);
+    } else {
+      log.info(`not auto-querying`);
     }
   }
 
   private async query(peerId: PeerId): Promise<void> {
-    log.info("perform auto-query");
+    log.info(`perform auto-query ${peerId.toString()}`);
     const { timeStart, timeEnd } = this.queryTimeRange();
     try {
       for await (const page of this._queryGenerator(this.decoders, {
@@ -102,20 +121,18 @@ export class AutoQuery<
         timeEnd,
         peerId
       })) {
-        const messages = [];
-        for await (const message of page) {
-          if (message) {
-            messages.push(message);
-          }
-        }
+        // Await for decoding
+        const messages = (await Promise.all(page)).filter(
+          (m) => m !== undefined
+        );
         // Bundle the messages to help batch process by sds
         this.dispatchMessages(messages);
       }
 
       // Didn't throw, so it didn't fail
       this.lastSuccessfulQuery = Date.now();
-    } catch (_e) {
-      // query failed nothing to do.
+    } catch (err) {
+      log.warn(`auto-query with ${peerId.toString()} failed`, err);
     }
   }
 
@@ -142,7 +159,10 @@ export class AutoQuery<
   private setupEventListeners(): void {
     this.peerManagerEventEmitter.addEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeQuery.bind(this)
+      (event) =>
+        void this.maybeQuery(event.detail).catch((err) =>
+          log.error("auto-query error", err)
+        )
     );
 
     this.wakuEventEmitter.addEventListener(
@@ -154,7 +174,10 @@ export class AutoQuery<
   private unsetEventListeners(): void {
     this.peerManagerEventEmitter.removeEventListener(
       PeerManagerEventNames.StoreConnect,
-      this.maybeQuery.bind(this)
+      (event) =>
+        void this.maybeQuery(event.detail).catch((err) =>
+          log.error("auto-query error", err)
+        )
     );
 
     this.wakuEventEmitter.removeEventListener(

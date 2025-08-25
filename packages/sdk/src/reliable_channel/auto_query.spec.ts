@@ -1,4 +1,4 @@
-import { TypedEventEmitter } from "@libp2p/interface";
+import { type PeerId, TypedEventEmitter } from "@libp2p/interface";
 import {
   HealthStatus,
   type IDecodedMessage,
@@ -8,6 +8,7 @@ import {
   WakuEventType
 } from "@waku/interfaces";
 import { delay } from "@waku/utils";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -20,16 +21,16 @@ import {
   AutoQuery,
   AutoQueryEvent,
   AutoQueryOptions,
-  calculateTimeRange,
-  DEFAULT_FORCE_QUERY_THRESHOLD_MS
+  calculateTimeRange
 } from "./auto_query.js";
 
-describe("AutoRetrieval", () => {
-  let autoRetrieval: AutoQuery<IDecodedMessage>;
+describe("AutoQuery", () => {
+  let autoQuery: AutoQuery<IDecodedMessage>;
   let mockDecoders: IDecoder<IDecodedMessage>[];
   let mockPeerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>;
   let mockWakuEventEmitter: IWakuEventEmitter;
   let mockQueryGenerator: sinon.SinonStub;
+  let mockPeerId: PeerId;
   let options: AutoQueryOptions;
 
   beforeEach(() => {
@@ -62,7 +63,7 @@ describe("AutoRetrieval", () => {
     } as any;
 
     // Mock retrieve function
-    mockQueryGenerator = sinon.stub().returns(
+    mockQueryGenerator = sinon.stub().callsFake(() =>
       (async function* () {
         yield [
           Promise.resolve({
@@ -73,11 +74,16 @@ describe("AutoRetrieval", () => {
             payload: new Uint8Array([1, 2, 3]),
             rateLimitProof: undefined,
             ephemeral: false,
-            meta: undefined
+            meta: undefined,
+            hashStr: "12345"
           } as IDecodedMessage)
         ];
       })()
     );
+
+    mockPeerId = {
+      toString: () => "QmTestPeerId"
+    } as unknown as PeerId;
 
     // Mock options
     options = {
@@ -87,7 +93,7 @@ describe("AutoRetrieval", () => {
 
   describe("constructor", () => {
     it("should create AutoQuery instance with all required parameters", () => {
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -95,24 +101,24 @@ describe("AutoRetrieval", () => {
         options
       );
 
-      expect(autoRetrieval).to.be.instanceOf(AutoQuery);
-      expect(autoRetrieval.decoders).to.equal(mockDecoders);
+      expect(autoQuery).to.be.instanceOf(AutoQuery);
+      expect(autoQuery.decoders).to.equal(mockDecoders);
     });
 
     it("should create AutoQuery instance without options", () => {
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator
       );
 
-      expect(autoRetrieval).to.be.instanceOf(AutoQuery);
-      expect(autoRetrieval.decoders).to.equal(mockDecoders);
+      expect(autoQuery).to.be.instanceOf(AutoQuery);
+      expect(autoQuery.decoders).to.equal(mockDecoders);
     });
 
     it("should accept empty decoders array", () => {
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         [],
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -120,42 +126,13 @@ describe("AutoRetrieval", () => {
         options
       );
 
-      expect(autoRetrieval.decoders).to.deep.equal([]);
-    });
-
-    it("should use default forceQueryThresholdMs when not provided in options", () => {
-      autoRetrieval = new AutoQuery(
-        mockDecoders,
-        mockPeerManagerEventEmitter,
-        mockWakuEventEmitter,
-        mockQueryGenerator,
-        {}
-      );
-
-      expect((autoRetrieval as any).forceQueryThresholdMs).to.equal(
-        DEFAULT_FORCE_QUERY_THRESHOLD_MS
-      );
-    });
-
-    it("should use custom forceQueryThresholdMs when provided in options", () => {
-      const customThreshold = 15000;
-      autoRetrieval = new AutoQuery(
-        mockDecoders,
-        mockPeerManagerEventEmitter,
-        mockWakuEventEmitter,
-        mockQueryGenerator,
-        { forceQueryThresholdMs: customThreshold }
-      );
-
-      expect((autoRetrieval as any).forceQueryThresholdMs).to.equal(
-        customThreshold
-      );
+      expect(autoQuery.decoders).to.deep.equal([]);
     });
   });
 
   describe("start and stop", () => {
     beforeEach(() => {
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -170,7 +147,7 @@ describe("AutoRetrieval", () => {
       const wakuEventSpy =
         mockWakuEventEmitter.addEventListener as sinon.SinonSpy;
 
-      autoRetrieval.start();
+      autoQuery.start();
 
       expect(peerEventSpy.calledWith(PeerManagerEventNames.StoreConnect)).to.be
         .true;
@@ -183,8 +160,8 @@ describe("AutoRetrieval", () => {
       const wakuRemoveSpy =
         mockWakuEventEmitter.removeEventListener as sinon.SinonSpy;
 
-      autoRetrieval.start();
-      autoRetrieval.stop();
+      autoQuery.start();
+      autoQuery.stop();
 
       expect(peerRemoveSpy.calledWith(PeerManagerEventNames.StoreConnect)).to.be
         .true;
@@ -194,7 +171,7 @@ describe("AutoRetrieval", () => {
 
   describe("mock validation", () => {
     beforeEach(() => {
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -245,7 +222,7 @@ describe("AutoRetrieval", () => {
           }
         });
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -255,7 +232,7 @@ describe("AutoRetrieval", () => {
     });
 
     it("should capture event listeners for testing", () => {
-      autoRetrieval.start();
+      autoQuery.start();
 
       expect(
         addEventListenerStub.calledWith(PeerManagerEventNames.StoreConnect)
@@ -266,7 +243,7 @@ describe("AutoRetrieval", () => {
     });
 
     it("should properly setup health event callback", () => {
-      autoRetrieval.start();
+      autoQuery.start();
 
       expect(mockWakuEventEmitter.addEventListener).to.be.a("function");
       expect(healthEventCallback).to.be.a("function");
@@ -297,7 +274,7 @@ describe("AutoRetrieval", () => {
 
       mockQueryGenerator.returns(mockAsyncGenerator());
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -319,7 +296,7 @@ describe("AutoRetrieval", () => {
         timeEnd: new Date()
       };
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -339,8 +316,9 @@ describe("AutoRetrieval", () => {
 
     beforeEach(() => {
       mockClock = sinon.useFakeTimers();
+      mockClock.tick(10); // always tick as now === 0 messes up the logic
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -353,91 +331,92 @@ describe("AutoRetrieval", () => {
       mockClock.restore();
     });
 
-    it("should trigger retrieval when lastTimeOffline is after lastSuccessfulQuery", () => {
-      autoRetrieval.start();
+    it("should trigger query when it went offline since the last successful query", async () => {
+      let healthEventCallback:
+        | ((event: CustomEvent<HealthStatus>) => void)
+        | undefined;
 
-      // Simulate going offline after last successful query
-      (autoRetrieval as any).lastTimeOffline = Date.now();
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000;
+      // Capture the health event callback
+      mockWakuEventEmitter.addEventListener = sinon
+        .stub()
+        .callsFake((eventType, callback) => {
+          if (eventType === WakuEventType.Health) {
+            healthEventCallback = callback;
+          }
+        });
 
-      // Call maybeQuery directly to test condition
-      (autoRetrieval as any).maybeQuery();
-
-      expect(mockQueryGenerator.calledOnce).to.be.true;
-    });
-
-    it("should trigger retrieval when time since last query exceeds threshold", () => {
-      autoRetrieval.start();
+      autoQuery.start();
 
       // Set lastSuccessfulQuery to simulate old query
-      (autoRetrieval as any).lastSuccessfulQuery =
-        Date.now() - (DEFAULT_FORCE_QUERY_THRESHOLD_MS + 1000);
+      await autoQuery.maybeQuery(mockPeerId);
+      mockClock.tick(1);
 
-      // Call maybeQuery directly to test condition
-      (autoRetrieval as any).maybeQuery();
-
-      expect(mockQueryGenerator.calledOnce).to.be.true;
-    });
-
-    it("should not trigger retrieval when conditions are not met", () => {
-      autoRetrieval.start();
-
-      // Set recent successful query
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now();
-      (autoRetrieval as any).lastTimeOffline = Date.now() - 1000;
-
-      // Call maybeQuery directly to test condition
-      (autoRetrieval as any).maybeQuery();
-
-      expect(mockQueryGenerator.called).to.be.false;
-    });
-
-    it("should properly handle health status updates for offline tracking", () => {
-      autoRetrieval.start();
-
-      const initialOfflineTime = (autoRetrieval as any).lastTimeOffline;
-
-      // Advance fake timer to ensure different timestamp
-      mockClock.tick(1000);
-
-      // Simulate health status change to unhealthy
+      // goes offline
       const healthEvent = new CustomEvent<HealthStatus>("health", {
         detail: HealthStatus.Unhealthy
       });
+      expect(healthEventCallback).to.not.be.undefined;
+      healthEventCallback!.call(autoQuery, healthEvent);
+      mockClock.tick(1);
 
-      // Call updateLastOfflineDate directly
-      (autoRetrieval as any).updateLastOfflineDate(healthEvent);
+      // Call maybeQuery directly to test condition
+      await autoQuery.maybeQuery(mockPeerId);
 
-      expect((autoRetrieval as any).lastTimeOffline).to.be.greaterThan(
-        initialOfflineTime
-      );
+      expect(mockQueryGenerator.calledTwice).to.be.true;
     });
 
-    it("should not update offline time for healthy status", () => {
-      autoRetrieval.start();
+    it("should not trigger query if health event is healthy since last successful query", async () => {
+      autoQuery.start();
 
-      const initialOfflineTime = (autoRetrieval as any).lastTimeOffline;
+      // Set lastSuccessfulQuery to simulate old query
+      await autoQuery.maybeQuery(mockPeerId);
 
-      // Simulate health status change to healthy
+      // goes offline
       const healthEvent = new CustomEvent<HealthStatus>("health", {
         detail: HealthStatus.SufficientlyHealthy
       });
+      mockWakuEventEmitter.dispatchEvent(healthEvent);
 
-      // Call updateLastOfflineDate directly
-      (autoRetrieval as any).updateLastOfflineDate(healthEvent);
+      // Call maybeQuery directly to test condition
+      await autoQuery.maybeQuery(mockPeerId);
 
-      expect((autoRetrieval as any).lastTimeOffline).to.equal(
-        initialOfflineTime
-      );
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
-    it("should respect custom forceQueryThresholdMs in retrieval conditions", () => {
+    it("should trigger query when time since last query exceeds threshold", async function () {
+      const customThreshold = 10;
+      const customOptions: AutoQueryOptions = {
+        forceQueryThresholdMs: customThreshold
+      };
+
+      const autoRetrieval = new AutoQuery(
+        mockDecoders,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockQueryGenerator,
+        customOptions
+      );
+      autoRetrieval.start();
+
+      // Set lastSuccessfulQuery to simulate old query
+      await autoRetrieval.maybeQuery(mockPeerId);
+
+      // Advance fake timer over the force threshold
+      mockClock.tick(20);
+
+      // Call maybeQuery directly to test condition
+      await autoRetrieval.maybeQuery(mockPeerId);
+
+      expect(mockQueryGenerator.calledTwice).to.be.true;
+    });
+
+    it("should not trigger query when a recent query happened under threshold", async () => {
       const customThreshold = 2000;
       const customOptions: AutoQueryOptions = {
         forceQueryThresholdMs: customThreshold
       };
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -445,25 +424,25 @@ describe("AutoRetrieval", () => {
         customOptions
       );
 
-      autoRetrieval.start();
+      autoQuery.start();
 
-      // Set lastSuccessfulQuery to be just over custom threshold
-      (autoRetrieval as any).lastSuccessfulQuery =
-        Date.now() - (customThreshold + 100);
+      // First call to set a successful call
+      await autoQuery.maybeQuery(mockPeerId);
 
-      // Call maybeQuery to test custom threshold
-      (autoRetrieval as any).maybeQuery();
+      // Second call should not trigger
+      await autoQuery.maybeQuery(mockPeerId);
 
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
   });
 
   describe("end-to-end message emission tests", () => {
-    let storeConnectCallback: () => void;
+    let storeConnectCallback: (event: CustomEvent<PeerId>) => void;
     let healthEventCallback: (event: CustomEvent<HealthStatus>) => void;
     let messageEventPromise: Promise<IDecodedMessage>;
     let resolveMessageEvent: (message: IDecodedMessage) => void;
     let rejectMessageEvent: (reason: string) => void;
+    let connectStoreEvent: CustomEvent<PeerId>;
 
     beforeEach(() => {
       // Create a promise that resolves when a message event is emitted
@@ -489,7 +468,7 @@ describe("AutoRetrieval", () => {
           }
         });
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -498,12 +477,16 @@ describe("AutoRetrieval", () => {
       );
 
       // Listen for message events
-      autoRetrieval.addEventListener(
+      autoQuery.addEventListener(
         AutoQueryEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
       );
+
+      connectStoreEvent = new CustomEvent<PeerId>("connect:store", {
+        detail: mockPeerId
+      });
 
       // Set a timeout to reject if no message is received
       setTimeout(
@@ -514,8 +497,8 @@ describe("AutoRetrieval", () => {
 
     it("should emit message when we just started and store connect event occurs", async () => {
       const mockMessage: IDecodedMessage = {
-        hash: new Uint8Array(),
-        hashStr: "",
+        hash: utf8ToBytes("1234"),
+        hashStr: "1234",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
@@ -534,14 +517,10 @@ describe("AutoRetrieval", () => {
       };
       mockQueryGenerator.returns(mockAsyncGenerator());
 
-      autoRetrieval.start();
-
-      // Step 1: Simulate fresh start
-      (autoRetrieval as any).lastSuccessfulQuery = 0;
-      (autoRetrieval as any).lastTimeOffline = 0;
+      autoQuery.start();
 
       // Step 2: Simulate store peer reconnection
-      storeConnectCallback.call(autoRetrieval);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Step 4: Wait for message emission
       const receivedMessage = await messageEventPromise;
@@ -572,19 +551,20 @@ describe("AutoRetrieval", () => {
       };
       mockQueryGenerator.returns(mockAsyncGenerator());
 
-      autoRetrieval.start();
+      autoQuery.start();
 
       // Step 1: Simulate successful query in the past
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000; // 10 seconds ago
+      await autoQuery.maybeQuery(mockPeerId);
+      await delay(100);
 
       // Step 2: Simulate going offline after the successful query
       const healthEvent = new CustomEvent<HealthStatus>("health", {
         detail: HealthStatus.Unhealthy
       });
-      healthEventCallback.call(autoRetrieval, healthEvent);
+      healthEventCallback.call(autoQuery, healthEvent);
 
       // Step 3: Simulate store peer reconnection
-      storeConnectCallback.call(autoRetrieval);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Step 4: Wait for message emission
       const receivedMessage = await messageEventPromise;
@@ -615,7 +595,7 @@ describe("AutoRetrieval", () => {
       };
       mockQueryGenerator.returns(mockAsyncGenerator());
 
-      autoRetrieval = new AutoQuery(
+      autoQuery = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
@@ -624,23 +604,20 @@ describe("AutoRetrieval", () => {
       );
 
       // Re-setup event listeners for new instance
-      autoRetrieval.addEventListener(
+      autoQuery.addEventListener(
         AutoQueryEvent.MessagesRetrieved as any,
         (event: any) => {
           resolveMessageEvent(event.detail);
         }
       );
 
-      autoRetrieval.start();
+      autoQuery.start();
 
       // Step 1: Simulate old successful query (over threshold)
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 6000; // 6 seconds ago
-
-      // Step 2: Keep healthy status (no offline period)
-      (autoRetrieval as any).lastTimeOffline = 0;
+      await autoQuery.maybeQuery(mockPeerId);
 
       // Step 3: Simulate store peer reconnection
-      storeConnectCallback.call(autoRetrieval);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Step 4: Wait for message emission
       const receivedMessage = await messageEventPromise;
@@ -649,7 +626,7 @@ describe("AutoRetrieval", () => {
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
-    it("should emit multiple messages when retrieve returns multiple messages", async () => {
+    it("should emit multiple messages when query returns multiple messages", async () => {
       const mockMessage1: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "",
@@ -690,7 +667,7 @@ describe("AutoRetrieval", () => {
 
       // Create a new promise for multiple messages
       const multipleMessagesPromise = new Promise<void>((resolve) => {
-        autoRetrieval.addEventListener(
+        autoQuery.addEventListener(
           AutoQueryEvent.MessagesRetrieved as any,
           (event: any) => {
             receivedMessages.push(event.detail);
@@ -702,14 +679,9 @@ describe("AutoRetrieval", () => {
         );
       });
 
-      autoRetrieval.start();
+      autoQuery.start();
 
-      // Trigger retrieval with offline condition
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000;
-      (autoRetrieval as any).lastTimeOffline = Date.now();
-
-      await delay(10);
-      storeConnectCallback.call(autoRetrieval);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Wait for all messages with timeout
       await Promise.race([
@@ -726,14 +698,12 @@ describe("AutoRetrieval", () => {
     });
 
     it("should not emit message when conditions are not met (recent query, no offline)", async () => {
-      autoRetrieval.start();
+      autoQuery.start();
 
-      // Set recent successful query and no offline period
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000; // 1 second ago
-      (autoRetrieval as any).lastTimeOffline = 0; // Never went offline
+      await autoQuery.maybeQuery(mockPeerId);
 
       // Override promise to reject if any message is received
-      autoRetrieval.addEventListener(
+      autoQuery.addEventListener(
         AutoQueryEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission");
@@ -741,77 +711,35 @@ describe("AutoRetrieval", () => {
       );
 
       await delay(10);
-      storeConnectCallback.call(autoRetrieval);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Wait briefly to ensure no message is emitted
       await delay(50);
 
-      expect(mockQueryGenerator.called).to.be.false;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should handle retrieve errors gracefully without emitting messages", async () => {
       // Setup retrieve function to throw an error
       mockQueryGenerator.rejects(new Error("Retrieval failed"));
 
-      autoRetrieval.start();
+      autoQuery.start();
 
       // Override promise to reject if any message is received
-      autoRetrieval.addEventListener(
+      autoQuery.addEventListener(
         AutoQueryEvent.MessagesRetrieved as any,
         () => {
           rejectMessageEvent("Unexpected message emission after error");
         }
       );
 
-      // Set conditions that would normally trigger retrieval
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000;
-      (autoRetrieval as any).lastTimeOffline = Date.now();
-
-      storeConnectCallback.call(autoRetrieval);
+      await autoQuery.maybeQuery(mockPeerId);
+      storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Wait briefly to ensure no message is emitted
       await delay(100);
 
       expect(mockQueryGenerator.calledOnce).to.be.true;
-    });
-
-    it("should update lastSuccessfulQuery timestamp after successful retrieval", async () => {
-      const mockMessage: IDecodedMessage = {
-        hash: new Uint8Array(),
-        hashStr: "",
-        version: 1,
-        timestamp: new Date(),
-        contentTopic: "/test/timestamp/content",
-        pubsubTopic: "/waku/2/default-waku/proto",
-        payload: new Uint8Array([7, 8, 9]),
-        rateLimitProof: undefined,
-        ephemeral: false,
-        meta: undefined
-      };
-
-      const mockAsyncGenerator = async function* (): AsyncGenerator<
-        Promise<IDecodedMessage | undefined>[]
-      > {
-        yield [Promise.resolve(mockMessage)];
-      };
-      mockQueryGenerator.returns(mockAsyncGenerator());
-
-      autoRetrieval.start();
-
-      const initialTimestamp = (autoRetrieval as any).lastSuccessfulQuery;
-
-      // Trigger retrieval
-      (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 10000;
-      (autoRetrieval as any).lastTimeOffline = Date.now();
-
-      storeConnectCallback.call(autoRetrieval);
-
-      // Wait for retrieval to complete
-      await messageEventPromise;
-      await delay(10);
-
-      const updatedTimestamp = (autoRetrieval as any).lastSuccessfulQuery;
-      expect(updatedTimestamp).to.be.greaterThan(initialTimestamp);
     });
   });
 });
