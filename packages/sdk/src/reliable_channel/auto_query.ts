@@ -1,4 +1,4 @@
-import { TypedEventEmitter } from "@libp2p/interface";
+import { type PeerId, TypedEventEmitter } from "@libp2p/interface";
 import {
   HealthStatus,
   type IDecodedMessage,
@@ -78,7 +78,7 @@ export class AutoQuery<
     this.unsetEventListeners();
   }
 
-  private maybeQuery(): void {
+  private maybeQuery(event: CustomEvent<PeerId>): void {
     log.info("maybe auto-query");
     const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
     // if we were marked as "offline" after last successful query
@@ -87,18 +87,20 @@ export class AutoQuery<
       this.lastTimeOffline > this.lastSuccessfulQuery ||
       timeSinceLastQuery > this.forceQueryThresholdMs
     ) {
-      this.query().catch((err) => log.error("Error auto-query", err));
+      this.query(event.detail).catch((err) =>
+        log.error("Error auto-query", err)
+      );
     }
   }
 
-  private async query(): Promise<void> {
+  private async query(peerId: PeerId): Promise<void> {
     log.info("perform auto-query");
     const { timeStart, timeEnd } = this.queryTimeRange();
     try {
-      // TODO: pass peer id so we use the peer we just connected to
       for await (const page of this._queryGenerator(this.decoders, {
         timeStart,
-        timeEnd
+        timeEnd,
+        peerId
       })) {
         const messages = [];
         for await (const message of page) {
