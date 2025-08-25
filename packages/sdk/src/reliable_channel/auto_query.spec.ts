@@ -439,17 +439,19 @@ describe("AutoQuery", () => {
   describe("end-to-end message emission tests", () => {
     let storeConnectCallback: (event: CustomEvent<PeerId>) => void;
     let healthEventCallback: (event: CustomEvent<HealthStatus>) => void;
-    let messageEventPromise: Promise<IDecodedMessage>;
-    let resolveMessageEvent: (message: IDecodedMessage) => void;
+    let messageEventPromise: Promise<IDecodedMessage[]>;
+    let resolveMessageEvent: (messages: IDecodedMessage[]) => void;
     let rejectMessageEvent: (reason: string) => void;
     let connectStoreEvent: CustomEvent<PeerId>;
 
     beforeEach(() => {
       // Create a promise that resolves when a message event is emitted
-      messageEventPromise = new Promise<IDecodedMessage>((resolve, reject) => {
-        resolveMessageEvent = resolve;
-        rejectMessageEvent = reject;
-      });
+      messageEventPromise = new Promise<IDecodedMessage[]>(
+        (resolve, reject) => {
+          resolveMessageEvent = resolve;
+          rejectMessageEvent = reject;
+        }
+      );
 
       // Setup event listener capture with proper binding
       mockPeerManagerEventEmitter.addEventListener = sinon
@@ -478,8 +480,8 @@ describe("AutoQuery", () => {
 
       // Listen for message events
       autoQuery.addEventListener(
-        AutoQueryEvent.MessagesRetrieved as any,
-        (event: any) => {
+        AutoQueryEvent.MessagesRetrieved,
+        (event: CustomEvent<IDecodedMessage[]>) => {
           resolveMessageEvent(event.detail);
         }
       );
@@ -525,14 +527,14 @@ describe("AutoQuery", () => {
       // Step 4: Wait for message emission
       const receivedMessage = await messageEventPromise;
 
-      expect(receivedMessage).to.deep.equal(mockMessage);
+      expect(receivedMessage).to.deep.equal([mockMessage]);
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should emit message when we went offline since last successful query and store reconnect event occurs", async () => {
       const mockMessage: IDecodedMessage = {
         hash: new Uint8Array(),
-        hashStr: "",
+        hashStr: "1234",
         version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
@@ -567,10 +569,10 @@ describe("AutoQuery", () => {
       storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Step 4: Wait for message emission
-      const receivedMessage = await messageEventPromise;
+      const receivedMessages = await messageEventPromise;
 
-      expect(receivedMessage).to.deep.equal(mockMessage);
-      expect(mockQueryGenerator.calledOnce).to.be.true;
+      expect(receivedMessages).to.deep.equal([mockMessage]);
+      expect(mockQueryGenerator.calledTwice).to.be.true;
     });
 
     it("should emit message when store reconnect event occurs and last query was over max time threshold", async () => {
@@ -605,8 +607,8 @@ describe("AutoQuery", () => {
 
       // Re-setup event listeners for new instance
       autoQuery.addEventListener(
-        AutoQueryEvent.MessagesRetrieved as any,
-        (event: any) => {
+        AutoQueryEvent.MessagesRetrieved,
+        (event: CustomEvent<IDecodedMessage[]>) => {
           resolveMessageEvent(event.detail);
         }
       );
@@ -620,9 +622,9 @@ describe("AutoQuery", () => {
       storeConnectCallback.call(autoQuery, connectStoreEvent);
 
       // Step 4: Wait for message emission
-      const receivedMessage = await messageEventPromise;
+      const receivedMessages = await messageEventPromise;
 
-      expect(receivedMessage).to.deep.equal(mockMessage);
+      expect(receivedMessages).to.deep.equal([mockMessage]);
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
@@ -668,9 +670,9 @@ describe("AutoQuery", () => {
       // Create a new promise for multiple messages
       const multipleMessagesPromise = new Promise<void>((resolve) => {
         autoQuery.addEventListener(
-          AutoQueryEvent.MessagesRetrieved as any,
-          (event: any) => {
-            receivedMessages.push(event.detail);
+          AutoQueryEvent.MessagesRetrieved,
+          (event: CustomEvent<IDecodedMessage[]>) => {
+            receivedMessages.push(...event.detail);
             messageCount++;
             if (messageCount === 2) {
               resolve();
@@ -703,12 +705,9 @@ describe("AutoQuery", () => {
       await autoQuery.maybeQuery(mockPeerId);
 
       // Override promise to reject if any message is received
-      autoQuery.addEventListener(
-        AutoQueryEvent.MessagesRetrieved as any,
-        () => {
-          rejectMessageEvent("Unexpected message emission");
-        }
-      );
+      autoQuery.addEventListener(AutoQueryEvent.MessagesRetrieved, () => {
+        rejectMessageEvent("Unexpected message emission");
+      });
 
       await delay(10);
       storeConnectCallback.call(autoQuery, connectStoreEvent);
@@ -727,8 +726,8 @@ describe("AutoQuery", () => {
 
       // Override promise to reject if any message is received
       autoQuery.addEventListener(
-        AutoQueryEvent.MessagesRetrieved as any,
-        () => {
+        AutoQueryEvent.MessagesRetrieved,
+        (_event: CustomEvent<IDecodedMessage[]>) => {
           rejectMessageEvent("Unexpected message emission after error");
         }
       );
@@ -739,7 +738,7 @@ describe("AutoQuery", () => {
       // Wait briefly to ensure no message is emitted
       await delay(100);
 
-      expect(mockQueryGenerator.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledTwice).to.be.true;
     });
   });
 });
