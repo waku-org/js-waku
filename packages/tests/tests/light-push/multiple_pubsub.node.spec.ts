@@ -61,46 +61,56 @@ describe("Waku Light Push (Autosharding): Multiple Shards", function () {
     await teardownNodesWithRedundancy(serviceNodes, waku);
   });
 
-  it("Subscribe and receive messages on 2 different pubsubtopics with v3 protocol", async function () {
-    if (customRoutingInfo2.pubsubTopic === TestEncoder.pubsubTopic)
-      throw "Invalid test, both encoder uses same shard";
+  [true, false].forEach((useLegacy) => {
+    it(`Subscribe and receive messages on 2 different pubsubtopics with ${useLegacy ? "v2" : "v3"} protocol`, async function () {
+      if (customRoutingInfo2.pubsubTopic === TestEncoder.pubsubTopic)
+        throw "Invalid test, both encoder uses same shard";
 
-    const pushResponse1 = await waku.lightPush!.send(TestEncoder, {
-      payload: utf8ToBytes("M1")
-    });
+      const pushResponse1 = await waku.lightPush!.send(
+        TestEncoder,
+        {
+          payload: utf8ToBytes("M1")
+        },
+        { useLegacy }
+      );
 
-    const pushResponse2 = await waku.lightPush!.send(customEncoder2, {
-      payload: utf8ToBytes("M2")
-    });
+      const pushResponse2 = await waku.lightPush!.send(
+        customEncoder2,
+        {
+          payload: utf8ToBytes("M2")
+        },
+        { useLegacy }
+      );
 
-    expect(pushResponse1?.successes.length).to.eq(numServiceNodes);
-    expect(pushResponse2?.successes.length).to.eq(numServiceNodes);
+      expect(pushResponse1?.successes.length).to.eq(numServiceNodes);
+      expect(pushResponse2?.successes.length).to.eq(numServiceNodes);
 
-    const messageCollector1 = new MessageCollector(serviceNodes.nodes[0]);
-    const messageCollector2 = new MessageCollector(serviceNodes.nodes[1]);
+      const messageCollector1 = new MessageCollector(serviceNodes.nodes[0]);
+      const messageCollector2 = new MessageCollector(serviceNodes.nodes[1]);
 
-    expect(
-      await messageCollector1.waitForMessagesAutosharding(1, {
-        contentTopic: TestEncoder.contentTopic
-      })
-    ).to.eq(true);
+      expect(
+        await messageCollector1.waitForMessagesAutosharding(1, {
+          contentTopic: TestEncoder.contentTopic
+        })
+      ).to.eq(true);
 
-    expect(
-      await messageCollector2.waitForMessagesAutosharding(1, {
-        contentTopic: customEncoder2.contentTopic
-      })
-    ).to.eq(true);
+      expect(
+        await messageCollector2.waitForMessagesAutosharding(1, {
+          contentTopic: customEncoder2.contentTopic
+        })
+      ).to.eq(true);
 
-    messageCollector1.verifyReceivedMessage(0, {
-      expectedMessageText: "M1",
-      expectedContentTopic: TestEncoder.contentTopic,
-      expectedPubsubTopic: TestEncoder.pubsubTopic
-    });
+      messageCollector1.verifyReceivedMessage(0, {
+        expectedMessageText: "M1",
+        expectedContentTopic: TestEncoder.contentTopic,
+        expectedPubsubTopic: TestEncoder.pubsubTopic
+      });
 
-    messageCollector2.verifyReceivedMessage(0, {
-      expectedMessageText: "M2",
-      expectedContentTopic: customEncoder2.contentTopic,
-      expectedPubsubTopic: customEncoder2.pubsubTopic
+      messageCollector2.verifyReceivedMessage(0, {
+        expectedMessageText: "M2",
+        expectedContentTopic: customEncoder2.contentTopic,
+        expectedPubsubTopic: customEncoder2.pubsubTopic
+      });
     });
   });
 

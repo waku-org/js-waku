@@ -36,7 +36,8 @@ export class LightPushCore {
   public async send(
     encoder: IEncoder,
     message: IMessage,
-    peerId: PeerId
+    peerId: PeerId,
+    useLegacy: boolean = false
   ): Promise<LightPushCoreResult> {
     let stream: Stream | undefined;
     let protocol: string;
@@ -44,12 +45,18 @@ export class LightPushCore {
     try {
       const peer = await this.libp2p.peerStore.get(peerId);
 
-      if (peer.protocols.includes(CODECS.v3)) {
+      if (
+        useLegacy ||
+        (!peer.protocols.includes(CODECS.v3) &&
+          !peer.protocols.includes(CODECS.v2))
+      ) {
+        stream = await this.streamManagerV2.getStream(peerId);
+        protocol = CODECS.v2;
+      } else if (peer.protocols.includes(CODECS.v3)) {
         stream = await this.streamManager.getStream(peerId);
         protocol = CODECS.v3;
       } else {
-        stream = await this.streamManagerV2.getStream(peerId);
-        protocol = CODECS.v2;
+        throw new Error("No supported protocol found");
       }
     } catch (error) {
       log.error("Failed to get stream", error);

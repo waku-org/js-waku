@@ -21,7 +21,11 @@ export type ILightPush = {
   readonly multicodec: string[];
   start: () => void;
   stop: () => void;
-  send: (encoder: IEncoder, message: IMessage) => Promise<LightPushSDKResult>;
+  send: (
+    encoder: IEncoder,
+    message: IMessage,
+    options?: ISendOptions
+  ) => Promise<LightPushSDKResult>;
 };
 
 export enum LightPushStatusCode {
