@@ -34,7 +34,6 @@ type LightPushConstructorParams = {
   peerManager: PeerManager;
   libp2p: Libp2p;
   options?: Partial<LightPushProtocolOptions>;
-  legacy?: boolean;
 };
 
 export class LightPush implements ILightPush {
@@ -50,7 +49,7 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.protocol = new LightPushCore(params.libp2p, params.legacy);
+    this.protocol = new LightPushCore(params.libp2p);
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs

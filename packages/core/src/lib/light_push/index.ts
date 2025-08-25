@@ -1,5 +1,2 @@
-export {
-  LightPushCore,
-  LightPushCodec,
-  LightPushCodecV2
-} from "./light_push.js";
+export { LightPushCore } from "./light_push.js";
+export { LightPushCodec, LightPushCodecV2 } from "./constants.js";

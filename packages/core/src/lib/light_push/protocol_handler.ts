@@ -1,22 +1,22 @@
 import type { PeerId } from "@libp2p/interface";
 import type { IEncoder, IMessage, LightPushCoreResult } from "@waku/interfaces";
 import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
-import { WakuMessage } from "@waku/proto";
+import { PushResponse, WakuMessage } from "@waku/proto";
 import { isMessageSizeUnderCap, Logger } from "@waku/utils";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { CODECS } from "./constants.js";
 import { PushRpcV2 } from "./push_rpc.js";
 import { PushRpc } from "./push_rpc_v3.js";
 import { isRLNResponseError } from "./utils.js";
 
-export type VersionedPushRpc =
+type VersionedPushRpc =
   | ({ version: "v2" } & PushRpcV2)
   | ({ version: "v3" } & PushRpc);
 
-export const CODECS = {
-  v2: "/vac/waku/lightpush/2.0.0-beta1",
-  v3: "/vac/waku/lightpush/3.0.0"
-} as const;
+type PreparePushMessageResult =
+  | { rpc: VersionedPushRpc; error: null }
+  | { rpc: null; error: LightPushError };
 
 const log = new Logger("light-push:protocol-handler");
 
@@ -25,7 +25,7 @@ export class ProtocolHandler {
     encoder: IEncoder,
     message: IMessage,
     protocol: string
-  ): Promise<{ rpc: VersionedPushRpc | null; error: LightPushError | null }> {
+  ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
         log.error("Failed to send waku light push: payload is empty");
@@ -43,19 +43,17 @@ export class ProtocolHandler {
         return { rpc: null, error: LightPushError.ENCODE_FAILED };
       }
 
-      // Select version implementation
       if (protocol === CODECS.v3) {
         log.info("Creating v3 RPC message");
         return {
-          rpc: createV3Rpc(protoMessage, encoder.pubsubTopic),
+          rpc: ProtocolHandler.createV3Rpc(protoMessage, encoder.pubsubTopic),
           error: null
         };
       }
 
-      // Default to v2
       log.info("Creating v2 RPC message");
       return {
-        rpc: createV2Rpc(protoMessage, encoder.pubsubTopic),
+        rpc: ProtocolHandler.createV2Rpc(protoMessage, encoder.pubsubTopic),
         error: null
       };
     } catch (err) {
@@ -75,6 +73,7 @@ export class ProtocolHandler {
     if (protocol === CODECS.v3) {
       return ProtocolHandler.handleV3Response(bytes, peerId);
     }
+
     return ProtocolHandler.handleV2Response(bytes, peerId);
   }
 
@@ -121,7 +120,7 @@ export class ProtocolHandler {
     bytes: Uint8ArrayList,
     peerId: PeerId
   ): LightPushCoreResult {
-    let response: import("@waku/proto").PushResponse | undefined;
+    let response: PushResponse | undefined;
     try {
       const decodedRpc = PushRpcV2.decode(bytes);
       response = decodedRpc.response;
@@ -169,24 +168,24 @@ export class ProtocolHandler {
 
     return { success: peerId, failure: null };
   }
-}
 
-function createV2Rpc(
-  message: WakuMessage,
-  pubsubTopic: string
-): VersionedPushRpc {
-  const v2Rpc = PushRpcV2.createRequest(message, pubsubTopic);
-  return Object.assign(v2Rpc, { version: "v2" as const });
-}
-
-function createV3Rpc(
-  message: WakuMessage,
-  pubsubTopic: string
-): VersionedPushRpc {
-  if (!message.timestamp) {
-    message.timestamp = BigInt(Date.now()) * BigInt(1_000_000);
+  private static createV2Rpc(
+    message: WakuMessage,
+    pubsubTopic: string
+  ): VersionedPushRpc {
+    const v2Rpc = PushRpcV2.createRequest(message, pubsubTopic);
+    return Object.assign(v2Rpc, { version: "v2" as const });
   }
 
-  const v3Rpc = PushRpc.createRequest(message, pubsubTopic);
-  return Object.assign(v3Rpc, { version: "v3" as const });
+  private static createV3Rpc(
+    message: WakuMessage,
+    pubsubTopic: string
+  ): VersionedPushRpc {
+    if (!message.timestamp) {
+      message.timestamp = BigInt(Date.now()) * BigInt(1_000_000);
+    }
+
+    const v3Rpc = PushRpc.createRequest(message, pubsubTopic);
+    return Object.assign(v3Rpc, { version: "v3" as const });
+  }
 }
