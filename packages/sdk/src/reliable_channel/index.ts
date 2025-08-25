@@ -128,7 +128,7 @@ export class ReliableChannel<
   private syncTimeout: ReturnType<typeof setTimeout> | undefined;
   private readonly retryManager: RetryManager | undefined;
   private readonly missingMessageRetriever?: MissingMessageRetriever<T>;
-  private readonly autoRetrieval?: AutoQuery<T>;
+  private readonly autoQuery?: AutoQuery<T>;
   public isStarted: boolean;
 
   private constructor(
@@ -161,7 +161,7 @@ export class ReliableChannel<
       this._retrieve = node.store.queryGenerator.bind(node.store);
       const peerManagerEvents = (node as any)?.peerManager?.events;
       if (peerManagerEvents && (options?.autoRetrieval ?? true)) {
-        this.autoRetrieval = new AutoQuery(
+        this.autoQuery = new AutoQuery(
           [this.decoder],
           peerManagerEvents,
           node.events,
@@ -415,7 +415,7 @@ export class ReliableChannel<
     this.restartSync();
     if (this._retrieve) {
       this.missingMessageRetriever?.start();
-      this.autoRetrieval?.start();
+      this.autoQuery?.start();
     }
     return this.subscribe();
   }
@@ -425,7 +425,7 @@ export class ReliableChannel<
     this.isStarted = false;
     this.stopSync();
     this.missingMessageRetriever?.stop();
-    this.autoRetrieval?.stop();
+    this.autoQuery?.stop();
     // TODO unsubscribe
     // TODO unsetMessageListeners
   }
@@ -589,8 +589,8 @@ export class ReliableChannel<
       }
     );
 
-    if (this.autoRetrieval) {
-      this.autoRetrieval.addEventListener(
+    if (this.autoQuery) {
+      this.autoQuery.addEventListener(
         AutoQueryEvent.MessagesRetrieved,
         (event) => {
           void this.processIncomingMessages(event.detail);
