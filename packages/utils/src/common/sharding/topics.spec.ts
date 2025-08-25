@@ -7,7 +7,7 @@ import {
   contentTopicToShardIndex,
   ensureValidContentTopic,
   pubsubTopicToSingleShardInfo
-} from "./index.js";
+} from "./topics.js";
 
 const ClusterId = 0;
 const NumShardsInCluster = 8;
@@ -292,78 +292,3 @@ describe("pubsubTopicToSingleShardInfo with various invalid formats", () => {
     });
   });
 });
-
-// describe("ensureShardingConfigured", () => {
-//   it("should return valid sharding parameters for static sharding", () => {
-//     const shardInfo = { clusterId: 1, shards: [0, 1] };
-//     const result = ensureShardingConfigured(shardInfo);
-//     expect(result.shardInfo).to.deep.include({
-//       clusterId: 1,
-//       shards: [0, 1]
-//     });
-//     expect(result.shardInfo).to.deep.include({ clusterId: 1, shards: [0, 1] });
-//     expect(result.pubsubTopics).to.have.members([
-//       "/waku/2/rs/1/0",
-//       "/waku/2/rs/1/1"
-//     ]);
-//   });
-//
-//   it("should return valid sharding parameters for content topics autosharding", () => {
-//     const contentTopicInfo = { contentTopics: ["/app/v1/topic1/proto"] };
-//     const result = ensureShardingConfigured(contentTopicInfo);
-//     const expectedPubsubTopic = contentTopicToPubsubTopic(
-//       "/app/v1/topic1/proto",
-//       DEFAULT_CLUSTER_ID
-//     );
-//     expect(result.shardInfo.shards).to.include(
-//       contentTopicToShardIndex("/app/v1/topic1/proto")
-//     );
-//     expect(result.pubsubTopics).to.include(expectedPubsubTopic);
-//   });
-//
-//   it("should throw an error for missing sharding configuration", () => {
-//     const shardInfo = {} as any as NetworkConfig;
-//     expect(() => ensureShardingConfigured(shardInfo)).to.throw();
-//   });
-//
-//   it("handles empty shards array correctly", () => {
-//     const shardInfo = { clusterId: 1, shards: [] };
-//     expect(() => ensureShardingConfigured(shardInfo)).to.throw();
-//   });
-//
-//   it("handles empty contentTopics array correctly", () => {
-//     const shardInfo = { contentTopics: [] };
-//     expect(() => ensureShardingConfigured(shardInfo)).to.throw();
-//   });
-// });
-//
-// describe("contentTopicToPubsubTopic", () => {
-//   it("should correctly map a content topic to a pubsub topic", () => {
-//     const contentTopic = "/app/v1/topic1/proto";
-//     expect(contentTopicToPubsubTopic(contentTopic)).to.equal("/waku/2/rs/1/4");
-//   });
-//
-//   it("should map different content topics to different pubsub topics based on shard index", () => {
-//     const contentTopic1 = "/app/v1/topic1/proto";
-//     const contentTopic2 = "/app/v2/topic2/proto";
-//     const pubsubTopic1 = contentTopicToPubsubTopic(contentTopic1);
-//     const pubsubTopic2 = contentTopicToPubsubTopic(contentTopic2);
-//     expect(pubsubTopic1).not.to.equal(pubsubTopic2);
-//   });
-//
-//   it("should use the provided clusterId for the pubsub topic", () => {
-//     const contentTopic = "/app/v1/topic1/proto";
-//     const clusterId = 2;
-//     expect(contentTopicToPubsubTopic(contentTopic, clusterId)).to.equal(
-//       "/waku/2/rs/2/4"
-//     );
-//   });
-//
-//   it("should correctly map a content topic to a pubsub topic for different network shard sizes", () => {
-//     const contentTopic = "/app/v1/topic1/proto";
-//     const networkShards = 16;
-//     expect(contentTopicToPubsubTopic(contentTopic, 1, networkShards)).to.equal(
-//       "/waku/2/rs/1/4"
-//     );
-//   });
-// });
