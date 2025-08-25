@@ -29,7 +29,7 @@ describe("AutoRetrieval", () => {
   let mockDecoders: IDecoder<IDecodedMessage>[];
   let mockPeerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>;
   let mockWakuEventEmitter: IWakuEventEmitter;
-  let mockRetrieve: sinon.SinonStub;
+  let mockQueryGenerator: sinon.SinonStub;
   let options: AutoQueryOptions;
 
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe("AutoRetrieval", () => {
     } as any;
 
     // Mock retrieve function
-    mockRetrieve = sinon.stub().returns(
+    mockQueryGenerator = sinon.stub().returns(
       (async function* () {
         yield [
           Promise.resolve({
@@ -91,7 +91,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
 
@@ -104,7 +104,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve
+        mockQueryGenerator
       );
 
       expect(autoRetrieval).to.be.instanceOf(AutoQuery);
@@ -116,7 +116,7 @@ describe("AutoRetrieval", () => {
         [],
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
 
@@ -128,7 +128,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         {}
       );
 
@@ -143,7 +143,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         { forceQueryThresholdMs: customThreshold }
       );
 
@@ -159,7 +159,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
     });
@@ -198,7 +198,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
     });
@@ -218,7 +218,7 @@ describe("AutoRetrieval", () => {
     });
 
     it("should work with stubbed retrieve function", () => {
-      expect(mockRetrieve).to.be.a("function");
+      expect(mockQueryGenerator).to.be.a("function");
     });
 
     it("should work with mock decoders", () => {
@@ -249,7 +249,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
     });
@@ -295,17 +295,17 @@ describe("AutoRetrieval", () => {
         yield [Promise.resolve(undefined)];
       };
 
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
 
-      const generator = mockRetrieve(mockDecoders, {});
+      const generator = mockQueryGenerator(mockDecoders, {});
       const firstPage = await generator.next();
       expect(firstPage.done).to.be.false;
 
@@ -323,13 +323,14 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
 
-      mockRetrieve(mockDecoders, queryParams);
+      mockQueryGenerator(mockDecoders, queryParams);
 
-      expect(mockRetrieve.calledWith(mockDecoders, queryParams)).to.be.true;
+      expect(mockQueryGenerator.calledWith(mockDecoders, queryParams)).to.be
+        .true;
     });
   });
 
@@ -343,7 +344,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
     });
@@ -359,10 +360,10 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).lastTimeOffline = Date.now();
       (autoRetrieval as any).lastSuccessfulQuery = Date.now() - 1000;
 
-      // Call maybeRetrieve directly to test condition
-      (autoRetrieval as any).maybeRetrieve();
+      // Call maybeQuery directly to test condition
+      (autoRetrieval as any).maybeQuery();
 
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should trigger retrieval when time since last query exceeds threshold", () => {
@@ -372,10 +373,10 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).lastSuccessfulQuery =
         Date.now() - (DEFAULT_FORCE_QUERY_THRESHOLD_MS + 1000);
 
-      // Call maybeRetrieve directly to test condition
-      (autoRetrieval as any).maybeRetrieve();
+      // Call maybeQuery directly to test condition
+      (autoRetrieval as any).maybeQuery();
 
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should not trigger retrieval when conditions are not met", () => {
@@ -385,10 +386,10 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).lastSuccessfulQuery = Date.now();
       (autoRetrieval as any).lastTimeOffline = Date.now() - 1000;
 
-      // Call maybeRetrieve directly to test condition
-      (autoRetrieval as any).maybeRetrieve();
+      // Call maybeQuery directly to test condition
+      (autoRetrieval as any).maybeQuery();
 
-      expect(mockRetrieve.called).to.be.false;
+      expect(mockQueryGenerator.called).to.be.false;
     });
 
     it("should properly handle health status updates for offline tracking", () => {
@@ -440,7 +441,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         customOptions
       );
 
@@ -450,10 +451,10 @@ describe("AutoRetrieval", () => {
       (autoRetrieval as any).lastSuccessfulQuery =
         Date.now() - (customThreshold + 100);
 
-      // Call maybeRetrieve to test custom threshold
-      (autoRetrieval as any).maybeRetrieve();
+      // Call maybeQuery to test custom threshold
+      (autoRetrieval as any).maybeQuery();
 
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
   });
 
@@ -492,7 +493,7 @@ describe("AutoRetrieval", () => {
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         options
       );
 
@@ -531,7 +532,7 @@ describe("AutoRetrieval", () => {
       > {
         yield [Promise.resolve(mockMessage)];
       };
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       autoRetrieval.start();
 
@@ -546,7 +547,7 @@ describe("AutoRetrieval", () => {
       const receivedMessage = await messageEventPromise;
 
       expect(receivedMessage).to.deep.equal(mockMessage);
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should emit message when we went offline since last successful query and store reconnect event occurs", async () => {
@@ -569,7 +570,7 @@ describe("AutoRetrieval", () => {
       > {
         yield [Promise.resolve(mockMessage)];
       };
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       autoRetrieval.start();
 
@@ -589,7 +590,7 @@ describe("AutoRetrieval", () => {
       const receivedMessage = await messageEventPromise;
 
       expect(receivedMessage).to.deep.equal(mockMessage);
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should emit message when store reconnect event occurs and last query was over max time threshold", async () => {
@@ -612,13 +613,13 @@ describe("AutoRetrieval", () => {
       > {
         yield [Promise.resolve(mockMessage)];
       };
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       autoRetrieval = new AutoQuery(
         mockDecoders,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
-        mockRetrieve,
+        mockQueryGenerator,
         { forceQueryThresholdMs: 5000 } // 5 second threshold
       );
 
@@ -645,7 +646,7 @@ describe("AutoRetrieval", () => {
       const receivedMessage = await messageEventPromise;
 
       expect(receivedMessage).to.deep.equal(mockMessage);
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should emit multiple messages when retrieve returns multiple messages", async () => {
@@ -682,7 +683,7 @@ describe("AutoRetrieval", () => {
         yield [Promise.resolve(mockMessage1)];
         yield [Promise.resolve(mockMessage2)];
       };
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       const receivedMessages: IDecodedMessage[] = [];
       let messageCount = 0;
@@ -721,7 +722,7 @@ describe("AutoRetrieval", () => {
       expect(receivedMessages).to.have.length(2);
       expect(receivedMessages[0]).to.deep.equal(mockMessage1);
       expect(receivedMessages[1]).to.deep.equal(mockMessage2);
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should not emit message when conditions are not met (recent query, no offline)", async () => {
@@ -745,12 +746,12 @@ describe("AutoRetrieval", () => {
       // Wait briefly to ensure no message is emitted
       await delay(50);
 
-      expect(mockRetrieve.called).to.be.false;
+      expect(mockQueryGenerator.called).to.be.false;
     });
 
     it("should handle retrieve errors gracefully without emitting messages", async () => {
       // Setup retrieve function to throw an error
-      mockRetrieve.rejects(new Error("Retrieval failed"));
+      mockQueryGenerator.rejects(new Error("Retrieval failed"));
 
       autoRetrieval.start();
 
@@ -771,7 +772,7 @@ describe("AutoRetrieval", () => {
       // Wait briefly to ensure no message is emitted
       await delay(100);
 
-      expect(mockRetrieve.calledOnce).to.be.true;
+      expect(mockQueryGenerator.calledOnce).to.be.true;
     });
 
     it("should update lastSuccessfulQuery timestamp after successful retrieval", async () => {
@@ -793,7 +794,7 @@ describe("AutoRetrieval", () => {
       > {
         yield [Promise.resolve(mockMessage)];
       };
-      mockRetrieve.returns(mockAsyncGenerator());
+      mockQueryGenerator.returns(mockAsyncGenerator());
 
       autoRetrieval.start();
 
