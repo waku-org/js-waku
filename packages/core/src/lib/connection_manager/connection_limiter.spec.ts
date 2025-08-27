@@ -4,7 +4,7 @@ import {
   CONNECTION_LOCKED_TAG,
   IWakuEventEmitter,
   Tags,
-  WakuEventType
+  WakuEvent
 } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -144,7 +144,7 @@ describe("ConnectionLimiter", () => {
         .true;
       expect(
         (events.addEventListener as sinon.SinonStub).calledWith(
-          WakuEventType.Connection,
+          WakuEvent.Connection,
           sinon.match.func
         )
       ).to.be.true;
@@ -179,7 +179,7 @@ describe("ConnectionLimiter", () => {
         .true;
       expect(
         (events.removeEventListener as sinon.SinonStub).calledWith(
-          WakuEventType.Connection,
+          WakuEvent.Connection,
           sinon.match.func
         )
       ).to.be.true;

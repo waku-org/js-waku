@@ -4,7 +4,7 @@ import {
   HealthStatus,
   IWakuEventEmitter,
   Libp2p,
-  WakuEventType
+  WakuEvent
 } from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
@@ -40,7 +40,7 @@ describe("HealthIndicator", () => {
     // Start monitoring
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -60,7 +60,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -84,7 +84,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -140,7 +140,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -154,7 +154,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise2 = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -177,7 +177,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -201,7 +201,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
@@ -230,7 +230,7 @@ describe("HealthIndicator", () => {
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       events.addEventListener(
-        WakuEventType.Health,
+        WakuEvent.Health,
         (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });

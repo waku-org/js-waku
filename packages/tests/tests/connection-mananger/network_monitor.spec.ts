@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface";
 import { TypedEventEmitter } from "@libp2p/interface";
 import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { Multiaddr } from "@multiformats/multiaddr";
-import { LightNode, Protocols, Tags, WakuEventType } from "@waku/interfaces";
+import { LightNode, Protocols, Tags, WakuEvent } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
@@ -66,7 +66,7 @@ describe("Connection state", function () {
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount++;
           resolve(status);
@@ -91,7 +91,7 @@ describe("Connection state", function () {
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount++;
           resolve(status);
@@ -123,7 +123,7 @@ describe("Connection state", function () {
     let eventCount1 = 0;
     const connectionStatus1 = new Promise<boolean>((resolve) => {
       waku1.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount1++;
           resolve(status);
@@ -134,7 +134,7 @@ describe("Connection state", function () {
     let eventCount2 = 0;
     const connectionStatus2 = new Promise<boolean>((resolve) => {
       waku2.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount2++;
           resolve(status);
@@ -203,7 +203,7 @@ describe("Connection state", function () {
   });
 });
 
-describe(WakuEventType.Connection, function () {
+describe(WakuEvent.Connection, function () {
   let navigatorMock: any;
   let originalNavigator: any;
 
@@ -272,7 +272,7 @@ describe(WakuEventType.Connection, function () {
     let eventCount = 0;
     const connectedStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount++;
           resolve(status);
@@ -295,7 +295,7 @@ describe(WakuEventType.Connection, function () {
 
     const disconnectedStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           resolve(status);
         }
@@ -333,7 +333,7 @@ describe(WakuEventType.Connection, function () {
     let eventCount = 0;
     const connectedStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           eventCount++;
           resolve(status);
@@ -353,7 +353,7 @@ describe(WakuEventType.Connection, function () {
 
     const disconnectedStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           resolve(status);
         }
@@ -371,7 +371,7 @@ describe(WakuEventType.Connection, function () {
 
     const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
       waku.events.addEventListener(
-        WakuEventType.Connection,
+        WakuEvent.Connection,
         ({ detail: status }) => {
           resolve(status);
         }

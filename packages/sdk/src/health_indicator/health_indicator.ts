@@ -4,7 +4,7 @@ import {
   HealthStatus,
   IWakuEventEmitter,
   Libp2p,
-  WakuEventType
+  WakuEvent
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -135,7 +135,7 @@ export class HealthIndicator implements IHealthIndicator {
     if (this.value !== newValue) {
       this.value = newValue;
       this.events.dispatchEvent(
-        new CustomEvent<HealthStatus>(WakuEventType.Health, {
+        new CustomEvent<HealthStatus>(WakuEvent.Health, {
           detail: this.value
         })
       );

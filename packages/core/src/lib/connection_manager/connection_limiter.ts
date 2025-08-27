@@ -6,7 +6,7 @@ import {
   Libp2p,
   Libp2pEventHandler,
   Tags,
-  WakuEventType
+  WakuEvent
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -71,7 +71,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
     }
 
     this.events.addEventListener(
-      WakuEventType.Connection,
+      WakuEvent.Connection,
       this.onWakuConnectionEvent
     );
 
@@ -94,7 +94,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
   public stop(): void {
     this.events.removeEventListener(
-      WakuEventType.Connection,
+      WakuEvent.Connection,
       this.onWakuConnectionEvent
     );
 
@@ -278,11 +278,9 @@ export class ConnectionLimiter implements IConnectionLimiter {
         .map((id) => this.getPeer(id))
     );
 
-    const bootstrapPeers = peers.filter(
+    return peers.filter(
       (peer) => peer && peer.tags.has(Tags.BOOTSTRAP)
     ) as Peer[];
-
-    return bootstrapPeers;
   }
 
   private async getPeer(peerId: PeerId): Promise<Peer | null> {
