@@ -348,7 +348,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // Set lastSuccessfulQuery to simulate old query
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
       mockClock.tick(1);
 
       // goes offline
@@ -360,7 +360,7 @@ describe("QueryOnConnect", () => {
       mockClock.tick(1);
 
       // Call maybeQuery directly to test condition
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       expect(mockQueryGenerator.calledTwice).to.be.true;
     });
@@ -369,7 +369,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // Set lastSuccessfulQuery to simulate old query
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       // goes offline
       const healthEvent = new CustomEvent<HealthStatus>("health", {
@@ -378,7 +378,7 @@ describe("QueryOnConnect", () => {
       mockWakuEventEmitter.dispatchEvent(healthEvent);
 
       // Call maybeQuery directly to test condition
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
@@ -399,13 +399,13 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // Set lastSuccessfulQuery to simulate old query
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       // Advance fake timer over the force threshold
       mockClock.tick(20);
 
       // Call maybeQuery directly to test condition
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       expect(mockQueryGenerator.calledTwice).to.be.true;
     });
@@ -427,10 +427,10 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // First call to set a successful call
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       // Second call should not trigger
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       expect(mockQueryGenerator.calledOnce).to.be.true;
     });
@@ -556,7 +556,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // Step 1: Simulate successful query in the past
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
       await delay(100);
 
       // Step 2: Simulate going offline after the successful query
@@ -616,7 +616,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.start();
 
       // Step 1: Simulate old successful query (over threshold)
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       // Step 3: Simulate store peer reconnection
       storeConnectCallback.call(queryOnConnect, connectStoreEvent);
@@ -702,7 +702,7 @@ describe("QueryOnConnect", () => {
     it("should not emit message when conditions are not met (recent query, no offline)", async () => {
       queryOnConnect.start();
 
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
 
       // Override promise to reject if any message is received
       queryOnConnect.addEventListener(
@@ -735,7 +735,7 @@ describe("QueryOnConnect", () => {
         }
       );
 
-      await queryOnConnect.maybeQuery(mockPeerId);
+      await queryOnConnect["maybeQuery"](mockPeerId);
       storeConnectCallback.call(queryOnConnect, connectStoreEvent);
 
       // Wait briefly to ensure no message is emitted

@@ -91,7 +91,7 @@ export class QueryOnConnect<
    * @param peerId A store peer id. Must be passed as we expect this to be trigger
    * upon a detected connection to a store peer.
    */
-  public async maybeQuery(peerId: PeerId): Promise<void> {
+  private async maybeQuery(peerId: PeerId): Promise<void> {
     const timeSinceLastQuery = Date.now() - this.lastSuccessfulQuery;
     log.info(
       `maybe do store query to ${peerId.toString()}`,
