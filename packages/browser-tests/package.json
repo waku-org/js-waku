@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "start": "npm run start:server",
-    "start:server": "node ./dist/server.js",
-    "test": "npx playwright test",
+    "start:server": "PORT=8080 node ./dist/src/server.js",
+    "start:cluster2": "PORT=8080 node ./dist/src/server.js --cluster-id=2",
+    "start:cluster2-shard0": "PORT=8080 node ./dist/src/server.js --cluster-id=2 --shard=0",
+    "test": "npx playwright test --reporter=line",
     "build:server": "tsc -p tsconfig.json",
-    "build": "npm run build:server"
+    "build:web": "esbuild web/index.ts --bundle --format=esm --platform=browser --outdir=dist/web && cp web/index.html dist/web/index.html",
+    "build": "npm-run-all -s build:server build:web",
+    "docker:build": "docker build -t waku-browser-tests:local .",
+    "docker:test": "npx playwright test --reporter=line tests/docker-server.spec.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.15",
@@ -16,16 +21,17 @@
     "@types/node": "^20.10.0",
     "axios": "^1.8.4",
     "dotenv-flow": "^0.4.0",
+    "esbuild": "^0.21.5",
+    "filter-obj": "^2.0.2",
+    "it-first": "^3.0.9",
     "npm-run-all": "^4.1.5",
-    "serve": "^14.2.3",
-    "typescript": "5.8.3",
-    "webpack-cli": "^6.0.1"
+    "testcontainers": "^10.9.0",
+    "typescript": "5.8.3"
   },
   "dependencies": {
     "@playwright/test": "^1.51.1",
-    "@waku/sdk": "^0.0.30",
+    "@waku/sdk": "^0.0.34",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "node-polyfill-webpack-plugin": "^4.1.0"
+    "express": "^4.21.2"
   }
 }

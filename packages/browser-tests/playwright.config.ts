@@ -5,19 +5,26 @@ import { defineConfig, devices } from "@playwright/test";
 if (!process.env.CI) {
   // Need to use .js extension for ES modules
   // eslint-disable-next-line import/extensions
-  await import("dotenv-flow/config.js");
+  try {
+    await import("dotenv-flow/config.js");
+  } catch (e) {
+    console.warn("dotenv-flow not found; skipping env loading");
+  }
 }
 
 const EXAMPLE_PORT = process.env.EXAMPLE_PORT || "8080";
 // web-chat specific thingy
 const EXAMPLE_TEMPLATE = process.env.EXAMPLE_TEMPLATE || "";
 const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/${EXAMPLE_TEMPLATE}`;
+// Ignore docker-based tests on CI
+const TEST_IGNORE = process.env.CI ? ["tests/docker-*.spec.ts"] : [];
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: TEST_IGNORE,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -43,15 +50,6 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] }
     }
-  ],
+  ]
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    url: BASE_URL,
-    stdout: "pipe",
-    stderr: "pipe",
-    command: "npm run start:server",
-    reuseExistingServer: !process.env.CI,
-    timeout: 5 * 60 * 1000 // five minutes for bootstrapping an example
-  }
 });
