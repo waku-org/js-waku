@@ -40,7 +40,7 @@ const sendMessage = async (
   payload: Uint8Array,
   callback: (message: ContentMessage) => Promise<{ success: boolean }>
 ): Promise<void> => {
-  await channel.pushOutgoingMessage(payload, callback);
+  channel.pushOutgoingMessage(payload, callback);
   await channel.processTasks();
 };
 
