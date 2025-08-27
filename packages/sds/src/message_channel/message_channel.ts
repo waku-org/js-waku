@@ -174,13 +174,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @throws Error if the payload is empty
    */
-  public async pushOutgoingMessage(
+  public pushOutgoingMessage(
     payload: Uint8Array,
     callback?: (processedMessage: ContentMessage) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
-  ): Promise<void> {
+  ): void {
     if (!payload || !payload.length) {
       throw Error("Only messages with valid payloads are allowed");
     }
