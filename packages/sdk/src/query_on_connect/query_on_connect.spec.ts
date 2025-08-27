@@ -22,7 +22,7 @@ import {
   QueryOnConnect,
   QueryOnConnectEvent,
   QueryOnConnectOptions
-} from "./index.js";
+} from "./query_on_connect.js";
 
 describe("QueryOnConnect", () => {
   let queryOnConnect: QueryOnConnect<IDecodedMessage>;
