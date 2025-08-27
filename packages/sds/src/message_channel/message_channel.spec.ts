@@ -23,7 +23,7 @@ const callback = (_message: Message): Promise<{ success: boolean }> => {
 };
 
 const getBloomFilter = (channel: MessageChannel): DefaultBloomFilter => {
-  return (channel as any).filter as DefaultBloomFilter;
+  return channel["filter"] as DefaultBloomFilter;
 };
 
 const messagesA = ["message-1", "message-2"];
@@ -72,16 +72,16 @@ describe("MessageChannel", function () {
     });
 
     it("should increase lamport timestamp", async () => {
-      const timestampBefore = (channelA as any).lamportTimestamp;
+      const timestampBefore = channelA["lamportTimestamp"];
       await sendMessage(channelA, utf8ToBytes("message"), callback);
-      const timestampAfter = (channelA as any).lamportTimestamp;
+      const timestampAfter = channelA["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore + 1);
     });
 
     it("should push the message to the outgoing buffer", async () => {
-      const bufferLengthBefore = (channelA as any).outgoingBuffer.length;
+      const bufferLengthBefore = channelA["outgoingBuffer"].length;
       await sendMessage(channelA, utf8ToBytes("message"), callback);
-      const bufferLengthAfter = (channelA as any).outgoingBuffer.length;
+      const bufferLengthAfter = channelA["outgoingBuffer"].length;
       expect(bufferLengthAfter).to.equal(bufferLengthBefore + 1);
     });
 
@@ -95,10 +95,10 @@ describe("MessageChannel", function () {
 
     it("should insert message id into causal history", async () => {
       const payload = utf8ToBytes("message");
-      const expectedTimestamp = (channelA as any).lamportTimestamp + 1;
+      const expectedTimestamp = channelA["lamportTimestamp"] + 1;
       const messageId = MessageChannel.getMessageId(payload);
       await sendMessage(channelA, payload, callback);
-      const messageIdLog = (channelA as any).localHistory as ILocalHistory;
+      const messageIdLog = channelA["localHistory"] as ILocalHistory;
       expect(messageIdLog.length).to.equal(1);
       expect(
         messageIdLog.some(
@@ -119,7 +119,7 @@ describe("MessageChannel", function () {
         return { success: true, retrievalHint: testRetrievalHint };
       });
 
-      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      const localHistory = channelA["localHistory"] as ILocalHistory;
       expect(localHistory.length).to.equal(1);
 
       // Find the message in local history
@@ -132,7 +132,7 @@ describe("MessageChannel", function () {
 
     it("should attach causal history and bloom filter to each message", async () => {
       const bloomFilter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const causalHistorySize = channelA["causalHistorySize"];
       const filterBytes = new Array<Uint8Array>();
       const messages = new Array<string>(causalHistorySize + 5)
         .fill("message")
@@ -144,7 +144,7 @@ describe("MessageChannel", function () {
         bloomFilter.insert(MessageChannel.getMessageId(utf8ToBytes(message)));
       }
 
-      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(messages.length);
 
       outgoingBuffer.forEach((message, index) => {
@@ -175,12 +175,12 @@ describe("MessageChannel", function () {
     });
 
     it("should increase lamport timestamp", async () => {
-      const timestampBefore = (channelA as any).lamportTimestamp;
+      const timestampBefore = channelA["lamportTimestamp"];
       await sendMessage(channelB, utf8ToBytes("message"), async (message) => {
         await receiveMessage(channelA, message);
         return { success: true };
       });
-      const timestampAfter = (channelA as any).lamportTimestamp;
+      const timestampAfter = channelA["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore + 1);
     });
 
@@ -194,7 +194,7 @@ describe("MessageChannel", function () {
           return { success: true };
         });
       }
-      const timestampAfter = (channelA as any).lamportTimestamp;
+      const timestampAfter = channelA["lamportTimestamp"];
       expect(timestampAfter).to.equal(messagesB.length);
     });
 
@@ -204,7 +204,7 @@ describe("MessageChannel", function () {
         await sendMessage(channelA, utf8ToBytes(m), async (message) => {
           timestamp++;
           await receiveMessage(channelB, message);
-          expect((channelB as any).lamportTimestamp).to.equal(timestamp);
+          expect(channelB["lamportTimestamp"]).to.equal(timestamp);
           return { success: true };
         });
       }
@@ -213,15 +213,15 @@ describe("MessageChannel", function () {
         await sendMessage(channelB, utf8ToBytes(m), async (message) => {
           timestamp++;
           await receiveMessage(channelA, message);
-          expect((channelA as any).lamportTimestamp).to.equal(timestamp);
+          expect(channelA["lamportTimestamp"]).to.equal(timestamp);
           return { success: true };
         });
       }
 
       const expectedLength = messagesA.length + messagesB.length;
-      expect((channelA as any).lamportTimestamp).to.equal(expectedLength);
-      expect((channelA as any).lamportTimestamp).to.equal(
-        (channelB as any).lamportTimestamp
+      expect(channelA["lamportTimestamp"]).to.equal(expectedLength);
+      expect(channelA["lamportTimestamp"]).to.equal(
+        channelB["lamportTimestamp"]
       );
     });
 
@@ -242,7 +242,7 @@ describe("MessageChannel", function () {
       }
 
       let receivedMessage: Message | null = null;
-      const timestampBefore = (channelB as any).lamportTimestamp;
+      const timestampBefore = channelB["lamportTimestamp"];
 
       await sendMessage(
         channelA,
@@ -254,23 +254,19 @@ describe("MessageChannel", function () {
         }
       );
 
-      const incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      const incomingBuffer = channelB["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(1);
       expect(incomingBuffer[0].messageId).to.equal(receivedMessage!.messageId);
 
       // Since the dependency is not met, the lamport timestamp should not increase
-      const timestampAfter = (channelB as any).lamportTimestamp;
+      const timestampAfter = channelB["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore);
 
       // Message should not be in local history
-      const localHistory = (channelB as any).localHistory as {
-        timestamp: number;
-        historyEntry: HistoryEntry;
-      }[];
+      const localHistory = channelB["localHistory"];
       expect(
         localHistory.some(
-          ({ historyEntry: { messageId } }) =>
-            messageId === receivedMessage!.messageId
+          ({ messageId }) => messageId === receivedMessage!.messageId
         )
       ).to.equal(false);
     });
@@ -295,7 +291,7 @@ describe("MessageChannel", function () {
         testRetrievalHint
       );
 
-      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      const localHistory = channelA["localHistory"] as ILocalHistory;
       console.log("localHistory", localHistory);
       expect(localHistory.length).to.equal(1);
 
@@ -349,7 +345,7 @@ describe("MessageChannel", function () {
         )
       );
 
-      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      const localHistory = channelA["localHistory"];
       expect(localHistory.length).to.equal(3);
 
       // Verify chronological order: message1 (ts=1), message2 (ts=2), message3 (ts=3)
@@ -398,7 +394,7 @@ describe("MessageChannel", function () {
         )
       );
 
-      const localHistory = (channelA as any).localHistory as ILocalHistory;
+      const localHistory = channelA["localHistory"] as ILocalHistory;
       expect(localHistory.length).to.equal(2);
 
       // When timestamps are equal, should be ordered by messageId lexicographically
@@ -442,9 +438,7 @@ describe("MessageChannel", function () {
       await channelA.processTasks();
       await channelB.processTasks();
 
-      expect((channelA as any).outgoingBuffer.length).to.equal(
-        messagesA.length + 1
-      );
+      expect(channelA["outgoingBuffer"].length).to.equal(messagesA.length + 1);
 
       await sendMessage(
         channelB,
@@ -461,7 +455,7 @@ describe("MessageChannel", function () {
       // Since B received message-1, message-2, and not-in-history (3 messages),
       // and causalHistorySize is 3, it will only include the last 2 in its causal history
       // So message-1 won't be acknowledged, only message-2 and not-in-history
-      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(1);
       // The remaining message should be message-1 (not acknowledged)
       expect(outgoingBuffer[0].messageId).to.equal(
@@ -479,15 +473,12 @@ describe("MessageChannel", function () {
       await channelA.processTasks();
 
       // All messages remain in the buffer
-      expect((channelA as any).outgoingBuffer.length).to.equal(
-        messagesA.length
-      );
+      expect(channelA["outgoingBuffer"].length).to.equal(messagesA.length);
     });
 
     it("should track probabilistic acknowledgements of messages received in bloom filter", async () => {
-      const possibleAcksThreshold = (channelA as any).possibleAcksThreshold;
-
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const possibleAcksThreshold = channelA["possibleAcksThreshold"];
+      const causalHistorySize = channelA["causalHistorySize"];
 
       const unacknowledgedMessages = [
         "unacknowledged-message-1",
@@ -517,8 +508,8 @@ describe("MessageChannel", function () {
         }
       );
 
-      const possibleAcks: ReadonlyMap<MessageId, number> = (channelA as any)
-        .possibleAcks;
+      const possibleAcks: ReadonlyMap<MessageId, number> =
+        channelA["possibleAcks"];
       // Other than the message IDs which were included in causal history,
       // the remaining messages sent by channel A should be considered possibly acknowledged
       // for having been included in the bloom filter sent from channel B
@@ -555,12 +546,12 @@ describe("MessageChannel", function () {
       expect(possibleAcks.size).to.equal(0);
 
       // Messages that were not acknowledged should still be in the outgoing buffer
-      expect((channelA as any).outgoingBuffer.length).to.equal(
+      expect(channelA["outgoingBuffer"].length).to.equal(
         unacknowledgedMessages.length
       );
       unacknowledgedMessages.forEach((m) => {
         expect(
-          ((channelA as any).outgoingBuffer as Message[]).some(
+          (channelA["outgoingBuffer"] as Message[]).some(
             (message) =>
               message.messageId === MessageChannel.getMessageId(utf8ToBytes(m))
           )
@@ -576,9 +567,8 @@ describe("MessageChannel", function () {
         });
       }
 
-      const possibleAcks: ReadonlyMap<MessageId, number> = (channelA as any)
-        .possibleAcks;
-
+      const possibleAcks: ReadonlyMap<MessageId, number> =
+        channelA["possibleAcks"];
       expect(possibleAcks.size).to.equal(0);
     });
 
@@ -637,7 +627,7 @@ describe("MessageChannel", function () {
     });
 
     it("should detect messages with missing dependencies", async () => {
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const causalHistorySize = channelA["causalHistorySize"];
       for (const m of messagesA) {
         await sendMessage(channelA, utf8ToBytes(m), callback);
       }
@@ -651,7 +641,7 @@ describe("MessageChannel", function () {
         }
       );
 
-      const incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      const incomingBuffer = channelB["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(1);
       expect(incomingBuffer[0].messageId).to.equal(
         MessageChannel.getMessageId(utf8ToBytes(messagesB[0]))
@@ -665,7 +655,7 @@ describe("MessageChannel", function () {
     });
 
     it("should deliver messages after dependencies are met", async () => {
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const causalHistorySize = channelA["causalHistorySize"];
       const sentMessages = new Array<Message>();
       // First, send messages from A but DON'T deliver them to B yet
       for (const m of messagesA) {
@@ -696,7 +686,7 @@ describe("MessageChannel", function () {
         MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
       );
 
-      let incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      let incomingBuffer = channelB["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(1);
 
       // Now deliver the missing dependencies
@@ -709,7 +699,7 @@ describe("MessageChannel", function () {
       const missingMessages2 = channelB.sweepIncomingBuffer();
       expect(missingMessages2.length).to.equal(0);
 
-      incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      incomingBuffer = channelB["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(0);
     });
 
@@ -820,7 +810,7 @@ describe("MessageChannel", function () {
     });
 
     it("should remove messages without delivering if timeout is exceeded", async () => {
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const causalHistorySize = channelA["causalHistorySize"];
       // Create a channel with very very short timeout
       const channelC: MessageChannel = new MessageChannel(channelId, "carol", {
         timeoutForLostMessagesMs: 10
@@ -841,13 +831,13 @@ describe("MessageChannel", function () {
 
       const missingMessages = channelC.sweepIncomingBuffer();
       expect(missingMessages.length).to.equal(causalHistorySize);
-      let incomingBuffer = (channelC as any).incomingBuffer as Message[];
+      let incomingBuffer = channelC["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(1);
 
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       channelC.sweepIncomingBuffer();
-      incomingBuffer = (channelC as any).incomingBuffer as Message[];
+      incomingBuffer = channelC["incomingBuffer"];
       expect(incomingBuffer.length).to.equal(0);
     });
 
@@ -1032,7 +1022,7 @@ describe("MessageChannel", function () {
       expect(possiblyAcknowledged.length).to.equal(0);
 
       // Make sure messages sent by channel A are not in causal history
-      const causalHistorySize = (channelA as any).causalHistorySize;
+      const causalHistorySize = channelA["causalHistorySize"];
       for (const m of messagesB.slice(0, causalHistorySize)) {
         await sendMessage(channelB, utf8ToBytes(m), callback);
       }
@@ -1073,7 +1063,7 @@ describe("MessageChannel", function () {
     it("should not be added to outgoing buffer, bloom filter, or local log", async () => {
       await channelA.pushOutgoingSyncMessage();
 
-      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(0);
 
       const bloomFilter = getBloomFilter(channelA);
@@ -1081,26 +1071,20 @@ describe("MessageChannel", function () {
         bloomFilter.lookup(MessageChannel.getMessageId(new Uint8Array()))
       ).to.equal(false);
 
-      const localLog = (channelA as any).localHistory as {
-        timestamp: number;
-        messageId: MessageId;
-      }[];
+      const localLog = channelA["localHistory"];
       expect(localLog.length).to.equal(0);
     });
 
     it("should not be delivered", async () => {
-      const timestampBefore = (channelB as any).lamportTimestamp;
+      const timestampBefore = channelB["lamportTimestamp"];
       await channelA.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelB, message);
         return true;
       });
-      const timestampAfter = (channelB as any).lamportTimestamp;
+      const timestampAfter = channelB["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore);
 
-      const localLog = (channelB as any).localHistory as {
-        timestamp: number;
-        messageId: MessageId;
-      }[];
+      const localLog = channelB["localHistory"];
       expect(localLog.length).to.equal(0);
 
       const bloomFilter = getBloomFilter(channelB);
@@ -1122,8 +1106,8 @@ describe("MessageChannel", function () {
         return true;
       });
 
-      const causalHistorySize = (channelA as any).causalHistorySize;
-      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      const causalHistorySize = channelA["causalHistorySize"];
+      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(
         messagesA.length - causalHistorySize
       );
@@ -1136,7 +1120,7 @@ describe("MessageChannel", function () {
     });
 
     it("should be sent without a timestamp, causal history, or bloom filter", async () => {
-      const timestampBefore = (channelA as any).lamportTimestamp;
+      const timestampBefore = channelA["lamportTimestamp"];
       await channelA.pushOutgoingEphemeralMessage(
         new Uint8Array(),
         async (message) => {
@@ -1147,10 +1131,10 @@ describe("MessageChannel", function () {
         }
       );
 
-      const outgoingBuffer = (channelA as any).outgoingBuffer as Message[];
+      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(0);
 
-      const timestampAfter = (channelA as any).lamportTimestamp;
+      const timestampAfter = channelA["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore);
     });
 
@@ -1158,9 +1142,9 @@ describe("MessageChannel", function () {
       const channelB = new MessageChannel(channelId, "bob");
 
       // Track initial state
-      const localHistoryBefore = (channelB as any).localHistory.length;
-      const incomingBufferBefore = (channelB as any).incomingBuffer.length;
-      const timestampBefore = (channelB as any).lamportTimestamp;
+      const localHistoryBefore = channelB["localHistory"].length;
+      const incomingBufferBefore = channelB["incomingBuffer"].length;
+      const timestampBefore = channelB["lamportTimestamp"];
 
       await channelA.pushOutgoingEphemeralMessage(
         utf8ToBytes(messagesA[0]),
@@ -1176,15 +1160,11 @@ describe("MessageChannel", function () {
 
       // Verify ephemeral message behavior:
       // 1. Not added to local history
-      expect((channelB as any).localHistory.length).to.equal(
-        localHistoryBefore
-      );
+      expect(channelB["localHistory"].length).to.equal(localHistoryBefore);
       // 2. Not added to incoming buffer
-      expect((channelB as any).incomingBuffer.length).to.equal(
-        incomingBufferBefore
-      );
+      expect(channelB["incomingBuffer"].length).to.equal(incomingBufferBefore);
       // 3. Doesn't update lamport timestamp
-      expect((channelB as any).lamportTimestamp).to.equal(timestampBefore);
+      expect(channelB["lamportTimestamp"]).to.equal(timestampBefore);
     });
   });
 });
