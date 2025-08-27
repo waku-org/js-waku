@@ -1,5 +1,5 @@
 import { LightNode } from "@waku/sdk";
-import { IWakuNode } from "../src/api/common.js";
+import { IWakuNode } from "../shared/common.js";
 import {
   createWakuNode,
   dialPeers,
@@ -7,7 +7,7 @@ import {
   getPeerInfo,
   pushMessage,
   subscribe
-} from "../src/api/shared.js";
+} from "../shared/index.js";
 
 // Define types for the Waku node and window
 declare global {

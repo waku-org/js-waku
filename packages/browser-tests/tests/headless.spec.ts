@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { LightNode } from "@waku/sdk";
 
-import { API } from "../src/api/shared.js";
+import { API } from "../shared/index.js";
 import { NETWORK_CONFIG, ACTIVE_PEERS } from "./test-config.js";
 
 // Define the window interface for TypeScript
@@ -13,10 +13,67 @@ declare global {
   }
 }
 
-test.describe("waku", () => {
+test.describe("waku (cdn)", () => {
+  test.skip(process.env.HEADLESS_USE_CDN !== "1", "Set HEADLESS_USE_CDN=1 to run CDN-backed headless tests");
   test.beforeEach(async ({ page }) => {
-    await page.goto("");
-    await page.waitForTimeout(5000);
+    // Inject a minimal inline page that loads @waku/sdk via CDN and wires window.wakuAPI
+    await page.setContent(`
+      <html>
+        <head><title>Waku Headless CDN</title></head>
+        <body>
+          <script type="module">
+            (async () => {
+              try {
+                const sdk = await import('https://esm.sh/@waku/sdk@0.0.30?bundle');
+                const { createLightNode, createEncoder, createDecoder } = sdk;
+                window.wakuAPI = {
+                  async createWakuNode(options) {
+                    try { if (window.waku) await window.waku.stop(); } catch {}
+                    window.waku = await createLightNode(options);
+                    return { success: true };
+                  },
+                  async startNode() { await window.waku?.start(); return { success: true }; },
+                  async stopNode() { await window.waku?.stop(); return { success: true }; },
+                  async dialPeers(waku, peerAddrs) {
+                    const errors = [];
+                    await Promise.allSettled((peerAddrs || []).map((addr) =>
+                      waku.dial(addr).catch((err) => errors.push(String(err?.message || err)))
+                    ));
+                    return { total: (peerAddrs || []).length, errors };
+                  },
+                  async pushMessage(waku, contentTopic, payload, opts = {}) {
+                    const clusterId = opts.clusterId ?? 42;
+                    const shard = opts.shard ?? 0;
+                    const encoder = createEncoder({ contentTopic, pubsubTopicShardInfo: { clusterId, shard } });
+                    return waku.lightPush.send(encoder, { payload: payload ?? new Uint8Array() });
+                  },
+                  async subscribe(waku, contentTopic, opts = {}, callback) {
+                    const clusterId = opts.clusterId ?? 42;
+                    const shard = opts.shard ?? 0;
+                    const decoder = createDecoder(contentTopic, { clusterId, shard });
+                    return waku.filter.subscribe(decoder, callback ?? (() => {}));
+                  },
+                  getPeerInfo(waku) {
+                    const addrs = waku.libp2p.getMultiaddrs();
+                    return { peerId: waku.libp2p.peerId.toString(), multiaddrs: addrs.map((a) => a.toString()), peers: [] };
+                  },
+                  getDebugInfo(waku) {
+                    return { listenAddresses: waku.libp2p.getMultiaddrs().map((a) => a.toString()), peerId: waku.libp2p.peerId.toString(), protocols: Array.from(waku.libp2p.getProtocols()) };
+                  }
+                };
+                window.dispatchEvent(new Event('waku-ready'));
+              } catch (e) {
+                console.error('CDN import failed', e);
+                window.dispatchEvent(new Event('waku-cdn-error'));
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `);
+
+    // Wait until wakuAPI is available
+    await page.waitForFunction(() => typeof window.wakuAPI !== 'undefined', null, { timeout: 10000 });
 
     // Create and initialize a fresh Waku node for each test
     const setupResult = await page.evaluate(async (config) => {

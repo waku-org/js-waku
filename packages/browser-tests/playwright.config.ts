@@ -43,15 +43,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] }
     }
-  ],
+  ]
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    url: BASE_URL,
-    stdout: "pipe",
-    stderr: "pipe",
-    command: "npm run start:server",
-    reuseExistingServer: !process.env.CI,
-    timeout: 5 * 60 * 1000 // five minutes for bootstrapping an example
-  }
+  // No webServer needed; tests manage server processes directly
 });

@@ -1,17 +1,13 @@
-import { ChildProcess, exec } from "child_process";
-import * as net from "net";
-import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { chromium } from "@playwright/test";
 import cors from "cors";
 import express, { Request, Response } from "express";
+import * as net from "net";
 
 import adminRouter from "./routes/admin.js";
 import { setPage, getPage, closeBrowser } from "./browser/index.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -19,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use(adminRouter);
 
-let headlessServerProcess: ChildProcess | undefined;
+// Removed: external static server no longer required
 
 interface MessageQueue {
   [contentTopic: string]: Array<{
@@ -32,136 +28,115 @@ interface MessageQueue {
 
 const messageQueue: MessageQueue = {};
 
-async function startHeadlessServer(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      headlessServerProcess = exec(
-        `serve ${join(__dirname, "../../headless-tests")} -p 8080 -s`,
-        (error) => {
-          if (error) {
-            console.error(`Error starting serve: ${error}`);
-            return;
-          }
-        }
-      );
-
-      setTimeout(resolve, 2000);
-    } catch (error) {
-      console.error("Failed to start headless server:", error);
-      reject(error);
-    }
-  });
-}
-
 async function initBrowser(): Promise<void> {
   try {
-    const browser = await chromium.launch({
-      headless: true
-    });
+    const browser = await chromium.launch({ headless: true });
 
     if (!browser) {
       throw new Error("Failed to initialize browser");
     }
 
     const page = await browser.newPage();
+    const useCdnFlag = process.env.HEADLESS_USE_CDN === "1";
 
-    try {
-      await checkServerAvailability("http://localhost:8080", 3);
-      await page.goto("http://localhost:8080");
-    } catch (error) {
-      console.error(
-        "Error loading headless app, continuing without it:",
-        error
-      );
-      await page.setContent(`
-        <html>
-          <head><title>Waku Test Environment</title></head>
-          <body>
-            <h1>Waku Test Environment (No headless app available)</h1>
-            <script>
-              window.waku = {};
-              window.wakuAPI = {
-                getPeerInfo: () => ({ peerId: "mock-peer-id", multiaddrs: [], peers: [] }),
-                getDebugInfo: () => ({ listenAddresses: [], peerId: "mock-peer-id", protocols: [] }),
-                pushMessage: () => ({ successes: [], failures: [{ error: "No headless app available" }] }),
-                dialPeers: () => ({ total: 0, errors: ["No headless app available"] }),
-                createWakuNode: () => ({ success: true, message: "Mock node created" }),
-                startNode: () => ({ success: true }),
-                stopNode: () => ({ success: true }),
-                subscribe: () => ({ unsubscribe: async () => {} })
-              };
-            </script>
-          </body>
-        </html>
-      `);
-    }
+    // Inline page: optionally load real SDK via CDN, with stub fallback
+    await page.setContent(`
+      <html>
+        <head><title>Waku Test Environment</title></head>
+        <body>
+          <h1>Waku Test Environment (Embedded)</h1>
+          <script>
+            window.waku = undefined;
+            // default stub; may be replaced by CDN variant below
+            window.wakuAPI = {
+              getPeerInfo: () => ({ peerId: "mock-peer-id", multiaddrs: [], peers: [] }),
+              getDebugInfo: () => ({ listenAddresses: [], peerId: "mock-peer-id", protocols: [] }),
+              pushMessage: () => ({ successes: [], failures: [] }),
+              dialPeers: () => ({ total: 0, errors: [] }),
+              createWakuNode: () => ({ success: true, message: "Mock node created" }),
+              startNode: () => ({ success: true }),
+              stopNode: () => ({ success: true }),
+              subscribe: () => ({ unsubscribe: async () => {} })
+            };
+          </script>
+          <script type="module">
+            (async () => {
+              const useCdn = ${useCdnFlag ? "true" : "false"};
+              if (!useCdn) return;
+              try {
+                const sdk = await import('https://esm.sh/@waku/sdk@0.0.30?bundle');
+                const { createLightNode, createEncoder, createDecoder } = sdk;
+                window.wakuAPI = {
+                  async createWakuNode(options) {
+                    try {
+                      if (window.waku) await window.waku.stop();
+                    } catch {}
+                    window.waku = await createLightNode(options);
+                    return { success: true };
+                  },
+                  async startNode() {
+                    await window.waku?.start();
+                    return { success: true };
+                  },
+                  async stopNode() {
+                    await window.waku?.stop();
+                    return { success: true };
+                  },
+                  async dialPeers(waku, peerAddrs) {
+                    const errors = [];
+                    await Promise.allSettled(
+                      (peerAddrs || []).map((addr) =>
+                        waku.dial(addr).catch((err) => errors.push(String(err?.message || err)))
+                      )
+                    );
+                    return { total: (peerAddrs || []).length, errors };
+                  },
+                  async pushMessage(waku, contentTopic, payload, opts = {}) {
+                    const clusterId = opts.clusterId ?? 42;
+                    const shard = opts.shard ?? 0;
+                    const encoder = createEncoder({
+                      contentTopic,
+                      pubsubTopicShardInfo: { clusterId, shard }
+                    });
+                    return waku.lightPush.send(encoder, { payload: payload ?? new Uint8Array() });
+                  },
+                  async subscribe(waku, contentTopic, opts = {}, callback) {
+                    const clusterId = opts.clusterId ?? 42;
+                    const shard = opts.shard ?? 0;
+                    const decoder = createDecoder(contentTopic, { clusterId, shard });
+                    return waku.filter.subscribe(decoder, callback ?? (() => {}));
+                  },
+                  getPeerInfo(waku) {
+                    const addrs = waku.libp2p.getMultiaddrs();
+                    return {
+                      peerId: waku.libp2p.peerId.toString(),
+                      multiaddrs: addrs.map((a) => a.toString()),
+                      peers: []
+                    };
+                  },
+                  getDebugInfo(waku) {
+                    return {
+                      listenAddresses: waku.libp2p.getMultiaddrs().map((a) => a.toString()),
+                      peerId: waku.libp2p.peerId.toString(),
+                      protocols: Array.from(waku.libp2p.getProtocols())
+                    };
+                  }
+                };
+                window.postMessage({ type: 'WAKU_READY' }, '*');
+              } catch (e) {
+                // Keep stub if CDN import fails
+                window.postMessage({ type: 'WAKU_CDN_ERROR', error: String(e?.message || e) }, '*');
+              }
+            })();
+          </script>
+        </body>
+      </html>
+    `);
 
     setPage(page);
   } catch (error) {
     console.error("Error initializing browser:", error);
     throw error;
-  }
-}
-
-async function checkServerAvailability(
-  url: string,
-  retries = 3
-): Promise<boolean> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url, { method: "HEAD" });
-      if (response.ok) return true;
-    } catch (e) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  }
-  throw new Error(`Server at ${url} not available after ${retries} retries`);
-}
-
-async function findAvailablePort(
-  startPort: number,
-  maxAttempts = 10
-): Promise<number> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const port = startPort + attempt;
-    try {
-      // Try to create a server on the port
-      await new Promise<void>((resolve, reject) => {
-        const server = net
-          .createServer()
-          .once("error", (err: any) => {
-            reject(err);
-          })
-          .once("listening", () => {
-            // If we can listen, the port is available
-            server.close();
-            resolve();
-          })
-          .listen(port);
-      });
-
-      // If we get here, the port is available
-      return port;
-    } catch (err) {
-      // Port is not available, continue to next port
-    }
-  }
-
-  // If we tried all ports and none are available, throw an error
-  throw new Error(
-    `Unable to find an available port after ${maxAttempts} attempts`
-  );
-}
-
-async function startServer(port: number = 3000): Promise<void> {
-  try {
-    await startHeadlessServer();
-
-    await initBrowser();
-
-    await startAPI(port);
-  } catch (error: any) {
-    console.error("Error starting server:", error);
   }
 }
 
@@ -276,6 +251,14 @@ async function startAPI(requestedPort: number): Promise<void> {
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
 
+        // Flush headers and send initial comment to establish the stream early
+        try {
+          (res as any).flushHeaders?.();
+        } catch (e) {
+          // ignore
+        }
+        res.write(`: connected\n\n`);
+
         // Function to send SSE
         const sendSSE = (data: any): void => {
           res.write(`data: ${JSON.stringify(data)}\n\n`);
@@ -312,28 +295,34 @@ async function startAPI(requestedPort: number): Promise<void> {
           { contentTopic, options }
         );
 
-        // Set up event listener for messages from the page
-        await getPage()?.exposeFunction("sendMessageToServer", (message: any) => {
-          // Send the message as SSE
-          sendSSE(message);
+        // Set up event listener for messages from the page (idempotent)
+        try {
+          await getPage()?.exposeFunction("sendMessageToServer", (message: any) => {
+            // Send the message as SSE
+            sendSSE(message);
 
-          const topic = message.contentTopic;
-          if (!messageQueue[topic]) {
-            messageQueue[topic] = [];
-          }
+            const topic = message.contentTopic;
+            if (!messageQueue[topic]) {
+              messageQueue[topic] = [];
+            }
 
-          messageQueue[topic].push({
-            ...message,
-            receivedAt: Date.now()
+            messageQueue[topic].push({
+              ...message,
+              receivedAt: Date.now()
+            });
+
+            if (messageQueue[topic].length > 1000) {
+              messageQueue[topic].shift();
+            }
           });
-
-          if (messageQueue[topic].length > 1000) {
-            messageQueue[topic].shift();
-          }
-        });
+        } catch (e) {
+          // Function already exposed; safe to ignore
+        }
 
         // Add event listener in the browser context to forward messages to the server
         await getPage()?.evaluate(() => {
+          if ((window as any).__sseForwarderAdded) return;
+          (window as any).__sseForwarderAdded = true;
           window.addEventListener("message", (event) => {
             if (event.data.type === "WAKU_MESSAGE") {
               (window as any).sendMessageToServer(event.data.payload);
@@ -342,6 +331,11 @@ async function startAPI(requestedPort: number): Promise<void> {
         });
 
         req.on("close", () => {
+          try {
+            res.end();
+          } catch (e) {
+            // ignore
+          }
         });
       } catch (error: any) {
         console.error("Error in filter subscription:", error);
@@ -467,6 +461,7 @@ async function startAPI(requestedPort: number): Promise<void> {
 
     app
       .listen(actualPort, () => {
+        console.log(`API server running on http://localhost:${actualPort}`);
       })
       .on("error", (error: any) => {
         if (error.code === "EADDRINUSE") {
@@ -485,16 +480,53 @@ async function startAPI(requestedPort: number): Promise<void> {
   }
 }
 
-process.on("SIGINT", (async () => {
-  await closeBrowser();
-
-  if (headlessServerProcess && headlessServerProcess.pid) {
+async function findAvailablePort(
+  startPort: number,
+  maxAttempts = 10
+): Promise<number> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const port = startPort + attempt;
     try {
-      process.kill(headlessServerProcess.pid);
-    } catch (e) {
-      // Process already stopped
+      // Try to create a server on the port
+      await new Promise<void>((resolve, reject) => {
+        const server = net
+          .createServer()
+          .once("error", (err: any) => {
+            reject(err);
+          })
+          .once("listening", () => {
+            // If we can listen, the port is available
+            server.close();
+            resolve();
+          })
+          .listen(port);
+      });
+
+      // If we get here, the port is available
+      return port;
+    } catch (err) {
+      // Port is not available, continue to next port
     }
   }
+
+  // If we tried all ports and none are available, throw an error
+  throw new Error(
+    `Unable to find an available port after ${maxAttempts} attempts`
+  );
+}
+
+async function startServer(port: number = 3000): Promise<void> {
+  try {
+    await initBrowser();
+
+    await startAPI(port);
+  } catch (error: any) {
+    console.error("Error starting server:", error);
+  }
+}
+
+process.on("SIGINT", (async () => {
+  await closeBrowser();
 
   process.exit(0);
 }) as any);

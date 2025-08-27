@@ -26,19 +26,16 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY packages/browser-tests/package.json ./packages/browser-tests/
-COPY packages/headless-tests/package.json ./packages/headless-tests/
 
-# Install dependencies and serve
-RUN npm install && npm install -g serve
+# Install dependencies
+RUN npm install && npx playwright install chromium
 
 # Copy source files
 COPY tsconfig.json ./
 COPY packages/ ./packages/
 
-# Build packages
-RUN npm run build -w packages/headless-tests && \
-    npm run build:server -w packages/browser-tests && \
-    npx playwright install chromium
+# Build browser-tests (web + server)
+RUN npm run build -w packages/browser-tests
 
 EXPOSE 3000
 
