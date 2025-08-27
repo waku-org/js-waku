@@ -77,8 +77,14 @@ export type QueryRequestParams = {
   paginationLimit?: number;
 
   /**
-   * The service node to use for queries. Will fail if this peer is not in the
-   * peer store. No fallback is done. Overrides any other peer selection option.
+   * The service node to use for queries. Will fail if:
+   * - this peer is not in the peer store.
+   * - we are not connected to this peer
+   * No fallback is done. Overrides any other peer selection option.
+   *
+   * Expected to be used with [[PeerManagerEventNames.StoreConnect]] so that
+   * we know we are connected to this peer before doing the store query.
+   *
    * Only use if you know what you are doing.
    */
   peerId?: PeerId;
