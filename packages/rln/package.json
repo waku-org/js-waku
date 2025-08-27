@@ -85,7 +85,7 @@
     "lodash": "^4.17.21",
     "uuid": "^11.0.5",
     "chai": "^5.1.2",
-    "chai-as-promised": "^8.0.1",
+    "chai-as-promised": "^8.0.2",
     "chai-spies": "^1.1.0",
     "chai-subset": "^1.6.0",
     "sinon": "^19.0.2"

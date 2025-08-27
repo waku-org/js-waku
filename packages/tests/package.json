@@ -58,7 +58,7 @@
     "@waku/message-hash": "^0.1.17",
     "@waku/utils": "*",
     "app-root-path": "^3.1.0",
-    "chai-as-promised": "^7.1.1",
+    "chai-as-promised": "^8.0.2",
     "debug": "^4.3.4",
     "dockerode": "^4.0.2",
     "fast-check": "^3.19.0",
