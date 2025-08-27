@@ -9,10 +9,17 @@ let baseUrl = "http://127.0.0.1:8080";
 
 test.beforeAll(async () => {
   // Build and run the container once for the suite; reuse across tests
-  container = await new GenericContainer("waku-browser-tests:local")
+  const generic = new GenericContainer("waku-browser-tests:local")
     .withExposedPorts(8080)
-    .withWaitStrategy(Wait.forLogMessage("API server running on http://localhost:"))
-    .start();
+    .withWaitStrategy(Wait.forLogMessage("API server running on http://localhost:"));
+
+  // Optionally load real @waku/sdk in the headless browser inside the container
+  // Enable by setting HEADLESS_USE_CDN_IN_DOCKER=1 in the test environment
+  if (process.env.HEADLESS_USE_CDN_IN_DOCKER === "1") {
+    generic.withEnvironment({ HEADLESS_USE_CDN: "1" });
+  }
+
+  container = await generic.start();
 
   const mappedPort = container.getMappedPort(8080);
   baseUrl = `http://127.0.0.1:${mappedPort}`;
@@ -97,5 +104,35 @@ test("container: filter v1 queue operations", async () => {
   const resp = await axios.get(`${baseUrl}/filter/v1/messages/${topic}`);
   expect(resp.status).toBe(200);
   expect(resp.data.messages.length).toBe(3);
+});
+
+test("container: dial ws/wss peer via /admin/v1/peers", async () => {
+  // Create a fresh node without default bootstrap
+  await axios.post(`${baseUrl}/admin/v1/create-node`, {
+    defaultBootstrap: false,
+    networkConfig: { clusterId: 42, shards: [0] }
+  });
+  await axios.post(`${baseUrl}/admin/v1/start-node`);
+
+  // Prefer an override from env for stability in CI
+  const override = process.env.WAKU_WS_MULTIADDR;
+  const peers = override
+    ? [override]
+    : [
+        // Public WSS peers used elsewhere in tests; availability may vary
+        "/dns4/waku-test.bloxy.one/tcp/8095/wss/p2p/16Uiu2HAmSZbDB7CusdRhgkD81VssRjQV5ZH13FbzCGcdnbbh6VwZ",
+        "/dns4/waku.fryorcraken.xyz/tcp/8000/wss/p2p/16Uiu2HAmMRvhDHrtiHft1FTUYnn6cVA8AWVrTyLUayJJ3MWpUZDB"
+      ];
+
+  const res = await axios.post(`${baseUrl}/admin/v1/peers`, { peerMultiaddrs: peers });
+
+  expect(res.status).toBe(200);
+  expect(res.data).toHaveProperty("peersAdded");
+  expect(res.data).toHaveProperty("peerErrors");
+
+  // Basic shape validation: peersAdded + peerErrors.length should equal requested peers
+  const added = Number(res.data.peersAdded ?? 0);
+  const errors = Array.isArray(res.data.peerErrors) ? res.data.peerErrors.length : 0;
+  expect(added + errors).toBe(peers.length);
 });
 
