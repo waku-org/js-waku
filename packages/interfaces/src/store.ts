@@ -1,3 +1,5 @@
+import type { PeerId } from "@libp2p/interface";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 
 export type StoreCursor = Uint8Array;
@@ -73,6 +75,13 @@ export type QueryRequestParams = {
    * @default undefined
    */
   paginationLimit?: number;
+
+  /**
+   * The service node to use for queries. Will fail if this peer is not in the
+   * peer store. No fallback is done. Overrides any other peer selection option.
+   * Only use if you know what you are doing.
+   */
+  peerId?: PeerId;
 };
 
 export type IStore = {
