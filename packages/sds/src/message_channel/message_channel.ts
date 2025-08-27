@@ -30,7 +30,7 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
 const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
-const log = new Logger("waku:sds:message-channel");
+const log = new Logger("sds:message-channel");
 
 export interface MessageChannelOptions {
   causalHistorySize?: number;
