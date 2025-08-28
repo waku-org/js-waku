@@ -349,14 +349,27 @@ describe("MessageChannel", function () {
       expect(localHistory.length).to.equal(3);
 
       // Verify chronological order: message1 (ts=1), message2 (ts=2), message3 (ts=3)
-      expect(localHistory[0].messageId).to.equal(message1Id);
-      expect(localHistory[0].lamportTimestamp).to.equal(1);
 
-      expect(localHistory[1].messageId).to.equal(message2Id);
-      expect(localHistory[1].lamportTimestamp).to.equal(2);
+      const first = localHistory.findIndex(
+        ({ messageId, lamportTimestamp }) => {
+          return messageId === message1Id && lamportTimestamp === 1;
+        }
+      );
+      expect(first).to.eq(0);
 
-      expect(localHistory[2].messageId).to.equal(message3Id);
-      expect(localHistory[2].lamportTimestamp).to.equal(3);
+      const second = localHistory.findIndex(
+        ({ messageId, lamportTimestamp }) => {
+          return messageId === message2Id && lamportTimestamp === 2;
+        }
+      );
+      expect(second).to.eq(1);
+
+      const third = localHistory.findIndex(
+        ({ messageId, lamportTimestamp }) => {
+          return messageId === message3Id && lamportTimestamp === 3;
+        }
+      );
+      expect(third).to.eq(2);
     });
 
     it("should handle messages with same timestamp ordered by messageId", async () => {
@@ -400,12 +413,20 @@ describe("MessageChannel", function () {
       // When timestamps are equal, should be ordered by messageId lexicographically
       // The valueOf() method creates "000000000000005_messageId" for comparison
       const expectedOrder = [message1Id, message2Id].sort();
-      expect(localHistory[0].messageId).to.equal(expectedOrder[0]);
-      expect(localHistory[1].messageId).to.equal(expectedOrder[1]);
 
-      // Both should have the same timestamp
-      expect(localHistory[0].lamportTimestamp).to.equal(5);
-      expect(localHistory[1].lamportTimestamp).to.equal(5);
+      const first = localHistory.findIndex(
+        ({ messageId, lamportTimestamp }) => {
+          return messageId === expectedOrder[0] && lamportTimestamp == 5;
+        }
+      );
+      expect(first).to.eq(0);
+
+      const second = localHistory.findIndex(
+        ({ messageId, lamportTimestamp }) => {
+          return messageId === expectedOrder[1] && lamportTimestamp == 5;
+        }
+      );
+      expect(second).to.eq(1);
     });
   });
 

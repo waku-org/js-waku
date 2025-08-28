@@ -50,7 +50,7 @@ export interface MessageChannelOptions {
 
 export type ILocalHistory = Pick<
   Array<ContentMessage>,
-  "some" | "push" | "slice" | "find" | "length"
+  "some" | "push" | "slice" | "find" | "length" | "findIndex"
 >;
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {

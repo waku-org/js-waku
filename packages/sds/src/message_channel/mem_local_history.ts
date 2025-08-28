@@ -62,6 +62,17 @@ export class MemLocalHistory {
     return this.items.find(predicate, thisArg);
   }
 
+  public findIndex(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): number {
+    return this.items.findIndex(predicate, thisArg);
+  }
+
   private validateMessage(message: ContentMessage): void {
     if (!isContentMessage(message)) {
       throw new Error(
