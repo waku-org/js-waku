@@ -6,9 +6,8 @@ Browser-simulated js-waku node running inside headless Chromium, controlled by a
 
 - **Headless browser**: Playwright launches Chromium and loads an inline page that exposes `window.wakuAPI` and `window.waku`.
 - **Server**: Express app provides REST endpoints and proxies calls into the browser via `page.evaluate(...)`.
+- **Bootstrap module**: Small browser-side module at `src/assets/bootstrap.js` initializes a stub API immediately and, if enabled, loads `@waku/sdk` via CDN and defines the real API.
 - **Shared code**: `shared/` contains utilities used by tests and for typing.
-
-The inline page can optionally load `@waku/sdk` from a CDN when `HEADLESS_USE_CDN=1` is set. Without it, a minimal stub API is provided for smoke testing.
 
 ## Prerequisites
 
@@ -36,6 +35,16 @@ HEADLESS_USE_CDN=1 npm run start:server
 ```
 
 This starts the API server and a headless browser.
+
+## Environment variables
+
+- `PORT`: API server port (default: 3000; Playwright sets this for tests)
+- `HEADLESS_USE_CDN`: when `1`, the browser imports `@waku/sdk` via CDN and exposes the real API
+- `HEADLESS_WAKU_CDN_BASE`: CDN base for `@waku/sdk` (default: `https://esm.sh`)
+- `HEADLESS_WAKU_SDK_VERSION`: overrides the `@waku/sdk` version used in the browser; by default it’s resolved from `package.json`
+- `HEADLESS_DEFAULT_CLUSTER_ID`: default cluster id used by push/subscribe (default: 42)
+- `HEADLESS_DEFAULT_SHARD`: default shard used by push/subscribe (default: 0)
+- `HEADLESS_STUB_PEER_ID`: peer id used by the stub implementation before the CDN module loads (default: `mock-peer-id`)
 
 ## API Endpoints
 
@@ -112,10 +121,13 @@ npm test
 
 Playwright will start the server (uses `npm run start:server`). Ensure the build artifacts exist before running tests.
 
-Docker-based tests (optional) use Testcontainers and require Docker running.
+### Dockerized tests
+
+`tests/docker-server.spec.ts` uses Testcontainers. Ensure Docker is running. It builds/starts a local container image and verifies the HTTP API.
 
 ## Extending
 
 - To add new REST endpoints: update `src/server.ts` and route handlers.
-- To add new browser-executed functions: extend the inline `window.wakuAPI` definition in `src/server.ts` (CDN block) and/or add helpers under `shared/` for reuse in browser tests.
+- To add new browser-executed functions: prefer updating `src/assets/bootstrap.js` (minimize inline JS in `src/server.ts`).
+- For shared logic usable in tests, add helpers under `shared/`.
 

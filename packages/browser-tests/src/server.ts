@@ -1,4 +1,6 @@
 import { fileURLToPath } from "url";
+import * as path from "path";
+import * as fs from "fs";
 
 import { chromium } from "@playwright/test";
 import cors from "cors";
@@ -13,6 +15,40 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve built shared API for browser import
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distRoot = path.resolve(__dirname, "..");
+const sharedDir = path.resolve(distRoot, "shared");
+// Serve bootstrap script from source (not emitted by tsc)
+const assetsDir = path.resolve(distRoot, "..", "src", "assets");
+app.use("/shared", express.static(sharedDir));
+app.use(express.static(assetsDir));
+
+// Resolve installed @waku/sdk version for CDN import map
+let wakuCdnVersion = "0.0.30";
+try {
+  const pkgPath = path.resolve(distRoot, "..", "package.json");
+  const pkgRaw = fs.readFileSync(pkgPath, "utf-8");
+  const pkg = JSON.parse(pkgRaw);
+  const declared = (pkg.dependencies?.["@waku/sdk"] || pkg.devDependencies?.["@waku/sdk"]) as string | undefined;
+  if (declared) {
+    wakuCdnVersion = String(declared).replace(/^[^0-9]*/, "");
+  }
+} catch (e) {
+  // ignore resolution errors; fallback version is used
+}
+// Parameterize CDN base, defaults, and stub values via env
+const wakuCdnBase = process.env.HEADLESS_WAKU_CDN_BASE || "https://esm.sh";
+const wakuCdnUrl = `${wakuCdnBase}/@waku/sdk@${wakuCdnVersion}?bundle`;
+const defaultClusterId = process.env.HEADLESS_DEFAULT_CLUSTER_ID
+  ? parseInt(process.env.HEADLESS_DEFAULT_CLUSTER_ID, 10)
+  : 42;
+const defaultShard = process.env.HEADLESS_DEFAULT_SHARD
+  ? parseInt(process.env.HEADLESS_DEFAULT_SHARD, 10)
+  : 0;
+const stubPeerId = process.env.HEADLESS_STUB_PEER_ID || "mock-peer-id";
 app.use(adminRouter);
 
 // Removed: external static server no longer required
@@ -39,18 +75,31 @@ async function initBrowser(): Promise<void> {
     const page = await browser.newPage();
     const useCdnFlag = process.env.HEADLESS_USE_CDN === "1";
 
-    // Inline page: optionally load real SDK via CDN, with stub fallback
+    // Inline page: small HTML shell with stub API; external module loaded later
     await page.setContent(`
       <html>
         <head><title>Waku Test Environment</title></head>
         <body>
           <h1>Waku Test Environment (Embedded)</h1>
+          <script type="importmap">
+            {
+              "imports": {
+                "@waku/sdk": ${JSON.stringify(wakuCdnUrl)}
+              }
+            }
+          </script>
           <script>
+            window.__HEADLESS_CONFIG__ = {
+              useCdn: ${useCdnFlag ? "true" : "false"},
+              defaultClusterId: ${defaultClusterId},
+              defaultShard: ${defaultShard},
+              stubPeerId: ${JSON.stringify(stubPeerId)}
+            };
+            // Install stub API immediately so routes work even before module loads
             window.waku = undefined;
-            // default stub; may be replaced by CDN variant below
             window.wakuAPI = {
-              getPeerInfo: () => ({ peerId: "mock-peer-id", multiaddrs: [], peers: [] }),
-              getDebugInfo: () => ({ listenAddresses: [], peerId: "mock-peer-id", protocols: [] }),
+              getPeerInfo: () => ({ peerId: ${JSON.stringify(stubPeerId)}, multiaddrs: [], peers: [] }),
+              getDebugInfo: () => ({ listenAddresses: [], peerId: ${JSON.stringify(stubPeerId)}, protocols: [] }),
               pushMessage: () => ({ successes: [], failures: [] }),
               dialPeers: () => ({ total: 0, errors: [] }),
               createWakuNode: () => ({ success: true, message: "Mock node created" }),
@@ -59,76 +108,7 @@ async function initBrowser(): Promise<void> {
               subscribe: () => ({ unsubscribe: async () => {} })
             };
           </script>
-          <script type="module">
-            (async () => {
-              const useCdn = ${useCdnFlag ? "true" : "false"};
-              if (!useCdn) return;
-              try {
-                const sdk = await import('https://esm.sh/@waku/sdk@0.0.30?bundle');
-                const { createLightNode, createEncoder, createDecoder } = sdk;
-                window.wakuAPI = {
-                  async createWakuNode(options) {
-                    try {
-                      if (window.waku) await window.waku.stop();
-                    } catch {}
-                    window.waku = await createLightNode(options);
-                    return { success: true };
-                  },
-                  async startNode() {
-                    await window.waku?.start();
-                    return { success: true };
-                  },
-                  async stopNode() {
-                    await window.waku?.stop();
-                    return { success: true };
-                  },
-                  async dialPeers(waku, peerAddrs) {
-                    const errors = [];
-                    await Promise.allSettled(
-                      (peerAddrs || []).map((addr) =>
-                        waku.dial(addr).catch((err) => errors.push(String(err?.message || err)))
-                      )
-                    );
-                    return { total: (peerAddrs || []).length, errors };
-                  },
-                  async pushMessage(waku, contentTopic, payload, opts = {}) {
-                    const clusterId = opts.clusterId ?? 42;
-                    const shard = opts.shard ?? 0;
-                    const encoder = createEncoder({
-                      contentTopic,
-                      pubsubTopicShardInfo: { clusterId, shard }
-                    });
-                    return waku.lightPush.send(encoder, { payload: payload ?? new Uint8Array() });
-                  },
-                  async subscribe(waku, contentTopic, opts = {}, callback) {
-                    const clusterId = opts.clusterId ?? 42;
-                    const shard = opts.shard ?? 0;
-                    const decoder = createDecoder(contentTopic, { clusterId, shard });
-                    return waku.filter.subscribe(decoder, callback ?? (() => {}));
-                  },
-                  getPeerInfo(waku) {
-                    const addrs = waku.libp2p.getMultiaddrs();
-                    return {
-                      peerId: waku.libp2p.peerId.toString(),
-                      multiaddrs: addrs.map((a) => a.toString()),
-                      peers: []
-                    };
-                  },
-                  getDebugInfo(waku) {
-                    return {
-                      listenAddresses: waku.libp2p.getMultiaddrs().map((a) => a.toString()),
-                      peerId: waku.libp2p.peerId.toString(),
-                      protocols: Array.from(waku.libp2p.getProtocols())
-                    };
-                  }
-                };
-                window.postMessage({ type: 'WAKU_READY' }, '*');
-              } catch (e) {
-                // Keep stub if CDN import fails
-                window.postMessage({ type: 'WAKU_CDN_ERROR', error: String(e?.message || e) }, '*');
-              }
-            })();
-          </script>
+          <script type="module" src="/bootstrap.js"></script>
         </body>
       </html>
     `);

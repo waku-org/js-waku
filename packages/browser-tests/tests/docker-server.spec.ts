@@ -115,14 +115,18 @@ test("container: dial ws/wss peer via /admin/v1/peers", async () => {
   await axios.post(`${baseUrl}/admin/v1/start-node`);
 
   // Prefer an override from env for stability in CI
+  let peers: string[] = [];
+
   const override = process.env.WAKU_WS_MULTIADDR;
-  const peers = override
-    ? [override]
-    : [
-        // Public WSS peers used elsewhere in tests; availability may vary
-        "/dns4/waku-test.bloxy.one/tcp/8095/wss/p2p/16Uiu2HAmSZbDB7CusdRhgkD81VssRjQV5ZH13FbzCGcdnbbh6VwZ",
-        "/dns4/waku.fryorcraken.xyz/tcp/8000/wss/p2p/16Uiu2HAmMRvhDHrtiHft1FTUYnn6cVA8AWVrTyLUayJJ3MWpUZDB"
-      ];
+  if (override) {
+    peers = [override];
+  } else {
+    // Fallback to public peers
+    peers = [
+      "/dns4/waku-test.bloxy.one/tcp/8095/wss/p2p/16Uiu2HAmSZbDB7CusdRhgkD81VssRjQV5ZH13FbzCGcdnbbh6VwZ",
+      "/dns4/waku.fryorcraken.xyz/tcp/8000/wss/p2p/16Uiu2HAmMRvhDHrtiHft1FTUYnn6cVA8AWVrTyLUayJJ3MWpUZDB"
+    ];
+  }
 
   const res = await axios.post(`${baseUrl}/admin/v1/peers`, { peerMultiaddrs: peers });
 

@@ -12,12 +12,15 @@ const EXAMPLE_PORT = process.env.EXAMPLE_PORT || "8080";
 // web-chat specific thingy
 const EXAMPLE_TEMPLATE = process.env.EXAMPLE_TEMPLATE || "";
 const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/${EXAMPLE_TEMPLATE}`;
+// Ignore docker-based tests on CI
+const TEST_IGNORE = process.env.CI ? ["tests/docker-*.spec.ts"] : [];
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: TEST_IGNORE,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
