@@ -71,6 +71,18 @@ export class BloomFilter {
     this.hashN = hashN;
     this.errorRate = options.errorRate;
   }
+  public static fromBytes(
+    bytes: Uint8Array,
+    options: BloomFilterOptions,
+    hashN: (item: string, n: number, maxValue: number) => number
+  ): BloomFilter {
+    const bloomFilter = new BloomFilter(options, hashN);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    for (let i = 0; i < bloomFilter.data.length; i++) {
+      bloomFilter.data[i] = view.getBigUint64(i * 8, false);
+    }
+    return bloomFilter;
+  }
 
   public computeHashes(item: string): number[] {
     const hashes = new Array<number>(this.kHashes);
@@ -116,19 +128,6 @@ export class BloomFilter {
       view.setBigInt64(i * 8, this.data[i]);
     }
     return new Uint8Array(buffer);
-  }
-
-  public static fromBytes(
-    bytes: Uint8Array,
-    options: BloomFilterOptions,
-    hashN: (item: string, n: number, maxValue: number) => number
-  ): BloomFilter {
-    const bloomFilter = new BloomFilter(options, hashN);
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    for (let i = 0; i < bloomFilter.data.length; i++) {
-      bloomFilter.data[i] = view.getBigUint64(i * 8, false);
-    }
-    return bloomFilter;
   }
 }
 
