@@ -15,6 +15,7 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
+  IMessage,
   IRelay,
   IRoutingInfo,
   IStore,
@@ -33,6 +34,7 @@ import { createRoutingInfo, Logger } from "@waku/utils";
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
+import { Messaging } from "../messaging/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
@@ -64,6 +66,7 @@ export class WakuNode implements IWaku {
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
   private readonly healthIndicator: HealthIndicator;
+  private readonly messaging: Messaging | null = null;
 
   public constructor(
     options: CreateNodeOptions,
@@ -123,6 +126,14 @@ export class WakuNode implements IWaku {
         libp2p,
         peerManager: this.peerManager,
         options: options.filter
+      });
+    }
+
+    if (this.lightPush && this.filter && this.store) {
+      this.messaging = new Messaging({
+        lightPush: this.lightPush,
+        filter: this.filter,
+        store: this.store
       });
     }
 
@@ -220,6 +231,7 @@ export class WakuNode implements IWaku {
     this.peerManager.start();
     this.healthIndicator.start();
     this.lightPush?.start();
+    this.sender?.start();
 
     this._nodeStateLock = false;
     this._nodeStarted = true;
@@ -230,6 +242,7 @@ export class WakuNode implements IWaku {
 
     this._nodeStateLock = true;
 
+    this.sender?.stop();
     this.lightPush?.stop();
     this.healthIndicator.stop();
     this.peerManager.stop();
@@ -278,6 +291,10 @@ export class WakuNode implements IWaku {
       ephemeral: params.ephemeral,
       routingInfo: routingInfo
     });
+  }
+
+  public send(encoder: IEncoder, message: IMessage): Promise<void> {
+    return this.messaging?.send(encoder, message) ?? Promise.resolve();
   }
 
   private createRoutingInfo(
