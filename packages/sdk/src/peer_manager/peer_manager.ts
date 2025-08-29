@@ -33,8 +33,10 @@ type PeerManagerParams = {
   connectionManager: IConnectionManager;
 };
 
+type SupportedProtocols = Protocols | "light-push-v2";
+
 type GetPeersParams = {
-  protocol: Protocols;
+  protocol: SupportedProtocols;
   pubsubTopic: string;
 };
 
@@ -203,8 +205,8 @@ export class PeerManager {
 
   private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {
     const result = event.detail;
-    const isFilterPeer = result.protocols.some((protocol) =>
-      this.getProtocolCodecs(Protocols.Filter).includes(protocol)
+    const isFilterPeer = result.protocols.some(
+      (protocol) => this.getProtocolCodecs(Protocols.Filter) === protocol
     );
 
     if (isFilterPeer) {
@@ -228,11 +230,8 @@ export class PeerManager {
     }
   }
 
-  private hasPeerProtocol(peer: Peer, protocol: Protocols): boolean {
-    const codecsToMatch = this.getProtocolCodecs(protocol);
-
-    // Check if peer supports any of the protocol codecs
-    return codecsToMatch.some((codec) => peer.protocols.includes(codec));
+  private hasPeerProtocol(peer: Peer, protocol: SupportedProtocols): boolean {
+    return peer.protocols.includes(this.getProtocolCodecs(protocol));
   }
 
   private lockPeer(id: PeerId): void {
@@ -284,15 +283,16 @@ export class PeerManager {
     );
   }
 
-  private getProtocolCodecs(protocol: Protocols): string[] {
+  private getProtocolCodecs(protocol: SupportedProtocols): string {
     if (protocol === Protocols.Relay) {
       throw new Error("Relay protocol is not supported");
     }
 
     const protocolToCodecs = {
-      [Protocols.Filter]: [FilterCodecs.SUBSCRIBE],
-      [Protocols.LightPush]: [LightPushCodec, LightPushCodecV2],
-      [Protocols.Store]: [StoreCodec]
+      [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
+      [Protocols.LightPush]: LightPushCodec,
+      [Protocols.Store]: StoreCodec,
+      "light-push-v2": LightPushCodecV2
     };
 
     return protocolToCodecs[protocol];

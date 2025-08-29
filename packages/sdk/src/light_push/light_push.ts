@@ -11,7 +11,6 @@ import {
   LightPushFailure,
   type LightPushProtocolOptions,
   LightPushSDKResult,
-  ProtocolError,
   Protocols
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -34,7 +33,6 @@ type LightPushConstructorParams = {
   peerManager: PeerManager;
   libp2p: Libp2p;
   options?: Partial<LightPushProtocolOptions>;
-  legacy?: boolean;
 };
 
 export class LightPush implements ILightPush {
@@ -50,7 +48,7 @@ export class LightPush implements ILightPush {
     } as LightPushProtocolOptions;
 
     this.peerManager = params.peerManager;
-    this.protocol = new LightPushCore(params.libp2p, params.legacy);
+    this.protocol = new LightPushCore(params.libp2p);
     this.retryManager = new RetryManager({
       peerManager: params.peerManager,
       retryIntervalMs: this.config.retryIntervalMs
@@ -75,6 +73,7 @@ export class LightPush implements ILightPush {
     options: ISendOptions = {}
   ): Promise<LightPushSDKResult> {
     options = {
+      useLegacy: false,
       ...this.config,
       ...options
     };
@@ -84,7 +83,7 @@ export class LightPush implements ILightPush {
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
     const peerIds = await this.peerManager.getPeers({
-      protocol: Protocols.LightPush,
+      protocol: options.useLegacy ? "light-push-v2" : Protocols.LightPush,
       pubsubTopic: encoder.pubsubTopic
     });
 
@@ -92,12 +91,14 @@ export class LightPush implements ILightPush {
       peerIds?.length > 0
         ? await Promise.all(
             peerIds.map((peerId) =>
-              this.protocol.send(encoder, message, peerId).catch((_e) => ({
-                success: null,
-                failure: {
-                  error: ProtocolError.GENERIC_FAIL
-                }
-              }))
+              this.protocol
+                .send(encoder, message, peerId, options.useLegacy)
+                .catch((_e) => ({
+                  success: null,
+                  failure: {
+                    error: LightPushError.GENERIC_FAIL
+                  }
+                }))
             )
           )
         : [];
@@ -122,7 +123,8 @@ export class LightPush implements ILightPush {
 
     if (options.autoRetry && results.successes.length === 0) {
       const sendCallback = (peerId: PeerId): Promise<LightPushCoreResult> =>
-        this.protocol.send(encoder, message, peerId);
+        this.protocol.send(encoder, message, peerId, options.useLegacy);
+
       this.retryManager.push(
         sendCallback.bind(this),
         options.maxAttempts || DEFAULT_MAX_ATTEMPTS,

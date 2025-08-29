@@ -41,7 +41,7 @@ export class Filter implements IFilter {
     );
   }
 
-  public get multicodec(): string[] {
+  public get multicodec(): string {
     return this.protocol.multicodec;
   }
 

@@ -2,7 +2,7 @@ import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback } from "./protocols.js";
 
 export type IFilter = {
-  readonly multicodec: string[];
+  readonly multicodec: string;
 
   /**
    * Subscribes to messages that match the filtering criteria defined in the specified decoders.

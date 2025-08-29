@@ -264,15 +264,17 @@ function getEnabledProtocols(waku: IWaku): Protocols[] {
 function mapProtocolsToCodecs(protocols: Protocols[]): Map<string, boolean> {
   const codecs: Map<string, boolean> = new Map();
 
-  const protocolToCodec: Record<string, string> = {
-    [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
-    [Protocols.LightPush]: LightPushCodec,
-    [Protocols.Store]: StoreCodec
+  const protocolToCodec: Record<string, string[]> = {
+    [Protocols.Filter]: [FilterCodecs.SUBSCRIBE],
+    [Protocols.LightPush]: [LightPushCodec, LightPushCodecV2],
+    [Protocols.Store]: [StoreCodec]
   };
 
   for (const protocol of protocols) {
     if (protocolToCodec[protocol]) {
-      codecs.set(protocolToCodec[protocol], false);
+      protocolToCodec[protocol].forEach((codec) => {
+        codecs.set(codec, false);
+      });
     }
   }
 

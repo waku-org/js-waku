@@ -252,17 +252,16 @@ export class Subscription {
 
   private isMessageReceived(message: WakuMessage): boolean {
     try {
-      const key = messageHashStr(this.pubsubTopic, {
-        ...(message as IProtoMessage),
-        timestamp: undefined,
-        meta: undefined
-      });
+      const messageHash = messageHashStr(
+        this.pubsubTopic,
+        message as IProtoMessage
+      );
 
-      if (this.receivedMessages.has(key)) {
+      if (this.receivedMessages.has(messageHash)) {
         return true;
       }
 
-      this.receivedMessages.add(key);
+      this.receivedMessages.add(messageHash);
     } catch (e) {
       // do nothing on throw, message will be handled as not received
     }
