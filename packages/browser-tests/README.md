@@ -38,7 +38,7 @@ This starts the API server and a headless browser.
 
 ## Environment variables
 
-- `PORT`: API server port (default: 3000; Playwright sets this for tests)
+- `PORT`: API server port (default: 8080; Playwright sets this for tests)
 - `HEADLESS_USE_CDN`: when `1`, the browser imports `@waku/sdk` via CDN and exposes the real API
 - `HEADLESS_WAKU_CDN_BASE`: CDN base for `@waku/sdk` (default: `https://esm.sh`)
 - `HEADLESS_WAKU_SDK_VERSION`: overrides the `@waku/sdk` version used in the browser; by default it’s resolved from `package.json`
@@ -123,7 +123,19 @@ Playwright will start the server (uses `npm run start:server`). Ensure the build
 
 ### Dockerized tests
 
-`tests/docker-server.spec.ts` uses Testcontainers. Ensure Docker is running. It builds/starts a local container image and verifies the HTTP API.
+`tests/docker-server.spec.ts` uses Testcontainers. Ensure Docker is running.
+
+Build the image and run only the docker tests locally:
+
+```bash
+npm run docker:build
+HEADLESS_USE_CDN_IN_DOCKER=0 npx playwright test tests/docker-server.spec.ts
+```
+
+Notes:
+- The Docker image runs the server with Playwright Chromium and `--no-sandbox` for container compatibility.
+- Set `HEADLESS_USE_CDN_IN_DOCKER=1` to load real `@waku/sdk` via CDN inside the container.
+- Testcontainers will map the container port automatically; the tests probe readiness by waiting for `API server running on http://localhost:` in logs.
 
 ## Extending
 

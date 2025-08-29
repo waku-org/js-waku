@@ -48,5 +48,4 @@ export default defineConfig({
     }
   ]
 
-  // No webServer needed; tests manage server processes directly
 });

@@ -66,7 +66,8 @@ const messageQueue: MessageQueue = {};
 
 async function initBrowser(): Promise<void> {
   try {
-    const browser = await chromium.launch({ headless: true });
+    const launchArgs = process.env.CHROMIUM_NO_SANDBOX === "1" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [];
+    const browser = await chromium.launch({ headless: true, args: launchArgs });
 
     if (!browser) {
       throw new Error("Failed to initialize browser");

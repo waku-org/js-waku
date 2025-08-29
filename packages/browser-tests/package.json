@@ -8,7 +8,9 @@
     "start:server": "PORT=8080 node ./dist/src/server.js",
     "test": "npx playwright test",
     "build:server": "tsc -p tsconfig.json",
-    "build": "npm run build:server"
+    "build": "npm run build:server",
+    "docker:build": "docker build -t waku-browser-tests:local .",
+    "docker:test": "HEADLESS_USE_CDN_IN_DOCKER=0 npx playwright test tests/docker-server.spec.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.15",
