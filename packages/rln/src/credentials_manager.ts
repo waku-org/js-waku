@@ -17,7 +17,7 @@ import { BytesUtils } from "./utils/bytes.js";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
-const log = new Logger("waku:credentials");
+const log = new Logger("rln:credentials");
 
 /**
  * Manages credentials for RLN

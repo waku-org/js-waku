@@ -1,6 +1,11 @@
 import { Connection, Peer } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec } from "@waku/core";
-import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import {
+  HealthStatus,
+  IWakuEventEmitter,
+  Libp2p,
+  WakuEvent
+} from "@waku/interfaces";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -34,8 +39,9 @@ describe("HealthIndicator", () => {
 
     // Start monitoring
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -53,8 +59,9 @@ describe("HealthIndicator", () => {
     healthIndicator.start();
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -76,8 +83,9 @@ describe("HealthIndicator", () => {
     healthIndicator.start();
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -131,8 +139,9 @@ describe("HealthIndicator", () => {
     peerStoreStub.withArgs(connection2.remotePeer).resolves(peer2);
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -144,8 +153,9 @@ describe("HealthIndicator", () => {
     );
 
     const statusChangePromise2 = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -166,8 +176,9 @@ describe("HealthIndicator", () => {
     sinon.stub(libp2p.peerStore, "get").resolves(peer);
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -189,8 +200,9 @@ describe("HealthIndicator", () => {
     sinon.stub(libp2p.peerStore, "get").rejects(new Error("Peer not found"));
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -217,8 +229,9 @@ describe("HealthIndicator", () => {
     peerStoreStub.withArgs(connection2.remotePeer).resolves(peer2);
 
     const statusChangePromise = new Promise<HealthStatus>((resolve) => {
-      events.addEventListener("waku:health", (e: CustomEvent<HealthStatus>) =>
-        resolve(e.detail)
+      events.addEventListener(
+        WakuEvent.Health,
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
