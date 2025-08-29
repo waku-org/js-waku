@@ -94,6 +94,18 @@
   },
   "overrides": [
     {
+      "files": ["packages/*/src/index.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Program > :not(ExportNamedDeclaration, ExportAllDeclaration, TSTypeAliasDeclaration, TSInterfaceDeclaration)",
+            "message": "index.ts should only contain re-export statements"
+          }
+        ]
+      }
+    },
+    {
       "files": ["*.spec.ts", "**/test_utils/*.ts", "*.js", "*.cjs"],
       "rules": {
         "@typescript-eslint/no-non-null-assertion": "off",
