@@ -95,7 +95,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     super();
     this.channelId = channelId;
     this.senderId = senderId;
-    this.lamportTimestamp = 0;
+    // SDS RFC says to use nanoseconds, but current time in nanosecond is > Number.MAX_SAFE_INTEGER
+    // So instead we are using milliseconds and proposing a spec change (TODO)
+    this.lamportTimestamp = Date.now();
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
