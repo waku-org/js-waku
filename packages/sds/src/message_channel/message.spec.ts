@@ -50,7 +50,7 @@ describe("Message serialization", () => {
     const bytes = message.encode();
     const decMessage = Message.decode(bytes);
 
-    expect(decMessage.causalHistory).to.deep.equal([
+    expect(decMessage!.causalHistory).to.deep.equal([
       { messageId: depMessageId, retrievalHint: depRetrievalHint }
     ]);
   });
