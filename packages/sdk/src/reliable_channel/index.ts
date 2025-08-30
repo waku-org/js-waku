@@ -40,6 +40,7 @@ const log = new Logger("sdk:reliable-channel");
 const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
+const DEFAULT_SWEEP_IN_BUF_INTERVAL_MS = 5 * 1000;
 
 const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
   ProtocolError.ENCODE_FAILED,
@@ -86,6 +87,13 @@ export type ReliableChannelOptions = MessageChannelOptions & {
   retrieveFrequencyMs?: number;
 
   /**
+   * How often SDS message channel incoming buffer is swept.
+   *
+   * @default 5000 (every 5 seconds)
+   */
+  sweepInBufIntervalMs?: number;
+
+  /**
    * Whether to automatically do a store query after connection to store nodes.
    *
    * @default true
@@ -130,6 +138,9 @@ export class ReliableChannel<
 
   private readonly syncMinIntervalMs: number;
   private syncTimeout: ReturnType<typeof setTimeout> | undefined;
+  private sweepInBufInterval: ReturnType<typeof setInterval> | undefined;
+  private readonly sweepInBufIntervalMs: number;
+  private processTaskTimeout: ReturnType<typeof setTimeout> | undefined;
   private readonly retryManager: RetryManager | undefined;
   private readonly missingMessageRetriever?: MissingMessageRetriever<T>;
   private readonly queryOnConnect?: QueryOnConnect<T>;
@@ -181,6 +192,9 @@ export class ReliableChannel<
     this.syncMinIntervalMs =
       options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS;
 
+    this.sweepInBufIntervalMs =
+      options?.sweepInBufIntervalMs ?? DEFAULT_SWEEP_IN_BUF_INTERVAL_MS;
+
     const retryIntervalMs =
       options?.retryIntervalMs ?? DEFAULT_RETRY_INTERVAL_MS;
     const maxRetryAttempts =
@@ -198,8 +212,6 @@ export class ReliableChannel<
         this._retrieve,
         async (msg: T) => {
           await this.processIncomingMessage(msg);
-          await this.messageChannel.processTasks();
-          this.messageChannel.sweepIncomingBuffer();
         }
       );
     }
@@ -366,7 +378,6 @@ export class ReliableChannel<
     this.assertStarted();
     return this._subscribe(this.decoder, async (message: T) => {
       await this.processIncomingMessage(message);
-      this.messageChannel.sweepIncomingBuffer();
     });
   }
 
@@ -426,9 +437,7 @@ export class ReliableChannel<
       });
     }
 
-    // Do a process straight away
-    // TODO: review and optimize
-    await this.messageChannel.processTasks();
+    this.queueProcessTasks();
   }
 
   private async processIncomingMessages<T extends IDecodedMessage>(
@@ -437,7 +446,21 @@ export class ReliableChannel<
     for (const message of messages) {
       await this.processIncomingMessage(message);
     }
-    this.messageChannel.sweepIncomingBuffer();
+  }
+
+  // TODO: For now we only queue process tasks for incoming messages
+  // As this is where there is most volume
+  private queueProcessTasks(): void {
+    // If one is already queued, then we can ignore it
+    if (!this.processTaskTimeout) {
+      this.processTaskTimeout = setTimeout(
+        () =>
+          void this.messageChannel.processTasks().catch((err) => {
+            log.error("error encountered when processing sds tasks", err);
+          }),
+        1000
+      ); // we ensure that we don't call process tasks more than once per second
+    }
   }
 
   public async start(): Promise<boolean> {
@@ -445,6 +468,7 @@ export class ReliableChannel<
     this.isStarted = true;
     this.setupEventListeners();
     this.restartSync();
+    this.startSweepIncomingBufferLoop();
     if (this._retrieve) {
       this.missingMessageRetriever?.start();
       this.queryOnConnect?.start();
@@ -456,6 +480,7 @@ export class ReliableChannel<
     if (!this.isStarted) return;
     this.isStarted = false;
     this.stopSync();
+    this.stopSweepIncomingBufferLoop();
     this.missingMessageRetriever?.stop();
     this.queryOnConnect?.stop();
     // TODO unsubscribe
@@ -464,6 +489,18 @@ export class ReliableChannel<
 
   private assertStarted(): void {
     if (!this.isStarted) throw Error("Message Channel must be started");
+  }
+
+  private startSweepIncomingBufferLoop(): void {
+    this.stopSweepIncomingBufferLoop();
+    this.sweepInBufInterval = setInterval(() => {
+      log.info("sweep incoming buffer");
+      this.messageChannel.sweepIncomingBuffer();
+    }, this.sweepInBufIntervalMs);
+  }
+
+  private stopSweepIncomingBufferLoop(): void {
+    if (this.sweepInBufInterval) clearInterval(this.sweepInBufIntervalMs);
   }
 
   private restartSync(multiplier: number = 1): void {
