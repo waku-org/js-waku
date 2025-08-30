@@ -11,6 +11,7 @@ env:
   EXAMPLE_TEMPLATE: "web-chat"
   EXAMPLE_NAME: "example"
   EXAMPLE_PORT: "8080"
+  PORT: "3000"
   # Firefox in container fails due to $HOME not being owned by user running commands
   # more details https://github.com/microsoft/playwright/issues/6500
   HOME: "/root"
@@ -28,9 +29,6 @@ jobs:
         node-version: ${{ env.NODE_JS }}
 
     - uses: ./.github/actions/npm
-
-    - name: Build browser container
-      run: npm run build --workspace=@waku/headless-tests
 
     - name: Build browser test environment
       run: npm run build --workspace=@waku/browser-tests

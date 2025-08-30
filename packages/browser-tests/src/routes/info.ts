@@ -16,7 +16,7 @@ router.get("/info", (async (_req: Request, res: Response) => {
     }
 
     const result = await page.evaluate(() => {
-      return window.wakuAPI.getPeerInfo(window.waku);
+      return (window as any).wakuAPI.getPeerInfo((window as any).waku);
     });
 
     res.json(result);
@@ -38,7 +38,7 @@ router.get("/debug/v1/info", (async (_req: Request, res: Response) => {
     }
 
     const result = await page.evaluate(() => {
-      return window.wakuAPI.getDebugInfo(window.waku);
+      return (window as any).wakuAPI.getDebugInfo((window as any).waku);
     });
 
     res.json(result);

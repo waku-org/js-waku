@@ -26,7 +26,7 @@ router.post("/push", (async (req: Request, res: Response) => {
 
     const result = await page.evaluate(
       ({ topic, data }) => {
-        return window.wakuAPI.pushMessage(window.waku, topic, data);
+        return (window as any).wakuAPI.pushMessage((window as any).waku, topic, data);
       },
       {
         topic: contentTopic,
@@ -87,7 +87,7 @@ router.post("/lightpush/v1/message", (async (req: Request, res: Response) => {
 
     const result = await page.evaluate(
       ({ contentTopic, payload }) => {
-        return window.wakuAPI.pushMessage(window.waku, contentTopic, payload);
+        return (window as any).wakuAPI.pushMessage((window as any).waku, contentTopic, payload);
       },
       {
         contentTopic: message.contentTopic,
