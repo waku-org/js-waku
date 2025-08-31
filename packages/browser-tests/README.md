@@ -45,6 +45,8 @@ This starts the API server and a headless browser.
 - `HEADLESS_DEFAULT_CLUSTER_ID`: default cluster id used by push/subscribe (default: 42)
 - `HEADLESS_DEFAULT_SHARD`: default shard used by push/subscribe (default: 0)
 - `HEADLESS_STUB_PEER_ID`: peer id used by the stub implementation before the CDN module loads (default: `mock-peer-id`)
+ - `WAKU_WS_MULTIADDR`: a single ws/wss multiaddr to dial in tests (overrides peers)
+ - `WAKU_WS_MULTIADDRS`: multiple peers as JSON array (e.g. `["/dns4/.../wss/p2p/16U..."]`) or comma-separated string; used when `WAKU_WS_MULTIADDR` is not set
 
 ## API Endpoints
 
@@ -68,7 +70,7 @@ Push (REST-compatible):
 curl -X POST http://localhost:3000/lightpush/v1/message \
   -H "Content-Type: application/json" \
   -d '{
-    "pubsubTopic": "/waku/2/rs/42/0",
+    "pubsubTopic": "/waku/2/rs/1/0",
     "message": {
       "payload": [1,2,3],
       "contentTopic": "/test/1/message/proto"
@@ -103,7 +105,7 @@ curl -X POST http://localhost:3000/admin/v1/peers \
 SSE subscribe:
 
 ```bash
-curl -N "http://localhost:3000/filter/v2/messages/test-topic?clusterId=42&shard=0"
+curl -N "http://localhost:3000/filter/v2/messages/test-topic?clusterId=1&shard=0"
 ```
 
 Query queued messages:

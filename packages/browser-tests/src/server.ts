@@ -44,7 +44,7 @@ const wakuCdnBase = process.env.HEADLESS_WAKU_CDN_BASE || "https://esm.sh";
 const wakuCdnUrl = `${wakuCdnBase}/@waku/sdk@${wakuCdnVersion}?bundle`;
 const defaultClusterId = process.env.HEADLESS_DEFAULT_CLUSTER_ID
   ? parseInt(process.env.HEADLESS_DEFAULT_CLUSTER_ID, 10)
-  : 42;
+  : 1;
 const defaultShard = process.env.HEADLESS_DEFAULT_SHARD
   ? parseInt(process.env.HEADLESS_DEFAULT_SHARD, 10)
   : 0;

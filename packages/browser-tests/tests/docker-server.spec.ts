@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import axios from "axios";
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
+import { ACTIVE_PEERS, resolvePeers, DEFAULT_CLUSTER_ID, DEFAULT_SHARDS, PUBSUB_TOPICS } from "./test-config";
 
 test.describe.configure({ mode: "serial" });
 
@@ -56,8 +57,8 @@ test("container: health endpoint", async () => {
 test("container: create/start node and push", async () => {
   await axios.post(`${baseUrl}/admin/v1/create-node`, {
     defaultBootstrap: true,
-    networkConfig: { clusterId: 42, shards: [0] },
-    pubsubTopics: ["/waku/2/rs/42/0"]
+    networkConfig: { clusterId: DEFAULT_CLUSTER_ID, shards: DEFAULT_SHARDS },
+    pubsubTopics: PUBSUB_TOPICS
   });
   await axios.post(`${baseUrl}/admin/v1/start-node`);
   const push = await axios.post(`${baseUrl}/lightpush/v1/message`, {
@@ -110,23 +111,12 @@ test("container: dial ws/wss peer via /admin/v1/peers", async () => {
   // Create a fresh node without default bootstrap
   await axios.post(`${baseUrl}/admin/v1/create-node`, {
     defaultBootstrap: false,
-    networkConfig: { clusterId: 42, shards: [0] }
+    networkConfig: { clusterId: DEFAULT_CLUSTER_ID, shards: DEFAULT_SHARDS }
   });
   await axios.post(`${baseUrl}/admin/v1/start-node`);
 
-  // Prefer an override from env for stability in CI
-  let peers: string[] = [];
-
-  const override = process.env.WAKU_WS_MULTIADDR;
-  if (override) {
-    peers = [override];
-  } else {
-    // Fallback to public peers
-    peers = [
-      "/dns4/waku-test.bloxy.one/tcp/8095/wss/p2p/16Uiu2HAmSZbDB7CusdRhgkD81VssRjQV5ZH13FbzCGcdnbbh6VwZ",
-      "/dns4/waku.fryorcraken.xyz/tcp/8000/wss/p2p/16Uiu2HAmMRvhDHrtiHft1FTUYnn6cVA8AWVrTyLUayJJ3MWpUZDB"
-    ];
-  }
+  // Resolve peers dynamically for docker test as well
+  const peers = await resolvePeers(ACTIVE_PEERS);
 
   const res = await axios.post(`${baseUrl}/admin/v1/peers`, { peerMultiaddrs: peers });
 
@@ -138,5 +128,29 @@ test("container: dial ws/wss peer via /admin/v1/peers", async () => {
   const added = Number(res.data.peersAdded ?? 0);
   const errors = Array.isArray(res.data.peerErrors) ? res.data.peerErrors.length : 0;
   expect(added + errors).toBe(peers.length);
+});
+
+test("container: discovery-only dial via resolvePeers([])", async () => {
+  // Ensure env overrides do not interfere
+  delete (process.env as any).WAKU_WS_MULTIADDR;
+  delete (process.env as any).WAKU_WS_MULTIADDRS;
+
+  // Force discovery by passing empty default peers
+  const discovered = await resolvePeers([]);
+  expect(Array.isArray(discovered)).toBe(true);
+  expect(discovered.length).toBeGreaterThan(0);
+
+  // Create a fresh node without default bootstrap
+  await axios.post(`${baseUrl}/admin/v1/create-node`, {
+    defaultBootstrap: false,
+    networkConfig: { clusterId: DEFAULT_CLUSTER_ID, shards: DEFAULT_SHARDS }
+  });
+  await axios.post(`${baseUrl}/admin/v1/start-node`);
+
+  // Dial only one discovered peer for determinism
+  const one = [discovered[0]];
+  const res = await axios.post(`${baseUrl}/admin/v1/peers`, { peerMultiaddrs: one });
+  expect(res.status).toBe(200);
+  expect(res.data).toHaveProperty("peersAdded");
 });
 
