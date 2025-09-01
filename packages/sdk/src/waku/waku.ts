@@ -38,7 +38,7 @@ import { Store } from "../store/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
-const log = new Logger("waku");
+const log = new Logger("sdk:waku");
 
 type ProtocolsEnabled = {
   filter?: boolean;
@@ -216,6 +216,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     await this.libp2p.start();
+    await this.filter?.start();
     this.connectionManager.start();
     this.peerManager.start();
     this.healthIndicator.start();
@@ -231,6 +232,7 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     this.lightPush?.stop();
+    await this.filter?.stop();
     this.healthIndicator.stop();
     this.peerManager.stop();
     this.connectionManager.stop();

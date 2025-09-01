@@ -42,20 +42,30 @@ export class FilterCore {
 
   public constructor(
     private handleIncomingMessage: IncomingMessageHandler,
-    libp2p: Libp2p
+    private libp2p: Libp2p
   ) {
     this.streamManager = new StreamManager(
       FilterCodecs.SUBSCRIBE,
       libp2p.components
     );
+  }
 
-    libp2p
-      .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
+  public async start(): Promise<void> {
+    try {
+      await this.libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
         maxInboundStreams: 100
-      })
-      .catch((e) => {
-        log.error("Failed to register ", FilterCodecs.PUSH, e);
       });
+    } catch (e) {
+      log.error("Failed to register ", FilterCodecs.PUSH, e);
+    }
+  }
+
+  public async stop(): Promise<void> {
+    try {
+      await this.libp2p.unhandle(FilterCodecs.PUSH);
+    } catch (e) {
+      log.error("Failed to unregister ", FilterCodecs.PUSH, e);
+    }
   }
 
   public async subscribe(

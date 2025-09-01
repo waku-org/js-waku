@@ -43,10 +43,7 @@ describe("PeerManager", () => {
   };
 
   const skipIfNoPeers = (result: PeerId[] | null): boolean => {
-    if (!result || result.length === 0) {
-      return true;
-    }
-    return false;
+    return !result || result.length === 0;
   };
 
   beforeEach(() => {
@@ -152,20 +149,27 @@ describe("PeerManager", () => {
   });
 
   it("should dispatch connect and disconnect events", () => {
-    const connectSpy = sinon.spy();
-    const disconnectSpy = sinon.spy();
+    const filterConnectSpy = sinon.spy();
+    const storeConnectSpy = sinon.spy();
+    const filterDisconnectSpy = sinon.spy();
     peerManager.events.addEventListener(
-      PeerManagerEventNames.Connect,
-      connectSpy
+      PeerManagerEventNames.FilterConnect,
+      filterConnectSpy
     );
     peerManager.events.addEventListener(
-      PeerManagerEventNames.Disconnect,
-      disconnectSpy
+      PeerManagerEventNames.StoreConnect,
+      storeConnectSpy
+    );
+    peerManager.events.addEventListener(
+      PeerManagerEventNames.FilterDisconnect,
+      filterDisconnectSpy
     );
     peerManager["dispatchFilterPeerConnect"](peers[0].id);
+    peerManager["dispatchStorePeerConnect"](peers[0].id);
     peerManager["dispatchFilterPeerDisconnect"](peers[0].id);
-    expect(connectSpy.calledOnce).to.be.true;
-    expect(disconnectSpy.calledOnce).to.be.true;
+    expect(filterConnectSpy.calledOnce).to.be.true;
+    expect(storeConnectSpy.calledOnce).to.be.true;
+    expect(filterDisconnectSpy.calledOnce).to.be.true;
   });
 
   it("should handle onConnected and onDisconnected", async () => {

@@ -23,9 +23,15 @@ export class MemLocalHistory {
       this.validateMessage(item);
     }
 
-    // Add new items and ensure uniqueness by messageId using sortedUniqBy
+    // Add new items and sort by timestamp, ensuring uniqueness by messageId
     // The valueOf() method on ContentMessage enables native < operator sorting
-    this.items = _.sortedUniqBy([...this.items, ...items], "messageId");
+    const combinedItems = [...this.items, ...items];
+
+    // Sort by timestamp (using valueOf() which creates timestamp_messageId string)
+    combinedItems.sort((a, b) => a.valueOf().localeCompare(b.valueOf()));
+
+    // Remove duplicates by messageId while maintaining order
+    this.items = _.uniqBy(combinedItems, "messageId");
 
     return this.items.length;
   }
@@ -54,6 +60,17 @@ export class MemLocalHistory {
     thisArg?: any
   ): ContentMessage | undefined {
     return this.items.find(predicate, thisArg);
+  }
+
+  public findIndex(
+    predicate: (
+      value: ContentMessage,
+      index: number,
+      obj: ContentMessage[]
+    ) => unknown,
+    thisArg?: any
+  ): number {
+    return this.items.findIndex(predicate, thisArg);
   }
 
   private validateMessage(message: ContentMessage): void {

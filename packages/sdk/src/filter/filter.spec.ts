@@ -91,7 +91,7 @@ describe("Filter SDK", () => {
     const message = createMockMessage(testContentTopic);
     const peerId = "peer1";
 
-    await (filter as any).onIncomingMessage(testPubsubTopic, message, peerId);
+    await filter["onIncomingMessage"](testPubsubTopic, message, peerId);
 
     expect(subscriptionInvokeStub.calledOnce).to.be.true;
     expect(subscriptionInvokeStub.firstCall.args[0]).to.equal(message);
