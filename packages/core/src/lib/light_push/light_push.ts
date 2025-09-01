@@ -48,7 +48,7 @@ export class LightPushCore {
       if (
         useLegacy ||
         (!peer.protocols.includes(CODECS.v3) &&
-          !peer.protocols.includes(CODECS.v2))
+          peer.protocols.includes(CODECS.v2))
       ) {
         stream = await this.streamManagerV2.getStream(peerId);
         protocol = CODECS.v2;
