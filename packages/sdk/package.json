@@ -72,7 +72,7 @@
     "@waku/interfaces": "0.0.33",
     "@waku/proto": "^0.0.13",
     "@waku/utils": "0.0.26",
-    "libp2p": "2.8.11"
+    "libp2p": "2.10.0"
   },
   "devDependencies": {
     "@libp2p/interface": "2.10.4",
