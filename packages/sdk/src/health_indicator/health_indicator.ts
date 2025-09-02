@@ -1,6 +1,11 @@
 import type { IdentifyResult, PeerId } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec } from "@waku/core";
-import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import {
+  HealthStatus,
+  IWakuEventEmitter,
+  Libp2p,
+  WakuEvent
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import debounce from "lodash.debounce";
 
@@ -148,7 +153,7 @@ export class HealthIndicator implements IHealthIndicator {
     if (this.value !== newValue) {
       this.value = newValue;
       this.events.dispatchEvent(
-        new CustomEvent<HealthStatus>("waku:health", {
+        new CustomEvent<HealthStatus>(WakuEvent.Health, {
           detail: this.value
         })
       );

@@ -5,7 +5,8 @@ import {
   IWakuEventEmitter,
   Libp2p,
   Libp2pEventHandler,
-  Tags
+  Tags,
+  WakuEvent
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -69,7 +70,10 @@ export class ConnectionLimiter implements IConnectionLimiter {
       );
     }
 
-    this.events.addEventListener("waku:connection", this.onWakuConnectionEvent);
+    this.events.addEventListener(
+      WakuEvent.Connection,
+      this.onWakuConnectionEvent
+    );
 
     /**
      * NOTE: Event is not being emitted on closing nor losing a connection.
@@ -90,7 +94,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
   public stop(): void {
     this.events.removeEventListener(
-      "waku:connection",
+      WakuEvent.Connection,
       this.onWakuConnectionEvent
     );
 
@@ -274,11 +278,9 @@ export class ConnectionLimiter implements IConnectionLimiter {
         .map((id) => this.getPeer(id))
     );
 
-    const bootstrapPeers = peers.filter(
+    return peers.filter(
       (peer) => peer && peer.tags.has(Tags.BOOTSTRAP)
     ) as Peer[];
-
-    return bootstrapPeers;
   }
 
   private async getPeer(peerId: PeerId): Promise<Peer | null> {

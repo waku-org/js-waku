@@ -1,3 +1,4 @@
+import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import { DefaultBloomFilter } from "../bloom_filter/bloom.js";
@@ -31,6 +32,27 @@ describe("Message serialization", () => {
     );
 
     expect(decBloomFilter.lookup(messageId)).to.be.true;
+  });
+
+  it("Retrieval Hint", () => {
+    const depMessageId = "dependency";
+    const depRetrievalHint = utf8ToBytes("dependency");
+    const message = new Message(
+      "123",
+      "my-channel",
+      "me",
+      [{ messageId: depMessageId, retrievalHint: depRetrievalHint }],
+      0,
+      undefined,
+      undefined
+    );
+
+    const bytes = message.encode();
+    const decMessage = Message.decode(bytes);
+
+    expect(decMessage.causalHistory).to.deep.equal([
+      { messageId: depMessageId, retrievalHint: depRetrievalHint }
+    ]);
   });
 });
 

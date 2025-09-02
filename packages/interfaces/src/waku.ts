@@ -25,28 +25,33 @@ export type CreateEncoderParams = CreateDecoderParams & {
   ephemeral?: boolean;
 };
 
+export enum WakuEvent {
+  Connection = "waku:connection",
+  Health = "waku:health"
+}
+
 export interface IWakuEvents {
   /**
    * Emitted when a connection is established or lost.
    *
    * @example
    * ```typescript
-   * waku.addEventListener("waku:connection", (event) => {
+   * waku.addEventListener(WakuEvent.Connection, (event) => {
    *   console.log(event.detail); // true if connected, false if disconnected
    * });
    */
-  "waku:connection": CustomEvent<boolean>;
+  [WakuEvent.Connection]: CustomEvent<boolean>;
 
   /**
    * Emitted when the health status changes.
    *
    * @example
    * ```typescript
-   * waku.addEventListener("waku:health", (event) => {
+   * waku.addEventListener(WakuEvent.Health, (event) => {
    *   console.log(event.detail); // 'Unhealthy', 'MinimallyHealthy', or 'SufficientlyHealthy'
    * });
    */
-  "waku:health": CustomEvent<HealthStatus>;
+  [WakuEvent.Health]: CustomEvent<HealthStatus>;
 }
 
 export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
@@ -61,12 +66,12 @@ export interface IWaku {
   /**
    * Emits events related to the Waku node.
    * Those are:
-   * - "waku:connection"
-   * - "waku:health"
+   * - WakuEvent.Connection
+   * - WakuEvent.Health
    *
    * @example
    * ```typescript
-   * waku.events.addEventListener("waku:connection", (event) => {
+   * waku.events.addEventListener(WakuEvent.Connection, (event) => {
    *   console.log(event.detail); // true if connected, false if disconnected
    * });
    * ```
