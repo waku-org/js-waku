@@ -39,43 +39,14 @@ export class LightPushCore {
     peerId: PeerId,
     useLegacy: boolean = false
   ): Promise<LightPushCoreResult> {
-    let stream: Stream | undefined;
-    let protocol: string;
+    const protocol = await this.getProtocol(peerId, useLegacy);
 
-    try {
-      const peer = await this.libp2p.peerStore.get(peerId);
-
-      if (
-        useLegacy ||
-        (!peer.protocols.includes(CODECS.v3) &&
-          peer.protocols.includes(CODECS.v2))
-      ) {
-        stream = await this.streamManagerV2.getStream(peerId);
-        protocol = CODECS.v2;
-      } else if (peer.protocols.includes(CODECS.v3)) {
-        stream = await this.streamManager.getStream(peerId);
-        protocol = CODECS.v3;
-      } else {
-        throw new Error("No supported protocol found");
-      }
-    } catch (error) {
-      log.error("Failed to get stream", error);
+    if (!protocol) {
       return {
         success: null,
         failure: {
           error: LightPushError.GENERIC_FAIL,
           peerId
-        }
-      };
-    }
-
-    if (!stream) {
-      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
-      return {
-        success: null,
-        failure: {
-          error: LightPushError.NO_STREAM_AVAILABLE,
-          peerId: peerId
         }
       };
     }
@@ -90,8 +61,21 @@ export class LightPushCore {
       return {
         success: null,
         failure: {
-          error: prepError ?? LightPushError.GENERIC_FAIL,
+          error: prepError,
           peerId
+        }
+      };
+    }
+
+    const stream = await this.getStream(peerId, protocol);
+
+    if (!stream) {
+      log.error(`Failed to get a stream for remote peer:${peerId.toString()}`);
+      return {
+        success: null,
+        failure: {
+          error: LightPushError.NO_STREAM_AVAILABLE,
+          peerId: peerId
         }
       };
     }
@@ -130,5 +114,43 @@ export class LightPushCore {
     }
 
     return ProtocolHandler.handleResponse(bytes, protocol, peerId);
+  }
+
+  private async getProtocol(
+    peerId: PeerId,
+    useLegacy: boolean
+  ): Promise<string | undefined> {
+    try {
+      const peer = await this.libp2p.peerStore.get(peerId);
+
+      if (
+        useLegacy ||
+        (!peer.protocols.includes(CODECS.v3) &&
+          peer.protocols.includes(CODECS.v2))
+      ) {
+        return CODECS.v2;
+      } else if (peer.protocols.includes(CODECS.v3)) {
+        return CODECS.v3;
+      } else {
+        throw new Error("No supported protocol found");
+      }
+    } catch (error) {
+      log.error("Failed to get protocol", error);
+      return undefined;
+    }
+  }
+
+  private async getStream(
+    peerId: PeerId,
+    protocol: string
+  ): Promise<Stream | undefined> {
+    switch (protocol) {
+      case CODECS.v2:
+        return this.streamManagerV2.getStream(peerId);
+      case CODECS.v3:
+        return this.streamManager.getStream(peerId);
+      default:
+        return undefined;
+    }
   }
 }
