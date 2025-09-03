@@ -41,6 +41,10 @@ export class LightPushCore {
   ): Promise<LightPushCoreResult> {
     const protocol = await this.getProtocol(peerId, useLegacy);
 
+    log.info(
+      `Sending light push request to peer:${peerId.toString()}, protocol:${protocol}`
+    );
+
     if (!protocol) {
       return {
         success: null,

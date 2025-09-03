@@ -140,7 +140,7 @@ async function waitForConnectedPeer(
 
   await new Promise<void>((resolve) => {
     const cb = (async (evt: CustomEvent<IdentifyResult>): Promise<void> => {
-      if (evt.detail?.protocols?.some((c) => codec.includes(c))) {
+      if (evt.detail?.protocols?.includes(codec)) {
         const metadataService = libp2p.services.metadata;
 
         if (!metadataService) {
