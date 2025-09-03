@@ -34,20 +34,26 @@ type GetPeersParams = {
 };
 
 export enum PeerManagerEventNames {
-  Connect = "filter:connect",
-  Disconnect = "filter:disconnect"
+  FilterConnect = "filter:connect",
+  FilterDisconnect = "filter:disconnect",
+  StoreConnect = "store:connect"
 }
 
-interface IPeerManagerEvents {
+export interface IPeerManagerEvents {
   /**
    * Notifies about Filter peer being connected.
    */
-  [PeerManagerEventNames.Connect]: CustomEvent<PeerId>;
+  [PeerManagerEventNames.FilterConnect]: CustomEvent<PeerId>;
 
   /**
    * Notifies about Filter peer being disconnected.
    */
-  [PeerManagerEventNames.Disconnect]: CustomEvent<PeerId>;
+  [PeerManagerEventNames.FilterDisconnect]: CustomEvent<PeerId>;
+
+  /**
+   * Notifies about a Store peer being connected.
+   */
+  [PeerManagerEventNames.StoreConnect]: CustomEvent<PeerId>;
 }
 
 /**
@@ -198,12 +204,13 @@ export class PeerManager {
 
   private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {
     const result = event.detail;
-    const isFilterPeer = result.protocols.includes(
-      this.matchProtocolToCodec(Protocols.Filter)
-    );
-
-    if (isFilterPeer) {
+    if (
+      result.protocols.includes(this.matchProtocolToCodec(Protocols.Filter))
+    ) {
       this.dispatchFilterPeerConnect(result.peerId);
+    }
+    if (result.protocols.includes(this.matchProtocolToCodec(Protocols.Store))) {
+      this.dispatchStorePeerConnect(result.peerId);
     }
   }
 
@@ -261,18 +268,24 @@ export class PeerManager {
     }
 
     const wasUnlocked = new Date(value).getTime();
-    return Date.now() - wasUnlocked >= 10_000 ? true : false;
+    return Date.now() - wasUnlocked >= 10_000;
   }
 
   private dispatchFilterPeerConnect(id: PeerId): void {
     this.events.dispatchEvent(
-      new CustomEvent(PeerManagerEventNames.Connect, { detail: id })
+      new CustomEvent(PeerManagerEventNames.FilterConnect, { detail: id })
+    );
+  }
+
+  private dispatchStorePeerConnect(id: PeerId): void {
+    this.events.dispatchEvent(
+      new CustomEvent(PeerManagerEventNames.StoreConnect, { detail: id })
     );
   }
 
   private dispatchFilterPeerDisconnect(id: PeerId): void {
     this.events.dispatchEvent(
-      new CustomEvent(PeerManagerEventNames.Disconnect, { detail: id })
+      new CustomEvent(PeerManagerEventNames.FilterDisconnect, { detail: id })
     );
   }
 

@@ -13,9 +13,9 @@ import {
   contentTopicToShardIndex,
   ensureValidContentTopic,
   formatPubsubTopic,
-  isAutoSharding,
   pubsubTopicToSingleShardInfo
-} from "./index.js";
+} from "./topics.js";
+import { isAutoSharding } from "./type_guards.js";
 
 export type RoutingInfo = AutoShardingRoutingInfo | StaticShardingRoutingInfo;
 

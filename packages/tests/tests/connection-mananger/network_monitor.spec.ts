@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface";
 import { TypedEventEmitter } from "@libp2p/interface";
 import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { Multiaddr } from "@multiformats/multiaddr";
-import { LightNode, Protocols, Tags } from "@waku/interfaces";
+import { LightNode, Protocols, Tags, WakuEvent } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
@@ -65,10 +65,13 @@ describe("Connection state", function () {
   it("should emit `waku:online` event only when first peer is connected", async function () {
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount++;
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount++;
+          resolve(status);
+        }
+      );
     });
 
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
@@ -87,10 +90,13 @@ describe("Connection state", function () {
 
     let eventCount = 0;
     const connectionStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount++;
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount++;
+          resolve(status);
+        }
+      );
     });
 
     await nwaku1.stop();
@@ -116,18 +122,24 @@ describe("Connection state", function () {
 
     let eventCount1 = 0;
     const connectionStatus1 = new Promise<boolean>((resolve) => {
-      waku1.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount1++;
-        resolve(status);
-      });
+      waku1.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount1++;
+          resolve(status);
+        }
+      );
     });
 
     let eventCount2 = 0;
     const connectionStatus2 = new Promise<boolean>((resolve) => {
-      waku2.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount2++;
-        resolve(status);
-      });
+      waku2.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount2++;
+          resolve(status);
+        }
+      );
     });
 
     await waku1.libp2p.peerStore.merge(waku2.peerId, {
@@ -191,7 +203,7 @@ describe("Connection state", function () {
   });
 });
 
-describe("waku:connection", function () {
+describe(WakuEvent.Connection, function () {
   let navigatorMock: any;
   let originalNavigator: any;
 
@@ -259,10 +271,13 @@ describe("waku:connection", function () {
 
     let eventCount = 0;
     const connectedStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount++;
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount++;
+          resolve(status);
+        }
+      );
     });
 
     waku.libp2p.dispatchEvent(
@@ -279,9 +294,12 @@ describe("waku:connection", function () {
     expect(eventCount).to.be.eq(1);
 
     const disconnectedStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          resolve(status);
+        }
+      );
     });
 
     waku.libp2p.dispatchEvent(
@@ -314,10 +332,13 @@ describe("waku:connection", function () {
 
     let eventCount = 0;
     const connectedStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        eventCount++;
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          eventCount++;
+          resolve(status);
+        }
+      );
     });
 
     waku.libp2p.dispatchEvent(
@@ -331,9 +352,12 @@ describe("waku:connection", function () {
     expect(eventCount).to.be.eq(1);
 
     const disconnectedStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          resolve(status);
+        }
+      );
     });
 
     navigatorMock.onLine = false;
@@ -346,9 +370,12 @@ describe("waku:connection", function () {
     expect(eventCount).to.be.eq(2);
 
     const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
-      waku.events.addEventListener("waku:connection", ({ detail: status }) => {
-        resolve(status);
-      });
+      waku.events.addEventListener(
+        WakuEvent.Connection,
+        ({ detail: status }) => {
+          resolve(status);
+        }
+      );
     });
 
     navigatorMock.onLine = true;
