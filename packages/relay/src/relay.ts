@@ -198,23 +198,6 @@ export class Relay implements IRelay {
 
   public subscribe = this.subscribeWithUnsubscribe;
 
-  private removeObservers<T extends IDecodedMessage>(
-    observers: Array<[PubsubTopic, Observer<T>]>
-  ): void {
-    for (const [pubsubTopic, observer] of observers) {
-      const ctObs = this.observers.get(pubsubTopic);
-      if (!ctObs) continue;
-
-      const contentTopic = observer.decoder.contentTopic;
-      const _obs = ctObs.get(contentTopic);
-      if (!_obs) continue;
-
-      _obs.delete(observer);
-      ctObs.set(contentTopic, _obs);
-      this.observers.set(pubsubTopic, ctObs);
-    }
-  }
-
   public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
@@ -232,6 +215,23 @@ export class Relay implements IRelay {
   public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
     // if no TopicStr is provided - returns empty array
     return this.gossipSub.getMeshPeers(topic || "");
+  }
+
+  private removeObservers<T extends IDecodedMessage>(
+    observers: Array<[PubsubTopic, Observer<T>]>
+  ): void {
+    for (const [pubsubTopic, observer] of observers) {
+      const ctObs = this.observers.get(pubsubTopic);
+      if (!ctObs) continue;
+
+      const contentTopic = observer.decoder.contentTopic;
+      const _obs = ctObs.get(contentTopic);
+      if (!_obs) continue;
+
+      _obs.delete(observer);
+      ctObs.set(contentTopic, _obs);
+      this.observers.set(pubsubTopic, ctObs);
+    }
   }
 
   private subscribeToAllTopics(): void {
