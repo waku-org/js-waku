@@ -53,9 +53,7 @@ This will:
 - `GET /debug/v1/info`: Get debug information from the Waku node
 - `POST /push`: Push a message to the Waku network (legacy)
 - `POST /lightpush/v1/message`: Push a message to the Waku network (Waku REST API compatible)
-- `POST /admin/v1/create-node`: Create a new Waku node (requires networkConfig)
-- `POST /admin/v1/start-node`: Start the Waku node
-- `POST /admin/v1/stop-node`: Stop the Waku node
+- Waku nodes are now automatically created and started when the server launches
 - `POST /admin/v1/peers`: Dial to specified peers (Waku REST API compatible)
 - `GET /filter/v2/messages/:contentTopic`: Subscribe to messages on a specific content topic using Server-Sent Events (Waku REST API compatible)
 - `GET /filter/v1/messages/:contentTopic`: Retrieve stored messages from a content topic (Waku REST API compatible)
@@ -91,29 +89,13 @@ curl -X POST http://localhost:3000/execute \
   -d '{"functionName": "getPeerInfo", "params": []}'
 ```
 
-### Example: Creating a Waku node
+### Node Configuration
 
-```bash
-curl -X POST http://localhost:3000/admin/v1/create-node \
-  -H "Content-Type: application/json" \
-  -d '{
-    "defaultBootstrap": true,
-    "networkConfig": {
-      "clusterId": 1,
-      "shards": [0, 1]
-    }
-  }'
-```
+Waku nodes are automatically created and started when the server launches. Configuration is controlled via environment variables:
 
-### Example: Starting and stopping a Waku node
-
-```bash
-# Start the node
-curl -X POST http://localhost:3000/admin/v1/start-node
-
-# Stop the node
-curl -X POST http://localhost:3000/admin/v1/stop-node
-```
+- `WAKU_CLUSTER_ID`: Set the cluster ID (default: uses bootstrap configuration)
+- `WAKU_SHARD`: Set a specific shard (optional)
+- `WAKU_LIGHTPUSH_NODE`: Specify a preferred lightpush node address (optional)
 
 ### Example: Dialing to specific peers with the Waku REST API compatible endpoint
 

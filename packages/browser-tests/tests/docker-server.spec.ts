@@ -106,29 +106,17 @@ test("container: health endpoint", async () => {
   expect(res.data.status).toBe("Waku simulation server is running");
 });
 
-// New focused test: validate create-node using window.wakuApi.start()
-test("container: create-node only (wakuApi.start)", async () => {
-  const res = await axios.post(`${baseUrl}/admin/v1/create-node`, {
-    defaultBootstrap: true,
-    networkConfig: {
-      clusterId: 1,
-      numShardsInCluster: 8  // Enable auto-sharding
-    }
-  });
+// Test that the node is auto-created and auto-started
+test("container: node auto-started", async () => {
+  // Node should be auto-created and started, so just check peer info
+  const res = await axios.get(`${baseUrl}/waku/v1/peer-info`);
   expect(res.status).toBe(200);
-  expect(res.data.success).toBe(true);
+  expect(res.data.peerId).toBeDefined();
+  expect(res.data.multiaddrs).toBeDefined();
 });
 
-test("container: create/start node and push", async () => {
-  // Create node with required networkConfig
-  await axios.post(`${baseUrl}/admin/v1/create-node`, {
-    defaultBootstrap: true,
-    networkConfig: {
-      clusterId: 1,
-      numShardsInCluster: 8  // Enable auto-sharding
-    }
-  });
-  await axios.post(`${baseUrl}/admin/v1/start-node`);
+test("container: node ready and push", async () => {
+  // Node is auto-created and started with environment variables
 
   // Wait for Lightpush peers with longer timeout for real network connections
   console.log("⏳ Waiting for Lightpush peers to connect...");
@@ -268,18 +256,8 @@ test("cross-network message delivery: SDK light node receives server lightpush",
     checkForMessage();
   });
 
-  // Create and start server node
-  console.log("🔧 Creating server node...");
-  await axios.post(`${baseUrl}/admin/v1/create-node`, {
-    defaultBootstrap: true,
-    networkConfig: {
-      clusterId: 1,
-      numShardsInCluster: 8
-    }
-  });
-
-  await axios.post(`${baseUrl}/admin/v1/start-node`);
-  console.log("✅ Server node created and started");
+  // Server node is auto-created and started
+  console.log("✅ Server node auto-configured and ready");
 
   // CRITICAL: Wait for server node to find peers BEFORE attempting to send
   console.log("⏳ Waiting for server to connect to Lightpush peers...");

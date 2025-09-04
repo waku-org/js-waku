@@ -6,9 +6,6 @@ const router = Router();
 
 // CORS preflight handlers
 const corsEndpoints = [
-  "/waku/v1/create-node",
-  "/waku/v1/start-node",
-  "/waku/v1/stop-node",
   "/waku/v1/wait-for-peers",
   "/waku/v1/dial-peers",
   "/waku/v1/peer-info",
@@ -25,33 +22,7 @@ corsEndpoints.forEach(endpoint => {
   });
 });
 
-// Node lifecycle endpoints
-router.post("/waku/v1/create-node", createEndpointHandler({
-  methodName: "createWakuNode",
-  validateInput: validators.requireNetworkConfig,
-  transformResult: (result) => ({
-    success: result?.success || false,
-    message: result?.success ? "Waku node created successfully" : "Failed to create Waku node"
-  })
-}));
-
-router.post("/waku/v1/start-node", createEndpointHandler({
-  methodName: "startNode",
-  validateInput: validators.noInput,
-  transformResult: (result) => ({
-    success: result?.success || false,
-    message: result?.success ? "Waku node started successfully" : "Failed to start Waku node"
-  })
-}));
-
-router.post("/waku/v1/stop-node", createEndpointHandler({
-  methodName: "stopNode",
-  validateInput: validators.noInput,
-  transformResult: (result) => ({
-    success: result?.success || false,
-    message: result?.success ? "Waku node stopped successfully" : "Failed to stop Waku node"
-  })
-}));
+// Node lifecycle is now handled automatically on server start
 
 // Messaging endpoints
 

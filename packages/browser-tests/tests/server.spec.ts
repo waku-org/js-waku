@@ -84,24 +84,10 @@ test.describe("Server Tests", () => {
     expect(jsRes.data).toContain("WakuHeadless");
   });
 
-  test("create and start Waku node", async () => {
+  test("Waku node auto-started", async () => {
     try {
-      // Create a Waku node
-      const createRes = await axios.post(`${baseUrl}/admin/v1/create-node`, {
-        defaultBootstrap: true,
-        networkConfig: {
-          clusterId: 1
-        }
-      });
-      expect(createRes.status).toBe(200);
-      expect(createRes.data.success).toBe(true);
-
-      // Start the node
-      const startRes = await axios.post(`${baseUrl}/admin/v1/start-node`);
-      expect(startRes.status).toBe(200);
-      expect(startRes.data.success).toBe(true);
-
-      // Now the peer info endpoint should work
+      // Node should be auto-created and started on server initialization
+      // Check that the peer info endpoint works
       const infoRes = await axios.get(`${baseUrl}/waku/v1/peer-info`);
       expect(infoRes.status).toBe(200);
       expect(infoRes.data.peerId).toBeDefined();

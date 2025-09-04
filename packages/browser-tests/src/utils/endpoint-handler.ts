@@ -148,14 +148,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
  * Common validation functions
  */
 export const validators = {
-  requireNetworkConfig: (body: any) => {
-    if (!body.networkConfig || body.networkConfig.clusterId === undefined) {
-      throw new Error("networkConfig.clusterId is required");
-    }
-    return body;
-  },
-
-
   requireLightpushV3: (body: any): LightpushV3Request => {
     if (!body.pubsubTopic || typeof body.pubsubTopic !== "string") {
       throw new Error("pubsubTopic is required and must be a string");

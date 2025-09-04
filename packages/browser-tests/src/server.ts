@@ -4,7 +4,6 @@ import * as path from "path";
 import cors from "cors";
 import express, { Request, Response } from "express";
 
-import adminRouter from "./routes/admin.js";
 import wakuRouter from "./routes/waku.js";
 import { initBrowser, getPage, closeBrowser } from "./browser/index.js";
 
@@ -64,7 +63,6 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
 // Serve static files (excluding index.html which is handled above)
 app.use("/app", express.static(webDir, { index: false }));
 
-app.use(adminRouter);
 app.use(wakuRouter);
 
 
