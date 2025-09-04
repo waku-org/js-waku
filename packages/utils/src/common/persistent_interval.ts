@@ -14,7 +14,7 @@ export class PersistentInterval {
   private static instance: PersistentInterval | null = null;
   private tasks: Map<string, IntervalTask> = new Map();
   private isRunning = false;
-  private checkInterval: NodeJS.Timeout | null = null;
+  private checkInterval: ReturnType<typeof setInterval> | null = null;
   private readonly checkFrequency = 1000;
   private pageHiddenTime: number | null = null;
   private isBrowser: boolean;
