@@ -26,7 +26,7 @@ import * as wc from "./resources/witness_calculator";
 import { WitnessCalculator } from "./resources/witness_calculator";
 import { Zerokit } from "./zerokit.js";
 
-const log = new Logger("waku:rln");
+const log = new Logger("rln");
 
 type WakuRLNEncoderOptions = WakuEncoderOptions & {
   credentials: EncryptedCredentials | DecryptedCredentials;
