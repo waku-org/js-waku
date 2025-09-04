@@ -35,13 +35,10 @@ RUN npm install --no-audit --no-fund
 COPY src ./src
 COPY types ./types
 COPY tsconfig.json ./
-COPY web/index.html ./web/index.html
+COPY web ./web
 
-# Copy pre-built files
-COPY dist ./dist
-
-# If dist doesn't exist, try to build (but skip web build due to monorepo issues)
-RUN if [ ! -f "dist/src/server.js" ]; then npm run build:web || echo "Web build failed, using existing files"; fi
+# Build the application
+RUN npm run build
 
 # Install Playwright browsers (Chromium only) at runtime layer
 RUN npx playwright install --with-deps chromium
