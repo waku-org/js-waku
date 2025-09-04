@@ -14,10 +14,7 @@ test.beforeAll(async () => {
   // Build and run the container once for the suite; reuse across tests
   const generic = new GenericContainer(
     "waku-browser-tests:local",
-  ).withExposedPorts(8080)
-    .withEnvironment({
-      "AUTO_START": "0", // Don't auto-start, let tests control initialization
-    });
+  ).withExposedPorts(8080);
 
   container = await generic.start();
 

@@ -103,37 +103,33 @@ async function startServer(port: number = 3000): Promise<void> {
     const actualPort = await startAPI(port);
     await initBrowser(actualPort);
 
-    // Optional auto-create/start with consistent bootstrap approach
-    const autoStart =
-      process.env.AUTO_START === "1" || process.env.HEADLESS_AUTO_START === "1";
-    if (autoStart) {
-      try {
-        console.log("Auto-starting node with CLI configuration...");
+    // Auto-create/start with consistent bootstrap approach
+    try {
+      console.log("Auto-starting node with CLI configuration...");
 
-        // Build network config from environment variables for auto-start
-        const networkConfig: any = { defaultBootstrap: true };
-        if (process.env.WAKU_CLUSTER_ID) {
-          networkConfig.networkConfig = networkConfig.networkConfig || {};
-          networkConfig.networkConfig.clusterId = parseInt(process.env.WAKU_CLUSTER_ID, 10);
-        }
-        if (process.env.WAKU_SHARD) {
-          networkConfig.networkConfig = networkConfig.networkConfig || {};
-          networkConfig.networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
-        }
-
-        await getPage()?.evaluate((config) => {
-          return window.wakuApi.createWakuNode(config);
-        }, networkConfig);
-        await getPage()?.evaluate(() => window.wakuApi.startNode());
-
-        // Wait for bootstrap peers to connect
-        await getPage()?.evaluate(() =>
-          window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
-        );
-        console.log("Auto-start completed with bootstrap peers");
-      } catch (e) {
-        console.warn("Auto-start failed:", e);
+      // Build network config from environment variables for auto-start
+      const networkConfig: any = { defaultBootstrap: true };
+      if (process.env.WAKU_CLUSTER_ID) {
+        networkConfig.networkConfig = networkConfig.networkConfig || {};
+        networkConfig.networkConfig.clusterId = parseInt(process.env.WAKU_CLUSTER_ID, 10);
       }
+      if (process.env.WAKU_SHARD) {
+        networkConfig.networkConfig = networkConfig.networkConfig || {};
+        networkConfig.networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
+      }
+
+      await getPage()?.evaluate((config) => {
+        return window.wakuApi.createWakuNode(config);
+      }, networkConfig);
+      await getPage()?.evaluate(() => window.wakuApi.startNode());
+
+      // Wait for bootstrap peers to connect
+      await getPage()?.evaluate(() =>
+        window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
+      );
+      console.log("Auto-start completed with bootstrap peers");
+    } catch (e) {
+      console.warn("Auto-start failed:", e);
     }
   } catch (error: any) {
     console.error("Error starting server:", error);
