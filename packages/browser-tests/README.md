@@ -1,178 +1,182 @@
 # Waku Browser Tests
 
-Browser-simulated js-waku node running inside headless Chromium, controlled by an Express server. Useful for long-running simulations and realistic verification in CI/Docker.
+This project provides a system for testing the Waku SDK in a browser environment.
 
 ## Architecture
 
-- **Headless browser**: Playwright launches Chromium and navigates to a static site built from TypeScript and served by the same server, which exposes `window.wakuAPI` and `window.waku`.
-- **Server**: Express app provides REST endpoints and proxies calls into the browser via `page.evaluate(...)`.
-- **Bootstrap module**: Small browser-side module in the static site initializes the API and imports `@waku/sdk`.
-- **Shared code**: `shared/` contains utilities used by tests and for typing.
+The system consists of:
 
-## Prerequisites
+1. **Headless Web App**: A simple web application (in the `@waku/headless-tests` package) that loads the Waku SDK and exposes shared API functions.
+2. **Express Server**: A server that communicates with the headless app using Playwright.
+3. **Shared API**: TypeScript functions shared between the server and web app.
 
-- Node.js 18+
-- Playwright (installed via dev dependency)
-- Docker (optional, for Testcontainers-based tests)
+## Setup
 
-## Install & Build
+1. Install dependencies:
 
 ```bash
+# Install main dependencies
 npm install
+
+# Install headless app dependencies
+cd ../headless-tests
+npm install
+cd ../browser-tests
+```
+
+2. Build the application:
+
+```bash
 npm run build
 ```
 
-The build compiles the TypeScript server to `dist/` and bundles the static site to `dist/web/`.
+This will:
+- Build the headless web app using webpack
+- Compile the TypeScript server code
 
-## Run
+## Running
+
+Start the server with:
 
 ```bash
-# Default configuration (cluster ID 1, auto-sharding)
 npm run start:server
-
-# Use cluster ID 2 (for 10k sim compatibility)
-npm run start:cluster2
-
-# Use specific cluster and shard
-npm run start:cluster2-shard0
-
-# Or with direct CLI arguments
-npm run build && node dist/src/server.js --cluster-id=2 --shard=3
 ```
 
-This starts the API server and a headless browser.
-
-### CLI Arguments
-
-- `--cluster-id=N` - Set the Waku cluster ID (default: 1)
-- `--shard=N` - Set a specific shard for static sharding (0-7, omit for auto-sharding)
-
-## Environment variables
-
-- `PORT`: API server port (default: 8080; Playwright sets this for tests)
-- `WAKU_WS_MULTIADDR`: a single ws/wss multiaddr to dial in tests (overrides peers)
-- `WAKU_WS_MULTIADDRS`: multiple peers as JSON array (e.g. `["/dns4/.../wss/p2p/16U..."]`) or comma-separated string; used when `WAKU_WS_MULTIADDR` is not set
+This will:
+1. Serve the headless app on port 8080
+2. Start a headless browser to load the app
+3. Expose API endpoints to interact with Waku
 
 ## API Endpoints
 
-- `GET /` – health/status
-- `GET /info` – peer info from the node
-- `GET /debug/v1/info` – debug info/protocols
-- `POST /lightpush/v1/message` – push a message (Waku REST-compatible shape)
-- `POST /admin/v1/create-node` – create a node with `networkConfig`
-- `POST /admin/v1/start-node` – start the node
-- `POST /admin/v1/stop-node` – stop the node
-- `POST /admin/v1/peers` – dial to peers
-- `GET /filter/v2/messages/:contentTopic` – SSE subscription to messages
-- `GET /filter/v1/messages/:contentTopic` – retrieve queued messages
-- `POST /execute` – helper to execute functions in the browser context (testing/support)
+- `GET /info`: Get information about the Waku node
+- `GET /debug/v1/info`: Get debug information from the Waku node
+- `POST /push`: Push a message to the Waku network (legacy)
+- `POST /lightpush/v1/message`: Push a message to the Waku network (Waku REST API compatible)
+- `POST /admin/v1/create-node`: Create a new Waku node (requires networkConfig)
+- `POST /admin/v1/start-node`: Start the Waku node
+- `POST /admin/v1/stop-node`: Stop the Waku node
+- `POST /admin/v1/peers`: Dial to specified peers (Waku REST API compatible)
+- `GET /filter/v2/messages/:contentTopic`: Subscribe to messages on a specific content topic using Server-Sent Events (Waku REST API compatible)
+- `GET /filter/v1/messages/:contentTopic`: Retrieve stored messages from a content topic (Waku REST API compatible)
 
-### Examples
+### Example: Pushing a message with the legacy endpoint
 
-Push (REST-compatible):
+```bash
+curl -X POST http://localhost:3000/push \
+  -H "Content-Type: application/json" \
+  -d '{"contentTopic": "/toy-chat/2/huilong/proto", "payload": [1, 2, 3]}'
+```
+
+### Example: Pushing a message with the Waku REST API compatible endpoint
 
 ```bash
 curl -X POST http://localhost:3000/lightpush/v1/message \
   -H "Content-Type: application/json" \
   -d '{
-    "pubsubTopic": "/waku/2/rs/1/0",
+    "pubsubTopic": "/waku/2/rs/0/0",
     "message": {
-      "payload": [1,2,3],
-      "contentTopic": "/test/1/message/proto"
+      "payload": "SGVsbG8sIFdha3Uh",
+      "contentTopic": "/toy-chat/2/huilong/proto",
+      "timestamp": 1712135330213797632
     }
   }'
 ```
 
-Create/Start/Stop:
+### Example: Executing a function
+
+```bash
+curl -X POST http://localhost:3000/execute \
+  -H "Content-Type: application/json" \
+  -d '{"functionName": "getPeerInfo", "params": []}'
+```
+
+### Example: Creating a Waku node
 
 ```bash
 curl -X POST http://localhost:3000/admin/v1/create-node \
   -H "Content-Type: application/json" \
   -d '{
     "defaultBootstrap": true,
-    "networkConfig": { "clusterId": 42, "shards": [0] }
+    "networkConfig": {
+      "clusterId": 1,
+      "shards": [0, 1]
+    }
   }'
+```
 
+### Example: Starting and stopping a Waku node
+
+```bash
+# Start the node
 curl -X POST http://localhost:3000/admin/v1/start-node
+
+# Stop the node
 curl -X POST http://localhost:3000/admin/v1/stop-node
 ```
 
-Dial peers:
+### Example: Dialing to specific peers with the Waku REST API compatible endpoint
 
 ```bash
 curl -X POST http://localhost:3000/admin/v1/peers \
   -H "Content-Type: application/json" \
   -d '{
-    "peerMultiaddrs": ["/dns4/example/tcp/8000/wss/p2p/16U..."]
+    "peerMultiaddrs": [
+      "/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
+    ]
   }'
 ```
 
-SSE subscribe:
+### Example: Dialing to specific peers with the execute endpoint
 
 ```bash
-curl -N "http://localhost:3000/filter/v2/messages/test-topic?clusterId=1&shard=0"
+curl -X POST http://localhost:3000/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "functionName": "dialPeers", 
+    "params": [
+      ["/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
+    ]
+  }'
 ```
 
-Query queued messages:
+### Example: Subscribing to a content topic with the filter endpoint
 
 ```bash
-curl "http://localhost:3000/filter/v1/messages/test-topic?pageSize=10&ascending=true"
+# Open a persistent connection to receive messages as Server-Sent Events
+curl -N http://localhost:3000/filter/v2/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto
+
+# You can also specify clustering options
+curl -N "http://localhost:3000/filter/v2/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto?clusterId=0&shard=0"
 ```
 
-## Testing
+### Example: Retrieving stored messages from a content topic
 
 ```bash
-npm run build
-npm test
+# Get the most recent 20 messages
+curl http://localhost:3000/filter/v1/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto
+
+# Get messages with pagination and time filtering
+curl "http://localhost:3000/filter/v1/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto?pageSize=10&startTime=1712000000000&endTime=1713000000000&ascending=true"
 ```
-
-Playwright will start the server (uses `npm run start:server`). Ensure the build artifacts exist before running tests.
-
-## Docker Usage
-
-Build and run with default configuration:
-
-```bash
-npm run docker:build
-docker run -p 8080:8080 waku-browser-tests:local
-```
-
-Run with cluster ID 2 for 10k sim compatibility:
-
-```bash
-docker run -p 8080:8080 waku-browser-tests:local --cluster-id=2
-```
-
-Run with specific cluster and shard:
-
-```bash
-docker run -p 8080:8080 waku-browser-tests:local --cluster-id=2 --shard=0
-```
-
-Or using environment variables:
-
-```bash
-docker run -p 8080:8080 -e WAKU_CLUSTER_ID=2 -e WAKU_SHARD=0 waku-browser-tests:local
-```
-
-### Dockerized tests
-
-`tests/docker-server.spec.ts` uses Testcontainers. Ensure Docker is running.
-
-Build the image and run only the docker tests locally:
-
-```bash
-npm run docker:build
-npx playwright test tests/docker-server.spec.ts
-```
-
-Notes:
-- The Docker image runs the server with Playwright Chromium and `--no-sandbox` for container compatibility.
-- Testcontainers will map the container port automatically; the tests probe readiness by waiting for `API server running on http://localhost:` in logs.
 
 ## Extending
 
-- To add new REST endpoints: update `src/server.ts` and route handlers.
-- To add new browser-executed functions: prefer updating `src/assets/bootstrap.js` (minimize inline JS in `src/server.ts`).
-- For shared logic usable in tests, add helpers under `shared/`.
+To add new functionality:
 
+1. Add your function to `src/api/shared.ts`
+2. Add your function to the `API` object in `src/api/shared.ts`
+3. Use it via the server endpoints 
+
+### Example: Dialing to specific peers
+
+```bash
+curl -X POST http://localhost:3000/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "functionName": "dialPeers", 
+    "params": [
+      ["/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
+    ]
+  }'
+```

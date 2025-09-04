@@ -40,8 +40,14 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
       networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
     }
 
-    // Inject network configuration as a global variable
-    const configScript = `    <script>window.__WAKU_NETWORK_CONFIG = ${JSON.stringify(networkConfig)};</script>`;
+    // Get lightpushnode configuration from environment
+    const lightpushNode = process.env.WAKU_LIGHTPUSH_NODE || null;
+
+    // Inject network configuration and lightpushnode as global variables
+    const configScript = `    <script>
+      window.__WAKU_NETWORK_CONFIG = ${JSON.stringify(networkConfig)};
+      window.__WAKU_LIGHTPUSH_NODE = ${JSON.stringify(lightpushNode)};
+    </script>`;
     const originalPattern = '    <script type="module" src="./index.js"></script>';
     const replacement = `${configScript}\n    <script type="module" src="./index.js"></script>`;
 
@@ -174,12 +180,13 @@ process.on("SIGTERM", (async () => {
 }) as any);
 
 /**
- * Parse CLI arguments for cluster and shard configuration
+ * Parse CLI arguments for cluster, shard, and lightpushnode configuration
  */
 function parseCliArgs() {
   const args = process.argv.slice(2);
   let clusterId: number | undefined;
   let shard: number | undefined;
+  let lightpushNode: string | undefined;
 
   for (const arg of args) {
     if (arg.startsWith('--cluster-id=')) {
@@ -194,10 +201,16 @@ function parseCliArgs() {
         console.error('Invalid shard value. Must be a number.');
         process.exit(1);
       }
+    } else if (arg.startsWith('--lightpushnode=')) {
+      lightpushNode = arg.split('=')[1];
+      if (!lightpushNode || lightpushNode.trim() === '') {
+        console.error('Invalid lightpushnode value. Must be a valid multiaddr.');
+        process.exit(1);
+      }
     }
   }
 
-  return { clusterId, shard };
+  return { clusterId, shard, lightpushNode };
 }
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
@@ -214,6 +227,10 @@ if (isMainModule) {
   if (cliArgs.shard !== undefined) {
     process.env.WAKU_SHARD = cliArgs.shard.toString();
     console.log(`Using CLI shard: ${cliArgs.shard}`);
+  }
+  if (cliArgs.lightpushNode !== undefined) {
+    process.env.WAKU_LIGHTPUSH_NODE = cliArgs.lightpushNode;
+    console.log(`Using CLI lightpushnode: ${cliArgs.lightpushNode}`);
   }
 
   void startServer(port);

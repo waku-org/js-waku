@@ -38,10 +38,16 @@ function makeSerializable(result: SDKProtocolResult): SerializableSDKProtocolRes
 export class WakuHeadless {
   waku: LightNode | null;
   networkConfig: NetworkConfig;
-  constructor(networkConfig?: Partial<NetworkConfig>) {
+  lightpushNode: string | null;
+  constructor(networkConfig?: Partial<NetworkConfig>, lightpushNode?: string) {
     this.waku = null as unknown as LightNode;
     // Use provided config or defaults
     this.networkConfig = this.buildNetworkConfig(networkConfig);
+    this.lightpushNode = lightpushNode || null;
+    
+    if (this.lightpushNode) {
+      console.log(`Configured preferred lightpush node: ${this.lightpushNode}`);
+    }
   }
 
   /**
@@ -204,11 +210,36 @@ export class WakuHeadless {
       const encoder = this.waku.createEncoder({ contentTopic, pubsubTopic });
 
       console.log("Encoder created with pubsubTopic:", encoder.pubsubTopic);
-      // Send the message using lightpush
-      const result = await lightPush.send(encoder, {
-        payload: processedPayload,
-        timestamp: new Date(),
-      });
+      
+      // Send the message using lightpush with preferred peer if configured
+      let result;
+      if (this.lightpushNode) {
+        console.log(`Attempting to send via preferred lightpush node: ${this.lightpushNode}`);
+        try {
+          // Try to send to preferred peer first
+          const preferredPeerId = await this.getPeerIdFromMultiaddr(this.lightpushNode);
+          if (preferredPeerId) {
+            result = await lightPush.send(encoder, {
+              payload: processedPayload,
+              timestamp: new Date(),
+            }, { peerId: preferredPeerId });
+            console.log("✅ Message sent via preferred lightpush node");
+          } else {
+            throw new Error("Could not extract peer ID from preferred node address");
+          }
+        } catch (error) {
+          console.warn("Failed to send via preferred node, falling back to default:", error);
+          result = await lightPush.send(encoder, {
+            payload: processedPayload,
+            timestamp: new Date(),
+          });
+        }
+      } else {
+        result = await lightPush.send(encoder, {
+          payload: processedPayload,
+          timestamp: new Date(),
+        });
+      }
 
       // Convert to serializable format for cross-context communication
       const serializableResult = makeSerializable(result);
@@ -332,7 +363,78 @@ export class WakuHeadless {
     console.log("Starting Waku node...");
     await this.waku.start();
     console.log("Waku node started, peer ID:", this.waku.libp2p.peerId.toString());
+    
+    // If a preferred lightpush node is configured, dial it
+    if (this.lightpushNode) {
+      await this.dialPreferredLightpushNode();
+    }
+    
     return { success: true };
+  }
+
+  /**
+   * Dial the preferred lightpush node if configured
+   */
+  private async dialPreferredLightpushNode() {
+    if (!this.waku || !this.lightpushNode) {
+      return;
+    }
+
+    try {
+      console.log(`Dialing preferred lightpush node: ${this.lightpushNode}`);
+      await this.waku.dial(this.lightpushNode);
+      console.log(`Successfully connected to preferred lightpush node: ${this.lightpushNode}`);
+    } catch (error) {
+      console.warn(`Failed to dial preferred lightpush node ${this.lightpushNode}:`, error);
+      // Don't throw error - fallback to default peer discovery
+    }
+  }
+
+  /**
+   * Extract peer ID from multiaddr string
+   */
+  private async getPeerIdFromMultiaddr(multiaddr: string): Promise<any | null> {
+    if (!this.waku) {
+      return null;
+    }
+
+    try {
+      // Check if this peer is already connected
+      const connectedPeers = this.waku.libp2p.getPeers();
+      
+      // Try to match by the multiaddr - this is a simplified approach
+      // In a real implementation, you'd parse the multiaddr to extract the peer ID
+      for (const peerId of connectedPeers) {
+        try {
+          const peerInfo = await this.waku.libp2p.peerStore.get(peerId);
+          for (const addr of peerInfo.addresses) {
+            if (addr.multiaddr.toString().includes(multiaddr.split('/')[2])) {
+              console.log(`Found matching peer ID for ${multiaddr}: ${peerId.toString()}`);
+              return peerId;
+            }
+          }
+        } catch (e) {
+          // Continue searching
+        }
+      }
+      
+      // If not found, try to extract from multiaddr format
+      // Format: /ip4/x.x.x.x/tcp/port/p2p/peerID
+      const parts = multiaddr.split('/');
+      const p2pIndex = parts.indexOf('p2p');
+      if (p2pIndex !== -1 && p2pIndex + 1 < parts.length) {
+        const peerIdString = parts[p2pIndex + 1];
+        console.log(`Extracted peer ID from multiaddr: ${peerIdString}`);
+        // For now, return as string - the actual implementation might need proper PeerId construction
+        return peerIdString;
+      }
+      
+      console.warn(`Could not extract peer ID from multiaddr: ${multiaddr}`);
+      return null;
+    } catch (error) {
+      console.warn("Error extracting peer ID from multiaddr:", error);
+      return null;
+    }
   }
 
   async stopNode() {
@@ -519,7 +621,11 @@ export class WakuHeadless {
 
     // Check for global network configuration set by server
     const globalNetworkConfig = (window as any).__WAKU_NETWORK_CONFIG;
-    const instance = new WakuHeadless(globalNetworkConfig);
+    
+    // Check for global lightpushnode configuration set by server
+    const globalLightpushNode = (window as any).__WAKU_LIGHTPUSH_NODE;
+    
+    const instance = new WakuHeadless(globalNetworkConfig, globalLightpushNode);
 
     // @ts-ignore - will add proper typings in global.d.ts
     (window as any).wakuApi = instance;

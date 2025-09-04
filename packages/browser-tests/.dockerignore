@@ -2,5 +2,3 @@ node_modules
 build
 .DS_Store
 *.log
-# Don't ignore dist - we need the built files
-# dist
