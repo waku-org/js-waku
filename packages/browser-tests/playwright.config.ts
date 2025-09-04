@@ -13,9 +13,7 @@ if (!process.env.CI) {
 }
 
 const EXAMPLE_PORT = process.env.EXAMPLE_PORT || "8080";
-// web-chat specific thingy
-const EXAMPLE_TEMPLATE = process.env.EXAMPLE_TEMPLATE || "";
-const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}/${EXAMPLE_TEMPLATE}`;
+const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}`;
 // Ignore docker-based tests on CI
 const TEST_IGNORE = process.env.CI ? ["tests/docker-*.spec.ts"] : [];
 
