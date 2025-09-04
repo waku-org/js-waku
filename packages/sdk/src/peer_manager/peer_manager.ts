@@ -4,7 +4,12 @@ import {
   PeerId,
   TypedEventEmitter
 } from "@libp2p/interface";
-import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
+import {
+  FilterCodecs,
+  LightPushCodec,
+  LightPushCodecV2,
+  StoreCodec
+} from "@waku/core";
 import {
   CONNECTION_LOCKED_TAG,
   type IConnectionManager,
@@ -28,8 +33,10 @@ type PeerManagerParams = {
   connectionManager: IConnectionManager;
 };
 
+type SupportedProtocols = Protocols | "light-push-v2";
+
 type GetPeersParams = {
-  protocol: Protocols;
+  protocol: SupportedProtocols;
   pubsubTopic: string;
 };
 
@@ -119,7 +126,7 @@ export class PeerManager {
 
     for (const peer of connectedPeers) {
       const hasProtocol = this.hasPeerProtocol(peer, params.protocol);
-      const hasSamePubsub = await this.connectionManager.isPeerOnTopic(
+      const hasSamePubsub = await this.isPeerOnPubsub(
         peer.id,
         params.pubsubTopic
       );
@@ -204,12 +211,19 @@ export class PeerManager {
 
   private async onConnected(event: CustomEvent<IdentifyResult>): Promise<void> {
     const result = event.detail;
-    if (
-      result.protocols.includes(this.matchProtocolToCodec(Protocols.Filter))
-    ) {
+
+    const isFilterPeer = result.protocols.includes(
+      this.getProtocolCodecs(Protocols.Filter)
+    );
+    const isStorePeer = result.protocols.includes(
+      this.getProtocolCodecs(Protocols.Store)
+    );
+
+    if (isFilterPeer) {
       this.dispatchFilterPeerConnect(result.peerId);
     }
-    if (result.protocols.includes(this.matchProtocolToCodec(Protocols.Store))) {
+
+    if (isStorePeer) {
       this.dispatchStorePeerConnect(result.peerId);
     }
   }
@@ -230,8 +244,8 @@ export class PeerManager {
     }
   }
 
-  private hasPeerProtocol(peer: Peer, protocol: Protocols): boolean {
-    return peer.protocols.includes(this.matchProtocolToCodec(protocol));
+  private hasPeerProtocol(peer: Peer, protocol: SupportedProtocols): boolean {
+    return peer.protocols.includes(this.getProtocolCodecs(protocol));
   }
 
   private lockPeer(id: PeerId): void {
@@ -289,14 +303,18 @@ export class PeerManager {
     );
   }
 
-  private matchProtocolToCodec(protocol: Protocols): string {
-    const protocolToCodec = {
+  private getProtocolCodecs(protocol: SupportedProtocols): string {
+    if (protocol === Protocols.Relay) {
+      throw new Error("Relay protocol is not supported");
+    }
+
+    const protocolToCodecs = {
       [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
       [Protocols.LightPush]: LightPushCodec,
       [Protocols.Store]: StoreCodec,
-      [Protocols.Relay]: ""
+      "light-push-v2": LightPushCodecV2
     };
 
-    return protocolToCodec[protocol];
+    return protocolToCodecs[protocol];
   }
 }
