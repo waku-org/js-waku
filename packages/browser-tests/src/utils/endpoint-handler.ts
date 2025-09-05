@@ -144,16 +144,7 @@ export const validators = {
     };
   },
 
-  requirePeerAddrs: (body: any) => {
-    if (!Array.isArray(body.peerAddrs)) {
-      throw new Error("peerAddrs must be an array");
-    }
-    return body.peerAddrs;
-  },
-
   noInput: () => null,
-
-  passThrough: (body: any) => body
 };
 
 export const errorHandlers = {

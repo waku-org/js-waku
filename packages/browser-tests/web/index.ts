@@ -369,21 +369,6 @@ export class WakuHeadless {
     return { success: true };
   }
 
-  async dialPeers(peerAddrs: string[]) {
-    if (!this.waku) {
-      throw new Error("Waku node not started");
-    }
-
-    const errors: string[] = [];
-    await Promise.allSettled(
-      (peerAddrs || []).map((addr) =>
-        this.waku!.dial(addr).catch((err: any) =>
-          errors.push(String(err?.message || err)),
-        ),
-      ),
-    );
-    return { total: (peerAddrs || []).length, errors };
-  }
 
   getPeerInfo() {
     if (!this.waku) {
@@ -398,124 +383,9 @@ export class WakuHeadless {
     };
   }
 
-  getDebugInfo() {
-    if (!this.waku) {
-      throw new Error("Waku node not started");
-    }
-
-    return {
-      listenAddresses: this.waku.libp2p
-        .getMultiaddrs()
-        .map((a: any) => a.toString()),
-      peerId: this.waku.libp2p.peerId.toString(),
-      protocols: Array.from(this.waku.libp2p.getProtocols()),
-    };
-  }
-
-  getAvailablePeerProtocols() {
-    if (!this.waku) {
-      throw new Error("Waku node not started");
-    }
-
-    try {
-      const libp2p = this.waku.libp2p;
-      const availableProtocols = new Set<string>();
-
-        const ownProtocols = Array.from(libp2p.getProtocols());
-      ownProtocols.forEach(p => availableProtocols.add(p));
-
-        if (libp2p.components && libp2p.components.connectionManager) {
-        const connections = libp2p.components.connectionManager.getConnections();
-        connections.forEach((conn: any) => {
-          console.log(`Peer ${conn.remotePeer.toString()} connected via ${conn.remoteAddr.toString()}`);
-        });
-      }
-
-      return {
-        ownProtocols: ownProtocols,
-        availableProtocols: Array.from(availableProtocols),
-        totalConnections: libp2p.components?.connectionManager?.getConnections().length || 0
-      };
-    } catch (error) {
-      return {
-        error: `Failed to get peer protocols: ${error instanceof Error ? error.message : String(error)}`,
-        ownProtocols: this.waku.libp2p.getProtocols(),
-        availableProtocols: [],
-        totalConnections: 0
-      };
-    }
-  }
 
 
-  getPeerConnectionStatus() {
-    if (!this.waku) {
-      throw new Error("Waku node not started");
-    }
 
-    try {
-      const libp2p = this.waku.libp2p;
-
-      const basicInfo: any = {
-        peerId: libp2p.peerId.toString(),
-        listenAddresses: libp2p.getMultiaddrs().map((a: any) => a.toString()),
-        protocols: Array.from(libp2p.getProtocols()),
-        networkConfig: this.networkConfig,
-        libp2pKeys: Object.keys(libp2p),
-        libp2pType: typeof libp2p,
-      };
-
-      try {
-        if (libp2p.components && libp2p.components.connectionManager) {
-          const connectionManager = libp2p.components.connectionManager;
-          const connections = connectionManager.getConnections().map((conn: any) => ({
-            remotePeer: conn.remotePeer.toString(),
-            remoteAddr: conn.remoteAddr.toString(),
-            status: conn.status,
-          }));
-          basicInfo.connections = connections;
-        } else {
-          basicInfo.connections = [];
-          basicInfo.connectionError = `No connection manager found in components`;
-        }
-      } catch (connError) {
-        basicInfo.connections = [];
-        basicInfo.connectionError = `Connection manager error: ${connError instanceof Error ? connError.message : String(connError)}`;
-      }
-
-      try {
-        if (typeof libp2p.getPeers === 'function') {
-          const peers = libp2p.getPeers().map((peerId: any) => peerId.toString());
-          basicInfo.peers = peers;
-        } else {
-          basicInfo.peers = [];
-          basicInfo.peerError = `libp2p.getPeers is not a function`;
-        }
-      } catch (peerError) {
-        basicInfo.peers = [];
-        basicInfo.peerError = `Peer error: ${peerError instanceof Error ? peerError.message : String(peerError)}`;
-      }
-
-      try {
-        if (libp2p.status) {
-          basicInfo.isStarted = libp2p.status;
-        } else {
-          basicInfo.isStarted = 'unknown';
-          basicInfo.startError = `No status property found`;
-        }
-      } catch (startError) {
-        basicInfo.isStarted = 'error';
-        basicInfo.startError = `Start check error: ${startError instanceof Error ? startError.message : String(startError)}`;
-      }
-
-      return basicInfo;
-    } catch (error) {
-      return {
-        error: `Failed to get peer status: ${error instanceof Error ? error.message : String(error)}`,
-        peerId: this.waku.libp2p.peerId.toString(),
-        isStarted: 'unknown',
-      };
-    }
-  }
 
 }
 

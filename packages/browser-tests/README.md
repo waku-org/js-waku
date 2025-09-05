@@ -1,178 +1,149 @@
 # Waku Browser Tests
 
-This project provides a system for testing the Waku SDK in a browser environment.
+This package provides a containerized Waku light node simulation server for testing and development. The server runs a headless browser using Playwright and exposes a REST API similar to the nwaku REST API. A Dockerfile is provided to allow programmatic simulation and "deployment" of js-waku nodes in any Waku orchestration environment that uses Docker (e.g. [10ksim](https://github.com/vacp2p/10ksim) ).
 
-## Architecture
+## Quick Start
 
-The system consists of:
-
-1. **Headless Web App**: A simple web application (in the `@waku/headless-tests` package) that loads the Waku SDK and exposes shared API functions.
-2. **Express Server**: A server that communicates with the headless app using Playwright.
-3. **Shared API**: TypeScript functions shared between the server and web app.
-
-## Setup
-
-1. Install dependencies:
+### Build and Run
 
 ```bash
-# Install main dependencies
-npm install
-
-# Install headless app dependencies
-cd ../headless-tests
-npm install
-cd ../browser-tests
-```
-
-2. Build the application:
-
-```bash
+# Build the application
 npm run build
+
+# Start the server (port 8080)
+npm run start:server
+
+# Build and run Docker container
+npm run docker:build
+docker run -p 8080:8080 waku-browser-tests:local
 ```
 
-This will:
-- Build the headless web app using webpack
-- Compile the TypeScript server code
+## Configuration
 
-## Running
+Configure the Waku node using environment variables:
 
-Start the server with:
+### Network Configuration
+- `WAKU_CLUSTER_ID`: Cluster ID (default: 1)
+- `WAKU_SHARD`: Specific shard for static sharding (optional)
+
+### Bootstrap Configuration
+- `WAKU_ENR_BOOTSTRAP`: Enable ENR bootstrap mode with custom bootstrap peers (comma-separated)
+
+### ENR Bootstrap Mode
+
+When `WAKU_ENR_BOOTSTRAP` is set:
+- Disables default bootstrap (`defaultBootstrap: false`)
+- Enables DNS discovery using production ENR trees
+- Enables peer exchange and peer cache
+- Uses the specified ENR for additional bootstrap peers
 
 ```bash
-npm run start:server
+# Example: ENR bootstrap mode
+WAKU_ENR_BOOTSTRAP="enr:-QEnuEBEAyErHEfhiQxAVQoWowGTCuEF9fKZtXSd7H_PymHFhGJA3rGAYDVSHKCyJDGRLBGsloNbS8AZF33IVuefjOO6BIJpZIJ2NIJpcIQS39tkim11bHRpYWRkcnO4lgAvNihub2RlLTAxLmRvLWFtczMud2FrdXYyLnRlc3Quc3RhdHVzaW0ubmV0BgG73gMAODcxbm9kZS0wMS5hYy1jbi1ob25na29uZy1jLndha3V2Mi50ZXN0LnN0YXR1c2ltLm5ldAYBu94DACm9A62t7AQL4Ef5ZYZosRpQTzFVAB8jGjf1TER2wH-0zBOe1-MDBNLeA4lzZWNwMjU2azGhAzfsxbxyCkgCqq8WwYsVWH7YkpMLnU2Bw5xJSimxKav-g3VkcIIjKA" npm run start:server
 ```
-
-This will:
-1. Serve the headless app on port 8080
-2. Start a headless browser to load the app
-3. Expose API endpoints to interact with Waku
 
 ## API Endpoints
 
-- `GET /info`: Get information about the Waku node
-- `GET /debug/v1/info`: Get debug information from the Waku node
-- `POST /push`: Push a message to the Waku network (legacy)
-- `POST /lightpush/v1/message`: Push a message to the Waku network (Waku REST API compatible)
-- Waku nodes are now automatically created and started when the server launches
-- `POST /admin/v1/peers`: Dial to specified peers (Waku REST API compatible)
-- `GET /filter/v2/messages/:contentTopic`: Subscribe to messages on a specific content topic using Server-Sent Events (Waku REST API compatible)
-- `GET /filter/v1/messages/:contentTopic`: Retrieve stored messages from a content topic (Waku REST API compatible)
+The server exposes the following HTTP endpoints:
 
-### Example: Pushing a message with the legacy endpoint
+### Node Management
+- `GET /`: Health check - returns server status
+- `GET /waku/v1/peer-info`: Get node peer information
+- `POST /waku/v1/wait-for-peers`: Wait for peers with specific protocols
 
+### Messaging
+- `POST /lightpush/v3/message`: Send message via lightpush (nwaku v3 API compatible)
+
+### Static Files
+- `GET /app/index.html`: Web application entry point
+- `GET /app/*`: Static web application files
+
+### Examples
+
+#### Send a Message
 ```bash
-curl -X POST http://localhost:3000/push \
-  -H "Content-Type: application/json" \
-  -d '{"contentTopic": "/toy-chat/2/huilong/proto", "payload": [1, 2, 3]}'
-```
-
-### Example: Pushing a message with the Waku REST API compatible endpoint
-
-```bash
-curl -X POST http://localhost:3000/lightpush/v1/message \
+curl -X POST http://localhost:8080/lightpush/v3/message \
   -H "Content-Type: application/json" \
   -d '{
-    "pubsubTopic": "/waku/2/rs/0/0",
+    "pubsubTopic": "/waku/2/rs/1/4",
     "message": {
-      "payload": "SGVsbG8sIFdha3Uh",
-      "contentTopic": "/toy-chat/2/huilong/proto",
-      "timestamp": 1712135330213797632
+      "contentTopic": "/test/1/example/proto",
+      "payload": "SGVsbG8gV2FrdQ==",
+      "version": 1
     }
   }'
 ```
 
-### Example: Executing a function
-
+#### Wait for Peers
 ```bash
-curl -X POST http://localhost:3000/execute \
+curl -X POST http://localhost:8080/waku/v1/wait-for-peers \
   -H "Content-Type: application/json" \
-  -d '{"functionName": "getPeerInfo", "params": []}'
+  -d '{
+    "timeoutMs": 30000,
+    "protocols": ["lightpush", "filter"]
+  }'
 ```
 
-### Node Configuration
+#### Get Peer Info
+```bash
+curl -X GET http://localhost:8080/waku/v1/peer-info
+```
 
-Waku nodes are automatically created and started when the server launches. Configuration is controlled via environment variables:
+## CLI Usage
 
-- `WAKU_CLUSTER_ID`: Set the cluster ID (default: uses bootstrap configuration)
-- `WAKU_SHARD`: Set a specific shard (optional)
-- `WAKU_LIGHTPUSH_NODE`: Specify a preferred lightpush node address (optional)
-- `WAKU_ENR_BOOTSTRAP`: Specify custom ENR bootstrap peers (comma-separated, optional)
-
-### Example: Using ENR Bootstrap Peers
+Run with CLI arguments:
 
 ```bash
-# Via Docker CLI
+# Custom cluster and shard
+npm run start:cluster2-shard0
+
+# Or manually
+node dist/src/server.js --cluster-id=2 --shard=0
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+# Local tests
+npm test
+
+# Docker tests (requires Docker)
+npm run docker:test
+
+# Build and test in Docker
+npm run docker:build
+npm run docker:test
+```
+
+## Docker Usage
+
+The package includes Docker support for containerized testing:
+
+```bash
+# Build image
+docker build -t waku-browser-tests:local .
+
+# Run with ENR bootstrap
 docker run -p 8080:8080 \
-  -e WAKU_ENR_BOOTSTRAP="enr:-MS4QGcHBZAnpu6qNYe_T6TGDCV6c9_3UsXlj5XlXY6QvLCUQKqajqDfs0aKOs7BISJzGxA7TuDzYXap4sP6JYUZ2Y9GAYh2F0dG5ldHOIAAAAAAAAAACEZXRoMpEJZZp0BAAAAf__________gmlkgnY0gmlwhC5QoeSJc2VjcDI1NmsxoQOZxJYJVoTfwo7zEom6U6L5Txrs3H9X0P_XBJbbOZBczYYN1ZHCCdl8" \
-  waku-browser-tests
+  -e WAKU_ENR_BOOTSTRAP="enr:-QEnuE..." \
+  -e WAKU_CLUSTER_ID="1" \
+  waku-browser-tests:local
 
-# Via Docker entrypoint argument
-docker run -p 8080:8080 waku-browser-tests \
-  --enr-bootstrap="enr:-MS4QGcHBZAnpu6qNYe_T6TGDCV6c9_3UsXlj5XlXY6QvLCUQKqajqDfs0aKOs7BISJzGxA7TuDzYXap4sP6JYUZ2Y9GAYh2F0dG5ldHOIAAAAAAAAAACEZXRoMpEJZZp0BAAAAf__________gmlkgnY0gmlwhC5QoeSJc2VjcDI1NmsxoQOZxJYJVoTfwo7zEom6U6L5Txrs3H9X0P_XBJbbOZBczYYN1ZHCCdl8"
+# Run with specific configuration
+docker run -p 8080:8080 \
+  -e WAKU_CLUSTER_ID="2" \
+  -e WAKU_SHARD="0" \
+  waku-browser-tests:local
 ```
 
-### Example: Dialing to specific peers with the Waku REST API compatible endpoint
+## Development
 
-```bash
-curl -X POST http://localhost:3000/admin/v1/peers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "peerMultiaddrs": [
-      "/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
-    ]
-  }'
-```
+The server automatically:
+- Creates a Waku light node on startup
+- Configures network settings from environment variables
+- Enables appropriate protocols (lightpush, filter)
+- Handles peer discovery and connection management
 
-### Example: Dialing to specific peers with the execute endpoint
-
-```bash
-curl -X POST http://localhost:3000/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "functionName": "dialPeers", 
-    "params": [
-      ["/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
-    ]
-  }'
-```
-
-### Example: Subscribing to a content topic with the filter endpoint
-
-```bash
-# Open a persistent connection to receive messages as Server-Sent Events
-curl -N http://localhost:3000/filter/v2/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto
-
-# You can also specify clustering options
-curl -N "http://localhost:3000/filter/v2/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto?clusterId=0&shard=0"
-```
-
-### Example: Retrieving stored messages from a content topic
-
-```bash
-# Get the most recent 20 messages
-curl http://localhost:3000/filter/v1/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto
-
-# Get messages with pagination and time filtering
-curl "http://localhost:3000/filter/v1/messages/%2Ftoy-chat%2F2%2Fhuilong%2Fproto?pageSize=10&startTime=1712000000000&endTime=1713000000000&ascending=true"
-```
-
-## Extending
-
-To add new functionality:
-
-1. Add your function to `src/api/shared.ts`
-2. Add your function to the `API` object in `src/api/shared.ts`
-3. Use it via the server endpoints 
-
-### Example: Dialing to specific peers
-
-```bash
-curl -X POST http://localhost:3000/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "functionName": "dialPeers", 
-    "params": [
-      ["/ip4/127.0.0.1/tcp/8000/p2p/16Uiu2HAm4v8KuHUH6Cwz3upPeQbkyxQJsFGPdt7kHtkN8F79QiE6"]
-    ]
-  }'
-```
+All endpoints are CORS-enabled for cross-origin requests.

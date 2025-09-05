@@ -181,7 +181,6 @@ function parseCliArgs() {
   const args = process.argv.slice(2);
   let clusterId: number | undefined;
   let shard: number | undefined;
-  let lightpushNode: string | undefined;
 
   for (const arg of args) {
     if (arg.startsWith('--cluster-id=')) {
@@ -196,16 +195,10 @@ function parseCliArgs() {
         console.error('Invalid shard value. Must be a number.');
         process.exit(1);
       }
-    } else if (arg.startsWith('--lightpushnode=')) {
-      lightpushNode = arg.split('=')[1];
-      if (!lightpushNode || lightpushNode.trim() === '') {
-        console.error('Invalid lightpushnode value. Must be a valid multiaddr.');
-        process.exit(1);
-      }
     }
   }
 
-  return { clusterId, shard, lightpushNode };
+  return { clusterId, shard };
 }
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
@@ -221,10 +214,6 @@ if (isMainModule) {
   if (cliArgs.shard !== undefined) {
     process.env.WAKU_SHARD = cliArgs.shard.toString();
     console.log(`Using CLI shard: ${cliArgs.shard}`);
-  }
-  if (cliArgs.lightpushNode !== undefined) {
-    process.env.WAKU_LIGHTPUSH_NODE = cliArgs.lightpushNode;
-    console.log(`Using CLI lightpushnode: ${cliArgs.lightpushNode}`);
   }
 
   void startServer(port);
