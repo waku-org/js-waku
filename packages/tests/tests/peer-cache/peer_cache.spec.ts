@@ -85,7 +85,7 @@ describe("Peer Cache Discovery", function () {
     waku = await createLightNode({
       networkConfig: DefaultTestNetworkConfig,
       discovery: {
-        peerExchange: true,
+        peerExchange: false,
         peerCache: true
       },
       peerCache: mockCache
@@ -116,7 +116,7 @@ describe("Peer Cache Discovery", function () {
       networkConfig: DefaultTestNetworkConfig,
       bootstrapPeers: [(await nwaku2.getMultiaddrWithId()).toString()],
       discovery: {
-        peerExchange: true,
+        peerExchange: false,
         peerCache: true
       },
       peerCache: mockCache

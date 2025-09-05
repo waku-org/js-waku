@@ -323,7 +323,7 @@ export class ServiceNode {
     this.checkProcess();
 
     return this.restCall<boolean>(
-      "/relay/v1/subscriptions",
+      "/relay/v1/auto/subscriptions",
       "POST",
       contentTopics,
       async (response) => response.status === 200
