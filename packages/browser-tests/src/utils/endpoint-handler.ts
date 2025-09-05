@@ -118,8 +118,8 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
 
 export const validators = {
   requireLightpushV3: (body: any): LightpushV3Request => {
-    if (!body.pubsubTopic || typeof body.pubsubTopic !== "string") {
-      throw new Error("pubsubTopic is required and must be a string");
+    if (body.pubsubTopic !== undefined && typeof body.pubsubTopic !== "string") {
+      throw new Error("pubsubTopic must be a string if provided");
     }
     if (!body.message || typeof body.message !== "object") {
       throw new Error("message is required and must be an object");
@@ -135,7 +135,7 @@ export const validators = {
     }
 
     return {
-      pubsubTopic: body.pubsubTopic,
+      pubsubTopic: body.pubsubTopic || "",
       message: {
         payload: body.message.payload,
         contentTopic: body.message.contentTopic,

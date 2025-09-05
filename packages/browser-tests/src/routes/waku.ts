@@ -42,12 +42,13 @@ router.get("/waku/v1/peer-info", createEndpointHandler({
 
 router.post("/lightpush/v3/message", createEndpointHandler({
   methodName: "pushMessageV3",
-  validateInput: (body: any): [string, string] => {
+  validateInput: (body: any): [string, string, string] => {
     const validatedRequest = validators.requireLightpushV3(body);
 
     return [
       validatedRequest.message.contentTopic,
       validatedRequest.message.payload,
+      validatedRequest.pubsubTopic,
     ];
   },
   handleError: errorHandlers.lightpushError,

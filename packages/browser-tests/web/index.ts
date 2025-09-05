@@ -64,7 +64,6 @@ export class WakuHeadless {
   enrBootstrap: string | null;
   constructor(networkConfig?: Partial<NetworkConfig>, lightpushNode?: string, enrBootstrap?: string) {
     this.waku = null as unknown as LightNode;
-    // Use provided config or defaults
     this.networkConfig = this.buildNetworkConfig(networkConfig);
     this.lightpushNode = lightpushNode || null;
     this.enrBootstrap = enrBootstrap || null;
@@ -107,7 +106,6 @@ export class WakuHeadless {
   private buildNetworkConfig(providedConfig?: Partial<NetworkConfig>): NetworkConfig {
     const clusterId = providedConfig?.clusterId ?? 1;
     
-    // Check if static sharding is requested through environment or config
     const staticShards = (providedConfig as any)?.shards;
     if (staticShards && Array.isArray(staticShards) && staticShards.length > 0) {
       return {
@@ -116,7 +114,6 @@ export class WakuHeadless {
       } as NetworkConfig;
     }
     
-    // Default to auto-sharding
     const numShardsInCluster = (providedConfig as any)?.numShardsInCluster ?? 8;
     return {
       clusterId,
@@ -133,11 +130,8 @@ export class WakuHeadless {
       throw new Error("Waku node not started");
     }
 
-    // Ensure payload is properly formatted
     let processedPayload: Uint8Array;
-    // If it's a string, try to decode as base64 first
     try {
-      // Use TextDecoder to decode base64 (browser-compatible)
       const binaryString = atob(payload);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -145,7 +139,6 @@ export class WakuHeadless {
       }
       processedPayload = bytes;
     } catch (e) {
-      // If base64 decoding fails, encode as UTF-8
       processedPayload = new TextEncoder().encode(payload);
     }
 
@@ -163,7 +156,6 @@ export class WakuHeadless {
         timestamp: new Date(),
       });
 
-      // Convert to serializable format for cross-context communication
       const serializableResult = makeSerializable(result);
 
       return serializableResult;
@@ -178,16 +170,14 @@ export class WakuHeadless {
   async pushMessageV3(
     contentTopic: string,
     payload: string,
+    pubsubTopic: string,
   ): Promise<SerializableSDKProtocolResult> {
     if (!this.waku) {
       throw new Error("Waku node not started");
     }
 
-    // Ensure payload is properly formatted
     let processedPayload: Uint8Array;
-    // If it's a string, try to decode as base64 first
     try {
-      // Use TextDecoder to decode base64 (browser-compatible)
       const binaryString = atob(payload);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -195,7 +185,6 @@ export class WakuHeadless {
       }
       processedPayload = bytes;
     } catch (e) {
-      // If base64 decoding fails, encode as UTF-8
       processedPayload = new TextEncoder().encode(payload);
     }
 
@@ -207,6 +196,10 @@ export class WakuHeadless {
 
 
       const encoder = this.waku.createEncoder({ contentTopic });
+      
+      if (pubsubTopic && pubsubTopic !== encoder.pubsubTopic) {
+        console.warn(`Explicit pubsubTopic ${pubsubTopic} provided, but auto-sharding determined ${encoder.pubsubTopic}. Using auto-sharding.`);
+      }
 
       let result;
       if (this.lightpushNode) {
@@ -234,7 +227,6 @@ export class WakuHeadless {
         });
       }
 
-      // Convert to serializable format for cross-context communication
       const serializableResult = makeSerializable(result);
 
       return serializableResult;
@@ -260,7 +252,6 @@ export class WakuHeadless {
       await this.waku.waitForPeers(protocols, timeoutMs);
       const elapsed = Date.now() - startTime;
 
-      // Log connected peers
       const peers = this.waku.libp2p.getPeers();
 
       return {

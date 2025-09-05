@@ -145,8 +145,6 @@ async function startServer(port: number = 3000): Promise<void> {
     }
   } catch (error: any) {
     console.error("Error starting server:", error);
-    // Don't exit the process, just log the error
-    // The server might still be partially functional
   }
 }
 
