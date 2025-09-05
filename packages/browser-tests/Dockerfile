@@ -31,7 +31,7 @@ WORKDIR /app
 COPY package.json package-lock.json* .npmrc* ./
 RUN npm install --no-audit --no-fund
 
-# Copy sources (excluding web directory to avoid TypeScript issues)
+# Copy sources
 COPY src ./src
 COPY types ./types
 COPY tsconfig.json ./
@@ -44,8 +44,7 @@ RUN npm run build
 RUN npx playwright install --with-deps chromium
 
 ENV PORT=8080 \
-    NODE_ENV=production \
-    CHROMIUM_NO_SANDBOX=1
+    NODE_ENV=production
 
 EXPOSE 8080
 

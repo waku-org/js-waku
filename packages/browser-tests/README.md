@@ -57,7 +57,7 @@ The server exposes the following HTTP endpoints:
 - `POST /waku/v1/wait-for-peers`: Wait for peers with specific protocols
 
 ### Messaging
-- `POST /lightpush/v3/message`: Send message via lightpush (nwaku v3 API compatible)
+- `POST /lightpush/v3/message`: Send message via lightpush
 
 ### Static Files
 - `GET /app/index.html`: Web application entry point
@@ -65,7 +65,21 @@ The server exposes the following HTTP endpoints:
 
 ### Examples
 
-#### Send a Message
+#### Send a Message (Auto-sharding)
+```bash
+curl -X POST http://localhost:8080/lightpush/v3/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pubsubTopic": "",
+    "message": {
+      "contentTopic": "/test/1/example/proto",
+      "payload": "SGVsbG8gV2FrdQ==",
+      "version": 1
+    }
+  }'
+```
+
+#### Send a Message (Explicit pubsub topic)
 ```bash
 curl -X POST http://localhost:8080/lightpush/v3/message \
   -H "Content-Type: application/json" \

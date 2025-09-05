@@ -5,10 +5,7 @@ let page: Page | undefined;
 
 export async function initBrowser(appPort: number): Promise<void> {
   try {
-    const launchArgs =
-      process.env.CHROMIUM_NO_SANDBOX === "1"
-        ? ["--no-sandbox", "--disable-setuid-sandbox"]
-        : [];
+    const launchArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
 
     browser = await chromium.launch({
       headless: true,
