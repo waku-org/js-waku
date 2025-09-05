@@ -25,12 +25,9 @@ export interface LightpushV3Response {
 
 export interface EndpointConfig<TInput = any, TOutput = any> {
   methodName: string;
-  // eslint-disable-next-line no-unused-vars
-  validateInput?: (requestBody: any) => TInput;
-  // eslint-disable-next-line no-unused-vars
-  transformResult?: (sdkResult: any) => TOutput;
-  // eslint-disable-next-line no-unused-vars
-  handleError?: (caughtError: Error) => { code: number; message: string };
+  validateInput?: (_requestBody: any) => TInput;
+  transformResult?: (_sdkResult: any) => TOutput;
+  handleError?: (_caughtError: Error) => { code: number; message: string };
   preCheck?: () => Promise<void> | void;
   logResult?: boolean;
 }
