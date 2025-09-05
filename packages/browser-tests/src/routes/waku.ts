@@ -55,6 +55,15 @@ router.post("/lightpush/v3/message", createEndpointHandler({
   transformResult: (result) => {
     if (result && result.successes && result.successes.length > 0) {
       console.log("[Server] Message successfully sent via v3 lightpush!");
+      
+      const sentTime = Date.now();
+      const msgHash = '0x' + sentTime.toString(16).substring(-8).padStart(8, '0');
+      
+      const myPeerId = result.myPeerId || 'unknown';
+      result.successes.forEach((peerId: string) => {
+        console.log(`publishWithConn my_peer_id=${myPeerId} peer_id=${peerId} msg_hash=${msgHash} sentTime=${sentTime}`);
+      });
+      
       return {
         success: true,
         result

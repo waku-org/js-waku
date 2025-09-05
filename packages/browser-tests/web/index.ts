@@ -14,6 +14,7 @@ export interface SerializableSDKProtocolResult {
     error: string;
     peerId?: string;
   }>;
+  myPeerId?: string;
   [key: string]: any;
 }
 
@@ -228,6 +229,9 @@ export class WakuHeadless {
       }
 
       const serializableResult = makeSerializable(result);
+      
+      // Add node's peer ID for monitoring logs
+      serializableResult.myPeerId = this.waku.libp2p.peerId.toString();
 
       return serializableResult;
     } catch (error) {
