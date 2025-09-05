@@ -45,10 +45,7 @@ RUN npx playwright install --with-deps chromium
 
 ENV PORT=8080 \
     NODE_ENV=production \
-    CHROMIUM_NO_SANDBOX=1 \
-    WAKU_CLUSTER_ID=${WAKU_CLUSTER_ID:-} \
-    WAKU_SHARD=${WAKU_SHARD:-} \
-    WAKU_ENR_BOOTSTRAP=${WAKU_ENR_BOOTSTRAP:-}
+    CHROMIUM_NO_SANDBOX=1
 
 EXPOSE 8080
 

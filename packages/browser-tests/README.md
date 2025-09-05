@@ -24,10 +24,15 @@ Configure the Waku node using environment variables:
 
 ### Network Configuration
 - `WAKU_CLUSTER_ID`: Cluster ID (default: 1)
-- `WAKU_SHARD`: Specific shard for static sharding (optional)
+- `WAKU_SHARD`: Specific shard number - enables static sharding mode (optional)
+
+**Sharding Behavior:**
+- **Auto-sharding** (default): Uses `numShardsInCluster: 8` across cluster 1
+- **Static sharding**: When `WAKU_SHARD` is set, uses only that specific shard
 
 ### Bootstrap Configuration
 - `WAKU_ENR_BOOTSTRAP`: Enable ENR bootstrap mode with custom bootstrap peers (comma-separated)
+- `WAKU_LIGHTPUSH_NODE`: Preferred lightpush node multiaddr (Docker only)
 
 ### ENR Bootstrap Mode
 
