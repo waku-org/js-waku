@@ -96,6 +96,20 @@ Waku nodes are automatically created and started when the server launches. Confi
 - `WAKU_CLUSTER_ID`: Set the cluster ID (default: uses bootstrap configuration)
 - `WAKU_SHARD`: Set a specific shard (optional)
 - `WAKU_LIGHTPUSH_NODE`: Specify a preferred lightpush node address (optional)
+- `WAKU_ENR_BOOTSTRAP`: Specify custom ENR bootstrap peers (comma-separated, optional)
+
+### Example: Using ENR Bootstrap Peers
+
+```bash
+# Via Docker CLI
+docker run -p 8080:8080 \
+  -e WAKU_ENR_BOOTSTRAP="enr:-MS4QGcHBZAnpu6qNYe_T6TGDCV6c9_3UsXlj5XlXY6QvLCUQKqajqDfs0aKOs7BISJzGxA7TuDzYXap4sP6JYUZ2Y9GAYh2F0dG5ldHOIAAAAAAAAAACEZXRoMpEJZZp0BAAAAf__________gmlkgnY0gmlwhC5QoeSJc2VjcDI1NmsxoQOZxJYJVoTfwo7zEom6U6L5Txrs3H9X0P_XBJbbOZBczYYN1ZHCCdl8" \
+  waku-browser-tests
+
+# Via Docker entrypoint argument
+docker run -p 8080:8080 waku-browser-tests \
+  --enr-bootstrap="enr:-MS4QGcHBZAnpu6qNYe_T6TGDCV6c9_3UsXlj5XlXY6QvLCUQKqajqDfs0aKOs7BISJzGxA7TuDzYXap4sP6JYUZ2Y9GAYh2F0dG5ldHOIAAAAAAAAAACEZXRoMpEJZZp0BAAAAf__________gmlkgnY0gmlwhC5QoeSJc2VjcDI1NmsxoQOZxJYJVoTfwo7zEom6U6L5Txrs3H9X0P_XBJbbOZBczYYN1ZHCCdl8"
+```
 
 ### Example: Dialing to specific peers with the Waku REST API compatible endpoint
 

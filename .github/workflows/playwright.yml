@@ -30,8 +30,8 @@ jobs:
 
     - uses: ./.github/actions/npm
 
-    - name: Build browser test environment
-      run: npm run build --workspace=@waku/browser-tests
+    - name: Build entire monorepo
+      run: npm run build
 
     - name: Run Playwright tests
       run: npm run test --workspace=@waku/browser-tests

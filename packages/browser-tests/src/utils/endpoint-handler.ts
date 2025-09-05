@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
 import { getPage } from "../browser/index.js";
 
-/**
- * nwaku v3 Lightpush API interfaces
- */
 export interface LightpushV3Request {
   pubsubTopic: string;
   message: {
-    payload: string;      // base64 encoded
+    payload: string;
     contentTopic: string;
     version: number;
   };
@@ -17,7 +14,7 @@ export interface LightpushV3Response {
   success?: boolean;
   error?: string;
   result?: {
-    successes: string[]; // PeerIds converted to strings
+    successes: string[];
     failures: Array<{
       error: string;
       peerId?: string;
@@ -26,40 +23,23 @@ export interface LightpushV3Response {
   };
 }
 
-/**
- * Configuration for an endpoint handler
- */
-/* eslint-disable no-unused-vars */
 export interface EndpointConfig<TInput = any, TOutput = any> {
-  /** Name of the method to call on window.wakuApi */
   methodName: string;
-  /** Optional input validation function - takes request body, returns validated input */
+  // eslint-disable-next-line no-unused-vars
   validateInput?: (requestBody: any) => TInput;
-  /** Optional transformation of the result before sending response - takes SDK result, returns transformed result */
+  // eslint-disable-next-line no-unused-vars
   transformResult?: (sdkResult: any) => TOutput;
-  /** Optional custom error handling - takes error, returns response with code and message */
+  // eslint-disable-next-line no-unused-vars
   handleError?: (caughtError: Error) => { code: number; message: string };
-  /** Optional pre-execution checks */
   preCheck?: () => Promise<void> | void;
-  /** Whether to log the result (default: true) */
   logResult?: boolean;
 }
-/* eslint-enable no-unused-vars */
 
-/**
- * Generic endpoint handler that follows the pattern:
- * 1. Parse and validate inputs
- * 2. Call function on WakuHeadless instance via page.evaluate
- * 3. Wait for result
- * 4. Log result
- * 5. Return result or error
- */
 export function createEndpointHandler<TInput = any, TOutput = any>(
   config: EndpointConfig<TInput, TOutput>
 ) {
   return async (req: Request, res: Response) => {
     try {
-      // Step 1: Parse and validate inputs
       let input: TInput;
       try {
         input = config.validateInput ? config.validateInput(req.body) : req.body;
@@ -70,7 +50,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         });
       }
 
-      // Pre-execution checks
       if (config.preCheck) {
         try {
           await config.preCheck();
@@ -82,7 +61,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         }
       }
 
-      // Check browser availability
       const page = getPage();
       if (!page) {
         return res.status(503).json({
@@ -91,7 +69,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         });
       }
 
-      // Step 2 & 3: Call function and wait for result
       const result = await page.evaluate(
         ({ methodName, params }) => {
           if (!window.wakuApi) {
@@ -103,7 +80,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
             throw new Error(`window.wakuApi.${methodName} is not a function`);
           }
 
-          // Handle both parameterized and parameterless methods
           if (params === null || params === undefined) {
             return method.call(window.wakuApi);
           } else if (Array.isArray(params)) {
@@ -115,17 +91,14 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         { methodName: config.methodName, params: input }
       );
 
-      // Step 4: Log result
       if (config.logResult !== false) {
         console.log(`[${config.methodName}] Result:`, JSON.stringify(result, null, 2));
       }
 
-      // Step 5: Transform and return result
       const finalResult = config.transformResult ? config.transformResult(result) : result;
 
       res.status(200).json(finalResult);
     } catch (error: any) {
-      // Custom error handling
       if (config.handleError) {
         const errorResponse = config.handleError(error);
         return res.status(errorResponse.code).json({
@@ -134,7 +107,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         });
       }
 
-      // Default error handling
       console.error(`[${config.methodName}] Error:`, error);
       res.status(500).json({
         code: 500,
@@ -144,9 +116,6 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
   };
 }
 
-/**
- * Common validation functions
- */
 export const validators = {
   requireLightpushV3: (body: any): LightpushV3Request => {
     if (!body.pubsubTopic || typeof body.pubsubTopic !== "string") {
@@ -187,9 +156,6 @@ export const validators = {
   passThrough: (body: any) => body
 };
 
-/**
- * Common error handlers
- */
 export const errorHandlers = {
   lightpushError: (error: Error) => {
     if (error.message.includes("size exceeds") || error.message.includes("stream reset")) {

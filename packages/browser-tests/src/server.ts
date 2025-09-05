@@ -17,20 +17,14 @@ import * as fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distRoot = path.resolve(__dirname, ".."); // server.js is in dist/src/, so go up to dist/
+const distRoot = path.resolve(__dirname, "..");
 const webDir = path.resolve(distRoot, "web");
-console.log("Setting up static file serving:");
-console.log("__dirname:", __dirname);
-console.log("webDir:", webDir);
-console.log("Files in webDir:", fs.readdirSync(webDir));
 
-// Serve dynamic index.html with network configuration BEFORE static files
 app.get("/app/index.html", (_req: Request, res: Response) => {
   try {
     const htmlPath = path.join(webDir, "index.html");
     let htmlContent = fs.readFileSync(htmlPath, "utf8");
 
-    // Build network configuration from environment variables
     const networkConfig: any = {};
     if (process.env.WAKU_CLUSTER_ID) {
       networkConfig.clusterId = parseInt(process.env.WAKU_CLUSTER_ID, 10);
@@ -39,13 +33,13 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
       networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
     }
 
-    // Get lightpushnode configuration from environment
     const lightpushNode = process.env.WAKU_LIGHTPUSH_NODE || null;
+    const enrBootstrap = process.env.WAKU_ENR_BOOTSTRAP || null;
 
-    // Inject network configuration and lightpushnode as global variables
     const configScript = `    <script>
       window.__WAKU_NETWORK_CONFIG = ${JSON.stringify(networkConfig)};
       window.__WAKU_LIGHTPUSH_NODE = ${JSON.stringify(lightpushNode)};
+      window.__WAKU_ENR_BOOTSTRAP = ${JSON.stringify(enrBootstrap)};
     </script>`;
     const originalPattern = '    <script type="module" src="./index.js"></script>';
     const replacement = `${configScript}\n    <script type="module" src="./index.js"></script>`;
@@ -60,7 +54,6 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
   }
 });
 
-// Serve static files (excluding index.html which is handled above)
 app.use("/app", express.static(webDir, { index: false }));
 
 app.use(wakuRouter);
@@ -101,31 +94,52 @@ async function startServer(port: number = 3000): Promise<void> {
     const actualPort = await startAPI(port);
     await initBrowser(actualPort);
 
-    // Auto-create/start with consistent bootstrap approach
     try {
       console.log("Auto-starting node with CLI configuration...");
 
-      // Build network config from environment variables for auto-start
-      const networkConfig: any = { defaultBootstrap: true };
-      if (process.env.WAKU_CLUSTER_ID) {
-        networkConfig.networkConfig = networkConfig.networkConfig || {};
-        networkConfig.networkConfig.clusterId = parseInt(process.env.WAKU_CLUSTER_ID, 10);
+      const hasEnrBootstrap = Boolean(process.env.WAKU_ENR_BOOTSTRAP);
+      const networkConfig: any = { 
+        defaultBootstrap: !hasEnrBootstrap,
+        ...(hasEnrBootstrap && {
+          discovery: {
+            dns: true,
+            peerExchange: true,
+            peerCache: true
+          }
+        })
+      };
+      
+      console.log(`Bootstrap mode: ${hasEnrBootstrap ? 'ENR-only (defaultBootstrap=false)' : 'default bootstrap (defaultBootstrap=true)'}`);
+      if (hasEnrBootstrap) {
+        console.log(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
+        console.log(`Discovery options: peerExchange=true, dns=false, peerCache=true`);
       }
+
+      networkConfig.networkConfig = {
+        clusterId: process.env.WAKU_CLUSTER_ID ? parseInt(process.env.WAKU_CLUSTER_ID, 10) : 1,
+        numShardsInCluster: 8
+      };
+      
       if (process.env.WAKU_SHARD) {
-        networkConfig.networkConfig = networkConfig.networkConfig || {};
         networkConfig.networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
+        delete networkConfig.networkConfig.numShardsInCluster;
       }
+      
+      console.log(`Network config: ${JSON.stringify(networkConfig.networkConfig)}`);
 
       await getPage()?.evaluate((config) => {
         return window.wakuApi.createWakuNode(config);
       }, networkConfig);
       await getPage()?.evaluate(() => window.wakuApi.startNode());
 
-      // Wait for bootstrap peers to connect
-      await getPage()?.evaluate(() =>
-        window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
-      );
-      console.log("Auto-start completed with bootstrap peers");
+      try {
+        await getPage()?.evaluate(() =>
+          window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
+        );
+        console.log("Auto-start completed with bootstrap peers");
+      } catch (peerError) {
+        console.log("Auto-start completed (no bootstrap peers found - may be expected with test ENRs)");
+      }
     } catch (e) {
       console.warn("Auto-start failed:", e);
     }
@@ -136,10 +150,8 @@ async function startServer(port: number = 3000): Promise<void> {
   }
 }
 
-// Process error handlers to prevent container from crashing
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
-  // Don't exit in production/container environment
   if (process.env.NODE_ENV !== "production") {
     process.exit(1);
   }
@@ -147,35 +159,24 @@ process.on("uncaughtException", (error) => {
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // Don't exit in production/container environment
   if (process.env.NODE_ENV !== "production") {
     process.exit(1);
   }
 });
 
-process.on("SIGINT", (async () => {
-  console.log("Received SIGINT, gracefully shutting down...");
+const gracefulShutdown = async (signal: string) => {
+  console.log(`Received ${signal}, gracefully shutting down...`);
   try {
     await closeBrowser();
   } catch (e) {
     console.warn("Error closing browser:", e);
   }
   process.exit(0);
-}) as any);
+};
 
-process.on("SIGTERM", (async () => {
-  console.log("Received SIGTERM, gracefully shutting down...");
-  try {
-    await closeBrowser();
-  } catch (e) {
-    console.warn("Error closing browser:", e);
-  }
-  process.exit(0);
-}) as any);
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-/**
- * Parse CLI arguments for cluster, shard, and lightpushnode configuration
- */
 function parseCliArgs() {
   const args = process.argv.slice(2);
   let clusterId: number | undefined;
@@ -213,7 +214,6 @@ if (isMainModule) {
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const cliArgs = parseCliArgs();
 
-  // Set global configuration for CLI arguments
   if (cliArgs.clusterId !== undefined) {
     process.env.WAKU_CLUSTER_ID = cliArgs.clusterId.toString();
     console.log(`Using CLI cluster ID: ${cliArgs.clusterId}`);

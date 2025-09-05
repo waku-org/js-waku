@@ -32,6 +32,11 @@ while [[ $# -gt 0 ]]; do
       echo "Setting WAKU_LIGHTPUSH_NODE=${WAKU_LIGHTPUSH_NODE}"
       shift
       ;;
+    --enr-bootstrap=*)
+      export WAKU_ENR_BOOTSTRAP="${1#*=}"
+      echo "Setting WAKU_ENR_BOOTSTRAP=${WAKU_ENR_BOOTSTRAP}"
+      shift
+      ;;
     *)
       # Unknown argument, keep it for the main command
       break
