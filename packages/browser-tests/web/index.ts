@@ -15,7 +15,7 @@ export interface SerializableSDKProtocolResult {
     error: string;
     peerId?: string;
   }>;
-  [key: string]: any;
+  myPeerId?: string;
 }
 
 function makeSerializable(result: any): SerializableSDKProtocolResult {
