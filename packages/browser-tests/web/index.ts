@@ -7,6 +7,7 @@ import {
 } from "@waku/sdk";
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
+import type { ITestBrowser } from "../types/global.js";
 
 export interface SerializableSDKProtocolResult {
   successes: string[];
@@ -62,7 +63,7 @@ export class WakuHeadless {
   networkConfig: NetworkConfig;
   lightpushNode: string | null;
   enrBootstrap: string | null;
-  constructor(networkConfig?: Partial<NetworkConfig>, lightpushNode?: string, enrBootstrap?: string) {
+  constructor(networkConfig?: Partial<NetworkConfig>, lightpushNode?: string | null, enrBootstrap?: string | null) {
     this.waku = null as unknown as LightNode;
     this.networkConfig = this.buildNetworkConfig(networkConfig);
     this.lightpushNode = lightpushNode || null;
@@ -384,23 +385,25 @@ export class WakuHeadless {
   try {
     console.log("Initializing WakuHeadless...");
 
-    const globalNetworkConfig = (window as any).__WAKU_NETWORK_CONFIG;
-    const globalLightpushNode = (window as any).__WAKU_LIGHTPUSH_NODE;
-    const globalEnrBootstrap = (window as any).__WAKU_ENR_BOOTSTRAP;
+    const testWindow = window as ITestBrowser;
+    const globalNetworkConfig = testWindow.__WAKU_NETWORK_CONFIG;
+    const globalLightpushNode = testWindow.__WAKU_LIGHTPUSH_NODE;
+    const globalEnrBootstrap = testWindow.__WAKU_ENR_BOOTSTRAP;
     
     const instance = new WakuHeadless(globalNetworkConfig, globalLightpushNode, globalEnrBootstrap);
 
-    (window as any).wakuApi = instance;
+    testWindow.wakuApi = instance;
     console.log(
       "WakuHeadless initialized successfully:",
-      !!(window as any).wakuApi,
+      !!testWindow.wakuApi,
     );
   } catch (error) {
     console.error("Error initializing WakuHeadless:", error);
-    (window as any).wakuApi = {
+    const testWindow = window as ITestBrowser;
+    testWindow.wakuApi = {
       start: () =>
         Promise.reject(new Error("WakuHeadless failed to initialize")),
       error: error,
-    };
+    } as any;
   }
 })();

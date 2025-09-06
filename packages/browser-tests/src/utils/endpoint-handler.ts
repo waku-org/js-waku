@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getPage } from "../browser/index.js";
+import type { ITestBrowser } from "../../types/global.js";
 
 export interface LightpushV3Request {
   pubsubTopic: string;
@@ -68,21 +69,22 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
 
       const result = await page.evaluate(
         ({ methodName, params }) => {
-          if (!window.wakuApi) {
+          const testWindow = window as ITestBrowser;
+          if (!testWindow.wakuApi) {
             throw new Error("window.wakuApi is not available");
           }
 
-          const method = (window.wakuApi as any)[methodName];
+          const method = (testWindow.wakuApi as any)[methodName];
           if (typeof method !== "function") {
             throw new Error(`window.wakuApi.${methodName} is not a function`);
           }
 
           if (params === null || params === undefined) {
-            return method.call(window.wakuApi);
+            return method.call(testWindow.wakuApi);
           } else if (Array.isArray(params)) {
-            return method.apply(window.wakuApi, params);
+            return method.apply(testWindow.wakuApi, params);
           } else {
-            return method.call(window.wakuApi, params);
+            return method.call(testWindow.wakuApi, params);
           }
         },
         { methodName: config.methodName, params: input }
