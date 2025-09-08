@@ -269,7 +269,6 @@ export class ReliableChannel<
 
     const autoStart = options?.autoStart ?? true;
     if (autoStart) {
-      await node.start();
       await messageChannel.start();
     }
 
