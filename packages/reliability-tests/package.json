@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@libp2p/interface-compliance-tests": "6.4.12",
-    "@libp2p/peer-id": "5.1.7",
+    "@libp2p/peer-id": "5.1.9",
     "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
