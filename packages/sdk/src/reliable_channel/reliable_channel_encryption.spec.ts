@@ -7,8 +7,8 @@ import {
   type IMessage,
   ISendOptions,
   IWaku,
-  ProtocolError,
-  SDKProtocolResult
+  LightPushError,
+  LightPushSDKResult
 } from "@waku/interfaces";
 import { generatePrivateKey, getPublicKey } from "@waku/message-encryption";
 import {
@@ -124,9 +124,9 @@ describe("Reliable Channel: Encryption", () => {
       _encoder: IEncoder,
       _message: IMessage,
       _sendOptions?: ISendOptions
-    ): Promise<SDKProtocolResult> => {
+    ): Promise<LightPushSDKResult> => {
       return Promise.resolve({
-        failures: [{ error: ProtocolError.EMPTY_PAYLOAD }],
+        failures: [{ error: LightPushError.EMPTY_PAYLOAD }],
         successes: []
       });
     };

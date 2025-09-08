@@ -8,9 +8,9 @@ import {
   type IMessage,
   ISendOptions,
   type IWaku,
-  ProtocolError,
-  QueryRequestParams,
-  SDKProtocolResult
+  LightPushError,
+  LightPushSDKResult,
+  QueryRequestParams
 } from "@waku/interfaces";
 import {
   type ChannelId,
@@ -40,13 +40,11 @@ const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
 const DEFAULT_SWEEP_IN_BUF_INTERVAL_MS = 5 * 1000;
 
-const IRRECOVERABLE_SENDING_ERRORS: ProtocolError[] = [
-  ProtocolError.ENCODE_FAILED,
-  ProtocolError.EMPTY_PAYLOAD,
-  ProtocolError.SIZE_TOO_BIG,
-  ProtocolError.RLN_PROOF_GENERATION,
-  ProtocolError.TOPIC_DECODER_MISMATCH,
-  ProtocolError.INVALID_DECODER_TOPICS
+const IRRECOVERABLE_SENDING_ERRORS: LightPushError[] = [
+  LightPushError.ENCODE_FAILED,
+  LightPushError.EMPTY_PAYLOAD,
+  LightPushError.SIZE_TOO_BIG,
+  LightPushError.RLN_PROOF_GENERATION
 ];
 
 export type ReliableChannelOptions = MessageChannelOptions & {
@@ -122,7 +120,7 @@ export class ReliableChannel<
     encoder: IEncoder,
     message: IMessage,
     sendOptions?: ISendOptions
-  ) => Promise<SDKProtocolResult>;
+  ) => Promise<LightPushSDKResult>;
 
   private readonly _subscribe: (
     decoders: IDecoder<T> | IDecoder<T>[],

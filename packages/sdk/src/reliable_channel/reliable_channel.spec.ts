@@ -9,9 +9,9 @@ import {
   type IMessage,
   ISendOptions,
   IWaku,
-  ProtocolError,
-  QueryRequestParams,
-  SDKProtocolResult
+  LightPushError,
+  LightPushSDKResult,
+  QueryRequestParams
 } from "@waku/interfaces";
 import { ContentMessage } from "@waku/sds";
 import {
@@ -117,9 +117,9 @@ describe("Reliable Channel", () => {
       _encoder: IEncoder,
       _message: IMessage,
       _sendOptions?: ISendOptions
-    ): Promise<SDKProtocolResult> => {
+    ): Promise<LightPushSDKResult> => {
       return Promise.resolve({
-        failures: [{ error: ProtocolError.EMPTY_PAYLOAD }],
+        failures: [{ error: LightPushError.EMPTY_PAYLOAD }],
         successes: []
       });
     };

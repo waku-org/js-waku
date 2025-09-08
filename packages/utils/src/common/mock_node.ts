@@ -17,8 +17,8 @@ import {
   IWaku,
   IWakuEventEmitter,
   Libp2p,
-  Protocols,
-  SDKProtocolResult
+  LightPushSDKResult,
+  Protocols
 } from "@waku/interfaces";
 
 export type MockWakuEvents = {
@@ -45,14 +45,16 @@ export class MockWakuNode implements IWaku {
     this.subscriptions = [];
 
     this.lightPush = {
-      multicodec: "",
+      multicodec: [],
       send: this._send.bind(this),
       start(): void {},
       stop(): void {}
     };
 
     this.filter = {
-      multicodec: "",
+      start: async () => {},
+      stop: async () => {},
+      multicodec: "filter",
       subscribe: this._subscribe.bind(this),
       unsubscribe<T extends IDecodedMessage>(
         _decoders: IDecoder<T> | IDecoder<T>[]
@@ -73,7 +75,7 @@ export class MockWakuNode implements IWaku {
     encoder: IEncoder,
     message: IMessage,
     _sendOptions?: ISendOptions
-  ): Promise<SDKProtocolResult> {
+  ): Promise<LightPushSDKResult> {
     for (const { decoders, callback } of this.subscriptions) {
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) throw "Issue in mock encoding message";
