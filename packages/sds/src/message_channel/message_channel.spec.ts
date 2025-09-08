@@ -292,14 +292,12 @@ describe("MessageChannel", function () {
       );
 
       const localHistory = channelA["localHistory"] as ILocalHistory;
-      console.log("localHistory", localHistory);
       expect(localHistory.length).to.equal(1);
 
       // Find the message in local history
       const historyEntry = localHistory.find(
         (entry) => entry.messageId === messageId
       );
-      console.log("history entry", historyEntry);
       expect(historyEntry).to.exist;
       expect(historyEntry!.retrievalHint).to.deep.equal(testRetrievalHint);
     });
@@ -596,7 +594,6 @@ describe("MessageChannel", function () {
     it("First message is missed, then re-sent, should be ack'd", async () => {
       const firstMessage = utf8ToBytes("first message");
       const firstMessageId = MessageChannel.getMessageId(firstMessage);
-      console.log("firstMessage", firstMessageId);
       let messageAcked = false;
       channelA.addEventListener(
         MessageChannelEvent.OutMessageAcknowledged,

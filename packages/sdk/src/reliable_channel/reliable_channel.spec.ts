@@ -453,7 +453,6 @@ describe("Reliable Channel", () => {
         _decoders: IDecoder<IDecodedMessage>[],
         _options?: Partial<QueryRequestParams>
       ) {
-        console.log("stub called");
         yield [Promise.resolve(mockMessage as IDecodedMessage)];
       });
 

@@ -202,7 +202,6 @@ describe("Reliable Channel: Sync", () => {
     // Let's reset the tracker
     syncMessageSent = false;
     // We should be faster than Bob as Bob will "randomly" wait a full second
-    console.log("Alice sends message, should reset Bob");
     reliableChannelAlice.send(utf8ToBytes("some message"));
 
     // Bob should be waiting a full second before sending a message after Alice
