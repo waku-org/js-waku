@@ -391,7 +391,7 @@ test.describe("Waku Server API", () => {
     });
     await axios.post(`${API_URL}/admin/v1/start-node`);
 
-    // Connect to peers
+    // FilterConnect to peers
     const dialResponse = await axios.post(`${API_URL}/admin/v1/peers`, {
       peerMultiaddrs: PEERS
     });
@@ -425,7 +425,7 @@ test.describe("Waku Server API", () => {
     });
     await axios.post(`${API_URL}/admin/v1/start-node`);
 
-    // Connect to peers
+    // FilterConnect to peers
     await axios.post(`${API_URL}/admin/v1/peers`, {
       peerMultiaddrs: PEERS
     });
@@ -465,7 +465,7 @@ test.describe("Waku Server API", () => {
     });
     await axios.post(`${API_URL}/admin/v1/start-node`);
 
-    // Connect to peers
+    // FilterConnect to peers
     await axios.post(`${API_URL}/admin/v1/peers`, {
       peerMultiaddrs: PEERS
     });
@@ -577,7 +577,7 @@ test.describe("Waku Server API", () => {
       // Start node
       await axios.post(`${API_URL}/admin/v1/start-node`);
 
-      // Connect to peers
+      // FilterConnect to peers
       await axios.post(`${API_URL}/admin/v1/peers`, {
         peerMultiaddrs: PEERS
       });

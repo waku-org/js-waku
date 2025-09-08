@@ -1,5 +1,5 @@
 import type { IEncoder, IMessage } from "./message.js";
-import { SDKProtocolResult } from "./protocols.js";
+import { LightPushSDKResult } from "./protocols.js";
 
 export type ISendOptions = {
   /**
@@ -13,6 +13,13 @@ export type ISendOptions = {
    * @default 3
    */
   maxAttempts?: number;
+
+  /**
+   * Use v2 of the light push protocol.
+   * This parameter will be removed in the future.
+   * @default false
+   */
+  useLegacy?: boolean;
 };
 
 export interface ISender {
@@ -20,5 +27,5 @@ export interface ISender {
     encoder: IEncoder,
     message: IMessage,
     sendOptions?: ISendOptions
-  ) => Promise<SDKProtocolResult>;
+  ) => Promise<LightPushSDKResult>;
 }

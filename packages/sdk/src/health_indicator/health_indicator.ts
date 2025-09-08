@@ -1,7 +1,13 @@
 import type { IdentifyResult, PeerId } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec } from "@waku/core";
-import { HealthStatus, IWakuEventEmitter, Libp2p } from "@waku/interfaces";
+import {
+  HealthStatus,
+  IWakuEventEmitter,
+  Libp2p,
+  WakuEvent
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
+import debounce from "lodash.debounce";
 
 type PeerEvent<T> = (_event: CustomEvent<T>) => void;
 
@@ -19,10 +25,13 @@ interface IHealthIndicator {
 }
 
 export class HealthIndicator implements IHealthIndicator {
+  private isStarted = false;
+
   private readonly libp2p: Libp2p;
   private readonly events: IWakuEventEmitter;
 
   private value: HealthStatus = HealthStatus.Unhealthy;
+  private readonly debouncedAssessHealth: ReturnType<typeof debounce>;
 
   public constructor(params: HealthIndicatorParams) {
     this.libp2p = params.libp2p;
@@ -30,9 +39,18 @@ export class HealthIndicator implements IHealthIndicator {
 
     this.onPeerIdentify = this.onPeerIdentify.bind(this);
     this.onPeerDisconnected = this.onPeerDisconnected.bind(this);
+
+    this.debouncedAssessHealth = debounce(() => {
+      void this.assessHealth();
+    }, 100);
   }
 
   public start(): void {
+    if (this.isStarted) {
+      return;
+    }
+
+    this.isStarted = true;
     log.info("start: adding listeners to libp2p");
 
     this.libp2p.addEventListener(
@@ -44,10 +62,15 @@ export class HealthIndicator implements IHealthIndicator {
       this.onPeerDisconnected as PeerEvent<PeerId>
     );
 
-    void this.assessHealth();
+    this.debouncedAssessHealth();
   }
 
   public stop(): void {
+    if (!this.isStarted) {
+      return;
+    }
+
+    this.isStarted = false;
     log.info("stop: removing listeners to libp2p");
 
     this.libp2p.removeEventListener(
@@ -58,22 +81,22 @@ export class HealthIndicator implements IHealthIndicator {
       "peer:disconnect",
       this.onPeerDisconnected as PeerEvent<PeerId>
     );
+
+    this.debouncedAssessHealth.cancel();
   }
 
   public toValue(): HealthStatus {
     return this.value;
   }
 
-  private async onPeerDisconnected(_event: CustomEvent<PeerId>): Promise<void> {
+  private onPeerDisconnected(_event: CustomEvent<PeerId>): void {
     log.info(`onPeerDisconnected: received libp2p event`);
-    await this.assessHealth();
+    this.debouncedAssessHealth();
   }
 
-  private async onPeerIdentify(
-    _event: CustomEvent<IdentifyResult>
-  ): Promise<void> {
+  private onPeerIdentify(_event: CustomEvent<IdentifyResult>): void {
     log.info(`onPeerIdentify: received libp2p event`);
-    await this.assessHealth();
+    this.debouncedAssessHealth();
   }
 
   private async assessHealth(): Promise<void> {
@@ -130,7 +153,7 @@ export class HealthIndicator implements IHealthIndicator {
     if (this.value !== newValue) {
       this.value = newValue;
       this.events.dispatchEvent(
-        new CustomEvent<HealthStatus>("waku:health", {
+        new CustomEvent<HealthStatus>(WakuEvent.Health, {
           detail: this.value
         })
       );

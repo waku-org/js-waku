@@ -36,7 +36,7 @@ describe("StreamManager", () => {
 
       streamManager["libp2p"]["connectionManager"]["getConnections"] = (
         _peerId: PeerId | undefined
-      ) => [con1];
+      ) => [con1] as any;
 
       const stream = await streamManager.getStream(mockPeer.id);
 
@@ -48,7 +48,7 @@ describe("StreamManager", () => {
   it("should return undefined if no connection provided", async () => {
     streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _peerId: PeerId | undefined
-    ) => [];
+    ) => [] as any;
 
     const stream = await streamManager.getStream(mockPeer.id);
     expect(stream).to.be.undefined;
@@ -72,7 +72,7 @@ describe("StreamManager", () => {
       con1.newStream = newStreamSpy;
       streamManager["libp2p"]["connectionManager"]["getConnections"] = (
         _peerId: PeerId | undefined
-      ) => [con1];
+      ) => [con1] as any;
 
       const stream = await streamManager.getStream(mockPeer.id);
 
@@ -99,7 +99,7 @@ describe("StreamManager", () => {
     con1.newStream = newStreamSpy;
     streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _peerId: PeerId | undefined
-    ) => [con1];
+    ) => [con1] as any;
 
     const [stream1, stream2] = await Promise.all([
       streamManager.getStream(mockPeer.id),
@@ -150,7 +150,7 @@ describe("StreamManager", () => {
     ];
     streamManager["libp2p"]["connectionManager"]["getConnections"] = (
       _id: PeerId | undefined
-    ) => [con1];
+    ) => [con1] as any;
 
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;

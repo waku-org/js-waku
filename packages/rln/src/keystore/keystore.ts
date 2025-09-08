@@ -27,7 +27,7 @@ import type {
   Sha256Hash
 } from "./types.js";
 
-const log = new Logger("waku:rln:keystore");
+const log = new Logger("rln:keystore");
 
 type NwakuCredential = {
   crypto: {
@@ -104,6 +104,76 @@ export class Keystore {
     return new Keystore(obj);
   }
 
+  public async addCredential(
+    options: KeystoreEntity,
+    password: Password
+  ): Promise<MembershipHash> {
+    const membershipHash: MembershipHash = Keystore.computeMembershipHash(
+      options.membership
+    );
+
+    if (this.data.credentials[membershipHash]) {
+      throw Error("Credential already exists in the store.");
+    }
+
+    // these are not important
+    const stubPath = "/stub/path";
+    const stubPubkey = new Uint8Array([0]);
+    const secret = Keystore.fromIdentityToBytes(options);
+
+    const eipKeystore = await createEipKeystore(
+      password,
+      secret,
+      stubPubkey,
+      stubPath
+    );
+    // need to re-compute checksum since nwaku uses keccak256 instead of sha256
+    const checksum = await keccak256Checksum(password, eipKeystore);
+    const nwakuCredential = Keystore.fromEipToCredential(eipKeystore, checksum);
+
+    this.data.credentials[membershipHash] = nwakuCredential;
+    return membershipHash;
+  }
+
+  public async readCredential(
+    membershipHash: MembershipHash,
+    password: Password
+  ): Promise<undefined | KeystoreEntity> {
+    const nwakuCredential = this.data.credentials[membershipHash];
+
+    if (!nwakuCredential) {
+      return;
+    }
+
+    const eipKeystore = Keystore.fromCredentialToEip(nwakuCredential);
+    const bytes = await decryptEipKeystore(password, eipKeystore);
+
+    return Keystore.fromBytesToIdentity(bytes);
+  }
+
+  public removeCredential(hash: MembershipHash): void {
+    if (!this.data.credentials[hash]) {
+      return;
+    }
+
+    delete this.data.credentials[hash];
+  }
+
+  public toString(): string {
+    return JSON.stringify(this.data);
+  }
+
+  public toObject(): NwakuKeystore {
+    return this.data;
+  }
+
+  /**
+   * Read array of hashes of current credentials
+   * @returns array of keys of credentials in current Keystore
+   */
+  public keys(): string[] {
+    return Object.keys(this.toObject().credentials || {});
+  }
   private static isValidNwakuStore(obj: unknown): boolean {
     if (!isKeystoreValid(obj)) {
       return false;
@@ -295,76 +365,5 @@ export class Keystore {
         userMessageLimit: options.membership.rateLimit
       })
     );
-  }
-
-  public async addCredential(
-    options: KeystoreEntity,
-    password: Password
-  ): Promise<MembershipHash> {
-    const membershipHash: MembershipHash = Keystore.computeMembershipHash(
-      options.membership
-    );
-
-    if (this.data.credentials[membershipHash]) {
-      throw Error("Credential already exists in the store.");
-    }
-
-    // these are not important
-    const stubPath = "/stub/path";
-    const stubPubkey = new Uint8Array([0]);
-    const secret = Keystore.fromIdentityToBytes(options);
-
-    const eipKeystore = await createEipKeystore(
-      password,
-      secret,
-      stubPubkey,
-      stubPath
-    );
-    // need to re-compute checksum since nwaku uses keccak256 instead of sha256
-    const checksum = await keccak256Checksum(password, eipKeystore);
-    const nwakuCredential = Keystore.fromEipToCredential(eipKeystore, checksum);
-
-    this.data.credentials[membershipHash] = nwakuCredential;
-    return membershipHash;
-  }
-
-  public async readCredential(
-    membershipHash: MembershipHash,
-    password: Password
-  ): Promise<undefined | KeystoreEntity> {
-    const nwakuCredential = this.data.credentials[membershipHash];
-
-    if (!nwakuCredential) {
-      return;
-    }
-
-    const eipKeystore = Keystore.fromCredentialToEip(nwakuCredential);
-    const bytes = await decryptEipKeystore(password, eipKeystore);
-
-    return Keystore.fromBytesToIdentity(bytes);
-  }
-
-  public removeCredential(hash: MembershipHash): void {
-    if (!this.data.credentials[hash]) {
-      return;
-    }
-
-    delete this.data.credentials[hash];
-  }
-
-  public toString(): string {
-    return JSON.stringify(this.data);
-  }
-
-  public toObject(): NwakuKeystore {
-    return this.data;
-  }
-
-  /**
-   * Read array of hashes of current credentials
-   * @returns array of keys of credentials in current Keystore
-   */
-  public keys(): string[] {
-    return Object.keys(this.toObject().credentials || {});
   }
 }

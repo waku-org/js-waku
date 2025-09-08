@@ -12,6 +12,9 @@ import type {
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
+import { bytesToHex } from "@waku/utils/bytes";
+
+import { messageHash } from "../message_hash/index.js";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -20,6 +23,9 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
+  private _hash: Uint8Array | undefined;
+  private _hashStr: string | undefined;
+
   public constructor(
     public pubsubTopic: string,
     private proto: proto.WakuMessage
@@ -35,6 +41,20 @@ export class DecodedMessage implements IDecodedMessage {
 
   public get contentTopic(): string {
     return this.proto.contentTopic;
+  }
+
+  public get hash(): Uint8Array {
+    if (this._hash === undefined) {
+      this._hash = messageHash(this.pubsubTopic, this.proto as IProtoMessage);
+    }
+    return this._hash;
+  }
+
+  public get hashStr(): string {
+    if (this._hashStr === undefined) {
+      this._hashStr = bytesToHex(this.hash);
+    }
+    return this._hashStr;
   }
 
   public get timestamp(): Date | undefined {

@@ -26,7 +26,7 @@ import * as wc from "./resources/witness_calculator";
 import { WitnessCalculator } from "./resources/witness_calculator";
 import { Zerokit } from "./zerokit.js";
 
-const log = new Logger("waku:rln");
+const log = new Logger("rln");
 
 type WakuRLNEncoderOptions = WakuEncoderOptions & {
   credentials: EncryptedCredentials | DecryptedCredentials;
@@ -59,44 +59,6 @@ export class RLNInstance extends RLNCredentialsManager {
       throw error;
     }
   }
-
-  private constructor(public zerokit: Zerokit) {
-    super(zerokit);
-  }
-
-  public async createEncoder(
-    options: WakuRLNEncoderOptions
-  ): Promise<RLNEncoder> {
-    const { credentials: decryptedCredentials } =
-      await RLNInstance.decryptCredentialsIfNeeded(options.credentials);
-    const credentials = decryptedCredentials || this.credentials;
-
-    if (!credentials) {
-      throw Error(
-        "Failed to create Encoder: missing RLN credentials. Use createRLNEncoder directly."
-      );
-    }
-
-    await this.verifyCredentialsAgainstContract(credentials);
-
-    return createRLNEncoder({
-      encoder: createEncoder(options),
-      rlnInstance: this,
-      index: credentials.membership.treeIndex,
-      credential: credentials.identity
-    });
-  }
-
-  public createDecoder(
-    contentTopic: ContentTopic,
-    routingInfo: IRoutingInfo
-  ): RLNDecoder<IDecodedMessage> {
-    return createRLNDecoder({
-      rlnInstance: this,
-      decoder: createDecoder(contentTopic, routingInfo)
-    });
-  }
-
   public static async loadWitnessCalculator(): Promise<WitnessCalculator> {
     try {
       const url = new URL("./resources/rln.wasm", import.meta.url);
@@ -139,4 +101,42 @@ export class RLNInstance extends RLNCredentialsManager {
       );
     }
   }
+
+  private constructor(public zerokit: Zerokit) {
+    super(zerokit);
+  }
+
+  public async createEncoder(
+    options: WakuRLNEncoderOptions
+  ): Promise<RLNEncoder> {
+    const { credentials: decryptedCredentials } =
+      await RLNInstance.decryptCredentialsIfNeeded(options.credentials);
+    const credentials = decryptedCredentials || this.credentials;
+
+    if (!credentials) {
+      throw Error(
+        "Failed to create Encoder: missing RLN credentials. Use createRLNEncoder directly."
+      );
+    }
+
+    await this.verifyCredentialsAgainstContract(credentials);
+
+    return createRLNEncoder({
+      encoder: createEncoder(options),
+      rlnInstance: this,
+      index: credentials.membership.treeIndex,
+      credential: credentials.identity
+    });
+  }
+
+  public createDecoder(
+    contentTopic: ContentTopic,
+    routingInfo: IRoutingInfo
+  ): RLNDecoder<IDecodedMessage> {
+    return createRLNDecoder({
+      rlnInstance: this,
+      decoder: createDecoder(contentTopic, routingInfo)
+    });
+  }
+
 }

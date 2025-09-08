@@ -1,3 +1,4 @@
+import { type PeerId } from "@libp2p/interface";
 import { StoreCore } from "@waku/core";
 import type { IDecodedMessage, IDecoder, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -76,7 +77,9 @@ describe("Store", () => {
       timestamp: new Date(),
       rateLimitProof: undefined,
       ephemeral: undefined,
-      meta: undefined
+      meta: undefined,
+      hash: new Uint8Array([1, 2, 3]),
+      hashStr: "010203"
     };
 
     it("should successfully query store with valid decoders and options", async () => {
@@ -289,6 +292,37 @@ describe("Store", () => {
       }
 
       expect(mockPeerManager.getPeers.called).to.be.true;
+    });
+
+    it("should use peerId from options when provided to queryGenerator", async () => {
+      const customPeerId = {
+        toString: () => "QmCustomPeerId"
+      } as unknown as PeerId;
+
+      const mockMessages = [Promise.resolve(mockMessage)];
+      const mockResponseGenerator = (async function* () {
+        yield mockMessages;
+      })();
+
+      mockStoreCore.queryPerPage.returns(mockResponseGenerator);
+
+      const generator = store.queryGenerator([mockDecoder], {
+        peerId: customPeerId
+      });
+
+      const results = [];
+      for await (const messages of generator) {
+        results.push(messages);
+      }
+
+      expect(mockPeerManager.getPeers.called).to.be.false;
+
+      expect(mockStoreCore.queryPerPage.called).to.be.true;
+      const callArgs = mockStoreCore.queryPerPage.getCall(0).args;
+      expect(callArgs[2]).to.equal(customPeerId);
+
+      expect(results).to.have.length(1);
+      expect(results[0]).to.equal(mockMessages);
     });
   });
 });

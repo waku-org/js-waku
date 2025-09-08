@@ -1,9 +1,17 @@
 import type { AutoSharding, IProtoMessage } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
+import { bytesToHex } from "@waku/utils/bytes";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { createDecoder, createEncoder, DecodedMessage } from "./version_0.js";
+import { messageHash } from "../message_hash/index.js";
+
+import {
+  createDecoder,
+  createEncoder,
+  DecodedMessage,
+  proto
+} from "./version_0.js";
 
 const testContentTopic = "/js-waku/1/tests/bytes";
 
@@ -163,5 +171,56 @@ describe("Sets sharding configuration correctly", () => {
 
     // When static sharding is enabled, we expect the shard index to be 0
     expect(staticshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/3");
+  });
+});
+
+describe("DecodedMessage lazy hash initialization", () => {
+  it("should compute hash only when first accessed", () => {
+    const pubsubTopic = "/waku/2/default-waku/proto";
+    const protoMessage: proto.WakuMessage = {
+      payload: new Uint8Array([1, 2, 3]),
+      contentTopic: "/test/1/test-proto/proto",
+      timestamp: BigInt(1234567890000000),
+      ephemeral: false
+    };
+
+    const message = new DecodedMessage(pubsubTopic, protoMessage);
+
+    expect((message as any)._hash).to.be.undefined;
+    expect((message as any)._hashStr).to.be.undefined;
+
+    const hash = message.hash;
+    expect((message as any)._hash).to.not.be.undefined;
+    expect((message as any)._hashStr).to.be.undefined;
+
+    const hashStr = message.hashStr;
+    expect((message as any)._hashStr).to.not.be.undefined;
+
+    const expectedHash = messageHash(
+      pubsubTopic,
+      protoMessage as IProtoMessage
+    );
+    expect(hash).to.deep.equal(expectedHash);
+    expect(hashStr).to.equal(bytesToHex(expectedHash));
+  });
+
+  it("should return cached hash on subsequent access", () => {
+    const pubsubTopic = "/waku/2/default-waku/proto";
+    const protoMessage: proto.WakuMessage = {
+      payload: new Uint8Array([1, 2, 3]),
+      contentTopic: "/test/1/test-proto/proto",
+      timestamp: BigInt(1234567890000000),
+      ephemeral: false
+    };
+
+    const message = new DecodedMessage(pubsubTopic, protoMessage);
+
+    const hash1 = message.hash;
+    const hash2 = message.hash;
+    expect(hash1).to.equal(hash2);
+
+    const hashStr1 = message.hashStr;
+    const hashStr2 = message.hashStr;
+    expect(hashStr1).to.equal(hashStr2);
   });
 });

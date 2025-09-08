@@ -144,6 +144,37 @@ export class RLNCredentialsManager {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  protected static async decryptCredentialsIfNeeded(
+    credentials?: EncryptedCredentials | DecryptedCredentials
+  ): Promise<{ credentials?: DecryptedCredentials; keystore?: Keystore }> {
+    if (!credentials) {
+      log.info("No credentials provided");
+      return {};
+    }
+
+    if ("identity" in credentials) {
+      log.info("Using already decrypted credentials");
+      return { credentials };
+    }
+
+    log.info("Attempting to decrypt credentials");
+    const keystore = Keystore.fromString(credentials.keystore);
+
+    if (!keystore) {
+      log.warn("Failed to create keystore from string");
+      return {};
+    }
+
+    try {
+      const decryptedCredentials = await keystore.readCredential(
+        credentials.id,
+        credentials.password
+      );
+      log.info(`Successfully decrypted credentials with ID: ${credentials.id}`);
+
+      return {
+        keystore,
   protected async determineStartOptions(
     options: StartRLNOptions,
     credentials: KeystoreEntity | undefined
@@ -178,36 +209,6 @@ export class RLNCredentialsManager {
     };
   }
 
-  protected static async decryptCredentialsIfNeeded(
-    credentials?: EncryptedCredentials | DecryptedCredentials
-  ): Promise<{ credentials?: DecryptedCredentials; keystore?: Keystore }> {
-    if (!credentials) {
-      log.info("No credentials provided");
-      return {};
-    }
-
-    if ("identity" in credentials) {
-      log.info("Using already decrypted credentials");
-      return { credentials };
-    }
-
-    log.info("Attempting to decrypt credentials");
-    const keystore = Keystore.fromString(credentials.keystore);
-
-    if (!keystore) {
-      log.warn("Failed to create keystore from string");
-      return {};
-    }
-
-    try {
-      const decryptedCredentials = await keystore.readCredential(
-        credentials.id,
-        credentials.password
-      );
-      log.info(`Successfully decrypted credentials with ID: ${credentials.id}`);
-
-      return {
-        keystore,
         credentials: decryptedCredentials
       };
     } catch (error) {

@@ -35,50 +35,6 @@ export default class Dockerode {
     return instance;
   }
 
-  private static async createNetwork(
-    networkName: string = NETWORK_NAME
-  ): Promise<Docker.Network> {
-    const docker = new Docker();
-    const networks = await docker.listNetworks();
-    const existingNetwork = networks.find(
-      (network) => network.Name === networkName
-    );
-
-    let network: Docker.Network;
-
-    if (existingNetwork) {
-      network = docker.getNetwork(existingNetwork.Id);
-    } else {
-      network = await docker.createNetwork({
-        Name: networkName,
-        Driver: "bridge",
-        IPAM: {
-          Driver: "default",
-          Config: [
-            {
-              Subnet: SUBNET,
-              IPRange: IP_RANGE,
-              Gateway: GATEWAY
-            }
-          ]
-        }
-      });
-    }
-
-    return network;
-  }
-
-  private static getNextIp(): string {
-    const baseIpFragments = "172.18".split(".");
-    // Generate a random number between 0 and 255 for the last two fragments.
-    const secondLastFragment = Math.floor(Math.random() * 256); // For the .0 fragment
-    const lastFragment = Math.floor(Math.random() * 256); // For the last fragment
-    const newIp = [...baseIpFragments, secondLastFragment, lastFragment].join(
-      "."
-    );
-    return newIp;
-  }
-
   public get container(): Docker.Container | undefined {
     if (!this.containerId) {
       return undefined;
@@ -214,6 +170,50 @@ export default class Dockerode {
       });
     }
     log.info(`Image ${this.IMAGE_NAME} successfully found`);
+  }
+
+  private static async createNetwork(
+    networkName: string = NETWORK_NAME
+  ): Promise<Docker.Network> {
+    const docker = new Docker();
+    const networks = await docker.listNetworks();
+    const existingNetwork = networks.find(
+      (network) => network.Name === networkName
+    );
+
+    let network: Docker.Network;
+
+    if (existingNetwork) {
+      network = docker.getNetwork(existingNetwork.Id);
+    } else {
+      network = await docker.createNetwork({
+        Name: networkName,
+        Driver: "bridge",
+        IPAM: {
+          Driver: "default",
+          Config: [
+            {
+              Subnet: SUBNET,
+              IPRange: IP_RANGE,
+              Gateway: GATEWAY
+            }
+          ]
+        }
+      });
+    }
+
+    return network;
+  }
+
+  private static getNextIp(): string {
+    const baseIpFragments = "172.18".split(".");
+    // Generate a random number between 0 and 255 for the last two fragments.
+    const secondLastFragment = Math.floor(Math.random() * 256); // For the .0 fragment
+    const lastFragment = Math.floor(Math.random() * 256); // For the last fragment
+    const newIp = [...baseIpFragments, secondLastFragment, lastFragment].join(
+      "."
+    );
+    return newIp;
   }
 }
 

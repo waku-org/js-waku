@@ -97,11 +97,11 @@
         "default": {
           "memberTypes": [
             "public-static-method",
-            "protected-static-method",
-            "private-static-method",
             "public-instance-method",
+            "protected-static-method",
             "protected-instance-method",
-            "private-instance-method"
+            "private-instance-method",
+            "private-static-method"
           ],
           "order": "as-written"
         }
