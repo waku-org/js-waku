@@ -142,7 +142,7 @@ export class ReliableChannel<
   private readonly retryManager: RetryManager | undefined;
   private readonly missingMessageRetriever?: MissingMessageRetriever<T>;
   private readonly queryOnConnect?: QueryOnConnect<T>;
-  public isStarted: boolean;
+  private _started: boolean;
 
   private constructor(
     public node: IWaku,
@@ -214,7 +214,11 @@ export class ReliableChannel<
       );
     }
 
-    this.isStarted = false;
+    this._started = false;
+  }
+
+  public get isStarted(): boolean {
+    return this._started;
   }
 
   /**
@@ -280,7 +284,7 @@ export class ReliableChannel<
    */
   public send(messagePayload: Uint8Array): void {
     const messageId = ReliableChannel.getMessageId(messagePayload);
-    if (!this.isStarted) {
+    if (!this._started) {
       this.safeSendEvent(ReliableChannelEvent.OutMessageIrrecoverableError, {
         detail: { messageId: messageId, error: "channel is not started" }
       });
@@ -462,8 +466,8 @@ export class ReliableChannel<
   }
 
   public async start(): Promise<boolean> {
-    if (this.isStarted) return true;
-    this.isStarted = true;
+    if (this._started) return true;
+    this._started = true;
     this.setupEventListeners();
     this.restartSync();
     this.startSweepIncomingBufferLoop();
@@ -475,8 +479,8 @@ export class ReliableChannel<
   }
 
   public stop(): void {
-    if (!this.isStarted) return;
-    this.isStarted = false;
+    if (!this._started) return;
+    this._started = false;
     this.stopSync();
     this.stopSweepIncomingBufferLoop();
     this.missingMessageRetriever?.stop();
@@ -486,7 +490,7 @@ export class ReliableChannel<
   }
 
   private assertStarted(): void {
-    if (!this.isStarted) throw Error("Message Channel must be started");
+    if (!this._started) throw Error("Message Channel must be started");
   }
 
   private startSweepIncomingBufferLoop(): void {
