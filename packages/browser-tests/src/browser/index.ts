@@ -1,43 +1,49 @@
 import { Browser, chromium, Page } from "@playwright/test";
 
-// Global variable to store the browser and page
 let browser: Browser | undefined;
 let page: Page | undefined;
 
-/**
- * Initialize browser and load headless page
- */
-export async function initBrowser(): Promise<void> {
-  browser = await chromium.launch({
-    headless: true
-  });
+export async function initBrowser(appPort: number): Promise<void> {
+  try {
+    const launchArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
 
-  if (!browser) {
-    throw new Error("Failed to initialize browser");
+    browser = await chromium.launch({
+      headless: true,
+      args: launchArgs
+    });
+
+    if (!browser) {
+      throw new Error("Failed to initialize browser");
+    }
+
+    page = await browser.newPage();
+
+    await page.goto(`http://localhost:${appPort}/app/index.html`, {
+      waitUntil: "networkidle",
+    });
+
+    await page.waitForFunction(
+      () => {
+        return window.wakuApi && typeof window.wakuApi.createWakuNode === "function";
+      },
+      { timeout: 30000 }
+    );
+
+    console.log("Browser initialized successfully with wakuApi");
+  } catch (error) {
+    console.error("Error initializing browser:", error);
+    throw error;
   }
-
-  page = await browser.newPage();
-
-  await page.goto("http://localhost:8080");
 }
 
-/**
- * Get the current page instance
- */
 export function getPage(): Page | undefined {
   return page;
 }
 
-/**
- * Set the page instance (for use by server.ts)
- */
 export function setPage(pageInstance: Page | undefined): void {
   page = pageInstance;
 }
 
-/**
- * Closes the browser instance
- */
 export async function closeBrowser(): Promise<void> {
   if (browser) {
     await browser.close();
