@@ -6,6 +6,9 @@
 echo "docker-entrypoint.sh"
 echo "Using address: $addrs1"
 export WAKU_LIGHTPUSH_NODE="$addrs1"
+echo "Num Args: $#"
+echo "Args: $@"
+
 
 # Check if address file exists and source it
 # if [ -f "/etc/addrs/addrs.env" ]; then
@@ -18,6 +21,8 @@ export WAKU_LIGHTPUSH_NODE="$addrs1"
 #     echo "addrs1 already set. Using $addrs1"
 #   fi
 # fi
+
+echo "WAKU_LIGHTPUSH_NODE=$addrs1"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -43,7 +48,8 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      # Unknown argument, keep it for the main command
+      # Unknown argument, notify user and keep it for the main command
+      echo "Warning: Unknown argument '$1' will be passed to the main command"
       break
       ;;
   esac
