@@ -59,6 +59,15 @@ router.post(
     transformResult: (result) => {
       if (result && result.successes && result.successes.length > 0) {
         console.log("[Server] Message successfully sent via v3 lightpush!");
+
+        const sentTime = Date.now() * 1000000;
+        const msgHash = result.messageHash;
+
+        const myPeerId = result.myPeerId || 'unknown';
+        result.successes.forEach((peerId: string) => {
+          console.log(`publishWithConn my_peer_id=${myPeerId} peer_id=${peerId} msg_hash=${msgHash} sentTime=${sentTime}`);
+        });
+
         return {
           success: true,
           result,
