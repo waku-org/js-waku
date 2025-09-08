@@ -85,9 +85,8 @@ export class WakuHeadless {
   private shouldUseCustomBootstrap(options: CreateNodeOptions): boolean {
     const hasEnr = Boolean(this.enrBootstrap);
     const isDefaultBootstrap = Boolean(options.defaultBootstrap);
-    const shouldUse = hasEnr && !isDefaultBootstrap;
 
-    return shouldUse;
+    return hasEnr && !isDefaultBootstrap;
   }
 
   private async getBootstrapMultiaddrs(): Promise<string[]> {
