@@ -288,10 +288,10 @@ export class ReliableChannel<
         detail: { messageId: messageId, error: "channel is not started" }
       });
     }
-    const send = this._wrapAndSend.bind(this, messagePayload);
-    this.retryManager?.startRetries(messageId, send);
+    const wrapAndSendBind = this._wrapAndSend.bind(this, messagePayload);
+    this.retryManager?.startRetries(messageId, wrapAndSendBind);
 
-    return send();
+    return wrapAndSendBind();
   }
 
   private _wrapAndSend(messagePayload: Uint8Array): void {
