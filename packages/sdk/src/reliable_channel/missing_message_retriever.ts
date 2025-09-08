@@ -30,7 +30,7 @@ export class MissingMessageRetriever<T extends IDecodedMessage> {
     if (this.retrieveInterval) {
       clearInterval(this.retrieveInterval);
     }
-    if (this.retrieveFrequencyMs) {
+    if (this.retrieveFrequencyMs !== 0) {
       log.info(`start retrieve loop every ${this.retrieveFrequencyMs}ms`);
       this.retrieveInterval = setInterval(() => {
         void this.retrieveMissingMessage();
