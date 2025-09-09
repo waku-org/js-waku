@@ -536,7 +536,6 @@ test.describe("Waku Server API", () => {
     expect(message).toHaveProperty("payload");
     expect(message).toHaveProperty("contentTopic");
     expect(message).toHaveProperty("timestamp");
-    expect(message).toHaveProperty("version");
 
     // Test pagination
     const paginatedResponse = await axios.get(

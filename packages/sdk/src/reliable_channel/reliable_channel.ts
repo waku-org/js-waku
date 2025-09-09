@@ -430,7 +430,6 @@ export class ReliableChannel<
         payload: sdsMessage.content,
         hash: msg.hash,
         hashStr: msg.hashStr,
-        version: msg.version,
         contentTopic: msg.contentTopic,
         pubsubTopic: msg.pubsubTopic,
         timestamp: msg.timestamp,

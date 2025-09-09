@@ -76,12 +76,6 @@ export class DecodedMessage implements IDecodedMessage {
     return this.proto.meta;
   }
 
-  public get version(): number {
-    // https://rfc.vac.dev/spec/14/
-    // > If omitted, the value SHOULD be interpreted as version 0.
-    return this.proto.version ?? Version;
-  }
-
   public get rateLimitProof(): IRateLimitProof | undefined {
     return this.proto.rateLimitProof;
   }

@@ -70,7 +70,6 @@ describe("Store", () => {
     };
 
     const mockMessage: IDecodedMessage = {
-      version: 1,
       pubsubTopic: "/waku/2/default-waku/proto",
       contentTopic: "/test/1/test/proto",
       payload: new Uint8Array([1, 2, 3]),

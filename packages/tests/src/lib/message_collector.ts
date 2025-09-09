@@ -171,13 +171,6 @@ export class MessageCollector {
       `Message content topic mismatch. Expected: ${options.expectedContentTopic}. Got: ${message.contentTopic}`
     );
 
-    expect(message.version).to.eq(
-      options.expectedVersion || 0,
-      `Message version mismatch. Expected: ${
-        options.expectedVersion || 0
-      }. Got: ${message.version}`
-    );
-
     if (message.ephemeral !== undefined) {
       expect(message.ephemeral).to.eq(
         options.expectedEphemeral !== undefined

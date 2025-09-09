@@ -72,7 +72,6 @@ export function verifyRLNMessage(
   msg: any,
   payload: Uint8Array,
   contentTopic: string,
-  version: number,
   rlnInstance: any
 ): void {
   expect(msg.rateLimitProof).to.not.be.undefined;
@@ -82,7 +81,6 @@ export function verifyRLNMessage(
   expect(msg.epoch).to.be.gt(0);
 
   expect(msg.contentTopic).to.eq(contentTopic);
-  expect(msg.msg.version).to.eq(version);
   expect(msg.payload).to.deep.eq(payload);
   expect(msg.timestamp).to.not.be.undefined;
 }
