@@ -25,7 +25,7 @@ import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 import sinon from "sinon";
 
-import { ReliableChannel, ReliableChannelEvent } from "./index.js";
+import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
 const TEST_NETWORK_CONFIG: AutoSharding = {
@@ -64,14 +64,11 @@ describe("Reliable Channel", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageSending = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageSending,
-      (event) => {
-        if (event.detail === messageId) {
-          messageSending = true;
-        }
+    reliableChannel.addEventListener("sending-message", (event) => {
+      if (event.detail === messageId) {
+        messageSending = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
     while (!messageSending) {
@@ -95,14 +92,11 @@ describe("Reliable Channel", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageSent = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageSent,
-      (event) => {
-        if (event.detail === messageId) {
-          messageSent = true;
-        }
+    reliableChannel.addEventListener("message-sent", (event) => {
+      if (event.detail === messageId) {
+        messageSent = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
     while (!messageSent) {
@@ -138,7 +132,7 @@ describe("Reliable Channel", () => {
     const messageId = ReliableChannel.getMessageId(message);
     let irrecoverableError = false;
     reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageIrrecoverableError,
+      "sending-message-irrecoverable-error",
       (event) => {
         if (event.detail.messageId === messageId) {
           irrecoverableError = true;
@@ -169,14 +163,11 @@ describe("Reliable Channel", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannel.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
 
@@ -216,7 +207,7 @@ describe("Reliable Channel", () => {
     const firstMessageId = ReliableChannel.getMessageId(messages[0]);
     let firstMessagePossiblyAcknowledged = false;
     reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessagePossiblyAcknowledged,
+      "message-possibly-acknowledged",
       (event) => {
         if (event.detail.messageId === firstMessageId) {
           firstMessagePossiblyAcknowledged = true;
@@ -225,14 +216,11 @@ describe("Reliable Channel", () => {
     );
 
     let messageReceived = false;
-    reliableChannelBob.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      (event) => {
-        if (bytesToUtf8(event.detail.payload) === "third") {
-          messageReceived = true;
-        }
+    reliableChannelBob.addEventListener("message-received", (event) => {
+      if (bytesToUtf8(event.detail.payload) === "third") {
+        messageReceived = true;
       }
-    );
+    });
 
     for (const m of messages) {
       reliableChannelAlice.send(m);
@@ -277,22 +265,16 @@ describe("Reliable Channel", () => {
     // Alice sets up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
-    reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
 
     let bobReceivedMessage = false;
-    reliableChannelBob.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      () => {
-        bobReceivedMessage = true;
-      }
-    );
+    reliableChannelBob.addEventListener("message-received", () => {
+      bobReceivedMessage = true;
+    });
 
     reliableChannelAlice.send(message);
 
@@ -320,12 +302,9 @@ describe("Reliable Channel", () => {
     );
 
     let receivedMessage: IDecodedMessage;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      (event) => {
-        receivedMessage = event.detail;
-      }
-    );
+    reliableChannel.addEventListener("message-received", (event) => {
+      receivedMessage = event.detail;
+    });
 
     const message = utf8ToBytes("message in channel");
 
@@ -371,14 +350,11 @@ describe("Reliable Channel", () => {
 
       // Let's count how many times Bob receives Alice's message
       let messageCount = 0;
-      reliableChannelBob.addEventListener(
-        ReliableChannelEvent.InMessageReceived,
-        (event) => {
-          if (bytesToUtf8(event.detail.payload) === msgTxt) {
-            messageCount++;
-          }
+      reliableChannelBob.addEventListener("message-received", (event) => {
+        if (bytesToUtf8(event.detail.payload) === msgTxt) {
+          messageCount++;
         }
-      );
+      });
 
       reliableChannelAlice.send(message);
 
@@ -431,11 +407,9 @@ describe("Reliable Channel", () => {
       reliableChannelAlice.send(message);
       // Wait to be sent
       await new Promise((resolve) => {
-        reliableChannelAlice.addEventListener(
-          ReliableChannelEvent.OutMessageSent,
-          resolve,
-          { once: true }
-        );
+        reliableChannelAlice.addEventListener("message-sent", resolve, {
+          once: true
+        });
       });
 
       const sdsMessage = new ContentMessage(
@@ -481,14 +455,11 @@ describe("Reliable Channel", () => {
       );
 
       let messageRetrieved = false;
-      reliableChannelBob.addEventListener(
-        ReliableChannelEvent.InMessageReceived,
-        (event) => {
-          if (bytesToUtf8(event.detail.payload) === "missing message") {
-            messageRetrieved = true;
-          }
+      reliableChannelBob.addEventListener("message-received", (event) => {
+        if (bytesToUtf8(event.detail.payload) === "missing message") {
+          messageRetrieved = true;
         }
-      );
+      });
 
       // Alice sends a sync message, Bob should learn about missing message
       // and retrieve it

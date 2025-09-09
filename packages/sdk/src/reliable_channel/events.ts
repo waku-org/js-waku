@@ -1,13 +1,13 @@
 import { IDecodedMessage, ProtocolError } from "@waku/interfaces";
 import type { HistoryEntry, MessageId } from "@waku/sds";
 
-export enum ReliableChannelEvent {
+export const ReliableChannelEvent = {
   /**
    * The message is being sent over the wire.
    *
    * This event may be emitted several times if the retry mechanism kicks in.
    */
-  OutMessageSending = "out:message-sending",
+  SendingMessage: "sending-message",
   /**
    * The message has been sent over the wire but has not been acknowledged by
    * any other party yet.
@@ -17,7 +17,7 @@ export enum ReliableChannelEvent {
    * This event may be emitted several times if the
    * several times if the retry mechanisms kicks in.
    */
-  OutMessageSent = "out:message-sent",
+  MessageSent: "message-sent",
   /**
    * A received bloom filter seems to indicate that the messages was received
    * by another party.
@@ -25,45 +25,42 @@ export enum ReliableChannelEvent {
    * However, this is probabilistic. The retry mechanism will wait a bit longer
    * before trying to send the message again.
    */
-  OutMessagePossiblyAcknowledged = "out:message-possibly-acknowledged",
+  MessagePossiblyAcknowledged: "message-possibly-acknowledged",
   /**
    * The message was fully acknowledged by other members of the channel
    */
-  OutMessageAcknowledged = "out:message-acknowledged",
-  /**
-   * The retry mechanism failed too many times, and the message is not considered
-   * as sent. TODO: implement
-   */
-  OutMessageRetriesError = "out:message-retries-error",
+  MessageAcknowledged: "message-acknowledged",
   /**
    * It was not possible to send the messages due to a non-recoverable error,
    * most likely an internal error for a developer to resolve.
    */
-  OutMessageIrrecoverableError = "out:message-irrecoverable-error",
+  SendingMessageIrrecoverableError: "sending-message-irrecoverable-error",
   /**
    * A new message has been received.
    */
-  InMessageReceived = "in:message-received",
+  MessageReceived: "message-received",
   /**
    * We are aware of a missing message but failed to retrieve it successfully.
    */
-  InIrretrievableMessage = "in:message-irretrievable"
-}
+  IrretrievableMessage: "irretrievable-message"
+};
 
-export type ReliableChannelEvents = {
-  [ReliableChannelEvent.OutMessageSending]: CustomEvent<MessageId>;
-  [ReliableChannelEvent.OutMessageSent]: CustomEvent<MessageId>;
-  [ReliableChannelEvent.OutMessagePossiblyAcknowledged]: CustomEvent<{
+export type ReliableChannelEvent =
+  (typeof ReliableChannelEvent)[keyof typeof ReliableChannelEvent];
+
+export interface ReliableChannelEvents {
+  "sending-message": CustomEvent<MessageId>;
+  "message-sent": CustomEvent<MessageId>;
+  "message-possibly-acknowledged": CustomEvent<{
     messageId: MessageId;
     possibleAckCount: number;
   }>;
-  [ReliableChannelEvent.OutMessageAcknowledged]: CustomEvent<MessageId>;
-  [ReliableChannelEvent.OutMessageRetriesError]: CustomEvent<MessageId>;
+  "message-acknowledged": CustomEvent<MessageId>;
   // TODO probably T extends IDecodedMessage?
-  [ReliableChannelEvent.InMessageReceived]: CustomEvent<IDecodedMessage>;
-  [ReliableChannelEvent.InIrretrievableMessage]: CustomEvent<HistoryEntry>;
-  [ReliableChannelEvent.OutMessageIrrecoverableError]: CustomEvent<{
+  "message-received": CustomEvent<IDecodedMessage>;
+  "irretrievable-message": CustomEvent<HistoryEntry>;
+  "sending-message-irrecoverable-error": CustomEvent<{
     messageId: MessageId;
     error: ProtocolError;
   }>;
-};
+}

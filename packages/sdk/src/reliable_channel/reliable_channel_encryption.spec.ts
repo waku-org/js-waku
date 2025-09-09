@@ -25,7 +25,7 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
-import { ReliableChannel, ReliableChannelEvent } from "./index.js";
+import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
 const TEST_NETWORK_CONFIG: AutoSharding = {
@@ -71,14 +71,11 @@ describe("Reliable Channel: Encryption", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageSending = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageSending,
-      (event) => {
-        if (event.detail === messageId) {
-          messageSending = true;
-        }
+    reliableChannel.addEventListener("sending-message", (event) => {
+      if (event.detail === messageId) {
+        messageSending = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
     while (!messageSending) {
@@ -102,14 +99,11 @@ describe("Reliable Channel: Encryption", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageSent = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageSent,
-      (event) => {
-        if (event.detail === messageId) {
-          messageSent = true;
-        }
+    reliableChannel.addEventListener("message-sent", (event) => {
+      if (event.detail === messageId) {
+        messageSent = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
     while (!messageSent) {
@@ -145,7 +139,7 @@ describe("Reliable Channel: Encryption", () => {
     const messageId = ReliableChannel.getMessageId(message);
     let irrecoverableError = false;
     reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageIrrecoverableError,
+      "sending-message-irrecoverable-error",
       (event) => {
         if (event.detail.messageId === messageId) {
           irrecoverableError = true;
@@ -176,14 +170,11 @@ describe("Reliable Channel: Encryption", () => {
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannel.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
 
     reliableChannel.send(message);
 
@@ -226,7 +217,7 @@ describe("Reliable Channel: Encryption", () => {
     const firstMessageId = ReliableChannel.getMessageId(messages[0]);
     let firstMessagePossiblyAcknowledged = false;
     reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessagePossiblyAcknowledged,
+      "message-possibly-acknowledged",
       (event) => {
         if (event.detail.messageId === firstMessageId) {
           firstMessagePossiblyAcknowledged = true;
@@ -235,12 +226,9 @@ describe("Reliable Channel: Encryption", () => {
     );
 
     let bobMessageReceived = 0;
-    reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      () => {
-        bobMessageReceived++;
-      }
-    );
+    reliableChannelAlice.addEventListener("message-received", () => {
+      bobMessageReceived++;
+    });
 
     for (const m of messages) {
       reliableChannelAlice.send(m);
@@ -285,22 +273,16 @@ describe("Reliable Channel: Encryption", () => {
     // Alice sets up message tracking
     const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
-    reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
 
     let bobReceivedMessage = false;
-    reliableChannelBob.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      () => {
-        bobReceivedMessage = true;
-      }
-    );
+    reliableChannelBob.addEventListener("message-received", () => {
+      bobReceivedMessage = true;
+    });
 
     reliableChannelAlice.send(message);
 
@@ -328,12 +310,9 @@ describe("Reliable Channel: Encryption", () => {
     );
 
     let receivedMessage: IDecodedMessage;
-    reliableChannel.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      (event) => {
-        receivedMessage = event.detail;
-      }
-    );
+    reliableChannel.addEventListener("message-received", (event) => {
+      receivedMessage = event.detail;
+    });
 
     const message = utf8ToBytes("message in channel");
 

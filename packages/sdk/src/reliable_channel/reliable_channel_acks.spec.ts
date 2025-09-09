@@ -16,7 +16,7 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
-import { ReliableChannel, ReliableChannelEvent } from "./index.js";
+import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
 const TEST_NETWORK_CONFIG: AutoSharding = {
@@ -65,24 +65,18 @@ describe("Reliable Channel: Acks", () => {
     const messageId = ReliableChannel.getMessageId(message);
 
     let messageReceived = false;
-    reliableChannelBob.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      (event) => {
-        if (bytesToUtf8(event.detail.payload) === "first message in channel") {
-          messageReceived = true;
-        }
+    reliableChannelBob.addEventListener("message-received", (event) => {
+      if (bytesToUtf8(event.detail.payload) === "first message in channel") {
+        messageReceived = true;
       }
-    );
+    });
 
     let messageAcknowledged = false;
-    reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
 
     reliableChannelAlice.send(message);
 
@@ -122,14 +116,11 @@ describe("Reliable Channel: Acks", () => {
     const message = utf8ToBytes("message to be acknowledged");
     const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
-    reliableChannelAlice.addEventListener(
-      ReliableChannelEvent.OutMessageAcknowledged,
-      (event) => {
-        if (event.detail === messageId) {
-          messageAcknowledged = true;
-        }
+    reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
+      if (event.detail === messageId) {
+        messageAcknowledged = true;
       }
-    );
+    });
     reliableChannelAlice.send(message);
 
     // Wait a bit to ensure Bob does not receive the message
@@ -152,16 +143,11 @@ describe("Reliable Channel: Acks", () => {
 
     // Track when Bob receives the message
     let bobReceivedMessage = false;
-    reliableChannelBob.addEventListener(
-      ReliableChannelEvent.InMessageReceived,
-      (event) => {
-        if (
-          bytesToUtf8(event.detail.payload!) === "message to be acknowledged"
-        ) {
-          bobReceivedMessage = true;
-        }
+    reliableChannelBob.addEventListener("message-received", (event) => {
+      if (bytesToUtf8(event.detail.payload!) === "message to be acknowledged") {
+        bobReceivedMessage = true;
       }
-    );
+    });
 
     // Some sync messages are exchanged
     await reliableChannelAlice["sendSyncMessage"]();

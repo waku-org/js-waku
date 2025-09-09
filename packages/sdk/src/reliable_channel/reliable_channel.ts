@@ -295,7 +295,7 @@ export class ReliableChannel<
   public send(messagePayload: Uint8Array): void {
     const messageId = ReliableChannel.getMessageId(messagePayload);
     if (!this._started) {
-      this.safeSendEvent(ReliableChannelEvent.OutMessageIrrecoverableError, {
+      this.safeSendEvent("sending-message-irrecoverable-error", {
         detail: { messageId: messageId, error: "channel is not started" }
       });
     }
@@ -327,15 +327,12 @@ export class ReliableChannel<
         // Encoding now to fail early, used later to get message hash
         const protoMessage = await this.encoder.toProtoObj(wakuMessage);
         if (!protoMessage) {
-          this.safeSendEvent(
-            ReliableChannelEvent.OutMessageIrrecoverableError,
-            {
-              detail: {
-                messageId: messageId,
-                error: "could not encode message"
-              }
+          this.safeSendEvent("sending-message-irrecoverable-error", {
+            detail: {
+              messageId: messageId,
+              error: "could not encode message"
             }
-          );
+          });
           return { success: false };
         }
         const retrievalHint = messageHash(
@@ -343,7 +340,7 @@ export class ReliableChannel<
           protoMessage
         );
 
-        this.safeSendEvent(ReliableChannelEvent.OutMessageSending, {
+        this.safeSendEvent("sending-message", {
           detail: messageId
         });
 
@@ -355,15 +352,12 @@ export class ReliableChannel<
           if (IRRECOVERABLE_SENDING_ERRORS.includes(error)) {
             // Not recoverable, best to return it
             log.error("Irrecoverable error, cannot send message: ", error);
-            this.safeSendEvent(
-              ReliableChannelEvent.OutMessageIrrecoverableError,
-              {
-                detail: {
-                  messageId,
-                  error
-                }
+            this.safeSendEvent("sending-message-irrecoverable-error", {
+              detail: {
+                messageId,
+                error
               }
-            );
+            });
             return { success: false, retrievalHint };
           }
         }
@@ -444,7 +438,7 @@ export class ReliableChannel<
         meta: msg.meta
       });
 
-      this.safeSendEvent(ReliableChannelEvent.InMessageReceived, {
+      this.safeSendEvent("message-received", {
         detail: unwrappedMessage as unknown as T
       });
     }
@@ -591,7 +585,7 @@ export class ReliableChannel<
       (event) => {
         if (event.detail.content) {
           const messageId = ReliableChannel.getMessageId(event.detail.content);
-          this.safeSendEvent(ReliableChannelEvent.OutMessageSent, {
+          this.safeSendEvent("message-sent", {
             detail: messageId
           });
         }
@@ -602,7 +596,7 @@ export class ReliableChannel<
       MessageChannelEvent.OutMessageAcknowledged,
       (event) => {
         if (event.detail) {
-          this.safeSendEvent(ReliableChannelEvent.OutMessageAcknowledged, {
+          this.safeSendEvent("message-acknowledged", {
             detail: event.detail
           });
 
@@ -616,15 +610,12 @@ export class ReliableChannel<
       MessageChannelEvent.OutMessagePossiblyAcknowledged,
       (event) => {
         if (event.detail) {
-          this.safeSendEvent(
-            ReliableChannelEvent.OutMessagePossiblyAcknowledged,
-            {
-              detail: {
-                messageId: event.detail.messageId,
-                possibleAckCount: event.detail.count
-              }
+          this.safeSendEvent("message-possibly-acknowledged", {
+            detail: {
+              messageId: event.detail.messageId,
+              possibleAckCount: event.detail.count
             }
-          );
+          });
         }
       }
     );
