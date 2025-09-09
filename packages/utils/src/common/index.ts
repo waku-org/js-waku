@@ -7,3 +7,4 @@ export * from "./sharding/index.js";
 export * from "./push_or_init_map.js";
 export * from "./relay_shard_codec.js";
 export * from "./delay.js";
+export * from "./mock_node.js";
