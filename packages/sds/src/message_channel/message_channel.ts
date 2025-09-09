@@ -285,6 +285,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
         log.info(
           this.senderId,
+          "message from incoming buffer",
           message.messageId,
           "is missing dependencies",
           missingDependencies.map(({ messageId, retrievalHint }) => {
@@ -470,10 +471,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.timeReceived.set(message.messageId, Date.now());
       log.info(
         this.senderId,
+        "new incoming message",
         message.messageId,
         "is missing dependencies",
         missingDependencies.map((ch) => ch.messageId)
       );
+
+      this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
+        detail: Array.from(missingDependencies)
+      });
     } else {
       if (isContentMessage(message) && this.deliverMessage(message)) {
         this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
