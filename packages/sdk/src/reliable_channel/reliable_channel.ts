@@ -514,7 +514,7 @@ export class ReliableChannel<
   }
 
   private stopSweepIncomingBufferLoop(): void {
-    if (this.sweepInBufInterval) clearInterval(this.sweepInBufIntervalMs);
+    if (this.sweepInBufInterval) clearInterval(this.sweepInBufInterval);
   }
 
   private restartSync(multiplier: number = 1): void {
