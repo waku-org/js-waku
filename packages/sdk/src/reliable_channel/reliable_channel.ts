@@ -39,6 +39,7 @@ const DEFAULT_SYNC_MIN_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_RETRY_INTERVAL_MS = 30 * 1000; // 30 seconds
 const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
 const DEFAULT_SWEEP_IN_BUF_INTERVAL_MS = 5 * 1000;
+const DEFAULT_PROCESS_TASK_MIN_ELAPSE_MS = 1000;
 
 const IRRECOVERABLE_SENDING_ERRORS: LightPushError[] = [
   LightPushError.ENCODE_FAILED,
@@ -97,11 +98,19 @@ export type ReliableChannelOptions = MessageChannelOptions & {
   queryOnConnect?: boolean;
 
   /**
-   * Whether to auto start the waku node and message channel
+   * Whether to auto start the message channel
    *
    * @default true
    */
   autoStart?: boolean;
+
+  /** The minimum elapse time between calling the underlying channel process
+   * task for incoming messages. This is to avoid overload when processing
+   * a lot of messages.
+   *
+   * @default 1000 (1 second)
+   */
+  processTaskMinElapseMs?: number;
 };
 
 /**
@@ -140,6 +149,7 @@ export class ReliableChannel<
   private readonly retryManager: RetryManager | undefined;
   private readonly missingMessageRetriever?: MissingMessageRetriever<T>;
   private readonly queryOnConnect?: QueryOnConnect<T>;
+  private readonly processTaskMinElapseMs: number;
   private _started: boolean;
 
   private constructor(
@@ -200,6 +210,9 @@ export class ReliableChannel<
       // TODO: there is a lot to improve. e.g. not point retry to send if node is offline.
       this.retryManager = new RetryManager(retryIntervalMs, maxRetryAttempts);
     }
+
+    this.processTaskMinElapseMs =
+      options?.processTaskMinElapseMs ?? DEFAULT_PROCESS_TASK_MIN_ELAPSE_MS;
 
     if (this._retrieve) {
       this.missingMessageRetriever = new MissingMessageRetriever(
@@ -451,14 +464,16 @@ export class ReliableChannel<
   // As this is where there is most volume
   private queueProcessTasks(): void {
     // If one is already queued, then we can ignore it
-    if (!this.processTaskTimeout) {
-      this.processTaskTimeout = setTimeout(
-        () =>
-          void this.messageChannel.processTasks().catch((err) => {
-            log.error("error encountered when processing sds tasks", err);
-          }),
-        1000
-      ); // we ensure that we don't call process tasks more than once per second
+    if (this.processTaskTimeout === undefined) {
+      this.processTaskTimeout = setTimeout(() => {
+        void this.messageChannel.processTasks().catch((err) => {
+          log.error("error encountered when processing sds tasks", err);
+        });
+
+        // Clear timeout once triggered
+        clearTimeout(this.processTaskTimeout);
+        this.processTaskTimeout = undefined;
+      }, this.processTaskMinElapseMs); // we ensure that we don't call process tasks more than once per second
     }
   }
 

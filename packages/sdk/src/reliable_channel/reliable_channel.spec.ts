@@ -350,7 +350,8 @@ describe("Reliable Channel", () => {
         encoder,
         decoder,
         {
-          retryIntervalMs: 100 // faster for a quick test
+          retryIntervalMs: 200, // faster for a quick test,
+          processTaskMinElapseMs: 10 // faster so it process message as soon as they arrive
         }
       );
       const reliableChannelBob = await ReliableChannel.create(
@@ -381,21 +382,25 @@ describe("Reliable Channel", () => {
 
       reliableChannelAlice.send(message);
 
-      // Need to wait a bit
-      await delay(50);
-      expect(messageCount).to.equal(1);
+      while (messageCount < 1) {
+        await delay(10);
+      }
+      expect(messageCount).to.equal(1, "Bob received Alice's message once");
 
       // No response from Bob should trigger a retry from Alice
-      await delay(60); // 50 + 60 > 100
-      await delay(20);
-      expect(messageCount).to.equal(2);
+      while (messageCount < 2) {
+        await delay(10);
+      }
+      expect(messageCount).to.equal(2, "retried once");
 
       // Bobs sends a message now, it should include first one in causal history
       reliableChannelBob.send(utf8ToBytes("second message in channel"));
 
-      await delay(110);
+      // Wait long enough to confirm no retry is executed
+      await delay(300);
+
       // Alice should have stopped sending
-      expect(messageCount).to.equal(2);
+      expect(messageCount).to.equal(2, "hasn't retried since it's acked");
     });
   });
 
@@ -415,7 +420,8 @@ describe("Reliable Channel", () => {
           // disable any automation to better control the test
           retryIntervalMs: 0,
           syncMinIntervalMs: 0,
-          retrieveFrequencyMs: 0
+          retrieveFrequencyMs: 0,
+          processTaskMinElapseMs: 10
         }
       );
 
@@ -469,6 +475,7 @@ describe("Reliable Channel", () => {
         {
           retryIntervalMs: 0, // disable any automation to better control the test
           syncMinIntervalMs: 0,
+          processTaskMinElapseMs: 10,
           retrieveFrequencyMs: 100 // quick loop so the test go fast
         }
       );

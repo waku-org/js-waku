@@ -112,7 +112,8 @@ describe("Reliable Channel: Acks", () => {
       decoder,
       {
         retryIntervalMs: 0, // disable any automation to better control the test
-        syncMinIntervalMs: 0
+        syncMinIntervalMs: 0,
+        processTaskMinElapseMs: 10
       }
     );
 
@@ -144,7 +145,8 @@ describe("Reliable Channel: Acks", () => {
       decoder,
       {
         retryIntervalMs: 0, // disable any automation to better control the test
-        syncMinIntervalMs: 0
+        syncMinIntervalMs: 0,
+        processTaskMinElapseMs: 10
       }
     );
 

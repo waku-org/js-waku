@@ -112,7 +112,8 @@ describe("Reliable Channel: Sync", () => {
       encoder,
       decoder,
       {
-        syncMinIntervalMs: 0 // does not send sync messages automatically
+        syncMinIntervalMs: 0, // does not send sync messages automatically
+        processTaskMinElapseMs: 10
       }
     );
     const reliableChannelBob = await ReliableChannel.create(
@@ -122,7 +123,8 @@ describe("Reliable Channel: Sync", () => {
       encoder,
       decoder,
       {
-        syncMinIntervalMs
+        syncMinIntervalMs,
+        processTaskMinElapseMs: 10
       }
     );
     (reliableChannelBob as any).random = () => {
@@ -170,7 +172,8 @@ describe("Reliable Channel: Sync", () => {
       encoder,
       decoder,
       {
-        syncMinIntervalMs: 0 // does not send sync messages automatically
+        syncMinIntervalMs: 0, // does not send sync messages automatically
+        processTaskMinElapseMs: 10
       }
     );
     const reliableChannelBob = await ReliableChannel.create(
@@ -180,7 +183,8 @@ describe("Reliable Channel: Sync", () => {
       encoder,
       decoder,
       {
-        syncMinIntervalMs
+        syncMinIntervalMs,
+        processTaskMinElapseMs: 10
       }
     );
     (reliableChannelBob as any).random = () => {
