@@ -62,7 +62,7 @@ describe("Reliable Channel", () => {
     const message = utf8ToBytes("message in channel");
 
     // Setting up message tracking
-    const messageId = ReliableChannel.getMessageId(message);
+    const messageId = reliableChannel.send(message);
     let messageSending = false;
     reliableChannel.addEventListener("sending-message", (event) => {
       if (event.detail === messageId) {
@@ -70,7 +70,6 @@ describe("Reliable Channel", () => {
       }
     });
 
-    reliableChannel.send(message);
     while (!messageSending) {
       await delay(50);
     }
@@ -89,8 +88,9 @@ describe("Reliable Channel", () => {
 
     const message = utf8ToBytes("message in channel");
 
+    const messageId = reliableChannel.send(message);
+
     // Setting up message tracking
-    const messageId = ReliableChannel.getMessageId(message);
     let messageSent = false;
     reliableChannel.addEventListener("message-sent", (event) => {
       if (event.detail === messageId) {
@@ -98,7 +98,6 @@ describe("Reliable Channel", () => {
       }
     });
 
-    reliableChannel.send(message);
     while (!messageSent) {
       await delay(50);
     }
@@ -128,8 +127,10 @@ describe("Reliable Channel", () => {
 
     const message = utf8ToBytes("payload doesnt matter");
 
+    encoder.contentTopic = "...";
+    const messageId = reliableChannel.send(message);
+
     // Setting up message tracking
-    const messageId = ReliableChannel.getMessageId(message);
     let irrecoverableError = false;
     reliableChannel.addEventListener(
       "sending-message-irrecoverable-error",
@@ -140,8 +141,6 @@ describe("Reliable Channel", () => {
       }
     );
 
-    encoder.contentTopic = "...";
-    reliableChannel.send(message);
     while (!irrecoverableError) {
       await delay(50);
     }
@@ -262,8 +261,9 @@ describe("Reliable Channel", () => {
 
     const message = utf8ToBytes("first message in channel");
 
+    const messageId = reliableChannelAlice.send(message);
+
     // Alice sets up message tracking
-    const messageId = ReliableChannel.getMessageId(message);
     let messageAcknowledged = false;
     reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
       if (event.detail === messageId) {
@@ -275,8 +275,6 @@ describe("Reliable Channel", () => {
     reliableChannelBob.addEventListener("message-received", () => {
       bobReceivedMessage = true;
     });
-
-    reliableChannelAlice.send(message);
 
     // Wait for bob to receive the message to ensure it's included in causal history
     while (!bobReceivedMessage) {

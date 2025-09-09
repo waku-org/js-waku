@@ -291,8 +291,9 @@ export class ReliableChannel<
    * by other participants.
    *
    * @param messagePayload
+   * @returns the message id
    */
-  public send(messagePayload: Uint8Array): void {
+  public send(messagePayload: Uint8Array): string {
     const messageId = ReliableChannel.getMessageId(messagePayload);
     if (!this._started) {
       this.safeSendEvent("sending-message-irrecoverable-error", {
@@ -301,8 +302,8 @@ export class ReliableChannel<
     }
     const wrapAndSendBind = this._wrapAndSend.bind(this, messagePayload);
     this.retryManager?.startRetries(messageId, wrapAndSendBind);
-
-    return wrapAndSendBind();
+    wrapAndSendBind();
+    return messageId;
   }
 
   private _wrapAndSend(messagePayload: Uint8Array): void {
