@@ -31,10 +31,13 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
     }
     if (process.env.WAKU_SHARD) {
       networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
+      console.log("Using static shard:", networkConfig.shards);
     }
 
     const lightpushNode = process.env.WAKU_LIGHTPUSH_NODE || null;
     const enrBootstrap = process.env.WAKU_ENR_BOOTSTRAP || null;
+
+    console.log("Network config on server start, pre headless:", networkConfig);
 
     const configScript = `    <script>
       window.__WAKU_NETWORK_CONFIG = ${JSON.stringify(networkConfig)};
