@@ -5,10 +5,17 @@ import {
   NetworkConfig,
   CreateNodeOptions,
 } from "@waku/sdk";
-import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS } from "@waku/interfaces";
+import {
+  AutoSharding,
+  DEFAULT_CLUSTER_ID,
+  DEFAULT_NUM_SHARDS,
+  ShardId,
+  StaticSharding,
+} from "@waku/interfaces";
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
 import type { ITestBrowser } from "../types/global.js";
+import { StaticShardingRoutingInfo } from "@waku/utils";
 
 export interface SerializableSDKProtocolResult {
   successes: string[];
@@ -119,18 +126,22 @@ export class WakuHeadless {
       Array.isArray(staticShards) &&
       staticShards.length > 0
     ) {
+      console.log("Using static sharding with shards:", staticShards);
       return {
         clusterId,
-        shards: staticShards,
-      } as NetworkConfig;
+      } as StaticSharding;
     }
 
     const numShardsInCluster =
       (providedConfig as any)?.numShardsInCluster ?? DEFAULT_NUM_SHARDS;
+    console.log(
+      "Using auto sharding with num shards in cluster:",
+      numShardsInCluster,
+    );
     return {
       clusterId,
       numShardsInCluster,
-    } as NetworkConfig;
+    } as AutoSharding;
   }
 
   async pushMessageV3(
@@ -141,7 +152,12 @@ export class WakuHeadless {
     if (!this.waku) {
       throw new Error("Waku node not started");
     }
-    console.log("Pushing message via v3 lightpush:", contentTopic, payload, pubsubTopic);
+    console.log(
+      "Pushing message via v3 lightpush:",
+      contentTopic,
+      payload,
+      pubsubTopic,
+    );
     console.log("Waku node:", this.waku);
     console.log("Network config:", this.networkConfig);
 
@@ -163,7 +179,20 @@ export class WakuHeadless {
         throw new Error("Lightpush service not available");
       }
 
-      const encoder = this.waku.createEncoder({ contentTopic });
+      let shardId: ShardId | undefined;
+      if (pubsubTopic) {
+        const staticShardingRoutingInfo =
+          StaticShardingRoutingInfo.fromPubsubTopic(
+            pubsubTopic,
+            this.networkConfig as StaticSharding,
+          );
+        shardId = staticShardingRoutingInfo?.shardId;
+      }
+
+      const encoder = this.waku.createEncoder({
+        contentTopic,
+        shardId,
+      });
       console.log("Encoder:", encoder);
       console.log("Pubsub topic:", pubsubTopic);
       console.log("Encoder pubsub topic:", encoder.pubsubTopic);
@@ -192,7 +221,10 @@ export class WakuHeadless {
             );
           }
         } catch (error) {
-          console.error("Couldn't send message via preferred lightpush node:", error);
+          console.error(
+            "Couldn't send message via preferred lightpush node:",
+            error,
+          );
           result = await lightPush.send(encoder, {
             payload: processedPayload,
             timestamp: new Date(),
@@ -264,7 +296,7 @@ export class WakuHeadless {
       filterMultiaddrs: false,
     };
 
-    if (this.enrBootstrap && this.shouldUseCustomBootstrap(options)) {
+    if (this.enrBootstrap) {
       const multiaddrs = await this.getBootstrapMultiaddrs();
 
       if (multiaddrs.length > 0) {
@@ -307,7 +339,10 @@ export class WakuHeadless {
       await this.waku.dial(this.lightpushNode);
     } catch {
       // Ignore dial errors
-      console.warn("Failed to dial preferred lightpush node:", this.lightpushNode);
+      console.warn(
+        "Failed to dial preferred lightpush node:",
+        this.lightpushNode,
+      );
     }
   }
 
