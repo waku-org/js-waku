@@ -71,6 +71,7 @@ export class WakuHeadless {
   ) {
     this.waku = null as unknown as LightNode;
     this.networkConfig = this.buildNetworkConfig(networkConfig);
+    console.log("Network config on construction:", this.networkConfig);
     this.lightpushNode = lightpushNode || null;
     this.enrBootstrap = enrBootstrap || null;
 
@@ -132,50 +133,6 @@ export class WakuHeadless {
     } as NetworkConfig;
   }
 
-  async pushMessage(
-    contentTopic: string,
-    payload: string,
-  ): Promise<SerializableSDKProtocolResult> {
-    if (!this.waku) {
-      throw new Error("Waku node not started");
-    }
-
-    let processedPayload: Uint8Array;
-    try {
-      const binaryString = atob(payload);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      processedPayload = bytes;
-    } catch (e) {
-      processedPayload = new TextEncoder().encode(payload);
-    }
-
-    try {
-      const lightPush = this.waku.lightPush;
-      if (!lightPush) {
-        throw new Error("Lightpush service not available");
-      }
-
-      const encoder = this.waku.createEncoder({ contentTopic });
-
-      const result = await lightPush.send(encoder, {
-        payload: processedPayload,
-        timestamp: new Date(),
-      });
-
-      const serializableResult = makeSerializable(result);
-
-      return serializableResult;
-    } catch (error) {
-      console.error("Error sending message via lightpush:", error);
-      throw new Error(
-        `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
   async pushMessageV3(
     contentTopic: string,
     payload: string,
@@ -184,6 +141,9 @@ export class WakuHeadless {
     if (!this.waku) {
       throw new Error("Waku node not started");
     }
+    console.log("Pushing message via v3 lightpush:", contentTopic, payload, pubsubTopic);
+    console.log("Waku node:", this.waku);
+    console.log("Network config:", this.networkConfig);
 
     let processedPayload: Uint8Array;
     try {
@@ -204,6 +164,9 @@ export class WakuHeadless {
       }
 
       const encoder = this.waku.createEncoder({ contentTopic });
+      console.log("Encoder:", encoder);
+      console.log("Pubsub topic:", pubsubTopic);
+      console.log("Encoder pubsub topic:", encoder.pubsubTopic);
 
       if (pubsubTopic && pubsubTopic !== encoder.pubsubTopic) {
         console.warn(
@@ -229,6 +192,7 @@ export class WakuHeadless {
             );
           }
         } catch (error) {
+          console.error("Couldn't send message via preferred lightpush node:", error);
           result = await lightPush.send(encoder, {
             payload: processedPayload,
             timestamp: new Date(),
@@ -290,27 +254,14 @@ export class WakuHeadless {
       console.warn("ignore previous waku stop error");
     }
 
-    if (options.networkConfig) {
-      this.networkConfig = options.networkConfig;
-    }
+    // if (options.networkConfig) {
+    //   this.networkConfig = options.networkConfig;
+    //   console.log("Network config on createWakuNode:", this.networkConfig);
+    // }
 
     let libp2pConfig: any = {
       ...options.libp2p,
       filterMultiaddrs: false,
-      connectionManager: {
-        minConnections: 1,
-        maxConnections: 50,
-        connectionGater: {
-          denyDialPeer: () => false,
-          denyDialMultiaddr: () => false,
-          denyInboundConnection: () => false,
-          denyOutboundConnection: () => false,
-          denyInboundEncryptedConnection: () => false,
-          denyOutboundEncryptedConnection: () => false,
-          denyInboundUpgradedConnection: () => false,
-          denyOutboundUpgradedConnection: () => false,
-        },
-      },
     };
 
     if (this.enrBootstrap && this.shouldUseCustomBootstrap(options)) {
@@ -356,6 +307,7 @@ export class WakuHeadless {
       await this.waku.dial(this.lightpushNode);
     } catch {
       // Ignore dial errors
+      console.warn("Failed to dial preferred lightpush node:", this.lightpushNode);
     }
   }
 

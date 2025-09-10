@@ -97,7 +97,7 @@ async function startServer(port: number = 3000): Promise<void> {
 
       const hasEnrBootstrap = Boolean(process.env.WAKU_ENR_BOOTSTRAP);
       const networkConfig: any = {
-        defaultBootstrap: !hasEnrBootstrap,
+        defaultBootstrap: false,
         ...(hasEnrBootstrap && {
           discovery: {
             dns: true,
@@ -107,14 +107,11 @@ async function startServer(port: number = 3000): Promise<void> {
         }),
       };
 
-      console.log(
-        `Bootstrap mode: ${hasEnrBootstrap ? "ENR-only (defaultBootstrap=false)" : "default bootstrap (defaultBootstrap=true)"}`,
-      );
+      // console.log(
+      //   `Bootstrap mode: ${hasEnrBootstrap ? "ENR-only (defaultBootstrap=false)" : "default bootstrap (defaultBootstrap=true)"}`,
+      // );
       if (hasEnrBootstrap) {
         console.log(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
-        console.log(
-          `Discovery options: peerExchange=true, dns=false, peerCache=true`,
-        );
       }
 
       networkConfig.networkConfig = {
