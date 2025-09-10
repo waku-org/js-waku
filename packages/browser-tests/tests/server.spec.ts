@@ -15,22 +15,18 @@ test.describe("Server Tests", () => {
 
   test.beforeAll(async () => {
     const serverPath = join(__dirname, "..", "dist", "src", "server.js");
-    console.log("Starting server from:", serverPath);
 
     serverProcess = spawn("node", [serverPath], {
       stdio: "pipe",
       env: { ...process.env, PORT: "3000" }
     });
 
-    serverProcess.stdout?.on("data", (data: Buffer) => {
-      console.log("[Server]", data.toString().trim());
+    serverProcess.stdout?.on("data", (_data: Buffer) => {
     });
 
-    serverProcess.stderr?.on("data", (data: Buffer) => {
-      console.error("[Server Error]", data.toString().trim());
+    serverProcess.stderr?.on("data", (_data: Buffer) => {
     });
 
-    console.log("Waiting for server to start...");
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     let serverReady = false;
@@ -38,14 +34,11 @@ test.describe("Server Tests", () => {
       try {
         const res = await axios.get(`${baseUrl}/`, { timeout: 2000 });
         if (res.status === 200) {
-          console.log(`Server is ready after ${i + 1} attempts`);
           serverReady = true;
           break;
         }
-      } catch (error: any) {
-        if (i % 5 === 0) {
-          console.log(`Attempt ${i + 1}/30 failed:`, error.code || error.message);
-        }
+      } catch {
+        // Ignore errors
       }
       await new Promise((r) => setTimeout(r, 1000));
     }
@@ -55,7 +48,6 @@ test.describe("Server Tests", () => {
 
   test.afterAll(async () => {
     if (serverProcess) {
-      console.log("Stopping server...");
       serverProcess.kill("SIGTERM");
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
@@ -84,7 +76,6 @@ test.describe("Server Tests", () => {
       expect(infoRes.data.peerId).toBeDefined();
       expect(infoRes.data.multiaddrs).toBeDefined();
     } catch (error: any) {
-      console.log("Waku node test failed (expected if browser not initialized):", error.response?.data?.error || error.message);
       expect(error.response?.status).toBe(400);
     }
   });

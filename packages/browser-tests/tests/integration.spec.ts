@@ -27,18 +27,14 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  // Stop Waku node with retry logic (following waku/tests patterns)
   if (wakuNode) {
-    console.log("Stopping Waku node...");
     try {
       await wakuNode.stop();
-      console.log("Waku node stopped successfully");
-    } catch (error) {
-      console.warn("Waku node stop had issues:", (error as any).message);
+    } catch {
+      // Ignore errors
     }
   }
 
-  // Stop container using shared utility
   await stopContainer(container);
 });
 
@@ -75,17 +71,12 @@ test("cross-network message delivery: SDK light node receives server lightpush",
   const messages: any[] = [];
   const decoder = wakuNode.createDecoder({ contentTopic });
 
-  try {
-    if (
-      !(await wakuNode.filter.subscribe([decoder], (message) => {
-        messages.push(message);
-      }))
-    ) {
-      throw new Error("Failed to subscribe to Filter");
-    }
-  } catch (error) {
-    console.error("❌ Failed to subscribe to Filter:", error);
-    throw error;
+  if (
+    !(await wakuNode.filter.subscribe([decoder], (message) => {
+      messages.push(message);
+    }))
+  ) {
+    throw new Error("Failed to subscribe to Filter");
   }
 
   await new Promise((r) => setTimeout(r, 2000));
@@ -120,7 +111,6 @@ test("cross-network message delivery: SDK light node receives server lightpush",
     },
   });
 
-  // Note: integration test uses different response format than e2e test
   expect(pushResponse.status).toBe(200);
   expect(pushResponse.data.success).toBe(true);
 
