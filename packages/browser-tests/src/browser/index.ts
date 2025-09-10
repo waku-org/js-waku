@@ -18,6 +18,17 @@ export async function initBrowser(appPort: number): Promise<void> {
 
     page = await browser.newPage();
 
+    // Forward browser console to server logs
+    page.on('console', msg => {
+      const type = msg.type();
+      const text = msg.text();
+      console.log(`[Browser Console ${type.toUpperCase()}] ${text}`);
+    });
+
+    page.on('pageerror', error => {
+      console.error('[Browser Page Error]', error.message);
+    });
+
     await page.goto(`http://localhost:${appPort}/app/index.html`, {
       waitUntil: "networkidle",
     });
