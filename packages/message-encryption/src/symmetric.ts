@@ -137,16 +137,6 @@ class Decoder extends DecoderV0 implements IDecoder<IEncryptedMessage> {
   ): Promise<IEncryptedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
-    if (protoMessage.version !== Version) {
-      log.error(
-        "Failed to decrypt due to incorrect version, expected:",
-        Version,
-        ", actual:",
-        protoMessage.version
-      );
-      return;
-    }
-
     let payload;
 
     try {

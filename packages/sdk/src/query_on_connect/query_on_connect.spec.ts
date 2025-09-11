@@ -67,7 +67,6 @@ describe("QueryOnConnect", () => {
       (async function* () {
         yield [
           Promise.resolve({
-            version: 1,
             timestamp: new Date(),
             contentTopic: "/test/1/content",
             pubsubTopic: "/waku/2/default-waku/proto",
@@ -255,7 +254,6 @@ describe("QueryOnConnect", () => {
       const mockMessage: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/1/content",
         pubsubTopic: "/waku/2/default-waku/proto",
@@ -501,7 +499,6 @@ describe("QueryOnConnect", () => {
       const mockMessage: IDecodedMessage = {
         hash: utf8ToBytes("1234"),
         hashStr: "1234",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
         pubsubTopic: "/waku/2/default-waku/proto",
@@ -535,7 +532,6 @@ describe("QueryOnConnect", () => {
       const mockMessage: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "1234",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/offline/content",
         pubsubTopic: "/waku/2/default-waku/proto",
@@ -579,7 +575,6 @@ describe("QueryOnConnect", () => {
       const mockMessage: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/timeout/content",
         pubsubTopic: "/waku/2/default-waku/proto",
@@ -632,7 +627,6 @@ describe("QueryOnConnect", () => {
       const mockMessage1: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/multi/content1",
         pubsubTopic: "/waku/2/default-waku/proto",
@@ -645,7 +639,6 @@ describe("QueryOnConnect", () => {
       const mockMessage2: IDecodedMessage = {
         hash: new Uint8Array(),
         hashStr: "",
-        version: 1,
         timestamp: new Date(),
         contentTopic: "/test/multi/content2",
         pubsubTopic: "/waku/2/default-waku/proto",
