@@ -1,11 +1,8 @@
-import { hmac } from "@noble/hashes/hmac";
-import { sha256 } from "@noble/hashes/sha2";
 import { Logger } from "@waku/utils";
 import { ethers } from "ethers";
 
-import { RLN_CONTRACT, RLN_Q } from "./contract/constants.js";
+import { RLN_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
-import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
 import type {
   DecryptedCredentials,
@@ -13,7 +10,6 @@ import type {
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
-import { BytesUtils } from "./utils/bytes.js";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
@@ -21,7 +17,6 @@ const log = new Logger("rln:credentials");
 
 /**
  * Manages credentials for RLN
- * This is a lightweight implementation of the RLN contract that doesn't require Zerokit
  * It is used to register membership and generate identity credentials
  */
 export class RLNCredentialsManager {
@@ -34,9 +29,9 @@ export class RLNCredentialsManager {
   protected keystore = Keystore.create();
   public credentials: undefined | DecryptedCredentials;
 
-  public zerokit: undefined | Zerokit;
+  public zerokit: Zerokit;
 
-  public constructor(zerokit?: Zerokit) {
+  public constructor(zerokit: Zerokit) {
     log.info("RLNCredentialsManager initialized");
     this.zerokit = zerokit;
   }
@@ -81,7 +76,7 @@ export class RLNCredentialsManager {
       this.contract = await RLNBaseContract.create({
         address: address!,
         signer: signer!,
-        rateLimit: rateLimit ?? this.zerokit?.rateLimit
+        rateLimit: rateLimit ?? this.zerokit.rateLimit
       });
 
       log.info("RLNCredentialsManager successfully started");
@@ -106,18 +101,10 @@ export class RLNCredentialsManager {
     let identity = "identity" in options && options.identity;
 
     if ("signature" in options) {
-      log.info("Generating identity from signature");
-      if (this.zerokit) {
-        log.info("Using Zerokit to generate identity");
-        identity = this.zerokit.generateSeededIdentityCredential(
-          options.signature
-        );
-      } else {
-        log.info("Using local implementation to generate identity");
-        identity = await this.generateSeededIdentityCredential(
-          options.signature
-        );
-      }
+      log.info("Using Zerokit to generate identity");
+      identity = this.zerokit.generateSeededIdentityCredential(
+        options.signature
+      );
     }
 
     if (!identity) {
@@ -241,56 +228,5 @@ export class RLNCredentialsManager {
         `Failed to verify chain coordinates: credentials chainID=${chainId} is not equal to registryContract chainID=${currentChainId}`
       );
     }
-  }
-
-  /**
-   * Generates an identity credential from a seed string
-   * This is a pure implementation that doesn't rely on Zerokit
-   * @param seed A string seed to generate the identity from
-   * @returns IdentityCredential
-   */
-  private async generateSeededIdentityCredential(
-    seed: string
-  ): Promise<IdentityCredential> {
-    log.info("Generating seeded identity credential");
-    // Convert the seed to bytes
-    const encoder = new TextEncoder();
-    const seedBytes = encoder.encode(seed);
-
-    // Generate deterministic values using HMAC-SHA256
-    // We use different context strings for each component to ensure they're different
-    const idTrapdoorBE = hmac(sha256, seedBytes, encoder.encode("IDTrapdoor"));
-    const idNullifierBE = hmac(
-      sha256,
-      seedBytes,
-      encoder.encode("IDNullifier")
-    );
-
-    const combinedBytes = new Uint8Array([...idTrapdoorBE, ...idNullifierBE]);
-    const idSecretHashBE = sha256(combinedBytes);
-
-    const idCommitmentRawBE = sha256(idSecretHashBE);
-    const idCommitmentBE = this.reduceIdCommitment(idCommitmentRawBE);
-
-    log.info(
-      "Successfully generated identity credential, storing in Big Endian format"
-    );
-    return new IdentityCredential(
-      idTrapdoorBE,
-      idNullifierBE,
-      idSecretHashBE,
-      idCommitmentBE
-    );
-  }
-
-  /**
-   * Helper: take 32-byte BE, reduce mod Q, return 32-byte BE
-   */
-  private reduceIdCommitment(
-    bytesBE: Uint8Array,
-    limit: bigint = RLN_Q
-  ): Uint8Array {
-    const nBE = BytesUtils.buildBigIntFromUint8ArrayBE(bytesBE);
-    return BytesUtils.bigIntToUint8Array32BE(nBE % limit);
   }
 }
