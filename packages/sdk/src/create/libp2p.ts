@@ -4,7 +4,8 @@ import { identify } from "@libp2p/identify";
 import { mplex } from "@libp2p/mplex";
 import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
-import { all as filterAll, wss } from "@libp2p/websockets/filters";
+import type { Multiaddr } from "@multiformats/multiaddr";
+import { WebSockets, WebSocketsSecure } from "@multiformats/multiaddr-matcher";
 import { wakuMetadata } from "@waku/core";
 import {
   type ClusterId,
@@ -44,16 +45,31 @@ export async function defaultLibp2p(
     /* eslint-enable no-console */
   }
 
-  const filter =
-    options?.filterMultiaddrs === false || isTestEnvironment()
-      ? filterAll
-      : wss;
+  const denyDialMultiaddr = async (ma: Multiaddr): Promise<boolean> => {
+    const userDeny = options?.connectionGater?.denyDialMultiaddr;
+
+    if (options?.filterMultiaddrs === false || isTestEnvironment()) {
+      return (await userDeny?.(ma)) ?? false;
+    }
+
+    if (WebSockets.matches(ma) && !WebSocketsSecure.matches(ma)) {
+      return true;
+    }
+
+    return (await userDeny?.(ma)) ?? false;
+  };
+
+  const connectionGater = {
+    ...options?.connectionGater,
+    denyDialMultiaddr
+  };
 
   return createLibp2p({
-    transports: [webSockets({ filter: filter })],
+    transports: [webSockets()],
     streamMuxers: [mplex()],
     connectionEncrypters: [noise()],
     ...options,
+    connectionGater,
     services: {
       identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent
