@@ -1,5 +1,5 @@
 import { PeerId } from "@libp2p/interface";
-import { Libp2p } from "@waku/interfaces";
+import { Libp2p, Tags } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 type BootstrapTriggerConstructorOptions = {
@@ -73,10 +73,10 @@ export class BootstrapTrigger implements IBootstrapTrigger {
 
     const bootstrapComponents = Object.values(this.libp2p.components.components)
       .filter((c) => !!c)
-      .filter(
-        (c: unknown) =>
-          (c as { [Symbol.toStringTag]: string })[Symbol.toStringTag] ===
-          "@waku/bootstrap"
+      .filter((c: unknown) =>
+        [`@waku/${Tags.BOOTSTRAP}`, `@waku/${Tags.PEER_CACHE}`].includes(
+          (c as { [Symbol.toStringTag]: string })?.[Symbol.toStringTag]
+        )
       );
 
     if (bootstrapComponents.length === 0) {
@@ -90,7 +90,8 @@ export class BootstrapTrigger implements IBootstrapTrigger {
 
     bootstrapComponents.forEach((component) => {
       try {
-        (component as { start: () => void }).start();
+        (component as { stop: () => void })?.stop?.();
+        (component as { start: () => void })?.start?.();
         log.info("Successfully started bootstrap component");
       } catch (error) {
         log.error("Failed to start bootstrap component", error);
