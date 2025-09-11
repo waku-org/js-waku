@@ -37,6 +37,16 @@ You can track progress on the [project board](https://github.com/orgs/waku-org/p
 
 See [CONTRIBUTING.md](https://github.com/waku-org/js-waku/blob/master/CONTRIBUTING.md).
 
+## Dockerized browser tests
+
+Build and run the dockerized Playwright tests from `packages/browser-tests`:
+
+```bash
+cd packages/browser-tests
+npm run docker:build
+HEADLESS_USE_CDN_IN_DOCKER=0 npx playwright test tests/docker-server.spec.ts
+```
+
 ## License
 
 Licensed and distributed under either of
