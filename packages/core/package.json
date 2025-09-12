@@ -80,7 +80,7 @@
   "devDependencies": {
     "@libp2p/peer-id": "5.1.7",
     "@libp2p/interface": "2.10.4",
-    "@multiformats/multiaddr": "^12.0.0",
+    "@multiformats/multiaddr": "^13.0.1",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -101,7 +101,7 @@
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
-    "@multiformats/multiaddr": "^12.0.0",
+    "@multiformats/multiaddr": "^13.0.1",
     "libp2p": "2.8.11"
   },
   "peerDependenciesMeta": {

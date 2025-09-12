@@ -54,7 +54,7 @@
     "@ethersproject/rlp": "^5.7.0",
     "@libp2p/crypto": "5.1.6",
     "@libp2p/peer-id": "5.1.7",
-    "@multiformats/multiaddr": "^12.0.0",
+    "@multiformats/multiaddr": "^13.0.1",
     "@noble/secp256k1": "^1.7.1",
     "@waku/utils": "0.0.26",
     "debug": "^4.3.4",
@@ -78,7 +78,7 @@
     "uint8arrays": "^5.0.1"
   },
   "peerDependencies": {
-    "@multiformats/multiaddr": "^12.0.0"
+    "@multiformats/multiaddr": "^13.0.1"
   },
   "peerDependenciesMeta": {
     "@multiformats/multiaddr": {
