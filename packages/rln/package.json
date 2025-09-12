@@ -61,7 +61,7 @@
     "@waku/build-utils": "^1.0.0",
     "@waku/message-encryption": "^0.0.36",
     "deep-equal-in-any-order": "^2.0.6",
-    "fast-check": "^3.23.2",
+    "fast-check": "^4.3.0",
     "rollup-plugin-copy": "^3.5.0"
   },
   "files": [
