@@ -11,7 +11,6 @@ import {
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { BootstrapTrigger } from "./bootstrap_trigger.js";
 import { ConnectionLimiter } from "./connection_limiter.js";
 import { Dialer } from "./dialer.js";
 import { DiscoveryDialer } from "./discovery_dialer.js";
@@ -46,7 +45,6 @@ export class ConnectionManager implements IConnectionManager {
   private readonly shardReader: ShardReader;
   private readonly networkMonitor: NetworkMonitor;
   private readonly connectionLimiter: ConnectionLimiter;
-  private readonly bootstrapTrigger: BootstrapTrigger;
 
   private readonly options: ConnectionManagerOptions;
   private libp2p: Libp2p;
@@ -65,10 +63,6 @@ export class ConnectionManager implements IConnectionManager {
       dialCooldown: DEFAULT_DIAL_COOLDOWN_SEC,
       ...options.config
     };
-
-    this.bootstrapTrigger = new BootstrapTrigger({
-      libp2p: options.libp2p
-    });
 
     this.keepAliveManager = new KeepAliveManager({
       relay: options.relay,
@@ -116,7 +110,6 @@ export class ConnectionManager implements IConnectionManager {
     this.discoveryDialer.start();
     this.keepAliveManager.start();
     this.connectionLimiter.start();
-    this.bootstrapTrigger.start();
   }
 
   public stop(): void {
@@ -125,7 +118,6 @@ export class ConnectionManager implements IConnectionManager {
     this.discoveryDialer.stop();
     this.keepAliveManager.stop();
     this.connectionLimiter.stop();
-    this.bootstrapTrigger.stop();
   }
 
   public isConnected(): boolean {

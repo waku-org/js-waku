@@ -1,6 +1,7 @@
 import { isPeerId, type Peer, type PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
+import { Libp2p } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 
 /**
@@ -48,4 +49,26 @@ export const mapToPeerId = (input: PeerId | MultiaddrInput): PeerId => {
   return isPeerId(input)
     ? input
     : peerIdFromString(multiaddr(input).getPeerId()!);
+};
+
+/**
+ * Checks if the address is supported by the libp2p instance.
+ * @param libp2p - The libp2p instance.
+ * @param addresses - The addresses to check.
+ * @returns True if the addresses are supported, false otherwise.
+ */
+export const isAddressesSupported = (
+  libp2p: Libp2p,
+  addresses: Multiaddr[]
+): boolean => {
+  const transports =
+    libp2p?.components?.transportManager?.getTransports() || [];
+
+  if (transports.length === 0) {
+    return false;
+  }
+
+  return transports
+    .map((transport) => transport.dialFilter(addresses))
+    .some((supportedAddresses) => supportedAddresses.length > 0);
 };
