@@ -95,7 +95,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     super();
     this.channelId = channelId;
     this.senderId = senderId;
-    this.lamportTimestamp = 0;
+    // SDS RFC says to use nanoseconds, but current time in nanosecond is > Number.MAX_SAFE_INTEGER
+    // So instead we are using milliseconds and proposing a spec change (TODO)
+    this.lamportTimestamp = Date.now();
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
@@ -174,13 +176,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    *
    * @throws Error if the payload is empty
    */
-  public async pushOutgoingMessage(
+  public pushOutgoingMessage(
     payload: Uint8Array,
     callback?: (processedMessage: ContentMessage) => Promise<{
       success: boolean;
       retrievalHint?: Uint8Array;
     }>
-  ): Promise<void> {
+  ): void {
     if (!payload || !payload.length) {
       throw Error("Only messages with valid payloads are allowed");
     }
@@ -285,6 +287,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         }
         log.info(
           this.senderId,
+          "message from incoming buffer",
           message.messageId,
           "is missing dependencies",
           missingDependencies.map(({ messageId, retrievalHint }) => {
@@ -470,10 +473,15 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.timeReceived.set(message.messageId, Date.now());
       log.info(
         this.senderId,
+        "new incoming message",
         message.messageId,
         "is missing dependencies",
         missingDependencies.map((ch) => ch.messageId)
       );
+
+      this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
+        detail: Array.from(missingDependencies)
+      });
     } else {
       if (isContentMessage(message) && this.deliverMessage(message)) {
         this.safeSendEvent(MessageChannelEvent.InMessageDelivered, {
