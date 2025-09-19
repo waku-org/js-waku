@@ -87,6 +87,12 @@ describe("ConnectionLimiter", () => {
     mockPeer2 = createMockPeer("12D3KooWTest2", [Tags.BOOTSTRAP]); // Ensure mockPeer2 is prioritized and dialed
     mockConnection = createMockConnection(mockPeerId, [Tags.BOOTSTRAP]);
 
+    dialer = {
+      start: sinon.stub(),
+      stop: sinon.stub(),
+      dial: sinon.stub().resolves()
+    } as unknown as sinon.SinonStubbedInstance<Dialer>;
+
     libp2p = {
       addEventListener: sinon.stub(),
       removeEventListener: sinon.stub(),
@@ -95,7 +101,11 @@ describe("ConnectionLimiter", () => {
       getConnections: sinon.stub().returns([]),
       peerStore: {
         all: sinon.stub().resolves([]),
-        get: sinon.stub().resolves(mockPeer)
+        get: sinon.stub().resolves(mockPeer),
+        merge: sinon.stub().resolves()
+      },
+      components: {
+        components: {}
       }
     };
 
@@ -112,6 +122,20 @@ describe("ConnectionLimiter", () => {
       isConnected: sinon.stub().returns(true),
       isP2PConnected: sinon.stub().returns(true)
     } as unknown as sinon.SinonStubbedInstance<NetworkMonitor>;
+
+    // Mock the libp2p components needed by isAddressesSupported
+    libp2p.components = {
+      components: {},
+      transportManager: {
+        getTransports: sinon.stub().returns([
+          {
+            dialFilter: sinon
+              .stub()
+              .returns([multiaddr("/dns4/test/tcp/443/wss")])
+          }
+        ])
+      }
+    };
   });
 
   afterEach(() => {
@@ -274,11 +298,6 @@ describe("ConnectionLimiter", () => {
 
   describe("dialPeersFromStore", () => {
     beforeEach(() => {
-      dialer = {
-        start: sinon.stub(),
-        stop: sinon.stub(),
-        dial: sinon.stub().resolves()
-      } as unknown as sinon.SinonStubbedInstance<Dialer>;
       libp2p.hangUp = sinon.stub().resolves();
       connectionLimiter = createLimiter();
       mockPeer.addresses = [
@@ -404,11 +423,6 @@ describe("ConnectionLimiter", () => {
 
   describe("maintainConnectionsCount", () => {
     beforeEach(() => {
-      dialer = {
-        start: sinon.stub(),
-        stop: sinon.stub(),
-        dial: sinon.stub().resolves()
-      } as unknown as sinon.SinonStubbedInstance<Dialer>;
       libp2p.hangUp = sinon.stub().resolves();
       connectionLimiter = createLimiter({ maxConnections: 2 });
       mockPeer.addresses = [
@@ -515,6 +529,7 @@ describe("ConnectionLimiter", () => {
       ];
       libp2p.peerStore.all.resolves([bootstrapPeer, pxPeer, localPeer]);
       libp2p.getConnections.returns([]);
+      connectionLimiter = createLimiter();
       const peers = await (connectionLimiter as any).getPrioritizedPeers();
       expect(peers[0].id.toString()).to.equal("b");
       expect(peers[1].id.toString()).to.equal("px");
