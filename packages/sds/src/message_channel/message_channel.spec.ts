@@ -185,18 +185,21 @@ describe("MessageChannel", function () {
     });
 
     it("should update lamport timestamp if greater than current timestamp and dependencies are met", async () => {
-      const timestampBefore = channelA["lamportTimestamp"];
+      const testChannelA = new MessageChannel(channelId, "alice");
+      const testChannelB = new MessageChannel(channelId, "bob");
+
+      const timestampBefore = testChannelA["lamportTimestamp"];
 
       for (const m of messagesA) {
-        await sendMessage(channelA, utf8ToBytes(m), callback);
+        await sendMessage(testChannelA, utf8ToBytes(m), callback);
       }
       for (const m of messagesB) {
-        await sendMessage(channelB, utf8ToBytes(m), async (message) => {
-          await receiveMessage(channelA, message);
+        await sendMessage(testChannelB, utf8ToBytes(m), async (message) => {
+          await receiveMessage(testChannelA, message);
           return { success: true };
         });
       }
-      const timestampAfter = channelA["lamportTimestamp"];
+      const timestampAfter = testChannelA["lamportTimestamp"];
       expect(timestampAfter - timestampBefore).to.equal(messagesB.length);
     });
 
