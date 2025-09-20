@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.14](https://github.com/waku-org/js-waku/compare/proto-v0.0.13...proto-v0.0.14) (2025-09-20)
+
+
+### Features
+
+* Implement lp-v3 error codes with backwards compatibility ([#2501](https://github.com/waku-org/js-waku/issues/2501)) ([1625302](https://github.com/waku-org/js-waku/commit/16253026c6e30052d87d9975b58480951de469d8))
+
 ## [0.0.13](https://github.com/waku-org/js-waku/compare/proto-v0.0.12...proto-v0.0.13) (2025-08-14)
 
 

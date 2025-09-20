@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.34](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.33...interfaces-v0.0.34) (2025-09-20)
+
+
+### Features
+
+* Add start/stop to filter ([#2592](https://github.com/waku-org/js-waku/issues/2592)) ([2fba052](https://github.com/waku-org/js-waku/commit/2fba052b8b98cb64f6383de95d01b33beb771448))
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+* Implement lp-v3 error codes with backwards compatibility ([#2501](https://github.com/waku-org/js-waku/issues/2501)) ([1625302](https://github.com/waku-org/js-waku/commit/16253026c6e30052d87d9975b58480951de469d8))
+* Query on connect ([#2602](https://github.com/waku-org/js-waku/issues/2602)) ([8542d04](https://github.com/waku-org/js-waku/commit/8542d04bf5c9472f955ef8c9e5bc9e89c70f4738))
+* StoreConnect events ([#2601](https://github.com/waku-org/js-waku/issues/2601)) ([0dfbcf6](https://github.com/waku-org/js-waku/commit/0dfbcf6b6bd9225dcb0dec540aeb1eb2703c8397))
+
 ## [0.0.33](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.32...interfaces-v0.0.33) (2025-08-14)
 
 
