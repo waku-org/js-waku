@@ -1,5 +1,2 @@
-import { Keystore } from "./keystore.js";
-import type { DecryptedCredentials, EncryptedCredentials } from "./types.js";
-
-export { Keystore };
-export type { EncryptedCredentials, DecryptedCredentials };
+export { Keystore } from "./keystore.js";
+export type { EncryptedCredentials, DecryptedCredentials } from "./types.js";
