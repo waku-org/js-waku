@@ -1,4 +1,4 @@
-import { messageHashStr } from "@waku/core";
+import { message, messageHashStr } from "@waku/core";
 import { IDecodedMessage, IEncoder, IMessage } from "@waku/interfaces";
 
 type QueuedMessage = {
@@ -14,8 +14,12 @@ type MessageStoreOptions = {
   resendIntervalMs?: number;
 };
 
+type RequestId = string;
+
 export class MessageStore {
   private readonly messages: Map<string, QueuedMessage> = new Map();
+  private readonly pendingRequests: Map<RequestId, QueuedMessage> = new Map();
+
   private readonly resendIntervalMs: number;
 
   public constructor(options: MessageStoreOptions = {}) {
@@ -40,62 +44,91 @@ export class MessageStore {
     const entry = this.messages.get(hashStr);
     if (!entry) return;
     entry.filterAck = true;
+    // TODO: implement events
   }
 
   public markStoreAck(hashStr: string): void {
     const entry = this.messages.get(hashStr);
     if (!entry) return;
     entry.storeAck = true;
+    // TODO: implement events
   }
 
-  public markSent(hashStr: string): void {
-    const entry = this.messages.get(hashStr);
-    if (!entry) return;
-    entry.lastSentAt = Date.now();
+  public async markSent(requestId: RequestId): Promise<void> {
+    const entry = this.pendingRequests.get(requestId);
+
+    if (!entry || !entry.encoder || !entry.message) {
+      return;
+    }
+
+    try {
+      entry.lastSentAt = Date.now();
+      this.pendingRequests.delete(requestId);
+
+      const proto = await entry.encoder.toProtoObj(entry.message);
+
+      if (!proto) {
+        return;
+      }
+
+      const hashStr = messageHashStr(entry.encoder.pubsubTopic, proto);
+
+      this.messages.set(hashStr, entry);
+    } catch (error) {
+      // TODO: better recovery
+      this.pendingRequests.set(requestId, entry);
+    }
   }
 
   public async queue(
     encoder: IEncoder,
     message: IMessage
-  ): Promise<string | undefined> {
-    const proto = await encoder.toProtoObj(message);
-    if (!proto) return undefined;
-    const hashStr = messageHashStr(encoder.pubsubTopic, proto);
-    const existing = this.messages.get(hashStr);
-    if (!existing) {
-      this.messages.set(hashStr, {
-        encoder,
-        message,
-        filterAck: false,
-        storeAck: false,
-        createdAt: Date.now()
-      });
-    }
-    return hashStr;
+  ): Promise<RequestId | undefined> {
+    const requestId = crypto.randomUUID();
+
+    this.pendingRequests.set(requestId, {
+      encoder,
+      message,
+      filterAck: false,
+      storeAck: false,
+      createdAt: Date.now()
+    });
+
+    return requestId;
   }
 
   public getMessagesToSend(): Array<{
-    hashStr: string;
+    requestId: string;
     encoder: IEncoder;
     message: IMessage;
   }> {
     const now = Date.now();
+
     const res: Array<{
-      hashStr: string;
+      requestId: string;
       encoder: IEncoder;
       message: IMessage;
     }> = [];
-    for (const [hashStr, entry] of this.messages.entries()) {
-      if (!entry.encoder || !entry.message) continue;
-      const isAcknowledged = entry.filterAck || entry.storeAck;
-      if (isAcknowledged) continue;
+
+    for (const [requestId, entry] of this.pendingRequests.entries()) {
+      if (!entry.encoder || !entry.message) {
+        continue;
+      }
+
+      const isAcknowledged = entry.filterAck || entry.storeAck; // TODO: make sure it works with message and pending requests and returns messages to re-sent that are not ack yet
+
+      if (isAcknowledged) {
+        continue;
+      }
+
       if (
         !entry.lastSentAt ||
         now - entry.lastSentAt >= this.resendIntervalMs
       ) {
-        res.push({ hashStr, encoder: entry.encoder, message: entry.message });
+        res.push({ requestId, encoder: entry.encoder, message: entry.message });
       }
     }
+
     return res;
   }
 }

@@ -6,9 +6,9 @@ import {
   IStore
 } from "@waku/interfaces";
 
-import { FilterAckManager } from "./fitler_ack.js";
+import { AckManager } from "./ack_manager.js";
 import { MessageStore } from "./message_store.js";
-import { StoreAckManager } from "./store_ack.js";
+import { Sender } from "./sender.js";
 
 interface IMessaging {
   send(encoder: IEncoder, message: IMessage): Promise<void>;
@@ -21,38 +21,34 @@ type MessagingConstructorParams = {
 };
 
 export class Messaging implements IMessaging {
-  private readonly lightPush: ILightPush;
   private readonly messageStore: MessageStore;
-  private readonly filterAckManager: FilterAckManager;
-  private readonly storeAckManager: StoreAckManager;
+  private readonly ackManager: AckManager;
+  private readonly sender: Sender;
 
   public constructor(params: MessagingConstructorParams) {
-    this.lightPush = params.lightPush;
     this.messageStore = new MessageStore();
-    this.filterAckManager = new FilterAckManager(
-      this.messageStore,
-      params.filter
-    );
-    this.storeAckManager = new StoreAckManager(this.messageStore, params.store);
+
+    this.ackManager = new AckManager({
+      messageStore: this.messageStore,
+      filter: params.filter,
+      store: params.store
+    });
+
+    this.sender = new Sender({
+      messageStore: this.messageStore,
+      lightPush: params.lightPush
+    });
   }
 
   public start(): void {
-    this.filterAckManager.start();
-    this.storeAckManager.start();
+    this.ackManager.start();
   }
 
   public async stop(): Promise<void> {
-    await this.filterAckManager.stop();
-    this.storeAckManager.stop();
+    await this.ackManager.stop();
   }
 
   public send(encoder: IEncoder, message: IMessage): Promise<void> {
-    return (async () => {
-      const hash = await this.messageStore.queue(encoder, message);
-      await this.lightPush.send(encoder, message);
-      if (hash) {
-        this.messageStore.markSent(hash);
-      }
-    })();
+    return this.sender.send(encoder, message);
   }
 }
