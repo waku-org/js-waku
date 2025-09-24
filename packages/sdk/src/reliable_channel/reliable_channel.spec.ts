@@ -539,7 +539,6 @@ describe("Reliable Channel", () => {
       const autoRetrievedMessage: IDecodedMessage = {
         hash: hexToBytes("1234"),
         hashStr: "1234",
-        version: 1,
         timestamp: new Date(),
         contentTopic: TEST_CONTENT_TOPIC,
         pubsubTopic: decoder.pubsubTopic,
@@ -617,7 +616,6 @@ describe("Reliable Channel", () => {
       const autoRetrievedMessage1: IDecodedMessage = {
         hash: hexToBytes("5678"),
         hashStr: "5678",
-        version: 1,
         timestamp: new Date(Date.now() - 1000),
         contentTopic: TEST_CONTENT_TOPIC,
         pubsubTopic: decoder.pubsubTopic,
@@ -630,7 +628,6 @@ describe("Reliable Channel", () => {
       const autoRetrievedMessage2: IDecodedMessage = {
         hash: hexToBytes("9abc"),
         hashStr: "9abc",
-        version: 1,
         timestamp: new Date(),
         contentTopic: TEST_CONTENT_TOPIC,
         pubsubTopic: decoder.pubsubTopic,

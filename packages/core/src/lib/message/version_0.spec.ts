@@ -23,7 +23,7 @@ const testRoutingInfo = createRoutingInfo(testNetworkConfig, {
   contentTopic: testContentTopic
 });
 
-describe("Waku Message version 0", function () {
+describe("Waku Message", function () {
   it("Round trip binary serialization", async function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
@@ -41,7 +41,6 @@ describe("Waku Message version 0", function () {
 
         expect(result.contentTopic).to.eq(testContentTopic);
         expect(result.pubsubTopic).to.eq(testRoutingInfo.pubsubTopic);
-        expect(result.version).to.eq(0);
         expect(result.ephemeral).to.be.false;
         expect(result.payload).to.deep.eq(payload);
         expect(result.timestamp).to.not.be.undefined;

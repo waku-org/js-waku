@@ -11,12 +11,10 @@ import type {
   PubsubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { Logger } from "@waku/utils";
 import { bytesToHex } from "@waku/utils/bytes";
 
 import { messageHash } from "../message_hash/index.js";
 
-const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
 
 export const Version = 0;
@@ -74,12 +72,6 @@ export class DecodedMessage implements IDecodedMessage {
 
   public get meta(): Uint8Array | undefined {
     return this.proto.meta;
-  }
-
-  public get version(): number {
-    // https://rfc.vac.dev/spec/14/
-    // > If omitted, the value SHOULD be interpreted as version 0.
-    return this.proto.version ?? Version;
   }
 
   public get rateLimitProof(): IRateLimitProof | undefined {
@@ -181,18 +173,6 @@ export class Decoder implements IDecoder<IDecodedMessage> {
     pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<IDecodedMessage | undefined> {
-    // https://rfc.vac.dev/spec/14/
-    // > If omitted, the value SHOULD be interpreted as version 0.
-    if (proto.version ?? 0 !== Version) {
-      log.error(
-        "Failed to decode due to incorrect version, expected:",
-        Version,
-        ", actual:",
-        proto.version
-      );
-      return Promise.resolve(undefined);
-    }
-
     return new DecodedMessage(pubsubTopic, proto);
   }
 }

@@ -63,7 +63,7 @@ describe("RLN codec with version 0", () => {
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 
   it("toProtoObj", async function () {
@@ -92,7 +92,7 @@ describe("RLN codec with version 0", () => {
       proto!
     )) as RlnMessage<IDecodedMessage>;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 });
 
@@ -131,7 +131,7 @@ describe("RLN codec with version 1", () => {
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 
   it("Symmetric, toProtoObj", async function () {
@@ -166,7 +166,7 @@ describe("RLN codec with version 1", () => {
       proto!
     );
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 
   it("Asymmetric, toWire", async function () {
@@ -204,7 +204,7 @@ describe("RLN codec with version 1", () => {
       protoResult!
     ))!;
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 
   it("Asymmetric, toProtoObj", async function () {
@@ -240,7 +240,7 @@ describe("RLN codec with version 1", () => {
       proto!
     );
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 1, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 });
 
@@ -277,7 +277,7 @@ describe("RLN Codec - epoch", () => {
     expect(msg.epoch!.toString(10).length).to.eq(9);
     expect(msg.epoch).to.eq(epoch);
 
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 });
 
@@ -321,7 +321,7 @@ describe("RLN codec with version 0 and meta setter", () => {
     });
 
     expect(msg!.meta).to.deep.eq(expectedMeta);
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 
   it("toProtoObj", async function () {
@@ -358,6 +358,6 @@ describe("RLN codec with version 0 and meta setter", () => {
     });
 
     expect(msg!.meta).to.deep.eq(expectedMeta);
-    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, 0, rlnInstance);
+    verifyRLNMessage(msg, payload, TEST_CONSTANTS.contentTopic, rlnInstance);
   });
 });

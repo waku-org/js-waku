@@ -70,7 +70,6 @@ describe("Waku Relay, Interop", function () {
     }
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
-    expect(msgs[0].version).to.equal(0);
     expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
   });
 
@@ -99,7 +98,6 @@ describe("Waku Relay, Interop", function () {
     const receivedMsg = await receivedMsgPromise;
 
     expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-    expect(receivedMsg.version!).to.eq(0);
     expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
   });
 

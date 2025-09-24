@@ -326,7 +326,7 @@ test.describe("Waku Server API", () => {
 
           // If we get a 404, the route is not registered
           expect(response.status).not.toBe(404);
-        } catch (error) {
+        } catch (error: any) {
           console.warn(`Error checking endpoint ${endpoint}:`, error.message);
           // Continue checking other endpoints even if one fails
         }
@@ -536,7 +536,6 @@ test.describe("Waku Server API", () => {
     expect(message).toHaveProperty("payload");
     expect(message).toHaveProperty("contentTopic");
     expect(message).toHaveProperty("timestamp");
-    expect(message).toHaveProperty("version");
 
     // Test pagination
     const paginatedResponse = await axios.get(

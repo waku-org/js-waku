@@ -17,7 +17,6 @@ describe("to proto message", () => {
     const keys = Object.keys(protoMessage);
     expect(keys).to.contain("payload");
     expect(keys).to.contain("contentTopic");
-    expect(keys).to.contain("version");
     expect(keys).to.contain("timestamp");
     expect(keys).to.contain("rateLimitProof");
     expect(keys).to.contain("ephemeral");
