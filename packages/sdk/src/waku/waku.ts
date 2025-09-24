@@ -232,7 +232,7 @@ export class WakuNode implements IWaku {
     this.peerManager.start();
     this.healthIndicator.start();
     this.lightPush?.start();
-    this.sender?.start();
+    this.messaging?.start();
 
     this._nodeStateLock = false;
     this._nodeStarted = true;
@@ -243,7 +243,7 @@ export class WakuNode implements IWaku {
 
     this._nodeStateLock = true;
 
-    this.sender?.stop();
+    await this.messaging?.stop();
     this.lightPush?.stop();
     await this.filter?.stop();
     this.healthIndicator.stop();
