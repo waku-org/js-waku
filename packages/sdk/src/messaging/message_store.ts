@@ -80,10 +80,7 @@ export class MessageStore {
     }
   }
 
-  public async queue(
-    encoder: IEncoder,
-    message: IMessage
-  ): Promise<RequestId | undefined> {
+  public async queue(encoder: IEncoder, message: IMessage): Promise<RequestId> {
     const requestId = crypto.randomUUID();
 
     this.pendingRequests.set(requestId, {
