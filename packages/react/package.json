@@ -1,0 +1,102 @@
+{
+  "name": "@waku/react",
+  "version": "0.0.7",
+  "description": "React hooks and components to use js-waku",
+  "type": "module",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.mjs",
+  "umd:main": "dist/index.umd.js",
+  "unpkg": "dist/index.umd.js",
+  "source": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.mjs",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "author": "Waku Team",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/react#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "decentralized",
+    "secure",
+    "communication",
+    "web3",
+    "ethereum",
+    "dapps",
+    "privacy",
+    "react"
+  ],
+  "scripts": {
+    "build": "rollup --config rollup.config.js",
+    "fix": "run-s fix:*",
+    "fix:lint": "eslint src *.js --fix",
+    "check": "run-s check:*",
+    "check:tsc": "tsc -p tsconfig.dev.json",
+    "check:lint": "eslint src *.js",
+    "check:spelling": "cspell \"{README.md,src/**/*.ts,src/**/*.tsx}\"",
+    "test": "NODE_ENV=test run-s test:*",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "watch:build": "tsc -p tsconfig.json -w",
+    "watch:test": "mocha --watch",
+    "prepublish": "npm run build",
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@waku/interfaces": "0.0.34",
+    "@waku/sdk": "0.0.35",
+    "@waku/utils": "0.0.27"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.9",
+    "@types/react": "^18.0.28",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "@waku/build-utils": "*",
+    "chai": "^5.1.1",
+    "cspell": "^8.6.1",
+    "eslint": "^8.34.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "mocha": "^10.7.3",
+    "npm-run-all": "^4.1.5",
+    "rollup": "^4.12.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup-plugin-typescript2": "^0.36.0"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17 || ^18"
+  },
+  "files": [
+    "dist",
+    "bundle",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!**/*.spec.*",
+    "!**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
+}

@@ -18,7 +18,8 @@
     "packages/reliability-tests",
     "packages/headless-tests",
     "packages/browser-tests",
-    "packages/build-utils"
+    "packages/build-utils",
+    "packages/react"
   ],
   "scripts": {
     "prepare": "husky",
