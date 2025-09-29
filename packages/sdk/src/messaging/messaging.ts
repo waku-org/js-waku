@@ -9,9 +9,10 @@ import {
 import { AckManager } from "./ack_manager.js";
 import { MessageStore } from "./message_store.js";
 import { Sender } from "./sender.js";
+import type { RequestId } from "./utils.js";
 
 interface IMessaging {
-  send(encoder: IEncoder, message: IMessage): Promise<void>;
+  send(encoder: IEncoder, message: IMessage): Promise<RequestId>;
 }
 
 type MessagingConstructorParams = {
@@ -48,7 +49,7 @@ export class Messaging implements IMessaging {
     await this.ackManager.stop();
   }
 
-  public send(encoder: IEncoder, message: IMessage): Promise<void> {
+  public send(encoder: IEncoder, message: IMessage): Promise<string> {
     return this.sender.send(encoder, message);
   }
 }

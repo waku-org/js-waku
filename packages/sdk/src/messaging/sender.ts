@@ -1,6 +1,7 @@
 import { IEncoder, ILightPush, IMessage } from "@waku/interfaces";
 
 import type { MessageStore } from "./message_store.js";
+import type { RequestId } from "./utils.js";
 
 type SenderConstructorParams = {
   messageStore: MessageStore;
@@ -29,7 +30,7 @@ export class Sender {
     }
   }
 
-  public async send(encoder: IEncoder, message: IMessage): Promise<string> {
+  public async send(encoder: IEncoder, message: IMessage): Promise<RequestId> {
     const requestId = await this.messageStore.queue(encoder, message);
     const response = await this.lightPush.send(encoder, message);
 

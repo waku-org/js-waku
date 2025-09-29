@@ -1,4 +1,4 @@
-import { message, messageHashStr } from "@waku/core";
+import { messageHashStr } from "@waku/core";
 import { IDecodedMessage, IEncoder, IMessage } from "@waku/interfaces";
 
 type QueuedMessage = {
