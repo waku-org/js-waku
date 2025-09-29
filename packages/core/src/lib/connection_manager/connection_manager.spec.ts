@@ -52,6 +52,12 @@ describe("ConnectionManager", () => {
       dialProtocol: sinon.stub().resolves({} as Stream),
       hangUp: sinon.stub().resolves(),
       getPeers: sinon.stub().returns([]),
+      getConnections: sinon.stub().returns([]),
+      addEventListener: sinon.stub(),
+      removeEventListener: sinon.stub(),
+      components: {
+        components: {}
+      },
       peerStore: {
         get: sinon.stub().resolves(null),
         merge: sinon.stub().resolves()

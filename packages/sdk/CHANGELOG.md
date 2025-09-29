@@ -47,6 +47,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.35](https://github.com/waku-org/js-waku/compare/sdk-v0.0.34...sdk-v0.0.35) (2025-09-20)
+
+
+### Features
+
+* Add debounce to health indicator ([#2594](https://github.com/waku-org/js-waku/issues/2594)) ([a7f30b1](https://github.com/waku-org/js-waku/commit/a7f30b121143454340aa7b3aeb4f55470905c54d))
+* Add start/stop to filter ([#2592](https://github.com/waku-org/js-waku/issues/2592)) ([2fba052](https://github.com/waku-org/js-waku/commit/2fba052b8b98cb64f6383de95d01b33beb771448))
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+* Implement lp-v3 error codes with backwards compatibility ([#2501](https://github.com/waku-org/js-waku/issues/2501)) ([1625302](https://github.com/waku-org/js-waku/commit/16253026c6e30052d87d9975b58480951de469d8))
+* Implement peer-store re-bootstrapping ([#2641](https://github.com/waku-org/js-waku/issues/2641)) ([11d84ad](https://github.com/waku-org/js-waku/commit/11d84ad342fe45158ef0734f9ca070f14704503f))
+* Introduce reliable channels ([#2526](https://github.com/waku-org/js-waku/issues/2526)) ([4d5c152](https://github.com/waku-org/js-waku/commit/4d5c152f5b1b1c241bbe7bb96d13d927a6f7550e))
+* Query on connect ([#2602](https://github.com/waku-org/js-waku/issues/2602)) ([8542d04](https://github.com/waku-org/js-waku/commit/8542d04bf5c9472f955ef8c9e5bc9e89c70f4738))
+* StoreConnect events ([#2601](https://github.com/waku-org/js-waku/issues/2601)) ([0dfbcf6](https://github.com/waku-org/js-waku/commit/0dfbcf6b6bd9225dcb0dec540aeb1eb2703c8397))
+
+
+### Bug Fixes
+
+* (sds) ensure incoming messages have their retrieval hint stored ([#2604](https://github.com/waku-org/js-waku/issues/2604)) ([914beb6](https://github.com/waku-org/js-waku/commit/914beb6531a84f8c11ca951721225d47f9e6c285))
+* Make health events emission consistent ([#2570](https://github.com/waku-org/js-waku/issues/2570)) ([c8dfdb1](https://github.com/waku-org/js-waku/commit/c8dfdb1ace8f0f8f668d8f2bb6e0eaed90041782))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.38 to 0.0.39
+    * @waku/discovery bumped from 0.0.11 to 0.0.12
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/proto bumped from ^0.0.13 to ^0.0.14
+    * @waku/sds bumped from ^0.0.6 to ^0.0.7
+    * @waku/utils bumped from 0.0.26 to 0.0.27
+  * devDependencies
+    * @waku/message-encryption bumped from ^0.0.36 to ^0.0.37
+
 ## [0.0.34](https://github.com/waku-org/js-waku/compare/sdk-v0.0.33...sdk-v0.0.34) (2025-08-14)
 
 

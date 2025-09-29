@@ -443,6 +443,7 @@ describe("QueryOnConnect", () => {
     let resolveMessageEvent: (messages: IDecodedMessage[]) => void;
     let rejectMessageEvent: (reason: string) => void;
     let connectStoreEvent: CustomEvent<PeerId>;
+    let timeoutId: NodeJS.Timeout;
 
     beforeEach(() => {
       // Create a promise that resolves when a message event is emitted
@@ -482,6 +483,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.addEventListener(
         QueryOnConnectEvent.MessagesRetrieved,
         (event: CustomEvent<IDecodedMessage[]>) => {
+          clearTimeout(timeoutId);
           resolveMessageEvent(event.detail);
         }
       );
@@ -491,10 +493,14 @@ describe("QueryOnConnect", () => {
       });
 
       // Set a timeout to reject if no message is received
-      setTimeout(
+      timeoutId = setTimeout(
         () => rejectMessageEvent("No message received within timeout"),
         500
       );
+    });
+
+    afterEach(() => {
+      clearTimeout(timeoutId);
     });
 
     it("should emit message when we just started and store connect event occurs", async () => {

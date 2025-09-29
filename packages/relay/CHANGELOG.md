@@ -25,6 +25,25 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.22](https://github.com/waku-org/js-waku/compare/relay-v0.0.21...relay-v0.0.22) (2025-09-20)
+
+
+### Features
+
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+* Implement lp-v3 error codes with backwards compatibility ([#2501](https://github.com/waku-org/js-waku/issues/2501)) ([1625302](https://github.com/waku-org/js-waku/commit/16253026c6e30052d87d9975b58480951de469d8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.38 to 0.0.39
+    * @waku/sdk bumped from 0.0.34 to 0.0.35
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/proto bumped from 0.0.13 to 0.0.14
+    * @waku/utils bumped from 0.0.26 to 0.0.27
+
 ## [0.0.21](https://github.com/waku-org/js-waku/compare/relay-v0.0.20...relay-v0.0.21) (2025-08-14)
 
 

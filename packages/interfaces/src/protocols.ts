@@ -130,117 +130,123 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
-export enum ProtocolError {
-  //
-  // GENERAL ERRORS SECTION
-  //
-  /**
-   * Could not determine the origin of the fault. Best to check connectivity and try again
-   * */
+export enum LightPushError {
   GENERIC_FAIL = "Generic error",
-
-  /**
-   * The remote peer rejected the message. Information provided by the remote peer
-   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
-   * or `DECODE_FAILED` can be used.
-   */
-  REMOTE_PEER_REJECTED = "Remote peer rejected",
-
-  /**
-   * Failure to protobuf decode the message. May be due to a remote peer issue,
-   * ensuring that messages are sent via several peer enable mitigation of this error.
-   */
   DECODE_FAILED = "Failed to decode",
-
-  /**
-   * Failure to find a peer with suitable protocols. This may due to a connection issue.
-   * Mitigation can be: retrying after a given time period, display connectivity issue
-   * to user or listening for `peer:connected:bootstrap` or `peer:connected:peer-exchange`
-   * on the connection manager before retrying.
-   */
   NO_PEER_AVAILABLE = "No peer available",
-
-  /**
-   * Failure to find a stream to the peer. This may be because the connection with the peer is not still alive.
-   * Mitigation can be: retrying after a given time period, or mitigation for `NO_PEER_AVAILABLE` can be used.
-   */
   NO_STREAM_AVAILABLE = "No stream available",
-
-  /**
-   * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
-   * or `DECODE_FAILED` can be used.
-   */
   NO_RESPONSE = "No response received",
-
-  //
-  // SEND ERRORS SECTION
-  //
-  /**
-   * Failure to protobuf encode the message. This is not recoverable and needs
-   * further investigation.
-   */
-  ENCODE_FAILED = "Failed to encode",
-
-  /**
-   * The message payload is empty, making the message invalid. Ensure that a non-empty
-   * payload is set on the outgoing message.
-   */
-  EMPTY_PAYLOAD = "Payload is empty",
-
-  /**
-   * The message size is above the maximum message size allowed on the Waku Network.
-   * Compressing the message or using an alternative strategy for large messages is recommended.
-   */
-  SIZE_TOO_BIG = "Size is too big",
-
-  /**
-   * The PubsubTopic passed to the send function is not configured on the Waku node.
-   * Please ensure that the PubsubTopic is used when initializing the Waku node.
-   */
-  TOPIC_NOT_CONFIGURED = "Topic not configured",
-
-  /**
-   * Fails when
-   */
   STREAM_ABORTED = "Stream aborted",
 
-  /**
-   * General proof generation error message.
-   * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L201C19-L201C42
-   */
+  ENCODE_FAILED = "Failed to encode",
+  EMPTY_PAYLOAD = "Payload is empty",
+  SIZE_TOO_BIG = "Size is too big",
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
   RLN_PROOF_GENERATION = "Proof generation failed",
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
 
-  //
-  // RECEIVE ERRORS SECTION
-  //
-  /**
-   * The pubsub topic configured on the decoder does not match the pubsub topic setup on the protocol.
-   * Ensure that the pubsub topic used for decoder creation is the same as the one used for protocol.
-   */
-  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
-
-  /**
-   * The topics passed in the decoders do not match each other, or don't exist at all.
-   * Ensure that all the pubsub topics used in the decoders are valid and match each other.
-   */
-  INVALID_DECODER_TOPICS = "Invalid decoder topics"
+  BAD_REQUEST = "Bad request format",
+  PAYLOAD_TOO_LARGE = "Message payload exceeds maximum size",
+  INVALID_MESSAGE = "Message validation failed",
+  UNSUPPORTED_TOPIC = "Unsupported pubsub topic",
+  TOO_MANY_REQUESTS = "Rate limit exceeded",
+  INTERNAL_ERROR = "Internal server error",
+  UNAVAILABLE = "Service temporarily unavailable",
+  NO_RLN_PROOF = "RLN proof generation failed",
+  NO_PEERS = "No relay peers available"
 }
 
-export interface Failure {
-  error: ProtocolError;
+export enum FilterError {
+  // General errors
+  GENERIC_FAIL = "Generic error",
+  DECODE_FAILED = "Failed to decode",
+  NO_PEER_AVAILABLE = "No peer available",
+  NO_STREAM_AVAILABLE = "No stream available",
+  NO_RESPONSE = "No response received",
+  STREAM_ABORTED = "Stream aborted",
+
+  // Filter specific errors
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
+  SUBSCRIPTION_FAILED = "Subscription failed",
+  UNSUBSCRIBE_FAILED = "Unsubscribe failed",
+  PING_FAILED = "Ping failed",
+  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
+  INVALID_DECODER_TOPICS = "Invalid decoder topics",
+  SUBSCRIPTION_LIMIT_EXCEEDED = "Subscription limit exceeded",
+  INVALID_CONTENT_TOPIC = "Invalid content topic",
+  PUSH_MESSAGE_FAILED = "Push message failed",
+  EMPTY_MESSAGE = "Empty message received",
+  MISSING_PUBSUB_TOPIC = "Pubsub topic missing from push message"
+}
+
+export interface LightPushFailure {
+  error: LightPushError;
   peerId?: PeerId;
 }
 
-export type CoreProtocolResult = ThisOrThat<
+export interface FilterFailure {
+  error: FilterError;
+  peerId?: PeerId;
+}
+
+export type LightPushCoreResult = ThisOrThat<
   "success",
   PeerId,
   "failure",
-  Failure
+  LightPushFailure
 >;
 
+export type FilterCoreResult = ThisOrThat<
+  "success",
+  PeerId,
+  "failure",
+  FilterFailure
+>;
+
+export type LightPushSDKResult = ThisAndThat<
+  "successes",
+  PeerId[],
+  "failures",
+  LightPushFailure[]
+>;
+
+export type FilterSDKResult = ThisAndThat<
+  "successes",
+  PeerId[],
+  "failures",
+  FilterFailure[]
+>;
+
+/**
+ * @deprecated replace usage by specific result types
+ */
 export type SDKProtocolResult = ThisAndThat<
   "successes",
   PeerId[],
   "failures",
-  Failure[]
+  Array<{
+    error: ProtocolError;
+    peerId?: PeerId;
+  }>
 >;
+
+/**
+ * @deprecated replace usage by specific result types
+ */
+export enum ProtocolError {
+  GENERIC_FAIL = "Generic error",
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
+  DECODE_FAILED = "Failed to decode",
+  NO_PEER_AVAILABLE = "No peer available",
+  NO_STREAM_AVAILABLE = "No stream available",
+  NO_RESPONSE = "No response received",
+  ENCODE_FAILED = "Failed to encode",
+  EMPTY_PAYLOAD = "Payload is empty",
+  SIZE_TOO_BIG = "Size is too big",
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
+  STREAM_ABORTED = "Stream aborted",
+  RLN_PROOF_GENERATION = "Proof generation failed",
+  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
+  INVALID_DECODER_TOPICS = "Invalid decoder topics"
+}

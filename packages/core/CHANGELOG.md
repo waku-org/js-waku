@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.39](https://github.com/waku-org/js-waku/compare/core-v0.0.38...core-v0.0.39) (2025-09-20)
+
+
+### Features
+
+* Add start/stop to filter ([#2592](https://github.com/waku-org/js-waku/issues/2592)) ([2fba052](https://github.com/waku-org/js-waku/commit/2fba052b8b98cb64f6383de95d01b33beb771448))
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+* Implement lp-v3 error codes with backwards compatibility ([#2501](https://github.com/waku-org/js-waku/issues/2501)) ([1625302](https://github.com/waku-org/js-waku/commit/16253026c6e30052d87d9975b58480951de469d8))
+* Implement peer-store re-bootstrapping ([#2641](https://github.com/waku-org/js-waku/issues/2641)) ([11d84ad](https://github.com/waku-org/js-waku/commit/11d84ad342fe45158ef0734f9ca070f14704503f))
+* StoreConnect events ([#2601](https://github.com/waku-org/js-waku/issues/2601)) ([0dfbcf6](https://github.com/waku-org/js-waku/commit/0dfbcf6b6bd9225dcb0dec540aeb1eb2703c8397))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.32 to ^0.0.33
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/proto bumped from 0.0.13 to 0.0.14
+    * @waku/utils bumped from 0.0.26 to 0.0.27
+
 ## [0.0.38](https://github.com/waku-org/js-waku/compare/core-v0.0.37...core-v0.0.38) (2025-08-14)
 
 

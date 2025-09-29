@@ -1,5 +1,5 @@
 import { createEncoder } from "@waku/core";
-import { IRateLimitProof, LightNode, ProtocolError } from "@waku/interfaces";
+import { IRateLimitProof, LightNode, LightPushError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -21,9 +21,9 @@ import {
   TestRoutingInfo
 } from "./utils.js";
 
-const runTests = (strictNodeCheck: boolean): void => {
+const runTests = (strictNodeCheck: boolean, useLegacy: boolean): void => {
   const numServiceNodes = 2;
-  describe(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
+  describe(`Waku Light Push (legacy=${useLegacy ? "v2" : "v3"}): Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(15000);
     let waku: LightNode;
@@ -36,7 +36,8 @@ const runTests = (strictNodeCheck: boolean): void => {
         { lightpush: true, filter: true },
         strictNodeCheck,
         numServiceNodes,
-        true
+        true,
+        { lightPush: { useLegacy } }
       );
     });
 
@@ -95,7 +96,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       expect(pushResponse.successes.length).to.eq(0);
 
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        ProtocolError.EMPTY_PAYLOAD
+        LightPushError.EMPTY_PAYLOAD
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -174,7 +175,7 @@ const runTests = (strictNodeCheck: boolean): void => {
 
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        ProtocolError.REMOTE_PEER_REJECTED
+        LightPushError.REMOTE_PEER_REJECTED
       );
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         false
@@ -248,7 +249,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        ProtocolError.SIZE_TOO_BIG
+        LightPushError.SIZE_TOO_BIG
       );
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         false
@@ -257,4 +258,6 @@ const runTests = (strictNodeCheck: boolean): void => {
   });
 };
 
-[true, false].map(runTests);
+[true, false].forEach((strictNodeCheck) => {
+  [true, false].forEach((legacy) => runTests(strictNodeCheck, legacy));
+});

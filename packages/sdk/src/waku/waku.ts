@@ -193,7 +193,7 @@ export class WakuNode implements IWaku {
     }
     if (_protocols.includes(Protocols.LightPush)) {
       if (this.lightPush) {
-        codecs.push(this.lightPush.multicodec);
+        codecs.push(...this.lightPush.multicodec);
       } else {
         log.error(
           "Light Push codec not included in dial codec: protocol not mounted locally"
