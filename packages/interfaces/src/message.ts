@@ -111,3 +111,5 @@ export interface IDecoder<T extends IDecodedMessage> {
     proto: IProtoMessage
   ) => Promise<T | undefined>;
 }
+
+export type ICodec<T extends IDecodedMessage> = IEncoder & IDecoder<T>;

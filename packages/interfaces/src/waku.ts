@@ -10,7 +10,7 @@ import type { IFilter } from "./filter.js";
 import type { HealthStatus } from "./health_status.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
-import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
+import { ICodec, IDecodedMessage, IDecoder, IEncoder } from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { ShardId } from "./sharding.js";
@@ -24,6 +24,8 @@ export type CreateDecoderParams = {
 export type CreateEncoderParams = CreateDecoderParams & {
   ephemeral?: boolean;
 };
+
+export type CreateCodecParams = CreateDecoderParams & CreateEncoderParams;
 
 export enum WakuEvent {
   Connection = "waku:connection",
@@ -206,6 +208,8 @@ export interface IWaku {
   waitForPeers(protocols?: Protocols[], timeoutMs?: number): Promise<void>;
 
   /**
+   * @deprecated Use {@link createCodec} instead
+   *
    * Creates a decoder for Waku messages on a specific content topic.
    *
    * A decoder is used to decode messages from the Waku network format.
@@ -235,6 +239,8 @@ export interface IWaku {
   createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage>;
 
   /**
+   * @deprecated Use {@link createCodec} instead
+   *
    * Creates an encoder for Waku messages on a specific content topic.
    *
    * An encoder is used to encode messages into the Waku network format.
@@ -263,6 +269,36 @@ export interface IWaku {
    * ```
    */
   createEncoder(params: CreateEncoderParams): IEncoder;
+
+  /**
+   * Creates a codec for Waku messages on a specific content topic.
+   *
+   * A codec is used to encode and decode messages from the Waku network format.
+   * The codec automatically handles shard configuration based on the Waku node's network settings.
+   *
+   * @param {CreateCodecParams} params - Configuration for the codec including content topic and optionally shard information and ephemeral flag
+   * @returns {ICodec<IDecodedMessage>} A codec instance configured for the specified content topic
+   * @throws {Error} If the shard configuration is incompatible with the node's network settings
+   *
+   * @example
+   * ```typescript
+   * // Create a codec with default network shard settings
+   * const codec = waku.createCodec({
+   *   contentTopic: "/my-app/1/chat/proto"
+   * });
+   *
+   * // Create a codec with custom shard settings
+   * const customCodec = waku.createCodec({
+   *   contentTopic: "/my-app/1/chat/proto",
+   *   ephemeral: true,
+   *   shardInfo: {
+   *     clusterId: 1,
+   *     shard: 5
+   *    }
+   *  });
+   * ```
+   */
+  createCodec(params: CreateCodecParams): ICodec<IDecodedMessage>;
 
   /**
    * @returns {boolean} `true` if the node was started and `false` otherwise

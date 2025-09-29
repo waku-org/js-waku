@@ -5,11 +5,18 @@ import {
   TypedEventEmitter
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
+import {
+  ConnectionManager,
+  createCodec,
+  createDecoder,
+  createEncoder
+} from "@waku/core";
 import type {
+  CreateCodecParams,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
+  ICodec,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -35,6 +42,7 @@ import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
 import { Messaging } from "../messaging/index.js";
+import type { RequestId } from "../messaging/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
@@ -295,8 +303,25 @@ export class WakuNode implements IWaku {
     });
   }
 
-  public send(encoder: IEncoder, message: IMessage): Promise<void> {
-    return this.messaging?.send(encoder, message) ?? Promise.resolve();
+  public send(encoder: IEncoder, message: IMessage): Promise<RequestId> {
+    if (!this.messaging) {
+      throw new Error("Messaging not initialized");
+    }
+
+    return this.messaging.send(encoder, message);
+  }
+
+  public createCodec(params: CreateCodecParams): ICodec<IDecodedMessage> {
+    const routingInfo = this.createRoutingInfo(
+      params.contentTopic,
+      params.shardId
+    );
+
+    return createCodec({
+      contentTopic: params.contentTopic,
+      ephemeral: params.ephemeral ?? false,
+      routingInfo: routingInfo
+    });
   }
 
   private createRoutingInfo(

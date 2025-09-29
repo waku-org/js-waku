@@ -1,7 +1,7 @@
-import { IDecodedMessage, IFilter, IStore } from "@waku/interfaces";
+import { ICodec, IDecodedMessage, IFilter, IStore } from "@waku/interfaces";
 
 import { MessageStore } from "./message_store.js";
-import { IAckManager, ICodec } from "./utils.js";
+import { IAckManager } from "./utils.js";
 
 type AckManagerConstructorParams = {
   messageStore: MessageStore;
@@ -35,7 +35,7 @@ export class AckManager implements IAckManager {
     this.storeAckManager.stop();
   }
 
-  public async subscribe(codec: ICodec): Promise<boolean> {
+  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
     return (
       (await this.filterAckManager.subscribe(codec)) ||
       (await this.storeAckManager.subscribe(codec))
@@ -44,7 +44,7 @@ export class AckManager implements IAckManager {
 }
 
 class FilterAckManager implements IAckManager {
-  private codecs: Set<ICodec> = new Set();
+  private codecs: Set<ICodec<IDecodedMessage>> = new Set();
 
   public constructor(
     private messageStore: MessageStore,
@@ -63,7 +63,7 @@ class FilterAckManager implements IAckManager {
     this.codecs.clear();
   }
 
-  public async subscribe(codec: ICodec): Promise<boolean> {
+  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
     const success = await this.filter.subscribe(
       codec,
       this.onMessage.bind(this)
@@ -86,7 +86,7 @@ class FilterAckManager implements IAckManager {
 class StoreAckManager implements IAckManager {
   private interval: ReturnType<typeof setInterval> | null = null;
 
-  private codecs: Set<ICodec> = new Set();
+  private codecs: Set<ICodec<IDecodedMessage>> = new Set();
 
   public constructor(
     private messageStore: MessageStore,
@@ -112,7 +112,7 @@ class StoreAckManager implements IAckManager {
     this.interval = null;
   }
 
-  public async subscribe(codec: ICodec): Promise<boolean> {
+  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
     this.codecs.add(codec);
     return true;
   }
