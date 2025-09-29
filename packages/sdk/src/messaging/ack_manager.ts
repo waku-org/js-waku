@@ -76,7 +76,7 @@ class FilterAckManager implements IAckManager {
 
   private async onMessage(message: IDecodedMessage): Promise<void> {
     if (!this.messageStore.has(message.hashStr)) {
-      this.messageStore.add(message);
+      this.messageStore.add(message, { filterAck: true });
     }
 
     this.messageStore.markFilterAck(message.hashStr);
@@ -123,7 +123,7 @@ class StoreAckManager implements IAckManager {
         [codec],
         (message) => {
           if (!this.messageStore.has(message.hashStr)) {
-            this.messageStore.add(message);
+            this.messageStore.add(message, { storeAck: true });
           }
 
           this.messageStore.markStoreAck(message.hashStr);

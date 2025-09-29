@@ -1,13 +1,18 @@
 import { messageHashStr } from "@waku/core";
-import { IDecodedMessage, IEncoder, IMessage } from "@waku/interfaces";
+import { ICodec, IDecodedMessage, IMessage } from "@waku/interfaces";
 
 type QueuedMessage = {
-  encoder?: IEncoder;
+  codec?: ICodec<IDecodedMessage>;
   message?: IMessage;
   filterAck: boolean;
   storeAck: boolean;
   lastSentAt?: number;
   createdAt: number;
+};
+
+type AddMessageOptions = {
+  filterAck?: boolean;
+  storeAck?: boolean;
 };
 
 type MessageStoreOptions = {
@@ -30,11 +35,11 @@ export class MessageStore {
     return this.messages.has(hashStr);
   }
 
-  public add(message: IDecodedMessage): void {
+  public add(message: IDecodedMessage, options: AddMessageOptions = {}): void {
     if (!this.messages.has(message.hashStr)) {
       this.messages.set(message.hashStr, {
-        filterAck: false,
-        storeAck: false,
+        filterAck: options.filterAck ?? false,
+        storeAck: options.storeAck ?? false,
         createdAt: Date.now()
       });
     }
@@ -57,7 +62,7 @@ export class MessageStore {
   public async markSent(requestId: RequestId): Promise<void> {
     const entry = this.pendingRequests.get(requestId);
 
-    if (!entry || !entry.encoder || !entry.message) {
+    if (!entry || !entry.codec || !entry.message) {
       return;
     }
 
@@ -65,13 +70,13 @@ export class MessageStore {
       entry.lastSentAt = Date.now();
       this.pendingRequests.delete(requestId);
 
-      const proto = await entry.encoder.toProtoObj(entry.message);
+      const proto = await entry.codec.toProtoObj(entry.message);
 
       if (!proto) {
         return;
       }
 
-      const hashStr = messageHashStr(entry.encoder.pubsubTopic, proto);
+      const hashStr = messageHashStr(entry.codec.pubsubTopic, proto);
 
       this.messages.set(hashStr, entry);
     } catch (error) {
@@ -80,11 +85,14 @@ export class MessageStore {
     }
   }
 
-  public async queue(encoder: IEncoder, message: IMessage): Promise<RequestId> {
+  public async queue(
+    codec: ICodec<IDecodedMessage>,
+    message: IMessage
+  ): Promise<RequestId> {
     const requestId = crypto.randomUUID();
 
     this.pendingRequests.set(requestId, {
-      encoder,
+      codec,
       message,
       filterAck: false,
       storeAck: false,
@@ -96,25 +104,21 @@ export class MessageStore {
 
   public getMessagesToSend(): Array<{
     requestId: string;
-    encoder: IEncoder;
+    codec: ICodec<IDecodedMessage>;
     message: IMessage;
   }> {
     const now = Date.now();
 
     const res: Array<{
       requestId: string;
-      encoder: IEncoder;
+      codec: ICodec<IDecodedMessage>;
       message: IMessage;
     }> = [];
 
     for (const [requestId, entry] of this.pendingRequests.entries()) {
-      if (!entry.encoder || !entry.message) {
-        continue;
-      }
+      const isAcknowledged = entry.filterAck || entry.storeAck;
 
-      const isAcknowledged = entry.filterAck || entry.storeAck; // TODO: make sure it works with message and pending requests and returns messages to re-sent that are not ack yet
-
-      if (isAcknowledged) {
+      if (!entry.codec || !entry.message || isAcknowledged) {
         continue;
       }
 
@@ -122,7 +126,7 @@ export class MessageStore {
         !entry.lastSentAt ||
         now - entry.lastSentAt >= this.resendIntervalMs
       ) {
-        res.push({ requestId, encoder: entry.encoder, message: entry.message });
+        res.push({ requestId, codec: entry.codec, message: entry.message });
       }
     }
 

@@ -1,4 +1,9 @@
-import { IEncoder, ILightPush, IMessage } from "@waku/interfaces";
+import {
+  ICodec,
+  IDecodedMessage,
+  ILightPush,
+  IMessage
+} from "@waku/interfaces";
 
 import type { MessageStore } from "./message_store.js";
 import type { RequestId } from "./utils.js";
@@ -30,9 +35,12 @@ export class Sender {
     }
   }
 
-  public async send(encoder: IEncoder, message: IMessage): Promise<RequestId> {
-    const requestId = await this.messageStore.queue(encoder, message);
-    const response = await this.lightPush.send(encoder, message);
+  public async send(
+    codec: ICodec<IDecodedMessage>,
+    message: IMessage
+  ): Promise<RequestId> {
+    const requestId = await this.messageStore.queue(codec, message);
+    const response = await this.lightPush.send(codec, message);
 
     if (response.successes.length > 0) {
       await this.messageStore.markSent(requestId);
@@ -44,10 +52,8 @@ export class Sender {
   private async backgroundSend(): Promise<void> {
     const pendingRequests = this.messageStore.getMessagesToSend();
 
-    // todo: implement chunking, error handling, retry, etc.
-    // todo: implement backoff and batching potentially
-    for (const { requestId, encoder, message } of pendingRequests) {
-      const response = await this.lightPush.send(encoder, message);
+    for (const { requestId, codec, message } of pendingRequests) {
+      const response = await this.lightPush.send(codec, message);
 
       if (response.successes.length > 0) {
         await this.messageStore.markSent(requestId);

@@ -159,6 +159,12 @@ export class MockWakuNode implements IWaku {
   public createCodec(_params: CreateCodecParams): ICodec<IDecodedMessage> {
     throw new Error("Method not implemented.");
   }
+  public send(
+    _codec: ICodec<IDecodedMessage>,
+    _message: IMessage
+  ): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
   public isStarted(): boolean {
     throw new Error("Method not implemented.");
   }

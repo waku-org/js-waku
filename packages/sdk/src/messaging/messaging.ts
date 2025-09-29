@@ -1,5 +1,6 @@
 import {
-  IEncoder,
+  ICodec,
+  IDecodedMessage,
   IFilter,
   ILightPush,
   IMessage,
@@ -12,7 +13,7 @@ import { Sender } from "./sender.js";
 import type { RequestId } from "./utils.js";
 
 interface IMessaging {
-  send(encoder: IEncoder, message: IMessage): Promise<RequestId>;
+  send(codec: ICodec<IDecodedMessage>, message: IMessage): Promise<RequestId>;
 }
 
 type MessagingConstructorParams = {
@@ -43,13 +44,18 @@ export class Messaging implements IMessaging {
 
   public start(): void {
     this.ackManager.start();
+    this.sender.start();
   }
 
   public async stop(): Promise<void> {
     await this.ackManager.stop();
+    this.sender.stop();
   }
 
-  public send(encoder: IEncoder, message: IMessage): Promise<string> {
-    return this.sender.send(encoder, message);
+  public send(
+    codec: ICodec<IDecodedMessage>,
+    message: IMessage
+  ): Promise<string> {
+    return this.sender.send(codec, message);
   }
 }

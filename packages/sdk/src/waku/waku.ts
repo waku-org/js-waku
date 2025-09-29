@@ -303,12 +303,15 @@ export class WakuNode implements IWaku {
     });
   }
 
-  public send(encoder: IEncoder, message: IMessage): Promise<RequestId> {
+  public send(
+    codec: ICodec<IDecodedMessage>,
+    message: IMessage
+  ): Promise<RequestId> {
     if (!this.messaging) {
       throw new Error("Messaging not initialized");
     }
 
-    return this.messaging.send(encoder, message);
+    return this.messaging.send(codec, message);
   }
 
   public createCodec(params: CreateCodecParams): ICodec<IDecodedMessage> {
