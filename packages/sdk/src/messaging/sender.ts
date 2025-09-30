@@ -15,13 +15,13 @@ type SenderConstructorParams = {
 
 export class Sender {
   private readonly messageStore: MessageStore;
-  private readonly lightPush: ILightPush;
+  // private readonly lightPush: ILightPush;
 
   private sendInterval: ReturnType<typeof setInterval> | null = null;
 
   public constructor(params: SenderConstructorParams) {
     this.messageStore = params.messageStore;
-    this.lightPush = params.lightPush;
+    // this.lightPush = params.lightPush;
   }
 
   public start(): void {
@@ -40,11 +40,14 @@ export class Sender {
     message: IMessage
   ): Promise<RequestId> {
     const requestId = await this.messageStore.queue(codec, message);
-    const response = await this.lightPush.send(codec, message);
+    // const response = await this.lightPush.send(codec, message);
 
-    if (response.successes.length > 0) {
-      await this.messageStore.markSent(requestId);
-    }
+    // if (response.successes.length > 0) {
+    await this.messageStore.markSent(
+      requestId,
+      (await codec.toProtoObj(message)) as IDecodedMessage
+    );
+    // }
 
     return requestId;
   }
@@ -53,11 +56,15 @@ export class Sender {
     const pendingRequests = this.messageStore.getMessagesToSend();
 
     for (const { requestId, codec, message } of pendingRequests) {
-      const response = await this.lightPush.send(codec, message);
+      // const response = await this.lightPush.send(codec, message);
 
-      if (response.successes.length > 0) {
-        await this.messageStore.markSent(requestId);
-      }
+      // if (response.successes.length > 0) {
+      const sentMessage = await codec.toProtoObj(message);
+      await this.messageStore.markSent(
+        requestId,
+        sentMessage as IDecodedMessage
+      );
+      // }
     }
   }
 }

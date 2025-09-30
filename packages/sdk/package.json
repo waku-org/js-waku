@@ -75,7 +75,8 @@
     "@waku/sds": "^0.0.7",
     "@waku/utils": "0.0.27",
     "libp2p": "2.8.11",
-    "lodash.debounce": "^4.0.8"
+    "lodash.debounce": "^4.0.8",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@libp2p/interface": "2.10.4",
