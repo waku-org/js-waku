@@ -59,7 +59,7 @@
     "chai": "^4.3.10",
     "debug": "^4.3.4",
     "fast-check": "^3.19.0",
-    "p-event": "^6.0.1"
+    "p-event": "^7.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
