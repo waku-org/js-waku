@@ -87,7 +87,7 @@
     "@types/mocha": "^10.0.9",
     "@waku/build-utils": "*",
     "@waku/message-encryption": "^0.0.37",
-    "chai": "^5.1.1",
+    "chai": "^6.2.0",
     "cspell": "^8.6.1",
     "interface-datastore": "8.3.2",
     "mocha": "^10.7.3",

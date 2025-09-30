@@ -70,7 +70,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chai": "^4.3.11",
     "@waku/build-utils": "*",
-    "chai": "^4.3.10",
+    "chai": "^6.2.0",
     "chai-as-promised": "^7.1.1",
     "cspell": "^8.6.1",
     "mocha": "^10.3.0",
