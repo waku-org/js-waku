@@ -54,6 +54,7 @@ export class QueryOnConnect<
 
   public constructor(
     public decoders: IDecoder<T>[],
+    public stopIfTrue: (msg: T) => boolean,
     private readonly peerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>,
     private readonly wakuEventEmitter: IWakuEventEmitter,
     private readonly _queryGenerator: <T extends IDecodedMessage>(
@@ -125,8 +126,13 @@ export class QueryOnConnect<
         const messages = (await Promise.all(page)).filter(
           (m) => m !== undefined
         );
+        const stop = messages.some((msg: T) => this.stopIfTrue(msg));
         // Bundle the messages to help batch process by sds
         this.dispatchMessages(messages);
+
+        if (stop) {
+          break;
+        }
       }
 
       // Didn't throw, so it didn't fail
