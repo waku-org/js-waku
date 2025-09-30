@@ -1,9 +1,11 @@
 export { createEncoder, createDecoder } from "./lib/message/version_0.js";
+export { createCodec } from "./lib/message/index.js";
 export type {
   Encoder,
   Decoder,
   DecodedMessage
 } from "./lib/message/version_0.js";
+export type { Codec } from "./lib/message/index.js";
 export * as message from "./lib/message/index.js";
 
 export * as waku_filter from "./lib/filter/index.js";

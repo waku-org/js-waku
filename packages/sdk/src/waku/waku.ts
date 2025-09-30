@@ -5,16 +5,24 @@ import {
   TypedEventEmitter
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
+import {
+  ConnectionManager,
+  createCodec,
+  createDecoder,
+  createEncoder
+} from "@waku/core";
 import type {
+  CreateCodecParams,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
+  ICodec,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IFilter,
   ILightPush,
+  IMessage,
   IRelay,
   IRoutingInfo,
   IStore,
@@ -33,6 +41,8 @@ import { createRoutingInfo, Logger } from "@waku/utils";
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
+import { Messaging } from "../messaging/index.js";
+import type { RequestId } from "../messaging/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
@@ -64,6 +74,7 @@ export class WakuNode implements IWaku {
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
   private readonly healthIndicator: HealthIndicator;
+  private readonly messaging: Messaging | null = null;
 
   public constructor(
     options: CreateNodeOptions,
@@ -123,6 +134,14 @@ export class WakuNode implements IWaku {
         libp2p,
         peerManager: this.peerManager,
         options: options.filter
+      });
+    }
+
+    if (this.lightPush && this.filter && this.store) {
+      this.messaging = new Messaging({
+        lightPush: this.lightPush,
+        filter: this.filter,
+        store: this.store
       });
     }
 
@@ -221,6 +240,7 @@ export class WakuNode implements IWaku {
     this.peerManager.start();
     this.healthIndicator.start();
     this.lightPush?.start();
+    this.messaging?.start();
 
     this._nodeStateLock = false;
     this._nodeStarted = true;
@@ -231,6 +251,7 @@ export class WakuNode implements IWaku {
 
     this._nodeStateLock = true;
 
+    await this.messaging?.stop();
     this.lightPush?.stop();
     await this.filter?.stop();
     this.healthIndicator.stop();
@@ -278,6 +299,30 @@ export class WakuNode implements IWaku {
     return createEncoder({
       contentTopic: params.contentTopic,
       ephemeral: params.ephemeral,
+      routingInfo: routingInfo
+    });
+  }
+
+  public send(
+    codec: ICodec<IDecodedMessage>,
+    message: IMessage
+  ): Promise<RequestId> {
+    if (!this.messaging) {
+      throw new Error("Messaging not initialized");
+    }
+
+    return this.messaging.send(codec, message);
+  }
+
+  public createCodec(params: CreateCodecParams): ICodec<IDecodedMessage> {
+    const routingInfo = this.createRoutingInfo(
+      params.contentTopic,
+      params.shardId
+    );
+
+    return createCodec({
+      contentTopic: params.contentTopic,
+      ephemeral: params.ephemeral ?? false,
       routingInfo: routingInfo
     });
   }
