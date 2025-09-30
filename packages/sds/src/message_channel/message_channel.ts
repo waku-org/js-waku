@@ -384,6 +384,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       undefined
     );
 
+    if (!message.causalHistory || message.causalHistory.length === 0) {
+      log.info(
+        this.senderId,
+        "no causal history in sync message, aborting sending"
+      );
+      return false;
+    }
+
     if (callback) {
       try {
         await callback(message);
@@ -400,6 +408,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         throw error;
       }
     }
+    // Why returning false if no callback is set?
     return false;
   }
 
