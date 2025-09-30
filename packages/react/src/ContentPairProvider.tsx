@@ -1,7 +1,7 @@
 import React from "react";
 
 import type { ContentPair, ReactChildrenProps } from "./types.js";
-import { useCreateContentPair } from "./useCreatContentPair.js";
+import { useCreateContentPair } from "./useCreateContentPair.js";
 
 type ContentPairContextType = Partial<ContentPair>;
 
