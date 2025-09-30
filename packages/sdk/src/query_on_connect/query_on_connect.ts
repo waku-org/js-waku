@@ -17,7 +17,7 @@ import {
 const log = new Logger("sdk:query-on-connect");
 
 export const DEFAULT_FORCE_QUERY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-export const MAX_TIME_RANGE_QUERY_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const MAX_TIME_RANGE_QUERY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days (queries are split)
 
 export interface QueryOnConnectOptions {
   /**
