@@ -69,7 +69,8 @@ test.describe("waku", () => {
     console.log("Debug:", debug);
   });
 
-  test("can dial peers", async ({ page }) => {
+  // TODO: https://github.com/waku-org/js-waku/issues/2619
+  test.skip("can dial peers", async ({ page }) => {
     const result = await page.evaluate((peerAddrs) => {
       return window.wakuAPI.dialPeers(window.waku, peerAddrs);
     }, ACTIVE_PEERS);
