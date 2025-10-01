@@ -117,7 +117,7 @@ export namespace SdsMessage {
 
         if (obj.lamportTimestamp != null) {
           w.uint32(80)
-          w.int32(obj.lamportTimestamp)
+          w.uint32(obj.lamportTimestamp)
         }
 
         if (obj.causalHistory != null) {
@@ -167,7 +167,7 @@ export namespace SdsMessage {
               break
             }
             case 10: {
-              obj.lamportTimestamp = reader.int32()
+              obj.lamportTimestamp = reader.uint32()
               break
             }
             case 11: {
