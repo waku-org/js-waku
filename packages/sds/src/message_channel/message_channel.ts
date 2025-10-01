@@ -56,7 +56,7 @@ export type ILocalHistory = Pick<
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
   public readonly senderId: SenderId;
-  private lamportTimestamp: number;
+  private lamportTimestamp: bigint;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: ContentMessage[];
   private possibleAcks: Map<MessageId, number>;
@@ -95,9 +95,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     super();
     this.channelId = channelId;
     this.senderId = senderId;
-    // SDS RFC says to use nanoseconds, but current time in nanosecond is > Number.MAX_SAFE_INTEGER
-    // So instead we are using milliseconds and proposing a spec change (TODO)
-    this.lamportTimestamp = Date.now();
+    // Initialize channel lamport timestamp to current time in milliseconds.
+    this.lamportTimestamp = BigInt(Date.now());
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
@@ -369,7 +368,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public async pushOutgoingSyncMessage(
     callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
-    this.lamportTimestamp++;
+    this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
     const message = new SyncMessage(
       // does not need to be secure randomness
       `sync-${Math.random().toString(36).substring(2)}`,
@@ -526,7 +525,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       retrievalHint?: Uint8Array;
     }>
   ): Promise<void> {
-    this.lamportTimestamp++;
+    this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
 
     const messageId = MessageChannel.getMessageId(payload);
 
@@ -723,4 +722,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return false;
     });
   }
+}
+
+export function lamportTimestampIncrement(lamportTimestamp: bigint): bigint {
+  const now = BigInt(Date.now());
+  lamportTimestamp++;
+  if (now > lamportTimestamp) {
+    return now;
+  }
+  return lamportTimestamp;
 }

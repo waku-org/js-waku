@@ -419,7 +419,7 @@ describe("Reliable Channel", () => {
         "MyChannel",
         "alice",
         [],
-        1,
+        1n,
         undefined,
         message
       );
@@ -532,7 +532,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         messagePayload
       );
@@ -600,7 +600,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         message1Payload
       );
@@ -610,7 +610,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        2,
+        2n,
         undefined,
         message2Payload
       );
@@ -721,7 +721,7 @@ describe("Reliable Channel", () => {
         "differentChannel",
         senderId,
         [],
-        1,
+        1n,
         undefined,
         utf8ToBytes("different channel")
       );
@@ -731,7 +731,7 @@ describe("Reliable Channel", () => {
         channelId,
         senderId,
         [],
-        2,
+        2n,
         undefined,
         undefined
       );
@@ -741,7 +741,7 @@ describe("Reliable Channel", () => {
         channelId,
         senderId,
         [],
-        3,
+        3n,
         undefined,
         utf8ToBytes("after sync")
       );
@@ -824,7 +824,7 @@ describe("Reliable Channel", () => {
         channelId,
         senderId,
         [{ messageId: "previous-msg-id" }],
-        1,
+        1n,
         undefined,
         utf8ToBytes("content message")
       );
@@ -834,7 +834,7 @@ describe("Reliable Channel", () => {
         channelId,
         senderId,
         [],
-        2,
+        2n,
         undefined,
         utf8ToBytes("after content")
       );
@@ -905,7 +905,7 @@ describe("Reliable Channel", () => {
         "differentChannel1",
         senderId,
         [],
-        1,
+        1n,
         undefined,
         utf8ToBytes("different 1")
       );
@@ -915,7 +915,7 @@ describe("Reliable Channel", () => {
         "differentChannel2",
         senderId,
         [],
-        2,
+        2n,
         undefined,
         utf8ToBytes("different 2")
       );
@@ -925,7 +925,7 @@ describe("Reliable Channel", () => {
         "differentChannel3",
         senderId,
         [],
-        3,
+        3n,
         undefined,
         utf8ToBytes("different 3")
       );
@@ -1041,7 +1041,7 @@ describe("Reliable Channel", () => {
         "differentChannel",
         "sender",
         [],
-        1,
+        1n,
         undefined,
         utf8ToBytes("content")
       );
@@ -1060,7 +1060,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "sender",
         [],
-        1,
+        1n,
         undefined,
         undefined
       );
@@ -1079,7 +1079,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "sender",
         [],
-        1,
+        1n,
         undefined,
         utf8ToBytes("content")
       );
@@ -1098,7 +1098,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "sender",
         [{ messageId: "previous-msg-id" }],
-        1,
+        1n,
         undefined,
         utf8ToBytes("content")
       );
@@ -1117,7 +1117,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "sender",
         [{ messageId: "previous-msg-id" }],
-        1,
+        1n,
         undefined,
         undefined
       );

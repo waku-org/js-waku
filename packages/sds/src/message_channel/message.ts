@@ -14,7 +14,7 @@ export class Message implements proto_sds_message.SdsMessage {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp?: number | undefined,
+    public lamportTimestamp?: bigint | undefined,
     public bloomFilter?: Uint8Array<ArrayBufferLike> | undefined,
     public content?: Uint8Array<ArrayBufferLike> | undefined,
     /**
@@ -94,7 +94,7 @@ export class SyncMessage extends Message {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp: number,
+    public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: undefined,
     /**
@@ -116,12 +116,12 @@ export class SyncMessage extends Message {
 }
 
 function testSyncMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
 }): boolean {
   return Boolean(
     "lamportTimestamp" in message &&
-      typeof message.lamportTimestamp === "number" &&
+      typeof message.lamportTimestamp === "bigint" &&
       (message.content === undefined || message.content.length === 0)
   );
 }
@@ -169,7 +169,7 @@ export function isEphemeralMessage(
 }
 
 function testEphemeralMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
 }): boolean {
   return Boolean(
@@ -186,7 +186,7 @@ export class ContentMessage extends Message {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp: number,
+    public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: Uint8Array<ArrayBufferLike>,
     /**
@@ -226,12 +226,12 @@ export function isContentMessage(
 }
 
 function testContentMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
-}): message is { lamportTimestamp: number; content: Uint8Array } {
+}): message is { lamportTimestamp: bigint; content: Uint8Array } {
   return Boolean(
     "lamportTimestamp" in message &&
-      typeof message.lamportTimestamp === "number" &&
+      typeof message.lamportTimestamp === "bigint" &&
       message.content &&
       message.content.length
   );
