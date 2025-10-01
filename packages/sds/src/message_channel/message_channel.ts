@@ -56,7 +56,7 @@ export type ILocalHistory = Pick<
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
   public readonly senderId: SenderId;
-  private lamportTimestamp: number;
+  private lamportTimestamp: bigint;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: ContentMessage[];
   private possibleAcks: Map<MessageId, number>;
@@ -96,7 +96,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.channelId = channelId;
     this.senderId = senderId;
     // Initialize channel lamport timestamp to current time in seconds.
-    this.lamportTimestamp = Date.now() / 1000;
+    this.lamportTimestamp = BigInt(Math.floor(Date.now() / 1000));
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
@@ -368,7 +368,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public async pushOutgoingSyncMessage(
     callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
-    this.lamportTimestamp++;
+    this.lamportTimestamp = this.lamportTimestamp + 1n;
     const message = new SyncMessage(
       // does not need to be secure randomness
       `sync-${Math.random().toString(36).substring(2)}`,
@@ -525,7 +525,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       retrievalHint?: Uint8Array;
     }>
   ): Promise<void> {
-    this.lamportTimestamp++;
+    this.lamportTimestamp = this.lamportTimestamp + 1n;
 
     const messageId = MessageChannel.getMessageId(payload);
 

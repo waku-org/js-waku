@@ -9,7 +9,7 @@ message SdsMessage {
   string sender_id = 1;           // Participant ID of the message sender
   string message_id = 2;          // Unique identifier of the message
   string channel_id = 3;          // Identifier of the channel to which the message belongs
-  optional uint32 lamport_timestamp = 10;    // Logical timestamp for causal ordering in channel
+  optional uint64 lamport_timestamp = 10;    // Logical timestamp for causal ordering in channel
   repeated HistoryEntry causal_history = 11;  // List of preceding message IDs that this message causally depends on. Generally 2 or 3 message IDs are included.
   optional bytes bloom_filter = 12;         // Bloom filter representing received message IDs in channel
   optional bytes content = 20;             // Actual content of the message

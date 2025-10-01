@@ -419,7 +419,7 @@ describe("Reliable Channel", () => {
         "MyChannel",
         "alice",
         [],
-        1,
+        1n,
         undefined,
         message
       );
@@ -532,7 +532,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         messagePayload
       );
@@ -600,7 +600,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         message1Payload
       );
@@ -610,7 +610,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        2,
+        2n,
         undefined,
         message2Payload
       );
