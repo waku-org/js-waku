@@ -95,8 +95,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     super();
     this.channelId = channelId;
     this.senderId = senderId;
-    // Initialize channel lamport timestamp to current time in seconds.
-    this.lamportTimestamp = BigInt(Math.floor(Date.now() / 1000));
+    // Initialize channel lamport timestamp to current time in milliseconds.
+    this.lamportTimestamp = BigInt(Date.now());
     this.filter = new DefaultBloomFilter(DEFAULT_BLOOM_FILTER_OPTIONS);
     this.outgoingBuffer = [];
     this.possibleAcks = new Map();
@@ -368,7 +368,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public async pushOutgoingSyncMessage(
     callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
-    this.lamportTimestamp = this.lamportTimestamp + 1n;
+    this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
     const message = new SyncMessage(
       // does not need to be secure randomness
       `sync-${Math.random().toString(36).substring(2)}`,
@@ -525,7 +525,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       retrievalHint?: Uint8Array;
     }>
   ): Promise<void> {
-    this.lamportTimestamp = this.lamportTimestamp + 1n;
+    this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
 
     const messageId = MessageChannel.getMessageId(payload);
 
@@ -722,4 +722,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       return false;
     });
   }
+}
+
+export function lamportTimestampIncrement(lamportTimestamp: bigint): bigint {
+  const now = BigInt(Date.now());
+  lamportTimestamp++;
+  if (now > lamportTimestamp) {
+    return now;
+  }
+  return lamportTimestamp;
 }
