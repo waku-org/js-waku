@@ -30,56 +30,60 @@ export class Message implements proto_sds_message.SdsMessage {
   public static decode(
     data: Uint8Array
   ): undefined | ContentMessage | SyncMessage | EphemeralMessage {
-    const {
-      messageId,
-      channelId,
-      senderId,
-      causalHistory,
-      lamportTimestamp,
-      bloomFilter,
-      content
-    } = proto_sds_message.SdsMessage.decode(data);
-
-    if (testContentMessage({ lamportTimestamp, content })) {
-      return new ContentMessage(
+    try {
+      const {
         messageId,
         channelId,
         senderId,
         causalHistory,
-        lamportTimestamp!,
+        lamportTimestamp,
         bloomFilter,
-        content!
-      );
-    }
+        content
+      } = proto_sds_message.SdsMessage.decode(data);
 
-    if (testEphemeralMessage({ lamportTimestamp, content })) {
-      return new EphemeralMessage(
-        messageId,
-        channelId,
-        senderId,
-        causalHistory,
-        undefined,
-        bloomFilter,
-        content!
-      );
-    }
+      if (testContentMessage({ lamportTimestamp, content })) {
+        return new ContentMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          lamportTimestamp!,
+          bloomFilter,
+          content!
+        );
+      }
 
-    if (testSyncMessage({ lamportTimestamp, content })) {
-      return new SyncMessage(
-        messageId,
-        channelId,
-        senderId,
-        causalHistory,
-        lamportTimestamp!,
-        bloomFilter,
-        undefined
+      if (testEphemeralMessage({ lamportTimestamp, content })) {
+        return new EphemeralMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          undefined,
+          bloomFilter,
+          content!
+        );
+      }
+
+      if (testSyncMessage({ lamportTimestamp, content })) {
+        return new SyncMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          lamportTimestamp!,
+          bloomFilter,
+          undefined
+        );
+      }
+      log.error(
+        "message received was of unknown type",
+        lamportTimestamp,
+        content
       );
+    } catch (err) {
+      log.error("failed to decode sds message", err);
     }
-    log.error(
-      "message received was of unknown type",
-      lamportTimestamp,
-      content
-    );
     return undefined;
   }
 }
