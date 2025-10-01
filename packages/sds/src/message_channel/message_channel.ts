@@ -408,8 +408,8 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         throw error;
       }
     }
-    // Why returning false if no callback is set?
-    return false;
+    // No problem encountered so returning true
+    return true;
   }
 
   private _pushIncomingMessage(message: Message): void {

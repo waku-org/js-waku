@@ -647,11 +647,12 @@ describe("MessageChannel", function () {
       });
 
       // And be sends a sync message
-      await channelB.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelB.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelA, message);
         return true;
       });
 
+      expect(res).to.be.true;
       expect(messageAcked).to.be.true;
     });
   });
@@ -1122,7 +1123,8 @@ describe("MessageChannel", function () {
     });
 
     it("should not be added to outgoing buffer, bloom filter, or local log", async () => {
-      await channelA.pushOutgoingSyncMessage();
+      const res = await channelA.pushOutgoingSyncMessage();
+      expect(res).to.be.true;
 
       const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(0);
