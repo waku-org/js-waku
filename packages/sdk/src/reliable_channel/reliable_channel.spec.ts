@@ -823,7 +823,7 @@ describe("Reliable Channel", () => {
         "msg1",
         channelId,
         senderId,
-        [],
+        [{ messageId: "previous-msg-id" }],
         1,
         undefined,
         utf8ToBytes("content message")
@@ -1002,7 +1002,7 @@ describe("Reliable Channel", () => {
     });
   });
 
-  describe("isSyncOrContentMessage predicate", () => {
+  describe("isChannelMessageWithCausalHistory predicate", () => {
     let mockWakuNode: MockWakuNode;
     let reliableChannel: ReliableChannel<IDecodedMessage>;
     let encoder: IEncoder;
@@ -1031,17 +1031,8 @@ describe("Reliable Channel", () => {
         payload: new Uint8Array([1, 2, 3])
       } as IDecodedMessage;
 
-      // SDS Message decode throws on malformed payloads, so this will return false
-      // because decode returns undefined on error which is caught by null check
-      // However, in current implementation it throws, so we check the behavior
-      try {
-        const result = reliableChannel["isSyncOrContentMessage"](msg);
-        expect(result).to.be.false;
-      } catch (error) {
-        // If decode throws, the predicate should ideally handle it
-        // Current implementation doesn't catch, so we expect the throw
-        expect(error).to.not.be.undefined;
-      }
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
     });
 
     it("should return false for different channelId", () => {
@@ -1059,11 +1050,11 @@ describe("Reliable Channel", () => {
         payload: sdsMsg.encode()
       } as IDecodedMessage;
 
-      const result = reliableChannel["isSyncOrContentMessage"](msg);
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
       expect(result).to.be.false;
     });
 
-    it("should return true for matching sync message", () => {
+    it("should return false for sync message without causal history", () => {
       const syncMsg = new SyncMessage(
         "sync-msg-id",
         "testChannel",
@@ -1078,11 +1069,11 @@ describe("Reliable Channel", () => {
         payload: syncMsg.encode()
       } as IDecodedMessage;
 
-      const result = reliableChannel["isSyncOrContentMessage"](msg);
-      expect(result).to.be.true;
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
     });
 
-    it("should return true for matching content message", () => {
+    it("should return false for content message without causal history", () => {
       const contentMsg = new ContentMessage(
         "msg1",
         "testChannel",
@@ -1097,7 +1088,45 @@ describe("Reliable Channel", () => {
         payload: contentMsg.encode()
       } as IDecodedMessage;
 
-      const result = reliableChannel["isSyncOrContentMessage"](msg);
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
+    });
+
+    it("should return true for message with causal history", () => {
+      const contentMsg = new ContentMessage(
+        "msg1",
+        "testChannel",
+        "sender",
+        [{ messageId: "previous-msg-id" }],
+        1,
+        undefined,
+        utf8ToBytes("content")
+      );
+
+      const msg = {
+        payload: contentMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.true;
+    });
+
+    it("should return true for sync message with causal history", () => {
+      const syncMsg = new SyncMessage(
+        "sync-msg-id",
+        "testChannel",
+        "sender",
+        [{ messageId: "previous-msg-id" }],
+        1,
+        undefined,
+        undefined
+      );
+
+      const msg = {
+        payload: syncMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
       expect(result).to.be.true;
     });
   });
