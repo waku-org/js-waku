@@ -17,7 +17,7 @@ import {
 const log = new Logger("sdk:query-on-connect");
 
 export const DEFAULT_FORCE_QUERY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-export const MAX_TIME_RANGE_QUERY_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const MAX_TIME_RANGE_QUERY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days (queries are split)
 
 export interface QueryOnConnectOptions {
   /**
@@ -54,6 +54,7 @@ export class QueryOnConnect<
 
   public constructor(
     public decoders: IDecoder<T>[],
+    public stopIfTrue: (msg: T) => boolean,
     private readonly peerManagerEventEmitter: TypedEventEmitter<IPeerManagerEvents>,
     private readonly wakuEventEmitter: IWakuEventEmitter,
     private readonly _queryGenerator: <T extends IDecodedMessage>(
@@ -125,8 +126,13 @@ export class QueryOnConnect<
         const messages = (await Promise.all(page)).filter(
           (m) => m !== undefined
         );
+        const stop = messages.some((msg: T) => this.stopIfTrue(msg));
         // Bundle the messages to help batch process by sds
         this.dispatchMessages(messages);
+
+        if (stop) {
+          break;
+        }
       }
 
       // Didn't throw, so it didn't fail
