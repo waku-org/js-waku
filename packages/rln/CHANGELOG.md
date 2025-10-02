@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.9](https://github.com/waku-org/js-waku/compare/rln-v0.1.8...rln-v0.1.9) (2025-09-20)
+
+
+### Features
+
+* Expose message hash from IDecodedMessage ([#2578](https://github.com/waku-org/js-waku/issues/2578)) ([836d6b8](https://github.com/waku-org/js-waku/commit/836d6b8793a5124747684f6ea76b6dd47c73048b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.38 to ^0.0.39
+    * @waku/utils bumped from ^0.0.26 to ^0.0.27
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+    * @waku/message-encryption bumped from ^0.0.36 to ^0.0.37
+
 ## [0.1.8](https://github.com/waku-org/js-waku/compare/rln-v0.1.7...rln-v0.1.8) (2025-08-14)
 
 

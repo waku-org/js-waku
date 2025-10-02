@@ -84,7 +84,7 @@ export interface SdsMessage {
   senderId: string
   messageId: string
   channelId: string
-  lamportTimestamp?: number
+  lamportTimestamp?: bigint
   causalHistory: HistoryEntry[]
   bloomFilter?: Uint8Array
   content?: Uint8Array
@@ -117,7 +117,7 @@ export namespace SdsMessage {
 
         if (obj.lamportTimestamp != null) {
           w.uint32(80)
-          w.int32(obj.lamportTimestamp)
+          w.uint64(obj.lamportTimestamp)
         }
 
         if (obj.causalHistory != null) {
@@ -167,7 +167,7 @@ export namespace SdsMessage {
               break
             }
             case 10: {
-              obj.lamportTimestamp = reader.int32()
+              obj.lamportTimestamp = reader.uint64()
               break
             }
             case 11: {

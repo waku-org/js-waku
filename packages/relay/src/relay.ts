@@ -19,9 +19,9 @@ import {
   IRelay,
   type IRoutingInfo,
   Libp2p,
-  ProtocolError,
-  PubsubTopic,
-  SDKProtocolResult
+  LightPushError,
+  LightPushSDKResult,
+  PubsubTopic
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
@@ -127,7 +127,7 @@ export class Relay implements IRelay {
   public async send(
     encoder: IEncoder,
     message: IMessage
-  ): Promise<SDKProtocolResult> {
+  ): Promise<LightPushSDKResult> {
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
@@ -135,7 +135,7 @@ export class Relay implements IRelay {
         successes: [],
         failures: [
           {
-            error: ProtocolError.TOPIC_NOT_CONFIGURED
+            error: LightPushError.TOPIC_NOT_CONFIGURED
           }
         ]
       };
@@ -148,7 +148,7 @@ export class Relay implements IRelay {
         successes: [],
         failures: [
           {
-            error: ProtocolError.ENCODE_FAILED
+            error: LightPushError.ENCODE_FAILED
           }
         ]
       };
@@ -160,7 +160,7 @@ export class Relay implements IRelay {
         successes: [],
         failures: [
           {
-            error: ProtocolError.SIZE_TOO_BIG
+            error: LightPushError.SIZE_TOO_BIG
           }
         ]
       };

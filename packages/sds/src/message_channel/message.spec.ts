@@ -18,7 +18,7 @@ describe("Message serialization", () => {
       "my-channel",
       "me",
       [],
-      0,
+      0n,
       bloomFilter.toBytes(),
       undefined
     );
@@ -42,7 +42,7 @@ describe("Message serialization", () => {
       "my-channel",
       "me",
       [{ messageId: depMessageId, retrievalHint: depRetrievalHint }],
-      0,
+      0n,
       undefined,
       undefined
     );
@@ -50,7 +50,7 @@ describe("Message serialization", () => {
     const bytes = message.encode();
     const decMessage = Message.decode(bytes);
 
-    expect(decMessage.causalHistory).to.deep.equal([
+    expect(decMessage!.causalHistory).to.deep.equal([
       { messageId: depMessageId, retrievalHint: depRetrievalHint }
     ]);
   });
@@ -63,7 +63,7 @@ describe("ContentMessage comparison with < operator", () => {
       "channel",
       "sender",
       [],
-      100, // Lower timestamp
+      100n, // Lower timestamp
       undefined,
       new Uint8Array([1])
     );
@@ -73,7 +73,7 @@ describe("ContentMessage comparison with < operator", () => {
       "channel",
       "sender",
       [],
-      200, // Higher timestamp
+      200n, // Higher timestamp
       undefined,
       new Uint8Array([2])
     );
@@ -89,7 +89,7 @@ describe("ContentMessage comparison with < operator", () => {
       "channel",
       "sender",
       [],
-      100, // Same timestamp
+      100n, // Same timestamp
       undefined,
       new Uint8Array([1])
     );
@@ -99,7 +99,7 @@ describe("ContentMessage comparison with < operator", () => {
       "channel",
       "sender",
       [],
-      100, // Same timestamp
+      100n, // Same timestamp
       undefined,
       new Uint8Array([2])
     );

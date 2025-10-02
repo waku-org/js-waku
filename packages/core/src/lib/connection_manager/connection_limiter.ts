@@ -12,6 +12,7 @@ import { Logger } from "@waku/utils";
 
 import { Dialer } from "./dialer.js";
 import { NetworkMonitor } from "./network_monitor.js";
+import { isAddressesSupported } from "./utils.js";
 
 const log = new Logger("connection-limiter");
 
@@ -145,13 +146,15 @@ export class ConnectionLimiter implements IConnectionLimiter {
       const peers = await this.getPrioritizedPeers();
 
       if (peers.length === 0) {
-        log.info(`No peers to dial, node is utilizing all known peers`);
+        log.info(`No peers to dial, skipping`);
+        await this.triggerBootstrap();
         return;
       }
 
       const promises = peers
         .slice(0, this.options.maxConnections - connections.length)
         .map((p) => this.dialer.dial(p.id));
+
       await Promise.all(promises);
 
       return;
@@ -218,6 +221,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
       if (peers.length === 0) {
         log.info(`No peers to dial, skipping`);
+        await this.triggerBootstrap();
         return;
       }
 
@@ -240,6 +244,9 @@ export class ConnectionLimiter implements IConnectionLimiter {
   private async getPrioritizedPeers(): Promise<Peer[]> {
     const allPeers = await this.libp2p.peerStore.all();
     const allConnections = this.libp2p.getConnections();
+    const allConnectionsSet = new Set(
+      allConnections.map((c) => c.remotePeer.toString())
+    );
 
     log.info(
       `Found ${allPeers.length} peers in store, and found ${allConnections.length} connections`
@@ -247,11 +254,10 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
     const notConnectedPeers = allPeers.filter(
       (p) =>
-        !allConnections.some((c) => c.remotePeer.equals(p.id)) &&
-        p.addresses.some(
-          (a) =>
-            a.multiaddr.toString().includes("wss") ||
-            a.multiaddr.toString().includes("ws")
+        !allConnectionsSet.has(p.id.toString()) &&
+        isAddressesSupported(
+          this.libp2p,
+          p.addresses.map((a) => a.multiaddr)
         )
     );
 
@@ -267,7 +273,19 @@ export class ConnectionLimiter implements IConnectionLimiter {
       p.tags.has(Tags.PEER_CACHE)
     );
 
-    return [...bootstrapPeers, ...peerExchangePeers, ...localStorePeers];
+    const restPeers = notConnectedPeers.filter(
+      (p) =>
+        !p.tags.has(Tags.BOOTSTRAP) &&
+        !p.tags.has(Tags.PEER_EXCHANGE) &&
+        !p.tags.has(Tags.PEER_CACHE)
+    );
+
+    return [
+      ...bootstrapPeers,
+      ...peerExchangePeers,
+      ...localStorePeers,
+      ...restPeers
+    ];
   }
 
   private async getBootstrapPeers(): Promise<Peer[]> {
@@ -290,5 +308,42 @@ export class ConnectionLimiter implements IConnectionLimiter {
       log.error(`Failed to get peer ${peerId}, error: ${error}`);
       return null;
     }
+  }
+
+  /**
+   * Triggers the bootstrap or peer cache discovery if they are mounted.
+   * @returns void
+   */
+  private async triggerBootstrap(): Promise<void> {
+    log.info("Triggering bootstrap discovery");
+
+    const bootstrapComponents = Object.values(this.libp2p.components.components)
+      .filter((c) => !!c)
+      .filter((c: unknown) =>
+        [`@waku/${Tags.BOOTSTRAP}`, `@waku/${Tags.PEER_CACHE}`].includes(
+          (c as { [Symbol.toStringTag]: string })?.[Symbol.toStringTag]
+        )
+      );
+
+    if (bootstrapComponents.length === 0) {
+      log.warn("No bootstrap components found to trigger");
+      return;
+    }
+
+    log.info(
+      `Found ${bootstrapComponents.length} bootstrap components, starting them`
+    );
+
+    const promises = bootstrapComponents.map(async (component) => {
+      try {
+        await (component as { stop: () => Promise<void> })?.stop?.();
+        await (component as { start: () => Promise<void> })?.start?.();
+        log.info("Successfully started bootstrap component");
+      } catch (error) {
+        log.error("Failed to start bootstrap component", error);
+      }
+    });
+
+    await Promise.all(promises);
   }
 }

@@ -95,6 +95,7 @@ describe("QueryOnConnect", () => {
     it("should create QueryOnConnect instance with all required parameters", () => {
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -108,6 +109,7 @@ describe("QueryOnConnect", () => {
     it("should create QueryOnConnect instance without options", () => {
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator
@@ -120,6 +122,7 @@ describe("QueryOnConnect", () => {
     it("should accept empty decoders array", () => {
       queryOnConnect = new QueryOnConnect(
         [],
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -134,6 +137,7 @@ describe("QueryOnConnect", () => {
     beforeEach(() => {
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -173,6 +177,7 @@ describe("QueryOnConnect", () => {
     beforeEach(() => {
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -224,6 +229,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -276,6 +282,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -298,6 +305,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -320,6 +328,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -391,6 +400,7 @@ describe("QueryOnConnect", () => {
 
       const queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -418,6 +428,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -443,6 +454,7 @@ describe("QueryOnConnect", () => {
     let resolveMessageEvent: (messages: IDecodedMessage[]) => void;
     let rejectMessageEvent: (reason: string) => void;
     let connectStoreEvent: CustomEvent<PeerId>;
+    let timeoutId: NodeJS.Timeout;
 
     beforeEach(() => {
       // Create a promise that resolves when a message event is emitted
@@ -472,6 +484,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -482,6 +495,7 @@ describe("QueryOnConnect", () => {
       queryOnConnect.addEventListener(
         QueryOnConnectEvent.MessagesRetrieved,
         (event: CustomEvent<IDecodedMessage[]>) => {
+          clearTimeout(timeoutId);
           resolveMessageEvent(event.detail);
         }
       );
@@ -491,10 +505,14 @@ describe("QueryOnConnect", () => {
       });
 
       // Set a timeout to reject if no message is received
-      setTimeout(
+      timeoutId = setTimeout(
         () => rejectMessageEvent("No message received within timeout"),
         500
       );
+    });
+
+    afterEach(() => {
+      clearTimeout(timeoutId);
     });
 
     it("should emit message when we just started and store connect event occurs", async () => {
@@ -599,6 +617,7 @@ describe("QueryOnConnect", () => {
 
       queryOnConnect = new QueryOnConnect(
         mockDecoders,
+        () => false,
         mockPeerManagerEventEmitter,
         mockWakuEventEmitter,
         mockQueryGenerator,
@@ -742,6 +761,248 @@ describe("QueryOnConnect", () => {
       await delay(100);
 
       expect(mockQueryGenerator.calledTwice).to.be.true;
+    });
+  });
+
+  describe("stopIfTrue predicate", () => {
+    beforeEach(() => {
+      mockPeerManagerEventEmitter.addEventListener = sinon.stub();
+      mockWakuEventEmitter.addEventListener = sinon.stub();
+    });
+
+    it("should stop query iteration when stopIfTrue returns true", async () => {
+      const messages = [
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg1",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([1]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "stop-hash",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([2]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg3",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([3]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      // Setup generator to yield 3 pages, stop should occur on page 2
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(messages[0])];
+        yield [Promise.resolve(messages[1])];
+        yield [Promise.resolve(messages[2])];
+      };
+      mockQueryGenerator.returns(mockAsyncGenerator());
+
+      const stopPredicate = (msg: IDecodedMessage): boolean =>
+        msg.hashStr === "stop-hash";
+
+      queryOnConnect = new QueryOnConnect(
+        mockDecoders,
+        stopPredicate,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockQueryGenerator,
+        options
+      );
+
+      const receivedMessages: IDecodedMessage[] = [];
+      queryOnConnect.addEventListener(
+        QueryOnConnectEvent.MessagesRetrieved,
+        (event: CustomEvent<IDecodedMessage[]>) => {
+          receivedMessages.push(...event.detail);
+        }
+      );
+
+      queryOnConnect.start();
+      await queryOnConnect["maybeQuery"](mockPeerId);
+
+      // Should have received messages from first 2 pages only
+      expect(receivedMessages).to.have.length(2);
+      expect(receivedMessages[0].hashStr).to.equal("msg1");
+      expect(receivedMessages[1].hashStr).to.equal("stop-hash");
+    });
+
+    it("should process all pages when stopIfTrue never returns true", async () => {
+      const messages = [
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg1",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([1]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg2",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([2]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg3",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([3]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [Promise.resolve(messages[0])];
+        yield [Promise.resolve(messages[1])];
+        yield [Promise.resolve(messages[2])];
+      };
+      mockQueryGenerator.returns(mockAsyncGenerator());
+
+      const stopPredicate = (): boolean => false;
+
+      queryOnConnect = new QueryOnConnect(
+        mockDecoders,
+        stopPredicate,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockQueryGenerator,
+        options
+      );
+
+      const receivedMessages: IDecodedMessage[] = [];
+      queryOnConnect.addEventListener(
+        QueryOnConnectEvent.MessagesRetrieved,
+        (event: CustomEvent<IDecodedMessage[]>) => {
+          receivedMessages.push(...event.detail);
+        }
+      );
+
+      queryOnConnect.start();
+      await queryOnConnect["maybeQuery"](mockPeerId);
+
+      // Should have received all 3 messages
+      expect(receivedMessages).to.have.length(3);
+    });
+
+    it("should stop on first message of a page if stopIfTrue matches", async () => {
+      const messages = [
+        {
+          hash: new Uint8Array(),
+          hashStr: "stop-hash",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([1]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg2",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([2]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: new Uint8Array(),
+          hashStr: "msg3",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: "/test/1/content",
+          pubsubTopic: "/waku/2/default-waku/proto",
+          payload: new Uint8Array([3]),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      const mockAsyncGenerator = async function* (): AsyncGenerator<
+        Promise<IDecodedMessage | undefined>[]
+      > {
+        yield [
+          Promise.resolve(messages[0]),
+          Promise.resolve(messages[1]),
+          Promise.resolve(messages[2])
+        ];
+      };
+      mockQueryGenerator.returns(mockAsyncGenerator());
+
+      const stopPredicate = (msg: IDecodedMessage): boolean =>
+        msg.hashStr === "stop-hash";
+
+      queryOnConnect = new QueryOnConnect(
+        mockDecoders,
+        stopPredicate,
+        mockPeerManagerEventEmitter,
+        mockWakuEventEmitter,
+        mockQueryGenerator,
+        options
+      );
+
+      const receivedMessages: IDecodedMessage[] = [];
+      queryOnConnect.addEventListener(
+        QueryOnConnectEvent.MessagesRetrieved,
+        (event: CustomEvent<IDecodedMessage[]>) => {
+          receivedMessages.push(...event.detail);
+        }
+      );
+
+      queryOnConnect.start();
+      await queryOnConnect["maybeQuery"](mockPeerId);
+
+      // Should have received all 3 messages from the page, even though first matched
+      expect(receivedMessages).to.have.length(3);
+      expect(receivedMessages[0].hashStr).to.equal("stop-hash");
+      expect(receivedMessages[1].hashStr).to.equal("msg2");
+      expect(receivedMessages[2].hashStr).to.equal("msg3");
     });
   });
 });

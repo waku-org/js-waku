@@ -1,13 +1,13 @@
-import { ProtocolError } from "@waku/interfaces";
+import { LightPushError } from "@waku/interfaces";
 
 export const shouldPeerBeChanged = (
-  failure: string | ProtocolError
+  failure: string | LightPushError
 ): boolean => {
   const toBeChanged =
-    failure === ProtocolError.REMOTE_PEER_REJECTED ||
-    failure === ProtocolError.NO_RESPONSE ||
-    failure === ProtocolError.RLN_PROOF_GENERATION ||
-    failure === ProtocolError.NO_PEER_AVAILABLE;
+    failure === LightPushError.REMOTE_PEER_REJECTED ||
+    failure === LightPushError.NO_RESPONSE ||
+    failure === LightPushError.RLN_PROOF_GENERATION ||
+    failure === LightPushError.NO_PEER_AVAILABLE;
 
   if (toBeChanged) {
     return true;

@@ -12,6 +12,25 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/utils-v0.0.26...utils-v0.0.27) (2025-09-20)
+
+
+### Features
+
+* Introduce reliable channels ([#2526](https://github.com/waku-org/js-waku/issues/2526)) ([4d5c152](https://github.com/waku-org/js-waku/commit/4d5c152f5b1b1c241bbe7bb96d13d927a6f7550e))
+
+
+### Bug Fixes
+
+* Remove sharding circular dependency ([#2590](https://github.com/waku-org/js-waku/issues/2590)) ([78c856d](https://github.com/waku-org/js-waku/commit/78c856d0796a73848815b615bea24d3f5395da78))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.33 to 0.0.34
+
 ## [0.0.26](https://github.com/waku-org/js-waku/compare/utils-v0.0.25...utils-v0.0.26) (2025-08-14)
 
 

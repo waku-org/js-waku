@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/sds-v0.0.6...sds-v0.0.7) (2025-09-20)
+
+
+### Features
+
+* Implement peer-store re-bootstrapping ([#2641](https://github.com/waku-org/js-waku/issues/2641)) ([11d84ad](https://github.com/waku-org/js-waku/commit/11d84ad342fe45158ef0734f9ca070f14704503f))
+* Introduce reliable channels ([#2526](https://github.com/waku-org/js-waku/issues/2526)) ([4d5c152](https://github.com/waku-org/js-waku/commit/4d5c152f5b1b1c241bbe7bb96d13d927a6f7550e))
+
+
+### Bug Fixes
+
+* (sds) ensure incoming messages have their retrieval hint stored ([#2604](https://github.com/waku-org/js-waku/issues/2604)) ([914beb6](https://github.com/waku-org/js-waku/commit/914beb6531a84f8c11ca951721225d47f9e6c285))
+* Make health events emission consistent ([#2570](https://github.com/waku-org/js-waku/issues/2570)) ([c8dfdb1](https://github.com/waku-org/js-waku/commit/c8dfdb1ace8f0f8f668d8f2bb6e0eaed90041782))
+* **sds:** Initialize lamport timestamp with current time ([#2610](https://github.com/waku-org/js-waku/issues/2610)) ([cb3af8c](https://github.com/waku-org/js-waku/commit/cb3af8cd4d820e20de1e342d40dbf85bea75e16d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.13 to ^0.0.14
+    * @waku/utils bumped from ^0.0.26 to ^0.0.27
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/sds-v0.0.5...sds-v0.0.6) (2025-08-14)
 
 
