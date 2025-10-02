@@ -1,2 +1,3 @@
 export { Messaging } from "./messaging.js";
-export type { RequestId } from "./utils.js";
+// todo: do not export this
+export type { RequestId, WakuLikeMessage } from "./utils.js";

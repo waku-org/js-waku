@@ -1,10 +1,10 @@
-import { ICodec, IDecodedMessage, IMessage } from "@waku/interfaces";
+import { IDecodedMessage } from "@waku/interfaces";
 import { v4 as uuidv4 } from "uuid";
 
+import { WakuLikeMessage } from "./utils.js";
+
 type QueuedMessage = {
-  codec?: ICodec<IDecodedMessage>;
-  messageRequest?: IMessage;
-  sentMessage?: IMessage;
+  messageRequest?: WakuLikeMessage;
   filterAck: boolean;
   storeAck: boolean;
   lastSentAt?: number;
@@ -65,23 +65,18 @@ export class MessageStore {
   ): Promise<void> {
     const entry = this.pendingRequests.get(requestId);
 
-    if (!entry || !entry.codec || !entry.messageRequest) {
+    if (!entry || !entry.messageRequest) {
       return;
     }
 
     entry.lastSentAt = Number(sentMessage.timestamp);
-    entry.sentMessage = sentMessage;
     this.pendingMessages.set(sentMessage.hashStr, requestId);
   }
 
-  public async queue(
-    codec: ICodec<IDecodedMessage>,
-    message: IMessage
-  ): Promise<RequestId> {
+  public async queue(message: WakuLikeMessage): Promise<RequestId> {
     const requestId = uuidv4();
 
     this.pendingRequests.set(requestId.toString(), {
-      codec,
       messageRequest: message,
       filterAck: false,
       storeAck: false,
@@ -93,19 +88,17 @@ export class MessageStore {
 
   public getMessagesToSend(): Array<{
     requestId: string;
-    codec: ICodec<IDecodedMessage>;
-    message: IMessage;
+    message: WakuLikeMessage;
   }> {
     const res: Array<{
       requestId: string;
-      codec: ICodec<IDecodedMessage>;
-      message: IMessage;
+      message: WakuLikeMessage;
     }> = [];
 
     for (const [requestId, entry] of this.pendingRequests.entries()) {
       const isAcknowledged = entry.filterAck || entry.storeAck;
 
-      if (!entry.codec || !entry.messageRequest || isAcknowledged) {
+      if (!entry.messageRequest || isAcknowledged) {
         continue;
       }
 
@@ -118,7 +111,6 @@ export class MessageStore {
       if (notSent || notAcknowledged) {
         res.push({
           requestId,
-          codec: entry.codec,
           message: entry.messageRequest
         });
       }

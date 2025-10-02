@@ -10,13 +10,7 @@ import type { IFilter } from "./filter.js";
 import type { HealthStatus } from "./health_status.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
-import {
-  ICodec,
-  IDecodedMessage,
-  IDecoder,
-  IEncoder,
-  IMessage
-} from "./message.js";
+import { ICodec, IDecodedMessage, IDecoder, IEncoder } from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { ShardId } from "./sharding.js";
@@ -313,7 +307,7 @@ export interface IWaku {
    * @param {IMessage} message - The message to send
    * @returns {Promise<string>} A promise that resolves to the request ID
    */
-  send(codec: ICodec<IDecodedMessage>, message: IMessage): Promise<string>;
+  // send(codec: ICodec<IDecodedMessage>, message: IMessage): Promise<string>;
 
   /**
    * @returns {boolean} `true` if the node was started and `false` otherwise

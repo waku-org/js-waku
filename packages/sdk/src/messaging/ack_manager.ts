@@ -1,4 +1,12 @@
-import { ICodec, IDecodedMessage, IFilter, IStore } from "@waku/interfaces";
+import { createDecoder } from "@waku/core";
+import {
+  IDecodedMessage,
+  IDecoder,
+  IFilter,
+  IStore,
+  NetworkConfig
+} from "@waku/interfaces";
+import { createRoutingInfo } from "@waku/utils";
 
 import { MessageStore } from "./message_store.js";
 import { IAckManager } from "./utils.js";
@@ -7,15 +15,18 @@ type AckManagerConstructorParams = {
   messageStore: MessageStore;
   filter: IFilter;
   store: IStore;
+  networkConfig: NetworkConfig;
 };
 
 export class AckManager implements IAckManager {
   private readonly messageStore: MessageStore;
   private readonly filterAckManager: FilterAckManager;
   private readonly storeAckManager: StoreAckManager;
+  private readonly networkConfig: NetworkConfig;
 
   public constructor(params: AckManagerConstructorParams) {
     this.messageStore = params.messageStore;
+    this.networkConfig = params.networkConfig;
 
     this.filterAckManager = new FilterAckManager(
       this.messageStore,
@@ -35,16 +46,23 @@ export class AckManager implements IAckManager {
     this.storeAckManager.stop();
   }
 
-  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
+  public async subscribe(contentTopic: string): Promise<boolean> {
+    const decoder = createDecoder(
+      contentTopic,
+      createRoutingInfo(this.networkConfig, {
+        contentTopic
+      })
+    );
+
     return (
-      (await this.filterAckManager.subscribe(codec)) ||
-      (await this.storeAckManager.subscribe(codec))
+      (await this.filterAckManager.subscribe(decoder)) ||
+      (await this.storeAckManager.subscribe(decoder))
     );
   }
 }
 
-class FilterAckManager implements IAckManager {
-  private codecs: Set<ICodec<IDecodedMessage>> = new Set();
+class FilterAckManager {
+  private decoders: Set<IDecoder<IDecodedMessage>> = new Set();
 
   public constructor(
     private messageStore: MessageStore,
@@ -56,20 +74,20 @@ class FilterAckManager implements IAckManager {
   }
 
   public async stop(): Promise<void> {
-    const promises = Array.from(this.codecs.entries()).map((codec) =>
-      this.filter.unsubscribe(codec)
+    const promises = Array.from(this.decoders.entries()).map((decoder) =>
+      this.filter.unsubscribe(decoder)
     );
     await Promise.all(promises);
-    this.codecs.clear();
+    this.decoders.clear();
   }
 
-  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
+  public async subscribe(decoder: IDecoder<IDecodedMessage>): Promise<boolean> {
     const success = await this.filter.subscribe(
-      codec,
+      decoder,
       this.onMessage.bind(this)
     );
     if (success) {
-      this.codecs.add(codec);
+      this.decoders.add(decoder);
     }
     return success;
   }
@@ -83,10 +101,10 @@ class FilterAckManager implements IAckManager {
   }
 }
 
-class StoreAckManager implements IAckManager {
+class StoreAckManager {
   private interval: ReturnType<typeof setInterval> | null = null;
 
-  private codecs: Set<ICodec<IDecodedMessage>> = new Set();
+  private decoders: Set<IDecoder<IDecodedMessage>> = new Set();
 
   public constructor(
     private messageStore: MessageStore,
@@ -112,15 +130,15 @@ class StoreAckManager implements IAckManager {
     this.interval = null;
   }
 
-  public async subscribe(codec: ICodec<IDecodedMessage>): Promise<boolean> {
-    this.codecs.add(codec);
+  public async subscribe(decoder: IDecoder<IDecodedMessage>): Promise<boolean> {
+    this.decoders.add(decoder);
     return true;
   }
 
   private async query(): Promise<void> {
-    for (const codec of this.codecs) {
+    for (const decoder of this.decoders) {
       await this.store.queryWithOrderedCallback(
-        [codec],
+        [decoder],
         (message) => {
           if (!this.messageStore.has(message.hashStr)) {
             this.messageStore.add(message, { storeAck: true });

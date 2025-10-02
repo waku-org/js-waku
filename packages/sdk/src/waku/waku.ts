@@ -22,7 +22,6 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
-  IMessage,
   IRelay,
   IRoutingInfo,
   IStore,
@@ -42,7 +41,7 @@ import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
 import { Messaging } from "../messaging/index.js";
-import type { RequestId } from "../messaging/index.js";
+import type { RequestId, WakuLikeMessage } from "../messaging/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
@@ -141,7 +140,8 @@ export class WakuNode implements IWaku {
       this.messaging = new Messaging({
         lightPush: this.lightPush,
         filter: this.filter,
-        store: this.store
+        store: this.store,
+        networkConfig: this.networkConfig
       });
     }
 
@@ -303,15 +303,12 @@ export class WakuNode implements IWaku {
     });
   }
 
-  public send(
-    codec: ICodec<IDecodedMessage>,
-    message: IMessage
-  ): Promise<RequestId> {
+  public send(wakuLikeMessage: WakuLikeMessage): Promise<RequestId> {
     if (!this.messaging) {
       throw new Error("Messaging not initialized");
     }
 
-    return this.messaging.send(codec, message);
+    return this.messaging.send(wakuLikeMessage);
   }
 
   public createCodec(params: CreateCodecParams): ICodec<IDecodedMessage> {
