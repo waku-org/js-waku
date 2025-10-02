@@ -647,11 +647,12 @@ describe("MessageChannel", function () {
       });
 
       // And be sends a sync message
-      await channelB.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelB.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelA, message);
         return true;
       });
 
+      expect(res).to.be.true;
       expect(messageAcked).to.be.true;
     });
   });
@@ -1089,17 +1090,41 @@ describe("MessageChannel", function () {
         causalHistorySize: 2
       });
       channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
+      const message = utf8ToBytes("first message in channel");
+      channelA["localHistory"].push(
+        new ContentMessage(
+          MessageChannel.getMessageId(message),
+          "MyChannel",
+          "alice",
+          [],
+          1n,
+          undefined,
+          message
+        )
+      );
     });
 
     it("should be sent with empty content", async () => {
-      await channelA.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelA.pushOutgoingSyncMessage(async (message) => {
         expect(message.content).to.be.undefined;
         return true;
       });
+      expect(res).to.be.true;
+    });
+
+    it("should not be sent when there is no history", async () => {
+      const channelC = new MessageChannel(channelId, "carol", {
+        causalHistorySize: 2
+      });
+      const res = await channelC.pushOutgoingSyncMessage(async (_msg) => {
+        throw "callback was called when it's not expected";
+      });
+      expect(res).to.be.false;
     });
 
     it("should not be added to outgoing buffer, bloom filter, or local log", async () => {
-      await channelA.pushOutgoingSyncMessage();
+      const res = await channelA.pushOutgoingSyncMessage();
+      expect(res).to.be.true;
 
       const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(0);
@@ -1110,15 +1135,16 @@ describe("MessageChannel", function () {
       ).to.equal(false);
 
       const localLog = channelA["localHistory"];
-      expect(localLog.length).to.equal(0);
+      expect(localLog.length).to.equal(1); // beforeEach adds one message
     });
 
     it("should not be delivered", async () => {
       const timestampBefore = channelB["lamportTimestamp"];
-      await channelA.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelA.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelB, message);
         return true;
       });
+      expect(res).to.be.true;
       const timestampAfter = channelB["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore);
 
@@ -1132,20 +1158,23 @@ describe("MessageChannel", function () {
     });
 
     it("should update ack status of messages in outgoing buffer", async () => {
+      const channelC = new MessageChannel(channelId, "carol", {
+        causalHistorySize: 2
+      });
       for (const m of messagesA) {
-        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+        await sendMessage(channelC, utf8ToBytes(m), async (message) => {
           await receiveMessage(channelB, message);
           return { success: true };
         });
       }
 
       await sendSyncMessage(channelB, async (message) => {
-        await receiveMessage(channelA, message);
+        await receiveMessage(channelC, message);
         return true;
       });
 
-      const causalHistorySize = channelA["causalHistorySize"];
-      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
+      const causalHistorySize = channelC["causalHistorySize"];
+      const outgoingBuffer = channelC["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(
         messagesA.length - causalHistorySize
       );
