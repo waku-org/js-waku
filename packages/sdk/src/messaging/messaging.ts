@@ -38,7 +38,8 @@ export class Messaging implements IMessaging {
 
     this.sender = new Sender({
       messageStore: this.messageStore,
-      lightPush: params.lightPush
+      lightPush: params.lightPush,
+      ackManager: this.ackManager
     });
   }
 

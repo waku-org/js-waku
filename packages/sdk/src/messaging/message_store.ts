@@ -134,8 +134,8 @@ export class MessageStore {
     let entry = this.messages.get(hashStr);
 
     if (entry) {
-      entry.filterAck = true;
-      entry.storeAck = true;
+      entry.filterAck = ackParams.filterAck ?? entry.filterAck;
+      entry.storeAck = ackParams.storeAck ?? entry.storeAck;
       return;
     }
 
