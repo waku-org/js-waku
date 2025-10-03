@@ -1,11 +1,17 @@
 import {
+  comparePublicKeys,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey
 } from "./crypto/index.js";
 import { DecodedMessage } from "./decoded_message.js";
 
-export { generatePrivateKey, generateSymmetricKey, getPublicKey };
+export {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+  comparePublicKeys
+};
 export type { DecodedMessage };
 
 export * as ecies from "./ecies.js";

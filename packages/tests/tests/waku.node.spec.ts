@@ -7,10 +7,17 @@ import type {
   RelayNode
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { generateSymmetricKey } from "@waku/message-encryption";
+import {
+  comparePublicKeys,
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey
+} from "@waku/message-encryption";
 import {
   createDecoder,
-  createEncoder
+  createEncoder,
+  SymmetricDecryption,
+  SymmetricDecryptionResult
 } from "@waku/message-encryption/symmetric";
 import { createRelayNode } from "@waku/relay";
 import {
@@ -381,6 +388,59 @@ describe("Waku API", function () {
       serviceNodes.messageCollector.verifyReceivedMessage(2, {
         expectedMessageText: thirdMessageText,
         expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+      });
+    });
+
+    it("Subscribe and receive messages encrypted with AES", async function () {
+      const symKey = generateSymmetricKey();
+      const senderPrivKey = generatePrivateKey();
+      // TODO: For now, still using encoder
+      const newEncoder = createEncoder({
+        contentTopic: TestContentTopic,
+        routingInfo: TestRoutingInfo,
+        symKey,
+        sigPrivKey: senderPrivKey
+      });
+
+      // Setup payload decryption
+      const symDecryption = new SymmetricDecryption(symKey);
+
+      // subscribe to second content topic
+      waku.messageEmitter.addEventListener(TestContentTopic, (event) => {
+        const encryptedPayload = event.detail;
+        void symDecryption
+          .decrypt(encryptedPayload)
+          .then((decryptionResult: SymmetricDecryptionResult | undefined) => {
+            if (!decryptionResult) return;
+            serviceNodes.messageCollector.callback({
+              contentTopic: TestContentTopic,
+              payload: decryptionResult.payload
+            });
+
+            // TODO: probably best to adapt the message collector
+            expect(decryptionResult?.signature).to.not.be.undefined;
+            expect(
+              comparePublicKeys(
+                getPublicKey(senderPrivKey),
+                decryptionResult?.signaturePublicKey
+              )
+            );
+            // usually best to ignore decryption failure
+          });
+      });
+      await waku.subscribe([TestContentTopic]);
+
+      await waku.lightPush.send(newEncoder, {
+        payload: utf8ToBytes(messageText)
+      });
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        true,
+        "Waiting for the message"
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(1, {
+        expectedContentTopic: TestContentTopic,
+        expectedMessageText: messageText,
         expectedPubsubTopic: TestRoutingInfo.pubsubTopic
       });
     });
