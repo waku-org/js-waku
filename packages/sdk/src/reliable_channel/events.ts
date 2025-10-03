@@ -1,4 +1,4 @@
-import { IDecodedMessage, ProtocolError } from "@waku/interfaces";
+import { ProtocolError } from "@waku/interfaces";
 import type { HistoryEntry, MessageId } from "@waku/sds";
 
 export const ReliableChannelEvent = {
@@ -56,8 +56,7 @@ export interface ReliableChannelEvents {
     possibleAckCount: number;
   }>;
   "message-acknowledged": CustomEvent<MessageId>;
-  // TODO probably T extends IDecodedMessage?
-  "message-received": CustomEvent<IDecodedMessage>;
+  "message-received": CustomEvent<Uint8Array>;
   "irretrievable-message": CustomEvent<HistoryEntry>;
   "sending-message-irrecoverable-error": CustomEvent<{
     messageId: MessageId;

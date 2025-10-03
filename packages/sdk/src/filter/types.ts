@@ -1,6 +1,9 @@
 import type { FilterCore } from "@waku/core";
-import type { FilterProtocolOptions, Libp2p } from "@waku/interfaces";
-import type { WakuMessage } from "@waku/proto";
+import type {
+  FilterProtocolOptions,
+  IDecodedMessage,
+  Libp2p
+} from "@waku/interfaces";
 
 import type { PeerManager } from "../peer_manager/index.js";
 
@@ -11,7 +14,7 @@ export type FilterConstructorParams = {
 };
 
 export type SubscriptionEvents = {
-  [contentTopic: string]: CustomEvent<WakuMessage>;
+  [contentTopic: string]: CustomEvent<IDecodedMessage>;
 };
 
 export type SubscriptionParams = {

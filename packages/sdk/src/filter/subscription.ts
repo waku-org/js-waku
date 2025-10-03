@@ -5,11 +5,11 @@ import {
 } from "@libp2p/interface";
 import { FilterCore, messageHashStr } from "@waku/core";
 import type {
-  Callback,
+  ContentTopic,
   FilterProtocolOptions,
   IDecodedMessage,
-  IDecoder,
   IProtoMessage,
+  IRoutingInfo,
   PeerIdStr
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -51,8 +51,8 @@ export class Subscription {
   private readonly receivedMessages = new TTLSet<string>(60_000);
 
   private callbacks = new Map<
-    IDecoder<IDecodedMessage>,
-    EventHandler<CustomEvent<WakuMessage>>
+    ContentTopic,
+    EventHandler<CustomEvent<IDecodedMessage>>
   >();
   private messageEmitter = new TypedEventEmitter<SubscriptionEvents>();
 
@@ -63,9 +63,7 @@ export class Subscription {
   private keepAliveIntervalId: number | null = null;
 
   private get contentTopics(): string[] {
-    const allTopics = Array.from(this.callbacks.keys()).map(
-      (k) => k.contentTopic
-    );
+    const allTopics = Array.from(this.callbacks.keys());
     const uniqueTopics = new Set(allTopics).values();
 
     return Array.from(uniqueTopics);
@@ -131,14 +129,13 @@ export class Subscription {
     return this.callbacks.size === 0;
   }
 
-  public async add<T extends IDecodedMessage>(
-    decoder: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public async add(
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo,
+    callback: (msg: IDecodedMessage) => void | Promise<void>
   ): Promise<boolean> {
-    const decoders = Array.isArray(decoder) ? decoder : [decoder];
-
-    for (const decoder of decoders) {
-      this.addSingle(decoder, callback);
+    for (const contentTopic of contentTopics) {
+      this.addSingle(contentTopic, routingInfo, callback);
     }
 
     return this.toSubscribeContentTopics.size > 0
@@ -146,13 +143,9 @@ export class Subscription {
       : true; // if content topic is not new - subscription, most likely exists
   }
 
-  public async remove<T extends IDecodedMessage>(
-    decoder: IDecoder<T> | IDecoder<T>[]
-  ): Promise<boolean> {
-    const decoders = Array.isArray(decoder) ? decoder : [decoder];
-
-    for (const decoder of decoders) {
-      this.removeSingle(decoder);
+  public async remove(contentTopics: ContentTopic[]): Promise<boolean> {
+    for (const contentTopic of contentTopics) {
+      this.removeSingle(contentTopic);
     }
 
     return this.toUnsubscribeContentTopics.size > 0
@@ -177,76 +170,63 @@ export class Subscription {
     );
   }
 
-  private addSingle<T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
-    callback: Callback<T>
+  private addSingle(
+    contentTopic: ContentTopic,
+    routingInfo: IRoutingInfo,
+    callback: (msg: IDecodedMessage) => void | Promise<void>
   ): void {
-    log.info(`Adding subscription for contentTopic: ${decoder.contentTopic}`);
+    log.info(`Adding subscription for contentTopic: ${contentTopic}`);
 
-    const isNewContentTopic = !this.contentTopics.includes(
-      decoder.contentTopic
-    );
+    const isNewContentTopic = !this.contentTopics.includes(contentTopic);
 
     if (isNewContentTopic) {
-      this.toSubscribeContentTopics.add(decoder.contentTopic);
+      this.toSubscribeContentTopics.add(contentTopic);
     }
 
-    if (this.callbacks.has(decoder)) {
+    if (this.callbacks.has(contentTopic)) {
       log.warn(
-        `Replacing callback associated associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `Replacing callback associated associated with decoder with pubsubTopic:${routingInfo.pubsubTopic} and contentTopic:${contentTopic}`
       );
 
-      const callback = this.callbacks.get(decoder);
-      this.callbacks.delete(decoder);
-      this.messageEmitter.removeEventListener(decoder.contentTopic, callback);
+      const callback = this.callbacks.get(contentTopic);
+      this.callbacks.delete(contentTopic);
+      this.messageEmitter.removeEventListener(contentTopic, callback);
     }
 
-    const eventHandler = (event: CustomEvent<WakuMessage>): void => {
-      void (async (): Promise<void> => {
-        try {
-          const message = await decoder.fromProtoObj(
-            decoder.pubsubTopic,
-            event.detail as IProtoMessage
-          );
-          void callback(message!);
-        } catch (err) {
-          log.error("Error decoding message", err);
-        }
-      })();
+    const eventHandler = (event: CustomEvent<IDecodedMessage>): void => {
+      void callback(event.detail);
     };
 
-    this.callbacks.set(decoder, eventHandler);
-    this.messageEmitter.addEventListener(decoder.contentTopic, eventHandler);
+    this.callbacks.set(contentTopic, eventHandler);
+    this.messageEmitter.addEventListener(contentTopic, eventHandler);
 
     log.info(
-      `Subscription added for contentTopic: ${decoder.contentTopic}, isNewContentTopic: ${isNewContentTopic}`
+      `Subscription added for contentTopic: ${contentTopic}, isNewContentTopic: ${isNewContentTopic}`
     );
   }
 
-  private removeSingle<T extends IDecodedMessage>(decoder: IDecoder<T>): void {
-    log.info(`Removing subscription for contentTopic: ${decoder.contentTopic}`);
+  private removeSingle(contentTopic: ContentTopic): void {
+    log.info(`Removing subscription for contentTopic: ${contentTopic}`);
 
-    const callback = this.callbacks.get(decoder);
+    const callback = this.callbacks.get(contentTopic);
 
     if (!callback) {
       log.warn(
-        `No callback associated with decoder with pubsubTopic:${decoder.pubsubTopic} and contentTopic:${decoder.contentTopic}`
+        `No callback associated with decoder with contentTopic: ${contentTopic}`
       );
     }
 
-    this.callbacks.delete(decoder);
-    this.messageEmitter.removeEventListener(decoder.contentTopic, callback);
+    this.callbacks.delete(contentTopic);
+    this.messageEmitter.removeEventListener(contentTopic, callback);
 
-    const isCompletelyRemoved = !this.contentTopics.includes(
-      decoder.contentTopic
-    );
+    const isCompletelyRemoved = !this.contentTopics.includes(contentTopic);
 
     if (isCompletelyRemoved) {
-      this.toUnsubscribeContentTopics.add(decoder.contentTopic);
+      this.toUnsubscribeContentTopics.add(contentTopic);
     }
 
     log.info(
-      `Subscription removed for contentTopic: ${decoder.contentTopic}, isCompletelyRemoved: ${isCompletelyRemoved}`
+      `Subscription removed for contentTopic: ${contentTopic}, isCompletelyRemoved: ${isCompletelyRemoved}`
     );
   }
 
@@ -383,8 +363,8 @@ export class Subscription {
   }
 
   private disposeHandlers(): void {
-    for (const [decoder, handler] of this.callbacks.entries()) {
-      this.messageEmitter.removeEventListener(decoder.contentTopic, handler);
+    for (const [contentTopic, handler] of this.callbacks.entries()) {
+      this.messageEmitter.removeEventListener(contentTopic, handler);
     }
     this.callbacks.clear();
   }

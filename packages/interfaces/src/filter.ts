@@ -1,5 +1,6 @@
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { Callback } from "./protocols.js";
+import type { IDecodedMessage } from "./message.js";
+import { ContentTopic } from "./misc.js";
+import { IRoutingInfo } from "./sharding.js";
 
 export type IFilter = {
   readonly multicodec: string;
@@ -38,9 +39,10 @@ export type IFilter = {
    *   console.error("Failed to subscribe");
    * }
    */
-  subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  subscribe(
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo,
+    callback: (msg: IDecodedMessage) => void | Promise<void>
   ): Promise<boolean>;
 
   /**
@@ -64,8 +66,9 @@ export type IFilter = {
    *   console.error("Failed to unsubscribe");
    * }
    */
-  unsubscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
+  unsubscribe(
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo
   ): Promise<boolean>;
 
   /**

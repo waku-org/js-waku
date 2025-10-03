@@ -1,11 +1,12 @@
 import { TypedEventEmitter } from "@libp2p/interface";
 import { messageHash } from "@waku/core";
 import {
-  type Callback,
+  type ContentTopic,
   type IDecodedMessage,
   type IDecoder,
   type IEncoder,
   type IMessage,
+  type IRoutingInfo,
   ISendOptions,
   type IWaku,
   LightPushError,
@@ -132,8 +133,9 @@ export class ReliableChannel<
   ) => Promise<LightPushSDKResult>;
 
   private readonly _subscribe: (
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo,
+    callback: (msg: IDecodedMessage) => void | Promise<void>
   ) => Promise<boolean>;
 
   private readonly _retrieve?: <T extends IDecodedMessage>(
@@ -324,10 +326,11 @@ export class ReliableChannel<
 
         const messageId = ReliableChannel.getMessageId(messagePayload);
 
-        // TODO: should the encoder give me the message hash?
-        // Encoding now to fail early, used later to get message hash
-        const protoMessage = await this.encoder.toProtoObj(wakuMessage);
-        if (!protoMessage) {
+        const retrievalHint = await computeRetrievalHint(
+          messagePayload,
+          this.encoder
+        );
+        if (!retrievalHint) {
           this.safeSendEvent("sending-message-irrecoverable-error", {
             detail: {
               messageId: messageId,
@@ -336,10 +339,6 @@ export class ReliableChannel<
           });
           return { success: false };
         }
-        const retrievalHint = messageHash(
-          this.encoder.pubsubTopic,
-          protoMessage
-        );
 
         this.safeSendEvent("sending-message", {
           detail: messageId
@@ -383,9 +382,13 @@ export class ReliableChannel<
 
   private async subscribe(): Promise<boolean> {
     this.assertStarted();
-    return this._subscribe(this.decoder, async (message: T) => {
-      await this.processIncomingMessage(message);
-    });
+    return this._subscribe(
+      [this.decoder.contentTopic],
+      this.decoder.routingInfo,
+      async (message: IDecodedMessage) => {
+        await this.processIncomingMessage(message);
+      }
+    );
   }
 
   /**
@@ -393,9 +396,7 @@ export class ReliableChannel<
    * @param msg
    * @private
    */
-  private async processIncomingMessage<T extends IDecodedMessage>(
-    msg: T
-  ): Promise<void> {
+  private async processIncomingMessage(msg: IDecodedMessage): Promise<void> {
     // New message arrives, we need to unwrap it first
     const sdsMessage = SdsMessage.decode(msg.payload);
 
@@ -422,25 +423,8 @@ export class ReliableChannel<
 
     if (sdsMessage.content && sdsMessage.content.length > 0) {
       // Now, process the message with callback
-
-      // Overrides msg.payload with unwrapped payload
-      // TODO: can we do better?
-      const { payload: _p, ...allButPayload } = msg;
-      const unwrappedMessage = Object.assign(allButPayload, {
-        payload: sdsMessage.content,
-        hash: msg.hash,
-        hashStr: msg.hashStr,
-        version: msg.version,
-        contentTopic: msg.contentTopic,
-        pubsubTopic: msg.pubsubTopic,
-        timestamp: msg.timestamp,
-        rateLimitProof: msg.rateLimitProof,
-        ephemeral: msg.ephemeral,
-        meta: msg.meta
-      });
-
       this.safeSendEvent("message-received", {
-        detail: unwrappedMessage as unknown as T
+        detail: sdsMessage.content
       });
     }
 
@@ -688,4 +672,17 @@ export class ReliableChannel<
       );
     }
   }
+}
+
+async function computeRetrievalHint(
+  payload: Uint8Array,
+  encoder: IEncoder
+): Promise<Uint8Array | undefined> {
+  // TODO: should the encoder give me the message hash?
+  // Encoding now to fail early, used later to get message hash
+  const protoMessage = await encoder.toProtoObj({ payload });
+  if (!protoMessage) {
+    return undefined;
+  }
+  return messageHash(encoder.pubsubTopic, protoMessage);
 }

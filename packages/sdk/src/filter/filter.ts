@@ -1,10 +1,10 @@
 import { FilterCore } from "@waku/core";
 import type {
-  Callback,
+  ContentTopic,
   FilterProtocolOptions,
   IDecodedMessage,
-  IDecoder,
-  IFilter
+  IFilter,
+  IRoutingInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -61,31 +61,25 @@ export class Filter implements IFilter {
     this.subscriptions.clear();
   }
 
-  public async subscribe<T extends IDecodedMessage>(
-    decoder: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+  public async subscribe(
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo,
+    callback: (msg: IDecodedMessage) => void | Promise<void>
   ): Promise<boolean> {
-    const decoders = Array.isArray(decoder) ? decoder : [decoder];
-
-    if (decoders.length === 0) {
-      throw Error("Cannot subscribe with 0 decoders.");
+    if (contentTopics.length === 0) {
+      throw Error("Cannot subscribe with 0 contentTopics.");
     }
 
-    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
-    const singlePubsubTopic = pubsubTopics[0];
-
-    const contentTopics = decoders.map((v) => v.contentTopic);
+    const pubsubTopic = routingInfo.pubsubTopic;
 
     log.info(
-      `Subscribing to contentTopics: ${contentTopics}, pubsubTopic: ${singlePubsubTopic}`
+      `Subscribing to contentTopics: ${contentTopics}, pubsubTopic: ${pubsubTopic}`
     );
 
-    this.throwIfTopicNotSame(pubsubTopics);
-
-    let subscription = this.subscriptions.get(singlePubsubTopic);
+    let subscription = this.subscriptions.get(pubsubTopic);
     if (!subscription) {
       subscription = new Subscription({
-        pubsubTopic: singlePubsubTopic,
+        pubsubTopic,
         protocol: this.protocol,
         config: this.config,
         peerManager: this.peerManager
@@ -93,8 +87,8 @@ export class Filter implements IFilter {
       subscription.start();
     }
 
-    const result = await subscription.add(decoders, callback);
-    this.subscriptions.set(singlePubsubTopic, subscription);
+    const result = await subscription.add(contentTopics, routingInfo, callback);
+    this.subscriptions.set(pubsubTopic, subscription);
 
     log.info(
       `Subscription ${result ? "successful" : "failed"} for content topic: ${contentTopics}`
@@ -103,38 +97,31 @@ export class Filter implements IFilter {
     return result;
   }
 
-  public async unsubscribe<T extends IDecodedMessage>(
-    decoder: IDecoder<T> | IDecoder<T>[]
+  public async unsubscribe(
+    contentTopics: ContentTopic[],
+    routingInfo: IRoutingInfo
   ): Promise<boolean> {
-    const decoders = Array.isArray(decoder) ? decoder : [decoder];
-
-    if (decoders.length === 0) {
-      throw Error("Cannot unsubscribe with 0 decoders.");
+    if (contentTopics.length === 0) {
+      throw Error("Cannot unsubscribe with 0 contentTopics.");
     }
-
-    const pubsubTopics = decoders.map((v) => v.pubsubTopic);
-    const singlePubsubTopic = pubsubTopics[0];
-
-    const contentTopics = decoders.map((v) => v.contentTopic);
+    const { pubsubTopic } = routingInfo;
 
     log.info(
-      `Unsubscribing from contentTopics: ${contentTopics}, pubsubTopic: ${singlePubsubTopic}`
+      `Unsubscribing from contentTopics: ${contentTopics}, pubsubTopic: ${pubsubTopic}`
     );
 
-    this.throwIfTopicNotSame(pubsubTopics);
-
-    const subscription = this.subscriptions.get(singlePubsubTopic);
+    const subscription = this.subscriptions.get(pubsubTopic);
     if (!subscription) {
       log.warn("No subscriptions associated with the decoder.");
       return false;
     }
 
-    const result = await subscription.remove(decoders);
+    const result = await subscription.remove(contentTopics);
 
     if (subscription.isEmpty()) {
       log.warn("Subscription has no decoders anymore, terminating it.");
       subscription.stop();
-      this.subscriptions.delete(singlePubsubTopic);
+      this.subscriptions.delete(pubsubTopic);
     }
 
     log.info(
@@ -161,17 +148,5 @@ export class Filter implements IFilter {
     }
 
     subscription.invoke(message, peerId);
-  }
-
-  // Limiting to one pubsubTopic for simplicity reasons, we can enable subscription for more than one PubsubTopic at once later when requested
-  private throwIfTopicNotSame(pubsubTopics: string[]): void {
-    const first = pubsubTopics[0];
-    const isSameTopic = pubsubTopics.every((t) => t === first);
-
-    if (!isSameTopic) {
-      throw Error(
-        `Cannot subscribe to more than one pubsub topic at the same time, got pubsubTopics:${pubsubTopics}`
-      );
-    }
   }
 }

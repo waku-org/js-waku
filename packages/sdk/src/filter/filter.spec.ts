@@ -49,7 +49,11 @@ describe("Filter SDK", () => {
     const addStub = sinon.stub(Subscription.prototype, "add").resolves(true);
     const startStub = sinon.stub(Subscription.prototype, "start");
 
-    const result = await filter.subscribe(decoder, callback);
+    const result = await filter.subscribe(
+      [testContentTopic],
+      testRoutingInfo,
+      callback
+    );
 
     expect(result).to.be.true;
     expect(addStub.calledOnce).to.be.true;
@@ -57,7 +61,10 @@ describe("Filter SDK", () => {
   });
 
   it("should return false when unsubscribing from a non-existing subscription", async () => {
-    const result = await filter.unsubscribe(decoder);
+    const result = await filter.unsubscribe(
+      [testContentTopic],
+      testRoutingInfo
+    );
     expect(result).to.be.false;
   });
 

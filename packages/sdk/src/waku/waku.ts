@@ -7,6 +7,7 @@ import {
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
 import type {
+  ContentTopic,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
@@ -28,7 +29,7 @@ import {
   HealthStatus,
   Protocols
 } from "@waku/interfaces";
-import { createRoutingInfo, Logger } from "@waku/utils";
+import { createRoutingInfo, Logger, pushOrInitMapSet } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -132,6 +133,37 @@ export class WakuNode implements IWaku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
+  }
+
+  public async subscribe(
+    contentTopics: ContentTopic[],
+    callback: (message: {
+      contentTopic: ContentTopic;
+      payload: Uint8Array;
+    }) => void | Promise<void>
+  ): Promise<void> {
+    // Group content topics via routing info in case they spread across several shards
+    const ctToRouting = new Map();
+    for (const contentTopic of contentTopics) {
+      const routingInfo = this.createRoutingInfo(contentTopic);
+      pushOrInitMapSet(ctToRouting, routingInfo, contentTopic);
+    }
+
+    const promises = [];
+    if (this.filter) {
+      for (const [routingInfo, contentTopics] of ctToRouting) {
+        promises.push(
+          this.filter.subscribe(contentTopics, routingInfo, callback)
+        );
+      }
+
+      await Promise.all(promises);
+    }
+
+    if (this.relay) {
+      throw "not implemented";
+    }
+    throw "no subscribe protocol available";
   }
 
   public get peerId(): PeerId {
