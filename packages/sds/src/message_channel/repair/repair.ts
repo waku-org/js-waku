@@ -1,12 +1,10 @@
 import { Logger } from "@waku/utils";
 
+import type { HistoryEntry } from "../message.js";
 import { Message } from "../message.js";
+import type { ILocalHistory } from "../message_channel.js";
 
-import {
-  IncomingRepairBuffer,
-  OutgoingRepairBuffer,
-  RepairHistoryEntry
-} from "./buffers.js";
+import { IncomingRepairBuffer, OutgoingRepairBuffer } from "./buffers.js";
 import {
   bigintToNumber,
   calculateXorDistance,
@@ -57,10 +55,10 @@ export class RepairManager {
   constructor(participantId: ParticipantId, config: RepairConfig = {}) {
     this.participantId = participantId;
     this.config = { ...DEFAULT_REPAIR_CONFIG, ...config };
-    
+
     this.outgoingBuffer = new OutgoingRepairBuffer(this.config.bufferSize);
     this.incomingBuffer = new IncomingRepairBuffer(this.config.bufferSize);
-    
+
     log.info(`RepairManager initialized for participant ${participantId}`);
   }
 
@@ -94,7 +92,7 @@ export class RepairManager {
 
   /**
    * Determine if this participant is in the response group for a message
-   * Per spec: (hash(participant_id, message_id) % num_response_groups) == 
+   * Per spec: (hash(participant_id, message_id) % num_response_groups) ==
    *           (hash(sender_id, message_id) % num_response_groups)
    */
   public isInResponseGroup(
@@ -112,9 +110,10 @@ export class RepairManager {
       return true;
     }
 
-    const participantGroup = combinedHash(this.participantId, messageId) % numGroups;
+    const participantGroup =
+      combinedHash(this.participantId, messageId) % numGroups;
     const senderGroup = combinedHash(senderId, messageId) % numGroups;
-    
+
     return participantGroup === senderGroup;
   }
 
@@ -123,7 +122,7 @@ export class RepairManager {
    * Called when causal dependencies are detected as missing
    */
   public onMissingDependencies(
-    missingEntries: RepairHistoryEntry[],
+    missingEntries: HistoryEntry[],
     currentTime = Date.now()
   ): void {
     if (!this.config.enabled) {
@@ -133,10 +132,10 @@ export class RepairManager {
     for (const entry of missingEntries) {
       // Calculate when to request this repair
       const tReq = this.calculateTReq(entry.messageId, currentTime);
-      
+
       // Add to outgoing buffer
       this.outgoingBuffer.add(entry, tReq);
-      
+
       log.info(
         `Added missing dependency ${entry.messageId} to repair buffer with T_req=${tReq}`
       );
@@ -151,7 +150,7 @@ export class RepairManager {
     // Remove from both buffers as we no longer need to request or respond
     this.outgoingBuffer.remove(messageId);
     this.incomingBuffer.remove(messageId);
-    
+
     log.info(`Removed ${messageId} from repair buffers after receipt`);
   }
 
@@ -162,7 +161,7 @@ export class RepairManager {
   public getRepairRequests(
     maxRequests = 3,
     currentTime = Date.now()
-  ): RepairHistoryEntry[] {
+  ): HistoryEntry[] {
     if (!this.config.enabled) {
       return [];
     }
@@ -175,8 +174,8 @@ export class RepairManager {
    * Adds to incoming buffer if we can fulfill and are in response group
    */
   public processIncomingRepairRequests(
-    requests: RepairHistoryEntry[],
-    localHistory: Map<string, Message>,
+    requests: HistoryEntry[],
+    localHistory: ILocalHistory,
     currentTime = Date.now()
   ): void {
     if (!this.config.enabled) {
@@ -186,16 +185,23 @@ export class RepairManager {
     for (const request of requests) {
       // Remove from our own outgoing buffer (someone else is requesting it)
       this.outgoingBuffer.remove(request.messageId);
-      
+
       // Check if we have this message
-      if (!localHistory.has(request.messageId)) {
-        log.info(`Cannot fulfill repair for ${request.messageId} - not in local history`);
+      const message = localHistory.find(
+        (m) => m.messageId === request.messageId
+      );
+      if (!message) {
+        log.info(
+          `Cannot fulfill repair for ${request.messageId} - not in local history`
+        );
         continue;
       }
 
       // Check if we're in the response group
       if (!request.senderId) {
-        log.warn(`Cannot determine response group for ${request.messageId} - missing sender_id`);
+        log.warn(
+          `Cannot determine response group for ${request.messageId} - missing sender_id`
+        );
         continue;
       }
 
@@ -205,11 +211,15 @@ export class RepairManager {
       }
 
       // Calculate when to respond
-      const tResp = this.calculateTResp(request.senderId, request.messageId, currentTime);
-      
+      const tResp = this.calculateTResp(
+        request.senderId,
+        request.messageId,
+        currentTime
+      );
+
       // Add to incoming buffer
       this.incomingBuffer.add(request, tResp);
-      
+
       log.info(
         `Will respond to repair request for ${request.messageId} at T_resp=${tResp}`
       );
@@ -223,7 +233,7 @@ export class RepairManager {
   public sweepOutgoingBuffer(
     maxRequests = 3,
     currentTime = Date.now()
-  ): RepairHistoryEntry[] {
+  ): HistoryEntry[] {
     if (!this.config.enabled) {
       return [];
     }
@@ -236,7 +246,7 @@ export class RepairManager {
    * Returns messages that should be rebroadcast
    */
   public sweepIncomingBuffer(
-    localHistory: Map<string, Message>,
+    localHistory: ILocalHistory,
     currentTime = Date.now()
   ): Message[] {
     if (!this.config.enabled) {
@@ -247,7 +257,7 @@ export class RepairManager {
     const messages: Message[] = [];
 
     for (const entry of ready) {
-      const message = localHistory.get(entry.messageId);
+      const message = localHistory.find((m) => m.messageId === entry.messageId);
       if (message) {
         messages.push(message);
         log.info(`Sending repair for ${entry.messageId}`);
@@ -279,7 +289,12 @@ export class RepairManager {
    */
   public updateResponseGroups(numParticipants: number): void {
     // Per spec: num_response_groups = max(1, num_participants / 128)
-    this.config.numResponseGroups = Math.max(1, Math.floor(numParticipants / 128));
-    log.info(`Updated response groups to ${this.config.numResponseGroups} for ${numParticipants} participants`);
+    this.config.numResponseGroups = Math.max(
+      1,
+      Math.floor(numParticipants / 128)
+    );
+    log.info(
+      `Updated response groups to ${this.config.numResponseGroups} for ${numParticipants} participants`
+    );
   }
 }

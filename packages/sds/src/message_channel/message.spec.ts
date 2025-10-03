@@ -44,6 +44,7 @@ describe("Message serialization", () => {
       [{ messageId: depMessageId, retrievalHint: depRetrievalHint }],
       0n,
       undefined,
+      undefined,
       undefined
     );
 
@@ -52,6 +53,29 @@ describe("Message serialization", () => {
 
     expect(decMessage!.causalHistory).to.deep.equal([
       { messageId: depMessageId, retrievalHint: depRetrievalHint }
+    ]);
+  });
+
+  it("Repair Request", () => {
+    const repairMessageId = "missing-message";
+    const repairRetrievalHint = utf8ToBytes("missing-retrieval");
+    const repairSenderId = "original-sender";
+    const message = new Message(
+      "123",
+      "my-channel",
+      "me",
+      [],
+      0n,
+      undefined,
+      undefined,
+      [{ messageId: repairMessageId, retrievalHint: repairRetrievalHint, senderId: repairSenderId }]
+    );
+
+    const bytes = message.encode();
+    const decMessage = Message.decode(bytes);
+
+    expect(decMessage!.repairRequest).to.deep.equal([
+      { messageId: repairMessageId, retrievalHint: repairRetrievalHint, senderId: repairSenderId }
     ]);
   });
 });

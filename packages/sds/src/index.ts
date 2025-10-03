@@ -14,7 +14,7 @@ export {
   type HistoryEntry,
   type ChannelId,
   type MessageChannelEvents,
-  type SenderId,
+  type ParticipantId,
   type MessageId
 } from "./message_channel/index.js";
 

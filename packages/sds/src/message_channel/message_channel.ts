@@ -18,9 +18,10 @@ import {
   isSyncMessage,
   Message,
   MessageId,
-  SenderId,
+  ParticipantId,
   SyncMessage
 } from "./message.js";
+import { RepairConfig, RepairManager } from "./repair/repair.js";
 
 export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   capacity: 10000,
@@ -46,6 +47,10 @@ export interface MessageChannelOptions {
    * How many possible acks does it take to consider it a definitive ack.
    */
   possibleAcksThreshold?: number;
+  /**
+   * SDS-R repair configuration. If not provided, repair is enabled with default settings.
+   */
+  repairConfig?: RepairConfig;
 }
 
 export type ILocalHistory = Pick<
@@ -55,7 +60,7 @@ export type ILocalHistory = Pick<
 
 export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   public readonly channelId: ChannelId;
-  public readonly senderId: SenderId;
+  public readonly senderId: ParticipantId;
   private lamportTimestamp: bigint;
   private filter: DefaultBloomFilter;
   private outgoingBuffer: ContentMessage[];
@@ -66,6 +71,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
   private readonly timeoutForLostMessagesMs?: number;
+  private readonly repairManager: RepairManager;
 
   private tasks: Task[] = [];
   private handlers: Handlers = {
@@ -88,7 +94,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
   public constructor(
     channelId: ChannelId,
-    senderId: SenderId,
+    senderId: ParticipantId,
     options: MessageChannelOptions = {},
     localHistory: ILocalHistory = new MemLocalHistory()
   ) {
@@ -109,6 +115,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
     this.timeoutForLostMessagesMs = options.timeoutForLostMessagesMs;
+    this.repairManager = new RepairManager(senderId, options.repairConfig);
   }
 
   public static getMessageId(payload: Uint8Array): MessageId {
@@ -356,6 +363,38 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   /**
+   * Sweep repair incoming buffer and rebroadcast messages ready for repair.
+   * Per SDS-R spec: periodically check for repair responses that are due.
+   *
+   * @param callback - callback to rebroadcast the message
+   * @returns Promise that resolves when all ready repairs have been sent
+   */
+  public async sweepRepairIncomingBuffer(
+    callback?: (message: Message) => Promise<boolean>
+  ): Promise<Message[]> {
+    const repairsToSend = this.repairManager.sweepIncomingBuffer(
+      this.localHistory
+    );
+
+    if (callback) {
+      for (const message of repairsToSend) {
+        try {
+          await callback(message);
+          log.info(
+            this.senderId,
+            "repair message rebroadcast",
+            message.messageId
+          );
+        } catch (error) {
+          log.error("Failed to rebroadcast repair message:", error);
+        }
+      }
+    }
+
+    return repairsToSend;
+  }
+
+  /**
    * Send a sync message to the SDS channel.
    *
    * Increments the lamport timestamp, constructs a `Message` object
@@ -369,6 +408,10 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     callback?: (message: SyncMessage) => Promise<boolean>
   ): Promise<boolean> {
     this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
+
+    // Get repair requests to include in sync message (SDS-R)
+    const repairRequests = this.repairManager.getRepairRequests(3);
+
     const message = new SyncMessage(
       // does not need to be secure randomness
       `sync-${Math.random().toString(36).substring(2)}`,
@@ -376,18 +419,22 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       this.senderId,
       this.localHistory
         .slice(-this.causalHistorySize)
-        .map(({ messageId, retrievalHint }) => {
-          return { messageId, retrievalHint };
+        .map(({ messageId, retrievalHint, senderId }) => {
+          return { messageId, retrievalHint, senderId };
         }),
       this.lamportTimestamp,
       this.filter.toBytes(),
-      undefined
+      undefined,
+      repairRequests
     );
 
-    if (!message.causalHistory || message.causalHistory.length === 0) {
+    if (
+      (!message.causalHistory || message.causalHistory.length === 0) &&
+      repairRequests.length === 0
+    ) {
       log.info(
         this.senderId,
-        "no causal history in sync message, aborting sending"
+        "no causal history and no repair requests in sync message, aborting sending"
       );
       return false;
     }
@@ -464,6 +511,18 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         detail: message
       });
     }
+
+    // SDS-R: Handle received message in repair manager
+    this.repairManager.onMessageReceived(message.messageId);
+
+    // SDS-R: Process incoming repair requests
+    if (message.repairRequest && message.repairRequest.length > 0) {
+      this.repairManager.processIncomingRepairRequests(
+        message.repairRequest,
+        this.localHistory
+      );
+    }
+
     this.reviewAckStatus(message);
     if (isContentMessage(message)) {
       this.filter.insert(message.messageId);
@@ -486,6 +545,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         "is missing dependencies",
         missingDependencies.map((ch) => ch.messageId)
       );
+
+      // SDS-R: Track missing dependencies in repair manager
+      this.repairManager.onMissingDependencies(missingDependencies);
 
       this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
         detail: Array.from(missingDependencies)
@@ -549,18 +611,23 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     // It's a new message
     if (!message) {
       log.info(this.senderId, "sending new message", messageId);
+
+      // Get repair requests to include in the message (SDS-R)
+      const repairRequests = this.repairManager.getRepairRequests(3);
+
       message = new ContentMessage(
         messageId,
         this.channelId,
         this.senderId,
         this.localHistory
           .slice(-this.causalHistorySize)
-          .map(({ messageId, retrievalHint }) => {
-            return { messageId, retrievalHint };
+          .map(({ messageId, retrievalHint, senderId }) => {
+            return { messageId, retrievalHint, senderId };
           }),
         this.lamportTimestamp,
         this.filter.toBytes(),
-        payload
+        payload,
+        repairRequests
       );
 
       this.outgoingBuffer.push(message);
@@ -657,6 +724,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
 
     this.localHistory.push(message);
+
     return true;
   }
 

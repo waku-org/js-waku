@@ -1,22 +1,15 @@
 import { Logger } from "@waku/utils";
 import _ from "lodash";
 
-const log = new Logger("sds:repair:buffers");
+import type { HistoryEntry } from "../message.js";
 
-/**
- * Extended HistoryEntry that includes sender_id for SDS-R
- */
-export interface RepairHistoryEntry {
-  messageId: string;
-  retrievalHint?: Uint8Array;
-  senderId?: string; // Original sender's ID for repair calculations
-}
+const log = new Logger("sds:repair:buffers");
 
 /**
  * Entry in the outgoing repair buffer with request timing
  */
 interface OutgoingBufferEntry {
-  entry: RepairHistoryEntry;
+  entry: HistoryEntry;
   tReq: number; // Timestamp when this repair request should be sent
 }
 
@@ -24,7 +17,7 @@ interface OutgoingBufferEntry {
  * Entry in the incoming repair buffer with response timing
  */
 interface IncomingBufferEntry {
-  entry: RepairHistoryEntry;
+  entry: HistoryEntry;
   tResp: number; // Timestamp when we should respond with this repair
 }
 
@@ -45,7 +38,7 @@ export class OutgoingRepairBuffer {
    * Add a missing message to the outgoing repair request buffer
    * If message already exists, it is not updated (keeps original T_req)
    */
-  public add(entry: RepairHistoryEntry, tReq: number): void {
+  public add(entry: HistoryEntry, tReq: number): void {
     const messageId = entry.messageId;
     
     // Check if already exists - do NOT update T_req per spec
@@ -84,8 +77,8 @@ export class OutgoingRepairBuffer {
    * Get eligible repair requests (where T_req <= currentTime)
    * Returns up to maxRequests entries from the front of the sorted array
    */
-  public getEligible(currentTime: number, maxRequests = 3): RepairHistoryEntry[] {
-    const eligible: RepairHistoryEntry[] = [];
+  public getEligible(currentTime: number, maxRequests = 3): HistoryEntry[] {
+    const eligible: HistoryEntry[] = [];
     
     // Iterate from front of sorted array (earliest T_req first)
     for (const item of this.items) {
@@ -124,7 +117,7 @@ export class OutgoingRepairBuffer {
   /**
    * Get all entries (for testing/debugging)
    */
-  public getAll(): RepairHistoryEntry[] {
+  public getAll(): HistoryEntry[] {
     return this.items.map(item => item.entry);
   }
 
@@ -153,7 +146,7 @@ export class IncomingRepairBuffer {
    * Add a repair request that we can fulfill
    * If message already exists, it is ignored (not updated)
    */
-  public add(entry: RepairHistoryEntry, tResp: number): void {
+  public add(entry: HistoryEntry, tResp: number): void {
     const messageId = entry.messageId;
     
     // Check if already exists - ignore per spec
@@ -192,8 +185,8 @@ export class IncomingRepairBuffer {
    * Get repairs ready to be sent (where T_resp <= currentTime)
    * Removes and returns ready entries
    */
-  public getReady(currentTime: number): RepairHistoryEntry[] {
-    const ready: RepairHistoryEntry[] = [];
+  public getReady(currentTime: number): HistoryEntry[] {
+    const ready: HistoryEntry[] = [];
     const remaining: IncomingBufferEntry[] = [];
     
     for (const item of this.items) {
@@ -236,7 +229,7 @@ export class IncomingRepairBuffer {
   /**
    * Get all entries (for testing/debugging)
    */
-  public getAll(): RepairHistoryEntry[] {
+  public getAll(): HistoryEntry[] {
     return this.items.map(item => item.entry);
   }
 

@@ -1,10 +1,8 @@
 import { expect } from "chai";
 
-import {
-  IncomingRepairBuffer,
-  OutgoingRepairBuffer,
-  RepairHistoryEntry
-} from "./buffers.js";
+import type { HistoryEntry } from "../message.js";
+
+import { IncomingRepairBuffer, OutgoingRepairBuffer } from "./buffers.js";
 
 describe("OutgoingRepairBuffer", () => {
   let buffer: OutgoingRepairBuffer;
@@ -14,9 +12,9 @@ describe("OutgoingRepairBuffer", () => {
   });
 
   it("should add entries and maintain sorted order", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
 
     buffer.add(entry2, 2000);
     buffer.add(entry1, 1000);
@@ -30,21 +28,21 @@ describe("OutgoingRepairBuffer", () => {
   });
 
   it("should not update T_req if message already exists", () => {
-    const entry: RepairHistoryEntry = { messageId: "msg1" };
-    
+    const entry: HistoryEntry = { messageId: "msg1" };
+
     buffer.add(entry, 1000);
     buffer.add(entry, 2000); // Try to add again with different T_req
-    
+
     const items = buffer.getItems();
     expect(items).to.have.lengthOf(1);
     expect(items[0].tReq).to.equal(1000); // Should keep original
   });
 
   it("should evict oldest entry when buffer is full", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
-    const entry4: RepairHistoryEntry = { messageId: "msg4" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
+    const entry4: HistoryEntry = { messageId: "msg4" };
 
     buffer.add(entry2, 2000);
     buffer.add(entry1, 1000);
@@ -60,9 +58,9 @@ describe("OutgoingRepairBuffer", () => {
   });
 
   it("should get eligible entries based on current time", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
@@ -79,9 +77,9 @@ describe("OutgoingRepairBuffer", () => {
   });
 
   it("should respect maxRequests limit", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
@@ -94,12 +92,12 @@ describe("OutgoingRepairBuffer", () => {
   });
 
   it("should remove entries", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
-    
+
     expect(buffer.size).to.equal(2);
     buffer.remove("msg1");
     expect(buffer.size).to.equal(1);
@@ -109,7 +107,7 @@ describe("OutgoingRepairBuffer", () => {
 
   it("should handle retrieval hint and sender_id", () => {
     const hint = new Uint8Array([1, 2, 3]);
-    const entry: RepairHistoryEntry = {
+    const entry: HistoryEntry = {
       messageId: "msg1",
       retrievalHint: hint,
       senderId: "sender1"
@@ -130,9 +128,9 @@ describe("IncomingRepairBuffer", () => {
   });
 
   it("should add entries and maintain sorted order", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
 
     buffer.add(entry2, 2000);
     buffer.add(entry1, 1000);
@@ -146,21 +144,21 @@ describe("IncomingRepairBuffer", () => {
   });
 
   it("should ignore duplicate entries", () => {
-    const entry: RepairHistoryEntry = { messageId: "msg1" };
-    
+    const entry: HistoryEntry = { messageId: "msg1" };
+
     buffer.add(entry, 1000);
     buffer.add(entry, 500); // Try to add again with earlier T_resp
-    
+
     const items = buffer.getItems();
     expect(items).to.have.lengthOf(1);
     expect(items[0].tResp).to.equal(1000); // Should keep original
   });
 
   it("should evict furthest entry when buffer is full", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
-    const entry4: RepairHistoryEntry = { messageId: "msg4" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
+    const entry4: HistoryEntry = { messageId: "msg4" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
@@ -176,9 +174,9 @@ describe("IncomingRepairBuffer", () => {
   });
 
   it("should get and remove ready entries", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
-    const entry3: RepairHistoryEntry = { messageId: "msg3" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
@@ -187,7 +185,7 @@ describe("IncomingRepairBuffer", () => {
     const ready = buffer.getReady(1500);
     expect(ready).to.have.lengthOf(1);
     expect(ready[0].messageId).to.equal("msg1");
-    
+
     // Entry should be removed from buffer
     expect(buffer.size).to.equal(2);
     expect(buffer.has("msg1")).to.be.false;
@@ -195,19 +193,19 @@ describe("IncomingRepairBuffer", () => {
     const ready2 = buffer.getReady(2500);
     expect(ready2).to.have.lengthOf(1);
     expect(ready2[0].messageId).to.equal("msg2");
-    
+
     expect(buffer.size).to.equal(1);
     expect(buffer.has("msg2")).to.be.false;
     expect(buffer.has("msg3")).to.be.true;
   });
 
   it("should remove entries", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
-    
+
     expect(buffer.size).to.equal(2);
     buffer.remove("msg1");
     expect(buffer.size).to.equal(1);
@@ -216,12 +214,12 @@ describe("IncomingRepairBuffer", () => {
   });
 
   it("should clear all entries", () => {
-    const entry1: RepairHistoryEntry = { messageId: "msg1" };
-    const entry2: RepairHistoryEntry = { messageId: "msg2" };
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
 
     buffer.add(entry1, 1000);
     buffer.add(entry2, 2000);
-    
+
     expect(buffer.size).to.equal(2);
     buffer.clear();
     expect(buffer.size).to.equal(0);
