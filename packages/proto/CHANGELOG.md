@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/proto-v0.0.14...proto-v0.0.15) (2025-10-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664))
+
+### Bug Fixes
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664)) ([c0ecb6a](https://github.com/waku-org/js-waku/commit/c0ecb6abbaae0544f352b89293f59f274600a916))
+
 ## [0.0.14](https://github.com/waku-org/js-waku/compare/proto-v0.0.13...proto-v0.0.14) (2025-09-20)
 
 

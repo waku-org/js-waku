@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.0.8](https://github.com/waku-org/js-waku/compare/sds-v0.0.7...sds-v0.0.8) (2025-10-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664))
+
+### Features
+
+* Reliable channels search up to 30 days to find message ([#2657](https://github.com/waku-org/js-waku/issues/2657)) ([593bc45](https://github.com/waku-org/js-waku/commit/593bc452259c48503e099946bb316c764f89cc1d))
+
+
+### Bug Fixes
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664)) ([c0ecb6a](https://github.com/waku-org/js-waku/commit/c0ecb6abbaae0544f352b89293f59f274600a916))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.14 to ^0.0.15
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/sds-v0.0.6...sds-v0.0.7) (2025-09-20)
 
 
