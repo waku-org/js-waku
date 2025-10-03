@@ -124,14 +124,14 @@ export class ServiceNodesFleet {
 }
 
 class MultipleNodesMessageCollector {
-  public callback: (msg: IDecodedMessage) => void = () => {};
-  protected messageList: Array<IDecodedMessage> = [];
+  public callback: (msg: Partial<IDecodedMessage>) => void = () => {};
+  protected messageList: Array<Partial<IDecodedMessage>> = [];
   public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
     private strictChecking: boolean = false
   ) {
-    this.callback = (msg: IDecodedMessage): void => {
+    this.callback = (msg: Partial<IDecodedMessage>): void => {
       log.info("Got a message");
       this.messageList.push(msg);
     };
@@ -153,7 +153,9 @@ class MultipleNodesMessageCollector {
     }
   }
 
-  public getMessage(index: number): MessageRpcResponse | IDecodedMessage {
+  public getMessage(
+    index: number
+  ): MessageRpcResponse | Partial<IDecodedMessage> {
     return this.messageList[index];
   }
 

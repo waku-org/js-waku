@@ -29,8 +29,11 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  runMultipleNodes,
   ServiceNode,
-  tearDownNodes
+  ServiceNodesFleet,
+  tearDownNodes,
+  teardownNodesWithRedundancy
 } from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -289,5 +292,97 @@ describe("User Agent", function () {
     expect(bytesToUtf8(waku2PeerInfo.metadata.get("AgentVersion")!)).to.eq(
       "js-waku"
     );
+  });
+});
+
+describe("Waku API", function () {
+  describe("WakuNode.subscribe (light node)", function () {
+    this.timeout(100000);
+    let waku: LightNode;
+    let serviceNodes: ServiceNodesFleet;
+    const messageText = "some message";
+    const messagePayload = utf8ToBytes(messageText);
+
+    beforeEachCustom(this, async () => {
+      [serviceNodes, waku] = await runMultipleNodes(
+        this.ctx,
+        TestRoutingInfo,
+        undefined
+      );
+    });
+
+    afterEachCustom(this, async () => {
+      await teardownNodesWithRedundancy(serviceNodes, waku);
+    });
+
+    it("Subscribe and receive messages on 2 different content topics", async function () {
+      // Subscribe to the first content topic and send a message.
+      waku.messageEmitter.addEventListener(TestContentTopic, (event) => {
+        // TODO: fix the callback type
+        serviceNodes.messageCollector.callback({
+          contentTopic: TestContentTopic,
+          payload: event.detail
+        });
+      });
+      await waku.subscribe([TestContentTopic]);
+
+      await waku.lightPush.send(TestEncoder, { payload: messagePayload });
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        true,
+        "Waiting for the first message"
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText,
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+      });
+
+      // Modify subscription to include a new content topic and send a message.
+      const newMessageText = "Filtering still works!";
+      const newContentTopic = "/test/2/waku-filter/default";
+      const newRoutingInfo = createRoutingInfo(DefaultTestNetworkConfig, {
+        contentTopic: newContentTopic
+      });
+      const newEncoder = createPlainEncoder({
+        contentTopic: newContentTopic,
+        routingInfo: newRoutingInfo
+      });
+      // subscribe to second content topic
+      waku.messageEmitter.addEventListener(newContentTopic, (event) => {
+        // TODO: fix the callback type
+        serviceNodes.messageCollector.callback({
+          contentTopic: TestContentTopic,
+          payload: event.detail
+        });
+      });
+      await waku.subscribe([newContentTopic]);
+
+      await waku.lightPush.send(newEncoder, {
+        payload: utf8ToBytes(newMessageText)
+      });
+      expect(await serviceNodes.messageCollector.waitForMessages(2)).to.eq(
+        true,
+        "Waiting for the second message"
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(1, {
+        expectedContentTopic: newContentTopic,
+        expectedMessageText: newMessageText,
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+      });
+
+      // Send another message on the initial content topic to verify it still works.
+      const thirdMessageText = "Filtering still works on first subscription!";
+      const thirdMessagePayload = { payload: utf8ToBytes(thirdMessageText) };
+      await waku.lightPush.send(TestEncoder, thirdMessagePayload);
+      expect(await serviceNodes.messageCollector.waitForMessages(3)).to.eq(
+        true,
+        "Waiting for the third message"
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(2, {
+        expectedMessageText: thirdMessageText,
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestRoutingInfo.pubsubTopic
+      });
+    });
   });
 });
