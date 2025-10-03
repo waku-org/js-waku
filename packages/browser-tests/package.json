@@ -21,6 +21,7 @@
     "@waku/discovery": "^0.0.11",
     "@waku/interfaces": "^0.0.33",
     "@waku/sdk": "^0.0.34",
+    "@waku/utils": "0.0.27",
     "cors": "^2.8.5",
     "dotenv-flow": "^0.4.0",
     "express": "^4.21.2",

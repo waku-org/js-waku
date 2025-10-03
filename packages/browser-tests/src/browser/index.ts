@@ -1,4 +1,7 @@
 import { Browser, chromium, Page } from "@playwright/test";
+import { Logger } from "@waku/utils";
+
+const log = new Logger("browser");
 
 let browser: Browser | undefined;
 let page: Page | undefined;
@@ -22,11 +25,11 @@ export async function initBrowser(appPort: number): Promise<void> {
     page.on('console', msg => {
       const type = msg.type();
       const text = msg.text();
-      console.log(`[Browser Console ${type.toUpperCase()}] ${text}`);
+      log.info(`[Browser Console ${type.toUpperCase()}] ${text}`);
     });
 
     page.on('pageerror', error => {
-      console.error('[Browser Page Error]', error.message);
+      log.error('[Browser Page Error]', error.message);
     });
 
     await page.goto(`http://localhost:${appPort}/app/index.html`, {
@@ -40,9 +43,9 @@ export async function initBrowser(appPort: number): Promise<void> {
       { timeout: 30000 }
     );
 
-    console.log("Browser initialized successfully with wakuApi");
+    log.info("Browser initialized successfully with wakuApi");
   } catch (error) {
-    console.error("Error initializing browser:", error);
+    log.error("Error initializing browser:", error);
     throw error;
   }
 }

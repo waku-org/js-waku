@@ -1,10 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
+import { Logger } from "@waku/utils";
+
+const log = new Logger("playwright-config");
 
 if (!process.env.CI) {
   try {
     await import("dotenv-flow/config.js");
   } catch (e) {
-    console.warn("dotenv-flow not found; skipping env loading");
+    log.warn("dotenv-flow not found; skipping env loading");
   }
 }
 

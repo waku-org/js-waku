@@ -3,11 +3,13 @@ import * as path from "path";
 
 import cors from "cors";
 import express, { Request, Response } from "express";
+import { Logger } from "@waku/utils";
 
 import wakuRouter from "./routes/waku.js";
 import { initBrowser, getPage, closeBrowser } from "./browser/index.js";
 import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS } from "@waku/interfaces";
 
+const log = new Logger("server");
 const app = express();
 
 app.use(cors());
@@ -31,13 +33,13 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
     }
     if (process.env.WAKU_SHARD) {
       networkConfig.shards = [parseInt(process.env.WAKU_SHARD, 10)];
-      console.log("Using static shard:", networkConfig.shards);
+      log.info("Using static shard:", networkConfig.shards);
     }
 
     const lightpushNode = process.env.WAKU_LIGHTPUSH_NODE || null;
     const enrBootstrap = process.env.WAKU_ENR_BOOTSTRAP || null;
 
-    console.log("Network config on server start, pre headless:", networkConfig);
+    log.info("Network config on server start, pre headless:", networkConfig);
 
     const configScript = `    <script>
       window.__WAKU_NETWORK_CONFIG = ${JSON.stringify(networkConfig)};
@@ -53,7 +55,7 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
     res.setHeader("Content-Type", "text/html");
     res.send(htmlContent);
   } catch (error) {
-    console.error("Error serving dynamic index.html:", error);
+    log.error("Error serving dynamic index.html:", error);
     res.status(500).send("Error loading page");
   }
 });
@@ -70,22 +72,22 @@ async function startAPI(requestedPort: number): Promise<number> {
 
     app
       .listen(requestedPort, () => {
-        console.log(`API server running on http://localhost:${requestedPort}`);
+        log.info(`API server running on http://localhost:${requestedPort}`);
       })
       .on("error", (error: any) => {
         if (error.code === "EADDRINUSE") {
-          console.error(
+          log.error(
             `Port ${requestedPort} is already in use. Please close the application using this port and try again.`,
           );
         } else {
-          console.error("Error starting server:", error);
+          log.error("Error starting server:", error);
         }
         throw error;
       });
 
     return requestedPort;
   } catch (error: any) {
-    console.error("Error starting server:", error);
+    log.error("Error starting server:", error);
     throw error;
   }
 }
@@ -96,7 +98,7 @@ async function startServer(port: number = 3000): Promise<void> {
     await initBrowser(actualPort);
 
     try {
-      console.log("Auto-starting node with CLI configuration...");
+      log.info("Auto-starting node with CLI configuration...");
 
       const hasEnrBootstrap = Boolean(process.env.WAKU_ENR_BOOTSTRAP);
       const networkConfig: any = {
@@ -110,11 +112,11 @@ async function startServer(port: number = 3000): Promise<void> {
         }),
       };
 
-      // console.log(
+      // log.info(
       //   `Bootstrap mode: ${hasEnrBootstrap ? "ENR-only (defaultBootstrap=false)" : "default bootstrap (defaultBootstrap=true)"}`,
       // );
       if (hasEnrBootstrap) {
-        console.log(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
+        log.info(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
       }
 
       networkConfig.networkConfig = {
@@ -131,7 +133,7 @@ async function startServer(port: number = 3000): Promise<void> {
         delete networkConfig.networkConfig.numShardsInCluster;
       }
 
-      console.log(
+      log.info(
         `Network config: ${JSON.stringify(networkConfig.networkConfig)}`,
       );
 
@@ -144,40 +146,40 @@ async function startServer(port: number = 3000): Promise<void> {
         await getPage()?.evaluate(() =>
           window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
         );
-        console.log("Auto-start completed with bootstrap peers");
+        log.info("Auto-start completed with bootstrap peers");
       } catch (peerError) {
-        console.log(
+        log.info(
           "Auto-start completed (no bootstrap peers found - may be expected with test ENRs)",
         );
       }
     } catch (e) {
-      console.warn("Auto-start failed:", e);
+      log.warn("Auto-start failed:", e);
     }
   } catch (error: any) {
-    console.error("Error starting server:", error);
+    log.error("Error starting server:", error);
   }
 }
 
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
+  log.error("Uncaught Exception:", error);
   if (process.env.NODE_ENV !== "production") {
     process.exit(1);
   }
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  log.error("Unhandled Rejection at:", promise, "reason:", reason);
   if (process.env.NODE_ENV !== "production") {
     process.exit(1);
   }
 });
 
 const gracefulShutdown = async (signal: string) => {
-  console.log(`Received ${signal}, gracefully shutting down...`);
+  log.info(`Received ${signal}, gracefully shutting down...`);
   try {
     await closeBrowser();
   } catch (e) {
-    console.warn("Error closing browser:", e);
+    log.warn("Error closing browser:", e);
   }
   process.exit(0);
 };
@@ -194,13 +196,13 @@ function parseCliArgs() {
     if (arg.startsWith("--cluster-id=")) {
       clusterId = parseInt(arg.split("=")[1], 10);
       if (isNaN(clusterId)) {
-        console.error("Invalid cluster-id value. Must be a number.");
+        log.error("Invalid cluster-id value. Must be a number.");
         process.exit(1);
       }
     } else if (arg.startsWith("--shard=")) {
       shard = parseInt(arg.split("=")[1], 10);
       if (isNaN(shard)) {
-        console.error("Invalid shard value. Must be a number.");
+        log.error("Invalid shard value. Must be a number.");
         process.exit(1);
       }
     }
@@ -217,11 +219,11 @@ if (isMainModule) {
 
   if (cliArgs.clusterId !== undefined) {
     process.env.WAKU_CLUSTER_ID = cliArgs.clusterId.toString();
-    console.log(`Using CLI cluster ID: ${cliArgs.clusterId}`);
+    log.info(`Using CLI cluster ID: ${cliArgs.clusterId}`);
   }
   if (cliArgs.shard !== undefined) {
     process.env.WAKU_SHARD = cliArgs.shard.toString();
-    console.log(`Using CLI shard: ${cliArgs.shard}`);
+    log.info(`Using CLI shard: ${cliArgs.shard}`);
   }
 
   void startServer(port);

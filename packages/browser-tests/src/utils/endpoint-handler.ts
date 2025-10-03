@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
+import { Logger } from "@waku/utils";
 import { getPage } from "../browser/index.js";
 import type { ITestBrowser } from "../../types/global.js";
+
+const log = new Logger("endpoint-handler");
 
 export interface LightpushV3Request {
   pubsubTopic: string;
@@ -92,7 +95,7 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
       );
 
       if (config.logResult !== false) {
-        console.log(
+        log.info(
           `[${config.methodName}] Result:`,
           JSON.stringify(result, null, 2),
         );
@@ -112,7 +115,7 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         });
       }
 
-      console.error(`[${config.methodName}] Error:`, error);
+      log.error(`[${config.methodName}] Error:`, error);
       res.status(500).json({
         code: 500,
         message: `Could not execute ${config.methodName}: ${error.message}`,

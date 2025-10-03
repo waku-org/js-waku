@@ -1,5 +1,8 @@
 import { ServiceNode, ServiceNodesFleet } from "@waku/tests";
 import { DefaultTestRoutingInfo } from "@waku/tests";
+import { Logger } from "@waku/utils";
+
+const log = new Logger("nwaku-helpers");
 
 /**
  * Creates a two-node nwaku network following waku/tests patterns.
@@ -7,7 +10,7 @@ import { DefaultTestRoutingInfo } from "@waku/tests";
  * Node 2: Relay only (network peer)
  */
 export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
-  console.log("Creating nwaku node 1 (Relay + Light Push)...");
+  log.info("Creating nwaku node 1 (Relay + Light Push)...");
   const lightPushNode = new ServiceNode("lightpush-node-" + Math.random().toString(36).substring(7));
 
   const lightPushArgs = {
@@ -22,7 +25,7 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
 
   await lightPushNode.start(lightPushArgs, { retries: 3 });
 
-  console.log("Creating nwaku node 2 (Relay only)...");
+  log.info("Creating nwaku node 2 (Relay only)...");
   const relayNode = new ServiceNode("relay-node-" + Math.random().toString(36).substring(7));
 
   // Connect second node to first node (following ServiceNodesFleet pattern)
@@ -41,7 +44,7 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
   await relayNode.start(relayArgs, { retries: 3 });
 
   // Wait for network formation (following waku/tests timing patterns)
-  console.log("Waiting for nwaku network formation...");
+  log.info("Waiting for nwaku network formation...");
   await new Promise((r) => setTimeout(r, 5000));
 
   // Verify connectivity (optional, for debugging)
@@ -63,16 +66,16 @@ async function verifyNetworkFormation(nodes: ServiceNode[]): Promise<void> {
     const peerCounts = await Promise.all(
       nodes.map(async (node, index) => {
         const peers = await node.peers();
-        console.log(`Node ${index + 1} has ${peers.length} peer(s)`);
+        log.info(`Node ${index + 1} has ${peers.length} peer(s)`);
         return peers.length;
       })
     );
 
     if (peerCounts.every(count => count === 0)) {
-      console.warn("⚠️  Nodes may not be properly connected yet");
+      log.warn("⚠️  Nodes may not be properly connected yet");
     }
   } catch (error) {
-    console.warn("Could not verify peer connections:", error);
+    log.warn("Could not verify peer connections:", error);
   }
 }
 
@@ -103,8 +106,8 @@ export async function getDockerAccessibleMultiaddr(node: ServiceNode): Promise<s
   // Build Docker network accessible multiaddr
   const dockerMultiaddr = `/ip4/${containerIp}/tcp/${port}/ws/p2p/${peerId}`;
 
-  console.log("Original multiaddr:", multiaddrStr);
-  console.log("Docker accessible multiaddr:", dockerMultiaddr);
+  log.info("Original multiaddr:", multiaddrStr);
+  log.info("Docker accessible multiaddr:", dockerMultiaddr);
 
   return dockerMultiaddr;
 }
@@ -115,11 +118,11 @@ export async function getDockerAccessibleMultiaddr(node: ServiceNode): Promise<s
 export async function stopNwakuNodes(nodes: ServiceNode[]): Promise<void> {
   if (!nodes || nodes.length === 0) return;
 
-  console.log("Stopping nwaku nodes...");
+  log.info("Stopping nwaku nodes...");
   try {
     await Promise.all(nodes.map(node => node.stop()));
-    console.log("Nwaku nodes stopped successfully");
+    log.info("Nwaku nodes stopped successfully");
   } catch (error) {
-    console.warn("Nwaku nodes stop had issues:", (error as any).message);
+    log.warn("Nwaku nodes stop had issues:", (error as any).message);
   }
 }

@@ -1,10 +1,12 @@
 import { Router } from "express";
+import { Logger } from "@waku/utils";
 import {
   createEndpointHandler,
   validators,
   errorHandlers,
 } from "../utils/endpoint-handler.js";
 
+const log = new Logger("routes:waku");
 const router = Router();
 
 const corsEndpoints = [
@@ -58,7 +60,7 @@ router.post(
     handleError: errorHandlers.lightpushError,
     transformResult: (result) => {
       if (result && result.successes && result.successes.length > 0) {
-        console.log("[Server] Message successfully sent via v3 lightpush!");
+        log.info("[Server] Message successfully sent via v3 lightpush!");
         return {
           success: true,
           result,

@@ -15,7 +15,9 @@ import {
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
 import type { ITestBrowser } from "../types/global.js";
-import { StaticShardingRoutingInfo } from "@waku/utils";
+import { Logger, StaticShardingRoutingInfo } from "@waku/utils";
+
+const log = new Logger("waku-headless");
 
 export interface SerializableSDKProtocolResult {
   successes: string[];
@@ -78,15 +80,15 @@ export class WakuHeadless {
   ) {
     this.waku = null as unknown as LightNode;
     this.networkConfig = this.buildNetworkConfig(networkConfig);
-    console.log("Network config on construction:", this.networkConfig);
+    log.info("Network config on construction:", this.networkConfig);
     this.lightpushNode = lightpushNode || null;
     this.enrBootstrap = enrBootstrap || null;
 
     if (this.lightpushNode) {
-      console.log(`Configured preferred lightpush node: ${this.lightpushNode}`);
+      log.info(`Configured preferred lightpush node: ${this.lightpushNode}`);
     }
     if (this.enrBootstrap) {
-      console.log(`Configured ENR bootstrap: ${this.enrBootstrap}`);
+      log.info(`Configured ENR bootstrap: ${this.enrBootstrap}`);
     }
   }
 
@@ -126,7 +128,7 @@ export class WakuHeadless {
       Array.isArray(staticShards) &&
       staticShards.length > 0
     ) {
-      console.log("Using static sharding with shards:", staticShards);
+      log.info("Using static sharding with shards:", staticShards);
       return {
         clusterId,
       } as StaticSharding;
@@ -134,7 +136,7 @@ export class WakuHeadless {
 
     const numShardsInCluster =
       (providedConfig as any)?.numShardsInCluster ?? DEFAULT_NUM_SHARDS;
-    console.log(
+    log.info(
       "Using auto sharding with num shards in cluster:",
       numShardsInCluster,
     );
@@ -163,14 +165,14 @@ export class WakuHeadless {
     if (!this.waku) {
       throw new Error("Waku node not started");
     }
-    console.log(
+    log.info(
       "Pushing message via v3 lightpush:",
       contentTopic,
       payload,
       pubsubTopic,
     );
-    console.log("Waku node:", this.waku);
-    console.log("Network config:", this.networkConfig);
+    log.info("Waku node:", this.waku);
+    log.info("Network config:", this.networkConfig);
 
     let processedPayload: Uint8Array;
     try {
@@ -204,12 +206,12 @@ export class WakuHeadless {
         contentTopic,
         shardId,
       });
-      console.log("Encoder:", encoder);
-      console.log("Pubsub topic:", pubsubTopic);
-      console.log("Encoder pubsub topic:", encoder.pubsubTopic);
+      log.info("Encoder:", encoder);
+      log.info("Pubsub topic:", pubsubTopic);
+      log.info("Encoder pubsub topic:", encoder.pubsubTopic);
 
       if (pubsubTopic && pubsubTopic !== encoder.pubsubTopic) {
-        console.warn(
+        log.warn(
           `Explicit pubsubTopic ${pubsubTopic} provided, but auto-sharding determined ${encoder.pubsubTopic}. Using auto-sharding.`,
         );
       }
@@ -222,14 +224,14 @@ export class WakuHeadless {
           );
           if (preferredPeerId) {
             result = await this.send(lightPush, encoder, processedPayload);
-            console.log("✅ Message sent via preferred lightpush node");
+            log.info("✅ Message sent via preferred lightpush node");
           } else {
             throw new Error(
               "Could not extract peer ID from preferred node address",
             );
           }
         } catch (error) {
-          console.error(
+          log.error(
             "Couldn't send message via preferred lightpush node:",
             error,
           );
@@ -243,7 +245,7 @@ export class WakuHeadless {
 
       return serializableResult;
     } catch (error) {
-      console.error("Error sending message via v3 lightpush:", error);
+      log.error("Error sending message via v3 lightpush:", error);
       throw new Error(
         `Failed to send v3 message: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -274,7 +276,7 @@ export class WakuHeadless {
       };
     } catch (error) {
       const elapsed = Date.now() - startTime;
-      console.error(`Failed to find peers after ${elapsed}ms:`, error);
+      log.error(`Failed to find peers after ${elapsed}ms:`, error);
       throw error;
     }
   }
@@ -285,12 +287,12 @@ export class WakuHeadless {
         await this.waku.stop();
       }
     } catch (e) {
-      console.warn("ignore previous waku stop error");
+      log.warn("ignore previous waku stop error");
     }
 
     // if (options.networkConfig) {
     //   this.networkConfig = options.networkConfig;
-    //   console.log("Network config on createWakuNode:", this.networkConfig);
+    //   log.info("Network config on createWakuNode:", this.networkConfig);
     // }
 
     let libp2pConfig: any = {
@@ -341,7 +343,7 @@ export class WakuHeadless {
       await this.waku.dial(this.lightpushNode);
     } catch {
       // Ignore dial errors
-      console.warn(
+      log.warn(
         "Failed to dial preferred lightpush node:",
         this.lightpushNode,
       );
@@ -380,7 +382,7 @@ export class WakuHeadless {
 
 (() => {
   try {
-    console.log("Initializing WakuHeadless...");
+    log.info("Initializing WakuHeadless...");
 
     const testWindow = window as ITestBrowser;
     const globalNetworkConfig = testWindow.__WAKU_NETWORK_CONFIG;
@@ -394,9 +396,9 @@ export class WakuHeadless {
     );
 
     testWindow.wakuApi = instance;
-    console.log("WakuHeadless initialized successfully:", !!testWindow.wakuApi);
+    log.info("WakuHeadless initialized successfully:", !!testWindow.wakuApi);
   } catch (error) {
-    console.error("Error initializing WakuHeadless:", error);
+    log.error("Error initializing WakuHeadless:", error);
     const testWindow = window as ITestBrowser;
     testWindow.wakuApi = {
       start: () =>

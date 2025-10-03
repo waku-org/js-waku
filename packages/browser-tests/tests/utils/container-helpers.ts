@@ -1,5 +1,8 @@
 import axios from "axios";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { Logger } from "@waku/utils";
+
+const log = new Logger("container-helpers");
 
 export interface ContainerSetupOptions {
   environment?: Record<string, string>;
@@ -27,8 +30,8 @@ export async function startBrowserTestsContainer(
     maxAttempts = 60
   } = options;
 
-  console.log("Starting waku-browser-tests container...");
-  
+  log.info("Starting waku-browser-tests container...");
+
   let generic = new GenericContainer("waku-browser-tests:local")
     .withExposedPorts(8080)
     .withNetworkMode(networkMode);
@@ -44,7 +47,7 @@ export async function startBrowserTestsContainer(
   await new Promise((r) => setTimeout(r, 5000));
   const logs = await container.logs({ tail: 100 });
   logs.on("data", (b) => process.stdout.write("[container] " + b.toString()));
-  logs.on("error", (err) => console.error("[container log error]", err));
+  logs.on("error", (err) => log.error("[container log error]", err));
 
   const mappedPort = container.getMappedPort(8080);
   const baseUrl = `http://127.0.0.1:${mappedPort}`;
@@ -57,7 +60,7 @@ export async function startBrowserTestsContainer(
     throw new Error("Container failed to become ready");
   }
 
-  console.log("✅ Browser tests container ready");
+  log.info("✅ Browser tests container ready");
   await new Promise((r) => setTimeout(r, 500)); // Final settling time
 
   return { container, baseUrl };
@@ -76,12 +79,12 @@ async function waitForServerReady(
     try {
       const res = await axios.get(`${baseUrl}/`, { timeout });
       if (res.status === 200) {
-        console.log(`Server is ready after ${i + 1} attempts`);
+        log.info(`Server is ready after ${i + 1} attempts`);
         return true;
       }
     } catch (error: any) {
       if (i % 10 === 0) {
-        console.log(`Attempt ${i + 1}/${maxAttempts} failed:`, error.code || error.message);
+        log.info(`Attempt ${i + 1}/${maxAttempts} failed:`, error.code || error.message);
       }
     }
     await new Promise((r) => setTimeout(r, 1000));
@@ -95,11 +98,11 @@ async function waitForServerReady(
 async function logFinalContainerState(container: StartedTestContainer): Promise<void> {
   try {
     const finalLogs = await container.logs({ tail: 50 });
-    console.log("=== Final Container Logs ===");
-    finalLogs.on("data", (b) => console.log(b.toString()));
+    log.info("=== Final Container Logs ===");
+    finalLogs.on("data", (b) => log.info(b.toString()));
     await new Promise((r) => setTimeout(r, 1000));
   } catch (logError) {
-    console.error("Failed to get container logs:", logError);
+    log.error("Failed to get container logs:", logError);
   }
 }
 
@@ -109,12 +112,12 @@ async function logFinalContainerState(container: StartedTestContainer): Promise<
 export async function stopContainer(container: StartedTestContainer): Promise<void> {
   if (!container) return;
 
-  console.log("Stopping container gracefully...");
+  log.info("Stopping container gracefully...");
   try {
     await container.stop({ timeout: 10000 });
-    console.log("Container stopped successfully");
+    log.info("Container stopped successfully");
   } catch (error) {
-    console.warn(
+    log.warn(
       "Container stop had issues (expected):",
       (error as any).message
     );
