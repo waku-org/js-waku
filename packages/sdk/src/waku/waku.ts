@@ -6,7 +6,8 @@ import {
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
-import type {
+import {
+  ContentTopic,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
@@ -15,6 +16,7 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
+  IMessageEmitter,
   IRelay,
   IRoutingInfo,
   IStore,
@@ -28,7 +30,7 @@ import {
   HealthStatus,
   Protocols
 } from "@waku/interfaces";
-import { createRoutingInfo, Logger } from "@waku/utils";
+import { createRoutingInfo, Logger, pushOrInitMapSet } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -54,6 +56,7 @@ export class WakuNode implements IWaku {
   public lightPush?: ILightPush;
 
   public readonly events: IWakuEventEmitter = new TypedEventEmitter();
+  public readonly messageEmitter: IMessageEmitter = new TypedEventEmitter();
 
   private readonly networkConfig: NetworkConfig;
 
@@ -132,6 +135,37 @@ export class WakuNode implements IWaku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
+  }
+
+  public async subscribe(contentTopics: ContentTopic[]): Promise<void> {
+    // Group content topics via routing info in case they spread across several shards
+    const ctToRouting: Map<IRoutingInfo, Set<ContentTopic>> = new Map();
+    for (const contentTopic of contentTopics) {
+      const routingInfo = this.createRoutingInfo(contentTopic);
+      pushOrInitMapSet(ctToRouting, routingInfo, contentTopic);
+    }
+
+    const promises = [];
+    if (this.filter) {
+      for (const [routingInfo, contentTopics] of ctToRouting) {
+        // TODO: Returned bool from subscribe should be used
+        promises.push(
+          this.filter.subscribe(
+            Array.from(contentTopics),
+            routingInfo,
+            this.emitIncomingMessages.bind(this, Array.from(contentTopics))
+          )
+        );
+      }
+
+      await Promise.all(promises);
+      return;
+    }
+
+    if (this.relay) {
+      throw "not implemented";
+    }
+    throw "no subscribe protocol available";
   }
 
   public get peerId(): PeerId {
@@ -287,5 +321,21 @@ export class WakuNode implements IWaku {
     shardId?: number
   ): IRoutingInfo {
     return createRoutingInfo(this.networkConfig, { contentTopic, shardId });
+  }
+
+  private emitIncomingMessages(
+    contentTopics: ContentTopic[],
+    message: {
+      contentTopic: ContentTopic;
+      payload: Uint8Array;
+    }
+  ): void {
+    if (contentTopics.includes(message.contentTopic)) {
+      this.messageEmitter.dispatchEvent(
+        new CustomEvent<Uint8Array>(message.contentTopic, {
+          detail: message.payload
+        })
+      );
+    }
   }
 }
