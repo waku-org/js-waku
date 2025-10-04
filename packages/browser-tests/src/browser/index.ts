@@ -1,7 +1,7 @@
 import { Browser, chromium, Page } from "@playwright/test";
 import { Logger } from "@waku/utils";
 
-const log = new Logger("browser");
+const log = new Logger("browser-test");
 
 let browser: Browser | undefined;
 let page: Page | undefined;

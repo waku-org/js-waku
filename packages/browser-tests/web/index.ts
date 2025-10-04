@@ -12,6 +12,7 @@ import {
   ShardId,
   StaticSharding,
   ShardInfo,
+  CreateLibp2pOptions,
 } from "@waku/interfaces";
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
@@ -292,12 +293,7 @@ export class WakuHeadless {
       log.warn("ignore previous waku stop error");
     }
 
-    // if (options.networkConfig) {
-    //   this.networkConfig = options.networkConfig;
-    //   log.info("Network config on createWakuNode:", this.networkConfig);
-    // }
-
-    let libp2pConfig: any = {
+    let libp2pConfig: CreateLibp2pOptions = {
       ...options.libp2p,
       filterMultiaddrs: false,
     };
