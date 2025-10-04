@@ -7,7 +7,7 @@ import { Logger } from "@waku/utils";
 
 import wakuRouter from "./routes/waku.js";
 import { initBrowser, getPage, closeBrowser } from "./browser/index.js";
-import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS } from "@waku/interfaces";
+import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS, Protocols } from "@waku/interfaces";
 
 const log = new Logger("server");
 const app = express();
@@ -144,7 +144,7 @@ async function startServer(port: number = 3000): Promise<void> {
 
       try {
         await getPage()?.evaluate(() =>
-          window.wakuApi.waitForPeers?.(5000, ["lightpush"] as any),
+          window.wakuApi.waitForPeers?.(5000, [Protocols.LightPush]),
         );
         log.info("Auto-start completed with bootstrap peers");
       } catch (peerError) {

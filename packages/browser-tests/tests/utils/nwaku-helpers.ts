@@ -51,10 +51,11 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
   await verifyNetworkFormation([lightPushNode, relayNode]);
 
   // Return ServiceNodesFleet-compatible object
+  // Note: We're returning a partial ServiceNodesFleet for testing purposes
   return {
     nodes: [lightPushNode, relayNode],
-    messageCollector: null as any // Not needed for these tests
-  } as any;
+    messageCollector: null
+  } as ServiceNodesFleet;
 }
 
 /**
@@ -97,8 +98,10 @@ export async function getDockerAccessibleMultiaddr(node: ServiceNode): Promise<s
     throw new Error("Could not extract port from multiaddr: " + multiaddrStr);
   }
 
-  // Get Docker container IP (accessing private field safely)
-  const containerIp = (node as any).docker?.containerIp;
+  // Get Docker container IP (accessing internal field)
+  // Note: This accesses an internal implementation detail of ServiceNode
+  const nodeWithDocker = node as ServiceNode & { docker?: { containerIp?: string } };
+  const containerIp = nodeWithDocker.docker?.containerIp;
   if (!containerIp) {
     throw new Error("Could not get container IP from node");
   }
@@ -123,6 +126,7 @@ export async function stopNwakuNodes(nodes: ServiceNode[]): Promise<void> {
     await Promise.all(nodes.map(node => node.stop()));
     log.info("Nwaku nodes stopped successfully");
   } catch (error) {
-    log.warn("Nwaku nodes stop had issues:", (error as any).message);
+    const message = error instanceof Error ? error.message : String(error);
+    log.warn("Nwaku nodes stop had issues:", message);
   }
 }

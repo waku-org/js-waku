@@ -11,9 +11,11 @@ import {
   DEFAULT_NUM_SHARDS,
   ShardId,
   StaticSharding,
+  ShardInfo,
 } from "@waku/interfaces";
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import type { ITestBrowser } from "../types/global.js";
 import { Logger, StaticShardingRoutingInfo } from "@waku/utils";
 
@@ -78,7 +80,7 @@ export class WakuHeadless {
     lightpushNode?: string | null,
     enrBootstrap?: string | null,
   ) {
-    this.waku = null as unknown as LightNode;
+    this.waku = null;
     this.networkConfig = this.buildNetworkConfig(networkConfig);
     log.info("Network config on construction:", this.networkConfig);
     this.lightpushNode = lightpushNode || null;
@@ -118,11 +120,11 @@ export class WakuHeadless {
   }
 
   private buildNetworkConfig(
-    providedConfig?: Partial<NetworkConfig>,
+    providedConfig?: Partial<NetworkConfig> | Partial<ShardInfo>,
   ): NetworkConfig {
     const clusterId = providedConfig?.clusterId ?? DEFAULT_CLUSTER_ID;
 
-    const staticShards = (providedConfig as any)?.shards;
+    const staticShards = (providedConfig as Partial<ShardInfo>)?.shards;
     if (
       staticShards &&
       Array.isArray(staticShards) &&
@@ -135,7 +137,7 @@ export class WakuHeadless {
     }
 
     const numShardsInCluster =
-      (providedConfig as any)?.numShardsInCluster ?? DEFAULT_NUM_SHARDS;
+      (providedConfig as Partial<AutoSharding>)?.numShardsInCluster ?? DEFAULT_NUM_SHARDS;
     log.info(
       "Using auto sharding with num shards in cluster:",
       numShardsInCluster,
@@ -374,7 +376,7 @@ export class WakuHeadless {
     const addrs = this.waku.libp2p.getMultiaddrs();
     return {
       peerId: this.waku.libp2p.peerId.toString(),
-      multiaddrs: addrs.map((a: any) => a.toString()),
+      multiaddrs: addrs.map((a: Multiaddr) => a.toString()),
       peers: [],
     };
   }
@@ -400,10 +402,19 @@ export class WakuHeadless {
   } catch (error) {
     log.error("Error initializing WakuHeadless:", error);
     const testWindow = window as ITestBrowser;
+    // Create a stub wakuApi that will reject all method calls
     testWindow.wakuApi = {
-      start: () =>
-        Promise.reject(new Error("WakuHeadless failed to initialize")),
-      error: error,
-    } as any;
+      waku: null,
+      networkConfig: { clusterId: 0, numShardsInCluster: 0 },
+      lightpushNode: null,
+      enrBootstrap: null,
+      error,
+      createWakuNode: () => Promise.reject(new Error("WakuHeadless failed to initialize")),
+      startNode: () => Promise.reject(new Error("WakuHeadless failed to initialize")),
+      stopNode: () => Promise.reject(new Error("WakuHeadless failed to initialize")),
+      pushMessageV3: () => Promise.reject(new Error("WakuHeadless failed to initialize")),
+      waitForPeers: () => Promise.reject(new Error("WakuHeadless failed to initialize")),
+      getPeerInfo: () => { throw new Error("WakuHeadless failed to initialize"); },
+    } as unknown as WakuHeadless;
   }
 })();

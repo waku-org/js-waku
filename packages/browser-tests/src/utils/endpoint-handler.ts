@@ -78,7 +78,8 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
             throw new Error("window.wakuApi is not available");
           }
 
-          const method = (testWindow.wakuApi as any)[methodName];
+          const wakuApi = testWindow.wakuApi as unknown as Record<string, unknown>;
+          const method = wakuApi[methodName];
           if (typeof method !== "function") {
             throw new Error(`window.wakuApi.${methodName} is not a function`);
           }

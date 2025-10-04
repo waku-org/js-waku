@@ -117,9 +117,10 @@ export async function stopContainer(container: StartedTestContainer): Promise<vo
     await container.stop({ timeout: 10000 });
     log.info("Container stopped successfully");
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     log.warn(
       "Container stop had issues (expected):",
-      (error as any).message
+      message
     );
   }
 }
