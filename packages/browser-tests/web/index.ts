@@ -343,11 +343,12 @@ export class WakuHeadless {
 
     try {
       await this.waku.dial(this.lightpushNode);
-    } catch {
-      // Ignore dial errors
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       log.warn(
         "Failed to dial preferred lightpush node:",
         this.lightpushNode,
+        message
       );
     }
   }
