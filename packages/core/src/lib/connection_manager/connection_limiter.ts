@@ -9,7 +9,6 @@ import {
   WakuEvent
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { numberToBytes } from "@waku/utils/bytes";
 
 import { Dialer } from "./dialer.js";
 import { NetworkMonitor } from "./network_monitor.js";
@@ -125,7 +124,6 @@ export class ConnectionLimiter implements IConnectionLimiter {
   private async maintainConnections(): Promise<void> {
     await this.maintainConnectionsCount();
     await this.maintainBootstrapConnections();
-    await this.maintainTTLConnectedPeers();
   }
 
   private async onDisconnectedEvent(): Promise<void> {
@@ -215,28 +213,6 @@ export class ConnectionLimiter implements IConnectionLimiter {
     }
   }
 
-  private async maintainTTLConnectedPeers(): Promise<void> {
-    log.info(`Maintaining TTL connected peers`);
-
-    const promises = this.libp2p.getConnections().map(async (c) => {
-      try {
-        await this.libp2p.peerStore.merge(c.remotePeer, {
-          metadata: {
-            ttl: numberToBytes(Date.now())
-          }
-        });
-        log.info(`TTL updated for connected peer ${c.remotePeer.toString()}`);
-      } catch (error) {
-        log.error(
-          `Unexpected error while maintaining TTL connected peer`,
-          error
-        );
-      }
-    });
-
-    await Promise.all(promises);
-  }
-
   private async dialPeersFromStore(): Promise<void> {
     log.info(`Dialing peers from store`);
 
@@ -268,6 +244,9 @@ export class ConnectionLimiter implements IConnectionLimiter {
   private async getPrioritizedPeers(): Promise<Peer[]> {
     const allPeers = await this.libp2p.peerStore.all();
     const allConnections = this.libp2p.getConnections();
+    const allConnectionsSet = new Set(
+      allConnections.map((c) => c.remotePeer.toString())
+    );
 
     log.info(
       `Found ${allPeers.length} peers in store, and found ${allConnections.length} connections`
@@ -275,7 +254,7 @@ export class ConnectionLimiter implements IConnectionLimiter {
 
     const notConnectedPeers = allPeers.filter(
       (p) =>
-        !allConnections.some((c) => c.remotePeer.equals(p.id)) &&
+        !allConnectionsSet.has(p.id.toString()) &&
         isAddressesSupported(
           this.libp2p,
           p.addresses.map((a) => a.multiaddr)

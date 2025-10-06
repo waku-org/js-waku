@@ -14,7 +14,7 @@ export class Message implements proto_sds_message.SdsMessage {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp?: number | undefined,
+    public lamportTimestamp?: bigint | undefined,
     public bloomFilter?: Uint8Array<ArrayBufferLike> | undefined,
     public content?: Uint8Array<ArrayBufferLike> | undefined,
     /**
@@ -30,56 +30,60 @@ export class Message implements proto_sds_message.SdsMessage {
   public static decode(
     data: Uint8Array
   ): undefined | ContentMessage | SyncMessage | EphemeralMessage {
-    const {
-      messageId,
-      channelId,
-      senderId,
-      causalHistory,
-      lamportTimestamp,
-      bloomFilter,
-      content
-    } = proto_sds_message.SdsMessage.decode(data);
-
-    if (testContentMessage({ lamportTimestamp, content })) {
-      return new ContentMessage(
+    try {
+      const {
         messageId,
         channelId,
         senderId,
         causalHistory,
-        lamportTimestamp!,
+        lamportTimestamp,
         bloomFilter,
-        content!
-      );
-    }
+        content
+      } = proto_sds_message.SdsMessage.decode(data);
 
-    if (testEphemeralMessage({ lamportTimestamp, content })) {
-      return new EphemeralMessage(
-        messageId,
-        channelId,
-        senderId,
-        causalHistory,
-        undefined,
-        bloomFilter,
-        content!
-      );
-    }
+      if (testContentMessage({ lamportTimestamp, content })) {
+        return new ContentMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          lamportTimestamp!,
+          bloomFilter,
+          content!
+        );
+      }
 
-    if (testSyncMessage({ lamportTimestamp, content })) {
-      return new SyncMessage(
-        messageId,
-        channelId,
-        senderId,
-        causalHistory,
-        lamportTimestamp!,
-        bloomFilter,
-        undefined
+      if (testEphemeralMessage({ lamportTimestamp, content })) {
+        return new EphemeralMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          undefined,
+          bloomFilter,
+          content!
+        );
+      }
+
+      if (testSyncMessage({ lamportTimestamp, content })) {
+        return new SyncMessage(
+          messageId,
+          channelId,
+          senderId,
+          causalHistory,
+          lamportTimestamp!,
+          bloomFilter,
+          undefined
+        );
+      }
+      log.error(
+        "message received was of unknown type",
+        lamportTimestamp,
+        content
       );
+    } catch (err) {
+      log.error("failed to decode sds message", err);
     }
-    log.error(
-      "message received was of unknown type",
-      lamportTimestamp,
-      content
-    );
     return undefined;
   }
 }
@@ -90,7 +94,7 @@ export class SyncMessage extends Message {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp: number,
+    public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: undefined,
     /**
@@ -112,12 +116,12 @@ export class SyncMessage extends Message {
 }
 
 function testSyncMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
 }): boolean {
   return Boolean(
     "lamportTimestamp" in message &&
-      typeof message.lamportTimestamp === "number" &&
+      typeof message.lamportTimestamp === "bigint" &&
       (message.content === undefined || message.content.length === 0)
   );
 }
@@ -165,7 +169,7 @@ export function isEphemeralMessage(
 }
 
 function testEphemeralMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
 }): boolean {
   return Boolean(
@@ -182,7 +186,7 @@ export class ContentMessage extends Message {
     public channelId: string,
     public senderId: string,
     public causalHistory: proto_sds_message.HistoryEntry[],
-    public lamportTimestamp: number,
+    public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: Uint8Array<ArrayBufferLike>,
     /**
@@ -222,12 +226,12 @@ export function isContentMessage(
 }
 
 function testContentMessage(message: {
-  lamportTimestamp?: number;
+  lamportTimestamp?: bigint;
   content?: Uint8Array;
-}): message is { lamportTimestamp: number; content: Uint8Array } {
+}): message is { lamportTimestamp: bigint; content: Uint8Array } {
   return Boolean(
     "lamportTimestamp" in message &&
-      typeof message.lamportTimestamp === "number" &&
+      typeof message.lamportTimestamp === "bigint" &&
       message.content &&
       message.content.length
   );

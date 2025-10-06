@@ -185,9 +185,9 @@ export class ReliableChannel<
         peerManagerEvents !== undefined &&
         (options?.queryOnConnect ?? true)
       ) {
-        log.info("auto-query enabled");
         this.queryOnConnect = new QueryOnConnect(
           [this.decoder],
+          this.isChannelMessageWithCausalHistory.bind(this),
           peerManagerEvents,
           node.events,
           this._retrieve.bind(this)
@@ -578,6 +578,21 @@ export class ReliableChannel<
     // TODO: review and optimize
     await this.messageChannel.processTasks();
     this.messageChannel.sweepOutgoingBuffer();
+  }
+
+  private isChannelMessageWithCausalHistory(msg: T): boolean {
+    // TODO: we do end-up decoding messages twice as this is used to stop store queries.
+    const sdsMessage = SdsMessage.decode(msg.payload);
+
+    if (!sdsMessage) {
+      return false;
+    }
+
+    if (sdsMessage.channelId !== this.messageChannel.channelId) {
+      return false;
+    }
+
+    return sdsMessage.causalHistory && sdsMessage.causalHistory.length > 0;
   }
 
   private setupEventListeners(): void {

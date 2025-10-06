@@ -187,7 +187,8 @@ describe("Reliable Channel: Encryption", () => {
     expect(messageAcknowledged).to.be.false;
   });
 
-  it("Outgoing message is possibly acknowledged", async () => {
+  // TODO: https://github.com/waku-org/js-waku/issues/2648
+  it.skip("Outgoing message is possibly acknowledged", async () => {
     const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);

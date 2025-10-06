@@ -11,8 +11,7 @@ export class IdentityCredential {
     public readonly IDSecretHash: Uint8Array,
     public readonly IDCommitment: Uint8Array
   ) {
-    this.IDCommitmentBigInt =
-      BytesUtils.buildBigIntFromUint8ArrayBE(IDCommitment);
+    this.IDCommitmentBigInt = BytesUtils.toBigInt(IDCommitment);
   }
 
   public static fromBytes(memKeys: Uint8Array): IdentityCredential {

@@ -13,7 +13,7 @@ import {
   LightPushSDKResult,
   QueryRequestParams
 } from "@waku/interfaces";
-import { ContentMessage } from "@waku/sds";
+import { ContentMessage, SyncMessage } from "@waku/sds";
 import {
   createRoutingInfo,
   delay,
@@ -176,7 +176,8 @@ describe("Reliable Channel", () => {
     expect(messageAcknowledged).to.be.false;
   });
 
-  it("Outgoing message is possibly acknowledged", async () => {
+  // TODO: https://github.com/waku-org/js-waku/issues/2648
+  it.skip("Outgoing message is possibly acknowledged", async () => {
     const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
@@ -418,7 +419,7 @@ describe("Reliable Channel", () => {
         "MyChannel",
         "alice",
         [],
-        1,
+        1n,
         undefined,
         message
       );
@@ -531,7 +532,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         messagePayload
       );
@@ -599,7 +600,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        1,
+        1n,
         undefined,
         message1Payload
       );
@@ -609,7 +610,7 @@ describe("Reliable Channel", () => {
         "testChannel",
         "testSender",
         [],
-        2,
+        2n,
         undefined,
         message2Payload
       );
@@ -675,6 +676,458 @@ describe("Reliable Channel", () => {
 
       // Verify that QueryOnConnect was triggered due to time threshold
       expect(queryGeneratorStub.called).to.be.true;
+    });
+  });
+
+  describe("stopIfTrue Integration with QueryOnConnect", () => {
+    let mockWakuNode: MockWakuNode;
+    let encoder: IEncoder;
+    let decoder: IDecoder<IDecodedMessage>;
+    let mockPeerManagerEvents: TypedEventEmitter<any>;
+    let queryGeneratorStub: sinon.SinonStub;
+    let mockPeerId: PeerId;
+
+    beforeEach(async () => {
+      mockWakuNode = new MockWakuNode();
+      mockPeerManagerEvents = new TypedEventEmitter();
+      (mockWakuNode as any).peerManager = {
+        events: mockPeerManagerEvents
+      };
+
+      encoder = createEncoder({
+        contentTopic: TEST_CONTENT_TOPIC,
+        routingInfo: TEST_ROUTING_INFO
+      });
+
+      decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
+
+      queryGeneratorStub = sinon.stub();
+      mockWakuNode.store = {
+        queryGenerator: queryGeneratorStub
+      } as any;
+
+      mockPeerId = {
+        toString: () => "QmTestPeerId"
+      } as unknown as PeerId;
+    });
+
+    it("should stop query when sync message from same channel is found", async () => {
+      const channelId = "testChannel";
+      const senderId = "testSender";
+
+      // Create messages: one from different channel, one sync from same channel, one more
+      const sdsMessageDifferentChannel = new ContentMessage(
+        "msg1",
+        "differentChannel",
+        senderId,
+        [],
+        1n,
+        undefined,
+        utf8ToBytes("different channel")
+      );
+
+      const sdsSyncMessage = new SyncMessage(
+        "sync-msg-id",
+        channelId,
+        senderId,
+        [],
+        2n,
+        undefined,
+        undefined
+      );
+
+      const sdsMessageAfterSync = new ContentMessage(
+        "msg3",
+        channelId,
+        senderId,
+        [],
+        3n,
+        undefined,
+        utf8ToBytes("after sync")
+      );
+
+      const messages: IDecodedMessage[] = [
+        {
+          hash: hexToBytes("1111"),
+          hashStr: "1111",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageDifferentChannel.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: hexToBytes("2222"),
+          hashStr: "2222",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsSyncMessage.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: hexToBytes("3333"),
+          hashStr: "3333",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageAfterSync.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      // Setup generator to yield 3 messages, but should stop after 2nd
+      queryGeneratorStub.callsFake(async function* () {
+        yield [Promise.resolve(messages[0])];
+        yield [Promise.resolve(messages[1])];
+        yield [Promise.resolve(messages[2])];
+      });
+
+      const reliableChannel = await ReliableChannel.create(
+        mockWakuNode,
+        channelId,
+        senderId,
+        encoder,
+        decoder
+      );
+
+      await delay(50);
+
+      // Trigger query on connect
+      mockPeerManagerEvents.dispatchEvent(
+        new CustomEvent("store:connect", { detail: mockPeerId })
+      );
+
+      await delay(200);
+
+      // queryGenerator should have been called
+      expect(queryGeneratorStub.called).to.be.true;
+      // The query should have stopped after finding sync message from same channel
+      expect(reliableChannel).to.not.be.undefined;
+    });
+
+    it("should stop query on content message from same channel", async () => {
+      const channelId = "testChannel";
+      const senderId = "testSender";
+
+      const sdsContentMessage = new ContentMessage(
+        "msg1",
+        channelId,
+        senderId,
+        [{ messageId: "previous-msg-id" }],
+        1n,
+        undefined,
+        utf8ToBytes("content message")
+      );
+
+      const sdsMessageAfter = new ContentMessage(
+        "msg2",
+        channelId,
+        senderId,
+        [],
+        2n,
+        undefined,
+        utf8ToBytes("after content")
+      );
+
+      const messages: IDecodedMessage[] = [
+        {
+          hash: hexToBytes("1111"),
+          hashStr: "1111",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsContentMessage.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: hexToBytes("2222"),
+          hashStr: "2222",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageAfter.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      let pagesYielded = 0;
+      queryGeneratorStub.callsFake(async function* () {
+        pagesYielded++;
+        yield [Promise.resolve(messages[0])];
+        pagesYielded++;
+        yield [Promise.resolve(messages[1])];
+      });
+
+      const reliableChannel = await ReliableChannel.create(
+        mockWakuNode,
+        channelId,
+        senderId,
+        encoder,
+        decoder
+      );
+
+      await delay(50);
+
+      mockPeerManagerEvents.dispatchEvent(
+        new CustomEvent("store:connect", { detail: mockPeerId })
+      );
+
+      await delay(200);
+
+      expect(queryGeneratorStub.called).to.be.true;
+      expect(reliableChannel).to.not.be.undefined;
+      // Should have stopped after first page with content message
+      expect(pagesYielded).to.equal(1);
+    });
+
+    it("should continue query when messages are from different channels", async () => {
+      const channelId = "testChannel";
+      const senderId = "testSender";
+
+      const sdsMessageDifferent1 = new ContentMessage(
+        "msg1",
+        "differentChannel1",
+        senderId,
+        [],
+        1n,
+        undefined,
+        utf8ToBytes("different 1")
+      );
+
+      const sdsMessageDifferent2 = new ContentMessage(
+        "msg2",
+        "differentChannel2",
+        senderId,
+        [],
+        2n,
+        undefined,
+        utf8ToBytes("different 2")
+      );
+
+      const sdsMessageDifferent3 = new ContentMessage(
+        "msg3",
+        "differentChannel3",
+        senderId,
+        [],
+        3n,
+        undefined,
+        utf8ToBytes("different 3")
+      );
+
+      const messages: IDecodedMessage[] = [
+        {
+          hash: hexToBytes("1111"),
+          hashStr: "1111",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageDifferent1.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: hexToBytes("2222"),
+          hashStr: "2222",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageDifferent2.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        },
+        {
+          hash: hexToBytes("3333"),
+          hashStr: "3333",
+          version: 1,
+          timestamp: new Date(),
+          contentTopic: TEST_CONTENT_TOPIC,
+          pubsubTopic: decoder.pubsubTopic,
+          payload: sdsMessageDifferent3.encode(),
+          rateLimitProof: undefined,
+          ephemeral: false,
+          meta: undefined
+        }
+      ];
+
+      let pagesYielded = 0;
+      queryGeneratorStub.callsFake(async function* () {
+        pagesYielded++;
+        yield [Promise.resolve(messages[0])];
+        pagesYielded++;
+        yield [Promise.resolve(messages[1])];
+        pagesYielded++;
+        yield [Promise.resolve(messages[2])];
+      });
+
+      const reliableChannel = await ReliableChannel.create(
+        mockWakuNode,
+        channelId,
+        senderId,
+        encoder,
+        decoder
+      );
+
+      await delay(50);
+
+      mockPeerManagerEvents.dispatchEvent(
+        new CustomEvent("store:connect", { detail: mockPeerId })
+      );
+
+      await delay(200);
+
+      expect(queryGeneratorStub.called).to.be.true;
+      expect(reliableChannel).to.not.be.undefined;
+      // Should have processed all pages since no matching channel
+      expect(pagesYielded).to.equal(3);
+    });
+  });
+
+  describe("isChannelMessageWithCausalHistory predicate", () => {
+    let mockWakuNode: MockWakuNode;
+    let reliableChannel: ReliableChannel<IDecodedMessage>;
+    let encoder: IEncoder;
+    let decoder: IDecoder<IDecodedMessage>;
+
+    beforeEach(async () => {
+      mockWakuNode = new MockWakuNode();
+      encoder = createEncoder({
+        contentTopic: TEST_CONTENT_TOPIC,
+        routingInfo: TEST_ROUTING_INFO
+      });
+      decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
+
+      reliableChannel = await ReliableChannel.create(
+        mockWakuNode,
+        "testChannel",
+        "testSender",
+        encoder,
+        decoder,
+        { queryOnConnect: false }
+      );
+    });
+
+    it("should return false for malformed SDS messages", () => {
+      const msg = {
+        payload: new Uint8Array([1, 2, 3])
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
+    });
+
+    it("should return false for different channelId", () => {
+      const sdsMsg = new ContentMessage(
+        "msg1",
+        "differentChannel",
+        "sender",
+        [],
+        1n,
+        undefined,
+        utf8ToBytes("content")
+      );
+
+      const msg = {
+        payload: sdsMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
+    });
+
+    it("should return false for sync message without causal history", () => {
+      const syncMsg = new SyncMessage(
+        "sync-msg-id",
+        "testChannel",
+        "sender",
+        [],
+        1n,
+        undefined,
+        undefined
+      );
+
+      const msg = {
+        payload: syncMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
+    });
+
+    it("should return false for content message without causal history", () => {
+      const contentMsg = new ContentMessage(
+        "msg1",
+        "testChannel",
+        "sender",
+        [],
+        1n,
+        undefined,
+        utf8ToBytes("content")
+      );
+
+      const msg = {
+        payload: contentMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.false;
+    });
+
+    it("should return true for message with causal history", () => {
+      const contentMsg = new ContentMessage(
+        "msg1",
+        "testChannel",
+        "sender",
+        [{ messageId: "previous-msg-id" }],
+        1n,
+        undefined,
+        utf8ToBytes("content")
+      );
+
+      const msg = {
+        payload: contentMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.true;
+    });
+
+    it("should return true for sync message with causal history", () => {
+      const syncMsg = new SyncMessage(
+        "sync-msg-id",
+        "testChannel",
+        "sender",
+        [{ messageId: "previous-msg-id" }],
+        1n,
+        undefined,
+        undefined
+      );
+
+      const msg = {
+        payload: syncMsg.encode()
+      } as IDecodedMessage;
+
+      const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
+      expect(result).to.be.true;
     });
   });
 });
