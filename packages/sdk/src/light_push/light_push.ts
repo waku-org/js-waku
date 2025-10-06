@@ -4,6 +4,7 @@ import {
   type IEncoder,
   ILightPush,
   type IMessage,
+  IProtoMessage,
   type ISendOptions,
   type Libp2p,
   LightPushCoreResult,
@@ -82,10 +83,11 @@ export class LightPush implements ILightPush {
 
     log.info("send: attempting to send a message to pubsubTopic:", pubsubTopic);
 
-    const peerIds = await this.peerManager.getPeers({
+    let peerIds = await this.peerManager.getPeers({
       protocol: options.useLegacy ? "light-push-v2" : Protocols.LightPush,
       pubsubTopic: encoder.pubsubTopic
     });
+    peerIds = peerIds.slice(0, options.numPeersToUse);
 
     const coreResults =
       peerIds?.length > 0
@@ -93,12 +95,15 @@ export class LightPush implements ILightPush {
             peerIds.map((peerId) =>
               this.protocol
                 .send(encoder, message, peerId, options.useLegacy)
-                .catch((_e) => ({
-                  success: null,
-                  failure: {
-                    error: LightPushError.GENERIC_FAIL
-                  }
-                }))
+                .catch(
+                  (_e) =>
+                    ({
+                      success: null,
+                      failure: {
+                        error: LightPushError.GENERIC_FAIL
+                      }
+                    }) as LightPushCoreResult
+                )
             )
           )
         : [];
@@ -110,7 +115,10 @@ export class LightPush implements ILightPush {
             .map((v) => v.success) as PeerId[],
           failures: coreResults
             .filter((v) => v.failure)
-            .map((v) => v.failure) as LightPushFailure[]
+            .map((v) => v.failure) as LightPushFailure[],
+          messages: coreResults
+            .filter((v) => v.message)
+            .map((v) => v.message) as IProtoMessage[]
         }
       : {
           successes: [],

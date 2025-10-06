@@ -24,6 +24,8 @@ export class AckManager implements IAckManager {
   private readonly storeAckManager: StoreAckManager;
   private readonly networkConfig: NetworkConfig;
 
+  private readonly subscribedContentTopics: Set<string> = new Set();
+
   public constructor(params: AckManagerConstructorParams) {
     this.messageStore = params.messageStore;
     this.networkConfig = params.networkConfig;
@@ -44,9 +46,15 @@ export class AckManager implements IAckManager {
   public async stop(): Promise<void> {
     await this.filterAckManager.stop();
     this.storeAckManager.stop();
+    this.subscribedContentTopics.clear();
   }
 
   public async subscribe(contentTopic: string): Promise<boolean> {
+    if (this.subscribedContentTopics.has(contentTopic)) {
+      return true;
+    }
+
+    this.subscribedContentTopics.add(contentTopic);
     const decoder = createDecoder(
       contentTopic,
       createRoutingInfo(this.networkConfig, {
@@ -55,9 +63,11 @@ export class AckManager implements IAckManager {
     );
 
     return (
-      (await this.filterAckManager.subscribe(decoder)) ||
-      (await this.storeAckManager.subscribe(decoder))
-    );
+      await Promise.all([
+        this.filterAckManager.subscribe(decoder),
+        this.storeAckManager.subscribe(decoder)
+      ])
+    ).some((success) => success);
   }
 }
 
@@ -118,7 +128,7 @@ class StoreAckManager {
 
     this.interval = setInterval(() => {
       void this.query();
-    }, 1000);
+    }, 5000);
   }
 
   public stop(): void {

@@ -32,15 +32,15 @@ export class MessageStore {
   private readonly resendIntervalMs: number;
 
   public constructor(options: MessageStoreOptions = {}) {
-    this.resendIntervalMs = options.resendIntervalMs ?? 2000;
+    this.resendIntervalMs = options.resendIntervalMs ?? 5000;
   }
 
   public has(hashStr: string): boolean {
-    return this.messages.has(hashStr);
+    return this.messages.has(hashStr) || this.pendingMessages.has(hashStr);
   }
 
   public add(message: IDecodedMessage, options: AddMessageOptions = {}): void {
-    if (!this.messages.has(message.hashStr)) {
+    if (!this.has(message.hashStr)) {
       this.messages.set(message.hashStr, {
         filterAck: options.filterAck ?? false,
         storeAck: options.storeAck ?? false,
@@ -59,10 +59,7 @@ export class MessageStore {
     this.replacePendingWithMessage(hashStr);
   }
 
-  public async markSent(
-    requestId: RequestId,
-    sentMessage: IDecodedMessage
-  ): Promise<void> {
+  public markSent(requestId: RequestId, sentMessage: IDecodedMessage): void {
     const entry = this.pendingRequests.get(requestId);
 
     if (!entry || !entry.messageRequest) {
@@ -71,6 +68,8 @@ export class MessageStore {
 
     entry.lastSentAt = Number(sentMessage.timestamp);
     this.pendingMessages.set(sentMessage.hashStr, requestId);
+
+    this.replacePendingWithMessage(sentMessage.hashStr);
   }
 
   public async queue(message: WakuLikeMessage): Promise<RequestId> {
@@ -102,13 +101,11 @@ export class MessageStore {
         continue;
       }
 
-      const notSent = !entry.lastSentAt;
-      const notAcknowledged =
-        entry.lastSentAt &&
-        Date.now() - entry.lastSentAt >= this.resendIntervalMs &&
-        !isAcknowledged;
+      const sentAt = entry.lastSentAt || entry.createdAt;
+      const notTooRecent = Date.now() - sentAt >= this.resendIntervalMs;
+      const notAcknowledged = !isAcknowledged;
 
-      if (notSent || notAcknowledged) {
+      if (notTooRecent && notAcknowledged) {
         res.push({
           requestId,
           message: entry.messageRequest
@@ -154,11 +151,21 @@ export class MessageStore {
       return;
     }
 
-    const entry = this.pendingRequests.get(requestId);
+    let entry = this.pendingRequests.get(requestId);
 
     if (!entry) {
       return;
     }
+
+    // merge with message entry if possible
+    // this can happen if message we sent got received before we could add it to the message store
+    const messageEntry = this.messages.get(hashStr);
+    entry = {
+      ...entry,
+      ...messageEntry,
+      filterAck: messageEntry?.filterAck ?? entry.filterAck,
+      storeAck: messageEntry?.storeAck ?? entry.storeAck
+    };
 
     this.pendingRequests.delete(requestId);
     this.pendingMessages.delete(hashStr);
