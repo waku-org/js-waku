@@ -7,7 +7,11 @@ import { Logger } from "@waku/utils";
 
 import wakuRouter from "./routes/waku.js";
 import { initBrowser, getPage, closeBrowser } from "./browser/index.js";
-import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS, Protocols } from "@waku/interfaces";
+import {
+  DEFAULT_CLUSTER_ID,
+  DEFAULT_NUM_SHARDS,
+  Protocols,
+} from "@waku/interfaces";
 
 const log = new Logger("server");
 const app = express();
@@ -112,9 +116,9 @@ async function startServer(port: number = 3000): Promise<void> {
         }),
       };
 
-      // log.info(
-      //   `Bootstrap mode: ${hasEnrBootstrap ? "ENR-only (defaultBootstrap=false)" : "default bootstrap (defaultBootstrap=true)"}`,
-      // );
+      log.info(
+        `Bootstrap mode: ${hasEnrBootstrap ? "ENR-only (defaultBootstrap=false)" : "default bootstrap (defaultBootstrap=true)"}`,
+      );
       if (hasEnrBootstrap) {
         log.info(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
       }
