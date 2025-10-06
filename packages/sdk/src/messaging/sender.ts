@@ -1,10 +1,14 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { ILightPush, NetworkConfig } from "@waku/interfaces";
+import {
+  ILightPush,
+  ISendMessage,
+  NetworkConfig,
+  RequestId
+} from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 
 import { AckManager } from "./ack_manager.js";
 import type { MessageStore } from "./message_store.js";
-import type { RequestId, WakuLikeMessage } from "./utils.js";
 
 type SenderConstructorParams = {
   messageStore: MessageStore;
@@ -41,11 +45,11 @@ export class Sender {
     }
   }
 
-  public async send(wakuLikeMessage: WakuLikeMessage): Promise<RequestId> {
-    const requestId = await this.messageStore.queue(wakuLikeMessage);
+  public async send(message: ISendMessage): Promise<RequestId> {
+    const requestId = await this.messageStore.queue(message);
 
-    await this.ackManager.subscribe(wakuLikeMessage.contentTopic);
-    await this.sendMessage(requestId, wakuLikeMessage);
+    await this.ackManager.subscribe(message.contentTopic);
+    await this.sendMessage(requestId, message);
 
     return requestId;
   }
@@ -60,7 +64,7 @@ export class Sender {
 
   private async sendMessage(
     requestId: RequestId,
-    message: WakuLikeMessage
+    message: ISendMessage
   ): Promise<void> {
     try {
       if (this.processingRequests.has(requestId)) {

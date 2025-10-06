@@ -1,12 +1,18 @@
-import { IFilter, ILightPush, IStore, NetworkConfig } from "@waku/interfaces";
+import {
+  IFilter,
+  ILightPush,
+  ISendMessage,
+  IStore,
+  NetworkConfig,
+  RequestId
+} from "@waku/interfaces";
 
 import { AckManager } from "./ack_manager.js";
 import { MessageStore } from "./message_store.js";
 import { Sender } from "./sender.js";
-import type { RequestId, WakuLikeMessage } from "./utils.js";
 
 interface IMessaging {
-  send(wakuLikeMessage: WakuLikeMessage): Promise<RequestId>;
+  send(wakuLikeMessage: ISendMessage): Promise<RequestId>;
 }
 
 type MessagingConstructorParams = {
@@ -49,7 +55,7 @@ export class Messaging implements IMessaging {
     this.sender.stop();
   }
 
-  public send(wakuLikeMessage: WakuLikeMessage): Promise<RequestId> {
+  public send(wakuLikeMessage: ISendMessage): Promise<RequestId> {
     return this.sender.send(wakuLikeMessage);
   }
 }

@@ -1,10 +1,8 @@
-import { IDecodedMessage } from "@waku/interfaces";
+import { IDecodedMessage, ISendMessage, RequestId } from "@waku/interfaces";
 import { v4 as uuidv4 } from "uuid";
 
-import { WakuLikeMessage } from "./utils.js";
-
 type QueuedMessage = {
-  messageRequest?: WakuLikeMessage;
+  messageRequest?: ISendMessage;
   filterAck: boolean;
   storeAck: boolean;
   lastSentAt?: number;
@@ -20,7 +18,6 @@ type MessageStoreOptions = {
   resendIntervalMs?: number;
 };
 
-type RequestId = string;
 type MessageHashStr = string;
 
 export class MessageStore {
@@ -72,7 +69,7 @@ export class MessageStore {
     this.replacePendingWithMessage(sentMessage.hashStr);
   }
 
-  public async queue(message: WakuLikeMessage): Promise<RequestId> {
+  public async queue(message: ISendMessage): Promise<RequestId> {
     const requestId = uuidv4();
 
     this.pendingRequests.set(requestId.toString(), {
@@ -87,11 +84,11 @@ export class MessageStore {
 
   public getMessagesToSend(): Array<{
     requestId: string;
-    message: WakuLikeMessage;
+    message: ISendMessage;
   }> {
     const res: Array<{
       requestId: string;
-      message: WakuLikeMessage;
+      message: ISendMessage;
     }> = [];
 
     for (const [requestId, entry] of this.pendingRequests.entries()) {

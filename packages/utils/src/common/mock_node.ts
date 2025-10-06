@@ -2,11 +2,9 @@ import { Peer, PeerId, Stream, TypedEventEmitter } from "@libp2p/interface";
 import { MultiaddrInput } from "@multiformats/multiaddr";
 import {
   Callback,
-  CreateCodecParams,
   CreateDecoderParams,
   CreateEncoderParams,
   HealthStatus,
-  ICodec,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -14,13 +12,15 @@ import {
   ILightPush,
   type IMessage,
   IRelay,
+  ISendMessage,
   ISendOptions,
   IStore,
   IWaku,
   IWakuEventEmitter,
   Libp2p,
   LightPushSDKResult,
-  Protocols
+  Protocols,
+  RequestId
 } from "@waku/interfaces";
 
 export type MockWakuEvents = {
@@ -156,13 +156,7 @@ export class MockWakuNode implements IWaku {
   public createEncoder(_params: CreateEncoderParams): IEncoder {
     throw new Error("Method not implemented.");
   }
-  public createCodec(_params: CreateCodecParams): ICodec<IDecodedMessage> {
-    throw new Error("Method not implemented.");
-  }
-  public send(
-    _codec: ICodec<IDecodedMessage>,
-    _message: IMessage
-  ): Promise<string> {
+  public send(_message: ISendMessage): Promise<RequestId> {
     throw new Error("Method not implemented.");
   }
   public isStarted(): boolean {
