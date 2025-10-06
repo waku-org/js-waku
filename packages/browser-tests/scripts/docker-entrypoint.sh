@@ -9,19 +9,6 @@ export WAKU_LIGHTPUSH_NODE="$addrs1"
 echo "Num Args: $#"
 echo "Args: $@"
 
-
-# Check if address file exists and source it
-# if [ -f "/etc/addrs/addrs.env" ]; then
-#   echo "Sourcing discovered addresses from /etc/addrs/addrs.env"
-#   source /etc/addrs/addrs.env
-#   if [ -n "$addrs1" ]; then
-#     export WAKU_LIGHTPUSH_NODE="$addrs1"
-#     echo "Using discovered lightpush node: $WAKU_LIGHTPUSH_NODE"
-#   else
-#     echo "addrs1 already set. Using $addrs1"
-#   fi
-# fi
-
 echo "WAKU_LIGHTPUSH_NODE=$addrs1"
 
 # Parse command line arguments
