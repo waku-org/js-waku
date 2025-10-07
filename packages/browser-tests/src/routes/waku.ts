@@ -48,7 +48,7 @@ router.post(
   "/lightpush/v3/message",
   createEndpointHandler({
     methodName: "pushMessageV3",
-    validateInput: (body: any): [string, string, string] => {
+    validateInput: (body): [string, string, string] => {
       const validatedRequest = validators.requireLightpushV3(body);
 
       return [

@@ -13,12 +13,17 @@ import {
   StaticSharding,
   ShardInfo,
   CreateLibp2pOptions,
+  IEncoder,
+  ILightPush,
+  SDKProtocolResult,
+  Failure,
 } from "@waku/interfaces";
 import { bootstrap } from "@libp2p/bootstrap";
 import { EnrDecoder, TransportProtocol } from "@waku/enr";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type { ITestBrowser } from "../types/global.js";
 import { Logger, StaticShardingRoutingInfo } from "@waku/utils";
+import type { PeerId } from "@libp2p/interface";
 
 const log = new Logger("waku-headless");
 
@@ -31,11 +36,11 @@ export interface SerializableSDKProtocolResult {
   myPeerId?: string;
 }
 
-function makeSerializable(result: any): SerializableSDKProtocolResult {
+function makeSerializable(result: SDKProtocolResult): SerializableSDKProtocolResult {
   return {
     ...result,
-    successes: result.successes.map((peerId: any) => peerId.toString()),
-    failures: result.failures.map((failure: any) => ({
+    successes: result.successes.map((peerId: PeerId) => peerId.toString()),
+    failures: result.failures.map((failure: Failure) => ({
       error: failure.error || failure.toString(),
       peerId: failure.peerId ? failure.peerId.toString() : undefined,
     })),
@@ -150,10 +155,10 @@ export class WakuHeadless {
   }
 
   private async send(
-    lightPush: any,
-    encoder: any,
+    lightPush: ILightPush,
+    encoder: IEncoder,
     payload: Uint8Array,
-  ) {
+  ): Promise<SDKProtocolResult> {
     return lightPush.send(encoder, {
       payload,
       timestamp: new Date(),

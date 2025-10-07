@@ -56,7 +56,7 @@ export async function startBrowserTestsContainer(
 
   // Wait for server readiness with retry logic (following waku/tests patterns)
   const serverReady = await waitForServerReady(baseUrl, maxAttempts, timeout);
-  
+
   if (!serverReady) {
     await logFinalContainerState(container);
     throw new Error("Container failed to become ready");
@@ -73,8 +73,8 @@ export async function startBrowserTestsContainer(
  * Follows retry patterns from @waku/tests ServiceNode.
  */
 async function waitForServerReady(
-  baseUrl: string, 
-  maxAttempts: number, 
+  baseUrl: string,
+  maxAttempts: number,
   timeout: number
 ): Promise<boolean> {
   for (let i = 0; i < maxAttempts; i++) {
@@ -84,7 +84,7 @@ async function waitForServerReady(
         log.info(`Server is ready after ${i + 1} attempts`);
         return true;
       }
-    } catch (error: any) {
+    } catch (error) {
       if (i % 10 === 0) {
         log.info(`Attempt ${i + 1}/${maxAttempts} failed:`, error.code || error.message);
       }

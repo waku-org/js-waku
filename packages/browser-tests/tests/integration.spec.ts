@@ -3,9 +3,9 @@ import axios from "axios";
 import { StartedTestContainer } from "testcontainers";
 import {
   createLightNode,
-  waitForRemotePeer,
   LightNode,
   Protocols,
+  IDecodedMessage,
 } from "@waku/sdk";
 import { DEFAULT_CLUSTER_ID, DEFAULT_NUM_SHARDS } from "@waku/interfaces";
 import { startBrowserTestsContainer, stopContainer } from "./utils/container-helpers.js";
@@ -44,7 +44,7 @@ test.afterAll(async () => {
 test("cross-network message delivery: SDK light node receives server lightpush", async () => {
   test.setTimeout(TEST_CONFIG.DEFAULT_TEST_TIMEOUT);
 
-  const contentTopic = TEST_CONFIG.DEFAULT_CONTENT_TOPIC; 
+  const contentTopic = TEST_CONFIG.DEFAULT_CONTENT_TOPIC;
   const testMessage = TEST_CONFIG.DEFAULT_TEST_MESSAGE;
 
   wakuNode = await createLightNode({
@@ -65,13 +65,12 @@ test("cross-network message delivery: SDK light node receives server lightpush",
 
   await wakuNode.start();
 
-  await waitForRemotePeer(
-    wakuNode,
+  await wakuNode.waitForPeers(
     [Protocols.Filter, Protocols.LightPush],
     30000,
   );
 
-  const messages: any[] = [];
+  const messages: IDecodedMessage[] = [];
   const decoder = wakuNode.createDecoder({ contentTopic });
 
   if (

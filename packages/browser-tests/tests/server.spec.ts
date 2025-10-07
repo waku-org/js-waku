@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import axios from "axios";
-import { spawn } from "child_process";
+import { spawn, ChildProcess } from "child_process";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 test.describe.configure({ mode: "serial" });
 
 test.describe("Server Tests", () => {
-  let serverProcess: any;
+  let serverProcess: ChildProcess;
   let baseUrl = "http://localhost:3000";
 
   test.beforeAll(async () => {
@@ -75,7 +75,7 @@ test.describe("Server Tests", () => {
       expect(infoRes.status).toBe(200);
       expect(infoRes.data.peerId).toBeDefined();
       expect(infoRes.data.multiaddrs).toBeDefined();
-    } catch (error: any) {
+    } catch (error) {
       expect(error.response?.status).toBe(400);
     }
   });
