@@ -84,6 +84,11 @@ export interface ISendMessage {
  */
 export type RequestId = string;
 
+/**
+ * Listener for subscribe messages.
+ */
+export type SubscribeListener = (message: IDecodedMessage) => void;
+
 export interface IMetaSetter {
   (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }

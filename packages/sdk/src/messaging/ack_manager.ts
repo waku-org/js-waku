@@ -4,12 +4,12 @@ import {
   IDecoder,
   IFilter,
   IStore,
-  NetworkConfig
+  NetworkConfig,
+  SubscribeListener
 } from "@waku/interfaces";
 import { createRoutingInfo } from "@waku/utils";
 
 import { MessageStore } from "./message_store.js";
-import { IAckManager } from "./utils.js";
 
 type AckManagerConstructorParams = {
   messageStore: MessageStore;
@@ -17,6 +17,14 @@ type AckManagerConstructorParams = {
   store: IStore;
   networkConfig: NetworkConfig;
 };
+
+export interface IAckManager {
+  start(): void;
+  stop(): void;
+  observe(contentTopic: string): Promise<boolean>;
+  subscribe(contentTopic: string, cb: SubscribeListener): Promise<boolean>;
+  unsubscribe(contentTopic: string): Promise<void>;
+}
 
 export class AckManager implements IAckManager {
   private readonly messageStore: MessageStore;
@@ -49,7 +57,7 @@ export class AckManager implements IAckManager {
     this.subscribedContentTopics.clear();
   }
 
-  public async subscribe(contentTopic: string): Promise<boolean> {
+  public async observe(contentTopic: string): Promise<boolean> {
     if (this.subscribedContentTopics.has(contentTopic)) {
       return true;
     }
@@ -69,6 +77,24 @@ export class AckManager implements IAckManager {
       ])
     ).some((success) => success);
   }
+
+  public async subscribe(
+    contentTopic: string,
+    cb: SubscribeListener
+  ): Promise<boolean> {
+    const decoder = createDecoder(
+      contentTopic,
+      createRoutingInfo(this.networkConfig, {
+        contentTopic
+      })
+    );
+
+    return this.filterAckManager.subscribe(decoder, cb);
+  }
+
+  public async unsubscribe(contentTopic: string): Promise<void> {
+    return this.filterAckManager.unsubscribe(contentTopic);
+  }
 }
 
 class FilterAckManager {
@@ -77,7 +103,9 @@ class FilterAckManager {
   public constructor(
     private messageStore: MessageStore,
     private filter: IFilter
-  ) {}
+  ) {
+    this.onMessage = this.onMessage.bind(this);
+  }
 
   public start(): void {
     return;
@@ -91,18 +119,48 @@ class FilterAckManager {
     this.decoders.clear();
   }
 
-  public async subscribe(decoder: IDecoder<IDecodedMessage>): Promise<boolean> {
-    const success = await this.filter.subscribe(
-      decoder,
-      this.onMessage.bind(this)
-    );
+  public async subscribe(
+    decoder: IDecoder<IDecodedMessage>,
+    cb?: SubscribeListener
+  ): Promise<boolean> {
+    const success = await this.filter.subscribe(decoder, (message) => {
+      try {
+        cb?.(message);
+      } catch (error) {
+        // ignore
+      }
+
+      try {
+        this.onMessage(message);
+      } catch (error) {
+        // ignore
+      }
+    });
+
     if (success) {
       this.decoders.add(decoder);
     }
+
     return success;
   }
 
-  private async onMessage(message: IDecodedMessage): Promise<void> {
+  public async unsubscribe(contentTopic: string): Promise<void> {
+    const decoders = Array.from(this.decoders).filter(
+      (decoder) => decoder.contentTopic === contentTopic
+    );
+
+    const promises = decoders.map((decoder) =>
+      this.filter.unsubscribe(decoder)
+    );
+
+    await Promise.all(promises);
+
+    for (const decoder of decoders) {
+      this.decoders.delete(decoder);
+    }
+  }
+
+  private onMessage(message: IDecodedMessage): void {
     if (!this.messageStore.has(message.hashStr)) {
       this.messageStore.add(message, { filterAck: true });
     }

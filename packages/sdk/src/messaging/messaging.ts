@@ -4,7 +4,8 @@ import {
   ISendMessage,
   IStore,
   NetworkConfig,
-  RequestId
+  RequestId,
+  SubscribeListener
 } from "@waku/interfaces";
 
 import { AckManager } from "./ack_manager.js";
@@ -57,5 +58,16 @@ export class Messaging implements IMessaging {
 
   public send(wakuLikeMessage: ISendMessage): Promise<RequestId> {
     return this.sender.send(wakuLikeMessage);
+  }
+
+  public subscribe(
+    contentTopic: string,
+    cb: SubscribeListener
+  ): Promise<boolean> {
+    return this.ackManager.subscribe(contentTopic, cb);
+  }
+
+  public unsubscribe(contentTopic: string): Promise<void> {
+    return this.ackManager.unsubscribe(contentTopic);
   }
 }
