@@ -74,3 +74,32 @@ export async function sign(
 export function keccak256(input: Uint8Array): Uint8Array {
   return new Uint8Array(sha3.keccak256.arrayBuffer(input));
 }
+
+/**
+ * Compare two public keys, can be used to verify that a given signature matches
+ * expectations.
+ *
+ * @param publicKeyA - The first public key to compare
+ * @param publicKeyB - The second public key to compare
+ * @returns true if the public keys are the same
+ */
+export function comparePublicKeys(
+  publicKeyA: Uint8Array | undefined,
+  publicKeyB: Uint8Array | undefined
+): boolean {
+  if (!publicKeyA || !publicKeyB) {
+    return false;
+  }
+
+  if (publicKeyA.length !== publicKeyB.length) {
+    return false;
+  }
+
+  for (let i = 0; i < publicKeyA.length; i++) {
+    if (publicKeyA[i] !== publicKeyB[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}

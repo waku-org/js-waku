@@ -19,7 +19,6 @@ describe("Filter Subscription", () => {
   let filterCore: FilterCore;
   let peerManager: PeerManager;
   let subscription: Subscription;
-  let decoder: IDecoder<IDecodedMessage>;
   let config: FilterProtocolOptions;
 
   beforeEach(() => {
@@ -37,8 +36,6 @@ describe("Filter Subscription", () => {
       config,
       peerManager
     });
-
-    decoder = mockDecoder();
   });
 
   afterEach(() => {
