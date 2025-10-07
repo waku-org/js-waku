@@ -14,7 +14,7 @@
     "build:server": "tsc -p tsconfig.json",
     "build:web": "esbuild web/index.ts --bundle --format=esm --platform=browser --outdir=dist/web && cp web/index.html dist/web/index.html",
     "build": "npm-run-all -s build:server build:web",
-    "docker:build": "docker build -t waku-browser-tests:local ."
+    "docker:build": "docker build -t waku-browser-tests:local . && docker tag waku-browser-tests:local waku-browser-tests:latest"
   },
   "dependencies": {
     "@playwright/test": "^1.51.1",

@@ -1,27 +1,27 @@
 import { test, expect } from "@playwright/test";
 import axios from "axios";
 import { StartedTestContainer } from "testcontainers";
-import { ServiceNodesFleet } from "@waku/tests";
 import { DefaultTestRoutingInfo } from "@waku/tests";
-import { 
-  startBrowserTestsContainer, 
-  stopContainer 
+import {
+  startBrowserTestsContainer,
+  stopContainer
 } from "./utils/container-helpers.js";
-import { 
-  createTwoNodeNetwork, 
-  getDockerAccessibleMultiaddr, 
-  stopNwakuNodes 
+import {
+  createTwoNodeNetwork,
+  getDockerAccessibleMultiaddr,
+  stopNwakuNodes,
+  TwoNodeNetwork
 } from "./utils/nwaku-helpers.js";
-import { 
-  ENV_BUILDERS, 
-  TEST_CONFIG, 
-  ASSERTIONS 
+import {
+  ENV_BUILDERS,
+  TEST_CONFIG,
+  ASSERTIONS
 } from "./utils/test-config.js";
 
 test.describe.configure({ mode: "serial" });
 
 let container: StartedTestContainer;
-let nwakuNodes: ServiceNodesFleet;
+let nwakuNodes: TwoNodeNetwork;
 let baseUrl: string;
 
 test.beforeAll(async () => {
@@ -30,10 +30,14 @@ test.beforeAll(async () => {
   const lightPushPeerAddr = await getDockerAccessibleMultiaddr(nwakuNodes.nodes[0]);
 
   const result = await startBrowserTestsContainer({
-    environment: ENV_BUILDERS.withLocalLightPush(lightPushPeerAddr),
+    environment: {
+      ...ENV_BUILDERS.withLocalLightPush(lightPushPeerAddr),
+      DEBUG: "waku:*",
+      WAKU_LIGHTPUSH_NODE: lightPushPeerAddr,
+    },
     networkMode: "waku",
   });
-  
+
   container = result.container;
   baseUrl = result.baseUrl;
 });
@@ -67,14 +71,14 @@ test("WakuHeadless can discover nwaku peer and use it for light push", async () 
 
   const peerInfoResponse = await axios.get(`${baseUrl}/waku/v1/peer-info`);
   ASSERTIONS.peerInfo(peerInfoResponse);
-  
+
   const routingInfo = DefaultTestRoutingInfo;
-  
+
   const subscriptionResults = await Promise.all([
     nwakuNodes.nodes[0].ensureSubscriptions([routingInfo.pubsubTopic]),
     nwakuNodes.nodes[1].ensureSubscriptions([routingInfo.pubsubTopic])
   ]);
-  
+
   expect(subscriptionResults[0]).toBe(true);
   expect(subscriptionResults[1]).toBe(true);
 
@@ -99,14 +103,14 @@ test("WakuHeadless can discover nwaku peer and use it for light push", async () 
     nwakuNodes.nodes[0].messages(contentTopic),
     nwakuNodes.nodes[1].messages(contentTopic)
   ]);
-  
+
 
   const totalMessages = node1Messages.length + node2Messages.length;
   expect(totalMessages).toBeGreaterThanOrEqual(1);
 
   const receivedMessages = [...node1Messages, ...node2Messages];
   expect(receivedMessages.length).toBeGreaterThan(0);
-  
+
   const receivedMessage = receivedMessages[0];
   ASSERTIONS.messageContent(receivedMessage, testMessage, contentTopic);
 

@@ -334,14 +334,17 @@ export class WakuHeadless {
 
   private async dialPreferredLightpushNode() {
     if (!this.waku || !this.lightpushNode) {
+      log.info("Skipping dial: waku or lightpushNode not set");
       return;
     }
 
     try {
+      log.info("Attempting to dial preferred lightpush node:", this.lightpushNode);
       await this.waku.dial(this.lightpushNode);
+      log.info("Successfully dialed preferred lightpush node:", this.lightpushNode);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      log.warn(
+      log.error(
         "Failed to dial preferred lightpush node:",
         this.lightpushNode,
         message
@@ -387,6 +390,12 @@ export class WakuHeadless {
     const globalNetworkConfig = testWindow.__WAKU_NETWORK_CONFIG;
     const globalLightpushNode = testWindow.__WAKU_LIGHTPUSH_NODE;
     const globalEnrBootstrap = testWindow.__WAKU_ENR_BOOTSTRAP;
+
+    log.info("Global config from window:", {
+      networkConfig: globalNetworkConfig,
+      lightpushNode: globalLightpushNode,
+      enrBootstrap: globalEnrBootstrap
+    });
 
     const instance = new WakuHeadless(
       globalNetworkConfig,

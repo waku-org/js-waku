@@ -1,17 +1,23 @@
-import { ServiceNode, ServiceNodesFleet } from "@waku/tests";
+import { ServiceNode } from "@waku/tests";
 import { DefaultTestRoutingInfo } from "@waku/tests";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("nwaku-helpers");
+
+export interface TwoNodeNetwork {
+  nodes: ServiceNode[];
+}
 
 /**
  * Creates a two-node nwaku network following waku/tests patterns.
  * Node 1: Relay + Light Push (service provider)
  * Node 2: Relay only (network peer)
  */
-export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
+export async function createTwoNodeNetwork(): Promise<TwoNodeNetwork> {
   log.info("Creating nwaku node 1 (Relay + Light Push)...");
-  const lightPushNode = new ServiceNode("lightpush-node-" + Math.random().toString(36).substring(7));
+  const lightPushNode = new ServiceNode(
+    "lightpush-node-" + Math.random().toString(36).substring(7),
+  );
 
   const lightPushArgs = {
     relay: true,
@@ -20,13 +26,15 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
     store: false,
     clusterId: DefaultTestRoutingInfo.clusterId,
     numShardsInNetwork: DefaultTestRoutingInfo.networkConfig.numShardsInCluster,
-    contentTopic: [DefaultTestRoutingInfo.contentTopic]
+    contentTopic: [DefaultTestRoutingInfo.contentTopic],
   };
 
   await lightPushNode.start(lightPushArgs, { retries: 3 });
 
   log.info("Creating nwaku node 2 (Relay only)...");
-  const relayNode = new ServiceNode("relay-node-" + Math.random().toString(36).substring(7));
+  const relayNode = new ServiceNode(
+    "relay-node-" + Math.random().toString(36).substring(7),
+  );
 
   // Connect second node to first node (following ServiceNodesFleet pattern)
   const firstNodeAddr = await lightPushNode.getExternalMultiaddr();
@@ -38,7 +46,7 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
     staticnode: firstNodeAddr,
     clusterId: DefaultTestRoutingInfo.clusterId,
     numShardsInNetwork: DefaultTestRoutingInfo.networkConfig.numShardsInCluster,
-    contentTopic: [DefaultTestRoutingInfo.contentTopic]
+    contentTopic: [DefaultTestRoutingInfo.contentTopic],
   };
 
   await relayNode.start(relayArgs, { retries: 3 });
@@ -50,12 +58,9 @@ export async function createTwoNodeNetwork(): Promise<ServiceNodesFleet> {
   // Verify connectivity (optional, for debugging)
   await verifyNetworkFormation([lightPushNode, relayNode]);
 
-  // Return ServiceNodesFleet-compatible object
-  // Note: We're returning a partial ServiceNodesFleet for testing purposes
   return {
     nodes: [lightPushNode, relayNode],
-    messageCollector: null
-  } as ServiceNodesFleet;
+  };
 }
 
 /**
@@ -69,10 +74,10 @@ async function verifyNetworkFormation(nodes: ServiceNode[]): Promise<void> {
         const peers = await node.peers();
         log.info(`Node ${index + 1} has ${peers.length} peer(s)`);
         return peers.length;
-      })
+      }),
     );
 
-    if (peerCounts.every(count => count === 0)) {
+    if (peerCounts.every((count) => count === 0)) {
       log.warn("⚠️  Nodes may not be properly connected yet");
     }
   } catch (error) {
@@ -84,7 +89,9 @@ async function verifyNetworkFormation(nodes: ServiceNode[]): Promise<void> {
  * Extracts Docker-accessible multiaddr from nwaku node.
  * Returns multiaddr using container's internal IP for Docker network communication.
  */
-export async function getDockerAccessibleMultiaddr(node: ServiceNode): Promise<string> {
+export async function getDockerAccessibleMultiaddr(
+  node: ServiceNode,
+): Promise<string> {
   // Get multiaddr with localhost and extract components
   const localhostMultiaddr = await node.getMultiaddrWithId();
   const peerId = await node.getPeerId();
@@ -100,7 +107,9 @@ export async function getDockerAccessibleMultiaddr(node: ServiceNode): Promise<s
 
   // Get Docker container IP (accessing internal field)
   // Note: This accesses an internal implementation detail of ServiceNode
-  const nodeWithDocker = node as ServiceNode & { docker?: { containerIp?: string } };
+  const nodeWithDocker = node as ServiceNode & {
+    docker?: { containerIp?: string };
+  };
   const containerIp = nodeWithDocker.docker?.containerIp;
   if (!containerIp) {
     throw new Error("Could not get container IP from node");
@@ -123,7 +132,7 @@ export async function stopNwakuNodes(nodes: ServiceNode[]): Promise<void> {
 
   log.info("Stopping nwaku nodes...");
   try {
-    await Promise.all(nodes.map(node => node.stop()));
+    await Promise.all(nodes.map((node) => node.stop()));
     log.info("Nwaku nodes stopped successfully");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

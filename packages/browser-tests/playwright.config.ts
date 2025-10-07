@@ -13,7 +13,7 @@ if (!process.env.CI) {
 
 const EXAMPLE_PORT = process.env.EXAMPLE_PORT || "8080";
 const BASE_URL = `http://127.0.0.1:${EXAMPLE_PORT}`;
-const TEST_IGNORE = process.env.CI ? ["tests/docker-*.spec.ts"] : [];
+const TEST_IGNORE = process.env.CI ? ["tests/e2e.spec.ts"] : [];
 
 export default defineConfig({
   testDir: "./tests",

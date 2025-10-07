@@ -5,11 +5,14 @@
 # Supports reading discovered addresses from /etc/addrs/addrs.env (10k sim pattern)
 echo "docker-entrypoint.sh"
 echo "Using address: $addrs1"
-export WAKU_LIGHTPUSH_NODE="$addrs1"
+# Only set WAKU_LIGHTPUSH_NODE if it's not already set and addrs1 is available
+if [ -z "$WAKU_LIGHTPUSH_NODE" ] && [ -n "$addrs1" ]; then
+  export WAKU_LIGHTPUSH_NODE="$addrs1"
+fi
 echo "Num Args: $#"
 echo "Args: $@"
 
-echo "WAKU_LIGHTPUSH_NODE=$addrs1"
+echo "WAKU_LIGHTPUSH_NODE=$WAKU_LIGHTPUSH_NODE"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do

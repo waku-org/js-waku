@@ -43,11 +43,13 @@ export async function startBrowserTestsContainer(
 
   const container = await generic.start();
 
-  // Set up container logging
-  await new Promise((r) => setTimeout(r, 5000));
-  const logs = await container.logs({ tail: 100 });
+  // Set up container logging - stream all output from the start
+  const logs = await container.logs();
   logs.on("data", (b) => process.stdout.write("[container] " + b.toString()));
   logs.on("error", (err) => log.error("[container log error]", err));
+
+  // Give container time to initialize
+  await new Promise((r) => setTimeout(r, 5000));
 
   const mappedPort = container.getMappedPort(8080);
   const baseUrl = `http://127.0.0.1:${mappedPort}`;

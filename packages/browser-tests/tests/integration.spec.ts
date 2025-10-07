@@ -19,9 +19,12 @@ let wakuNode: LightNode;
 
 test.beforeAll(async () => {
   const result = await startBrowserTestsContainer({
-    environment: ENV_BUILDERS.withProductionEnr(),
+    environment: {
+      ...ENV_BUILDERS.withProductionEnr(),
+      DEBUG: "waku:*",
+    },
   });
-  
+
   container = result.container;
   baseUrl = result.baseUrl;
 });
