@@ -6,6 +6,11 @@ import {
   errorHandlers,
 } from "../utils/endpoint-handler.js";
 
+interface LightPushResult {
+  successes: string[];
+  failures: Array<{ error: string; peerId?: string }>;
+}
+
 const log = new Logger("routes:waku");
 const router = Router();
 
@@ -25,10 +30,13 @@ router.post(
   "/waku/v1/wait-for-peers",
   createEndpointHandler({
     methodName: "waitForPeers",
-    validateInput: (body) => [
-      body.timeoutMs || 10000,
-      body.protocols || ["lightpush", "filter"],
-    ],
+    validateInput: (body: unknown) => {
+      const bodyObj = body as { timeoutMs?: number; protocols?: string[] };
+      return [
+        bodyObj.timeoutMs || 10000,
+        bodyObj.protocols || ["lightpush", "filter"],
+      ];
+    },
     transformResult: () => ({
       success: true,
       message: "Successfully connected to peers",
@@ -48,7 +56,7 @@ router.post(
   "/lightpush/v3/message",
   createEndpointHandler({
     methodName: "pushMessageV3",
-    validateInput: (body): [string, string, string] => {
+    validateInput: (body: unknown): [string, string, string] => {
       const validatedRequest = validators.requireLightpushV3(body);
 
       return [
@@ -58,12 +66,13 @@ router.post(
       ];
     },
     handleError: errorHandlers.lightpushError,
-    transformResult: (result) => {
-      if (result && result.successes && result.successes.length > 0) {
+    transformResult: (result: unknown) => {
+      const lightPushResult = result as LightPushResult;
+      if (lightPushResult && lightPushResult.successes && lightPushResult.successes.length > 0) {
         log.info("[Server] Message successfully sent via v3 lightpush!");
         return {
           success: true,
-          result,
+          result: lightPushResult,
         };
       } else {
         return {

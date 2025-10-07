@@ -15,14 +15,10 @@ import {
   StaticSharding,
 } from "@waku/interfaces";
 import { CreateNodeOptions } from "@waku/sdk";
+import type { WindowNetworkConfig } from "../types/global.js";
 
 interface NodeError extends Error {
   code?: string;
-}
-
-interface WindowNetworkConfig {
-  clusterId?: number;
-  shards?: number[];
 }
 
 const log = new Logger("server");

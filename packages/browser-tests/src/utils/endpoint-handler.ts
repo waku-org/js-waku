@@ -26,16 +26,16 @@ export interface LightpushV3Response {
   };
 }
 
-export interface EndpointConfig<TInput = any, TOutput = any> {
+export interface EndpointConfig<TInput = unknown, TOutput = unknown> {
   methodName: string;
-  validateInput?: (_requestBody: any) => TInput;
-  transformResult?: (_sdkResult: any) => TOutput;
+  validateInput?: (_requestBody: unknown) => TInput;
+  transformResult?: (_sdkResult: unknown) => TOutput;
   handleError?: (_caughtError: Error) => { code: number; message: string };
   preCheck?: () => Promise<void> | void;
   logResult?: boolean;
 }
 
-export function createEndpointHandler<TInput = any, TOutput = any>(
+export function createEndpointHandler<TInput = unknown, TOutput = unknown>(
   config: EndpointConfig<TInput, TOutput>,
 ) {
   return async (req: Request, res: Response) => {
@@ -45,20 +45,20 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         input = config.validateInput
           ? config.validateInput(req.body)
           : req.body;
-      } catch (validationError: any) {
+      } catch (validationError) {
         return res.status(400).json({
           code: 400,
-          message: `Invalid input: ${validationError.message}`,
+          message: `Invalid input: ${validationError instanceof Error ? validationError.message : String(validationError)}`,
         });
       }
 
       if (config.preCheck) {
         try {
           await config.preCheck();
-        } catch (checkError: any) {
+        } catch (checkError) {
           return res.status(503).json({
             code: 503,
-            message: checkError.message,
+            message: checkError instanceof Error ? checkError.message : String(checkError),
           });
         }
       }
@@ -107,9 +107,9 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
         : result;
 
       res.status(200).json(finalResult);
-    } catch (error: any) {
+    } catch (error) {
       if (config.handleError) {
-        const errorResponse = config.handleError(error);
+        const errorResponse = config.handleError(error as Error);
         return res.status(errorResponse.code).json({
           code: errorResponse.code,
           message: errorResponse.message,
@@ -119,47 +119,57 @@ export function createEndpointHandler<TInput = any, TOutput = any>(
       log.error(`[${config.methodName}] Error:`, error);
       res.status(500).json({
         code: 500,
-        message: `Could not execute ${config.methodName}: ${error.message}`,
+        message: `Could not execute ${config.methodName}: ${error instanceof Error ? error.message : String(error)}`,
       });
     }
   };
 }
 
 export const validators = {
-  requireLightpushV3: (body: any): LightpushV3Request => {
+  requireLightpushV3: (body: unknown): LightpushV3Request => {
+    // Type guard to check if body is an object
+    if (!body || typeof body !== "object") {
+      throw new Error("Request body must be an object");
+    }
+
+    const bodyObj = body as Record<string, unknown>;
+
     if (
-      body.pubsubTopic !== undefined &&
-      typeof body.pubsubTopic !== "string"
+      bodyObj.pubsubTopic !== undefined &&
+      typeof bodyObj.pubsubTopic !== "string"
     ) {
       throw new Error("pubsubTopic must be a string if provided");
     }
-    if (!body.message || typeof body.message !== "object") {
+    if (!bodyObj.message || typeof bodyObj.message !== "object") {
       throw new Error("message is required and must be an object");
     }
+
+    const message = bodyObj.message as Record<string, unknown>;
+
     if (
-      !body.message.contentTopic ||
-      typeof body.message.contentTopic !== "string"
+      !message.contentTopic ||
+      typeof message.contentTopic !== "string"
     ) {
       throw new Error("message.contentTopic is required and must be a string");
     }
-    if (!body.message.payload || typeof body.message.payload !== "string") {
+    if (!message.payload || typeof message.payload !== "string") {
       throw new Error(
         "message.payload is required and must be a string (base64 encoded)",
       );
     }
     if (
-      body.message.version !== undefined &&
-      typeof body.message.version !== "number"
+      message.version !== undefined &&
+      typeof message.version !== "number"
     ) {
       throw new Error("message.version must be a number if provided");
     }
 
     return {
-      pubsubTopic: body.pubsubTopic || "",
+      pubsubTopic: (bodyObj.pubsubTopic as string) || "",
       message: {
-        payload: body.message.payload,
-        contentTopic: body.message.contentTopic,
-        version: body.message.version || 1,
+        payload: message.payload as string,
+        contentTopic: message.contentTopic as string,
+        version: (message.version as number) || 1,
       },
     };
   },
