@@ -12,7 +12,7 @@ module.exports = {
     plugins: ["import"],
     extends: ["eslint:recommended"],
     rules: {
-        "no-console": "off"
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }]
     },
     globals: {
         process: true
