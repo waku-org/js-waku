@@ -1,22 +1,19 @@
 import type { CreateNodeOptions, IWaku, LightNode } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import React from "react";
 
-import type { BootstrapNodeOptions, CreateNodeResult } from "./types.js";
+import type { CreateNodeResult } from "./types.js";
 
 type NodeFactory<N, T = Record<string, never>> = (options?: T) => Promise<N>;
 
-type CreateNodeParams<
-  N extends IWaku,
-  T = Record<string, never>
-> = BootstrapNodeOptions<T> & {
+type CreateNodeParams<N extends IWaku, T = Record<string, never>> = T & {
   factory: NodeFactory<N, T>;
 };
 
 const useCreateNode = <N extends IWaku, T = Record<string, never>>(
   params: CreateNodeParams<N, T>
 ): CreateNodeResult<N> => {
-  const { factory, options, protocols = [] } = params;
+  const { factory, ...options } = params;
 
   const [node, setNode] = React.useState<N | undefined>(undefined);
   const [isLoading, setLoading] = React.useState<boolean>(true);
@@ -26,14 +23,14 @@ const useCreateNode = <N extends IWaku, T = Record<string, never>>(
     let cancelled = false;
     setLoading(true);
 
-    factory(options)
+    factory(options as T)
       .then(async (node) => {
         if (cancelled) {
           return;
         }
 
         await node.start();
-        await waitForRemotePeer(node, protocols);
+        await node.waitForPeers();
 
         setNode(node);
         setLoading(false);
@@ -56,7 +53,7 @@ const useCreateNode = <N extends IWaku, T = Record<string, never>>(
 };
 
 export const useCreateLightNode = (
-  params?: BootstrapNodeOptions<CreateNodeOptions>
+  params?: CreateNodeOptions
 ): CreateNodeResult<LightNode> => {
   return useCreateNode<LightNode, CreateNodeOptions>({
     ...params,

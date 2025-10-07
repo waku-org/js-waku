@@ -86,7 +86,7 @@
     "rollup-plugin-typescript2": "^0.36.0"
   },
   "peerDependencies": {
-    "react": "^16.8.0 || ^17 || ^18"
+    "react": "^16.8.0 || ^17 || ^18 || ^19"
   },
   "files": [
     "dist",
