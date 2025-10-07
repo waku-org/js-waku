@@ -1,5 +1,37 @@
 import { expect } from "@playwright/test";
 import { DefaultTestRoutingInfo } from "@waku/tests";
+import { AxiosResponse } from "axios";
+
+/**
+ * Response type definitions for API endpoints
+ */
+interface ServerHealthResponse {
+  status: string;
+}
+
+interface PeerInfoResponse {
+  peerId: string;
+  multiaddrs: string[];
+  peers: string[];
+}
+
+interface LightPushV3Result {
+  successes: string[];
+  failures: Array<{ error: string; peerId?: string }>;
+}
+
+interface LightPushV3Response {
+  success: boolean;
+  result: LightPushV3Result;
+  error?: string;
+}
+
+interface MessageResponse {
+  contentTopic: string;
+  payload: string;
+  version: number;
+  timestamp?: bigint | number;
+}
 
 /**
  * Common test configuration constants following waku/tests patterns.
@@ -49,7 +81,7 @@ export const ASSERTIONS = {
   /**
    * Verifies server health response structure.
    */
-  serverHealth: (response: any) => {
+  serverHealth: (response: AxiosResponse<ServerHealthResponse>) => {
     expect(response.status).toBe(200);
     expect(response.data.status).toBe("Waku simulation server is running");
   },
@@ -57,7 +89,7 @@ export const ASSERTIONS = {
   /**
    * Verifies peer info response structure.
    */
-  peerInfo: (response: any) => {
+  peerInfo: (response: AxiosResponse<PeerInfoResponse>) => {
     expect(response.status).toBe(200);
     expect(response.data.peerId).toBeDefined();
     expect(typeof response.data.peerId).toBe("string");
@@ -66,7 +98,7 @@ export const ASSERTIONS = {
   /**
    * Verifies lightpush response structure (v3 format).
    */
-  lightPushV3Success: (response: any) => {
+  lightPushV3Success: (response: AxiosResponse<LightPushV3Response>) => {
     expect(response.status).toBe(200);
     expect(response.data).toHaveProperty('success', true);
     expect(response.data).toHaveProperty('result');
@@ -78,14 +110,14 @@ export const ASSERTIONS = {
   /**
    * Verifies message content and structure.
    */
-  messageContent: (message: any, expectedContent: string, expectedTopic: string) => {
+  messageContent: (message: MessageResponse, expectedContent: string, expectedTopic: string) => {
     expect(message).toHaveProperty('contentTopic', expectedTopic);
     expect(message).toHaveProperty('payload');
     expect(typeof message.payload).toBe('string');
-    
+
     const receivedPayload = Buffer.from(message.payload, 'base64').toString();
     expect(receivedPayload).toBe(expectedContent);
-    
+
     // Optional fields
     expect(message).toHaveProperty('version');
     if (message.timestamp) {
