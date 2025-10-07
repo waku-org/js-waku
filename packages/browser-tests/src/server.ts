@@ -11,7 +11,19 @@ import {
   DEFAULT_CLUSTER_ID,
   DEFAULT_NUM_SHARDS,
   Protocols,
+  AutoSharding,
+  StaticSharding,
 } from "@waku/interfaces";
+import { CreateNodeOptions } from "@waku/sdk";
+
+interface NodeError extends Error {
+  code?: string;
+}
+
+interface WindowNetworkConfig {
+  clusterId?: number;
+  shards?: number[];
+}
 
 const log = new Logger("server");
 const app = express();
@@ -31,7 +43,7 @@ app.get("/app/index.html", (_req: Request, res: Response) => {
     const htmlPath = path.join(webDir, "index.html");
     let htmlContent = fs.readFileSync(htmlPath, "utf8");
 
-    const networkConfig: any = {};
+    const networkConfig: WindowNetworkConfig = {};
     if (process.env.WAKU_CLUSTER_ID) {
       networkConfig.clusterId = parseInt(process.env.WAKU_CLUSTER_ID, 10);
     }
@@ -78,7 +90,7 @@ async function startAPI(requestedPort: number): Promise<number> {
       .listen(requestedPort, () => {
         log.info(`API server running on http://localhost:${requestedPort}`);
       })
-      .on("error", (error: any) => {
+      .on("error", (error: NodeError) => {
         if (error.code === "EADDRINUSE") {
           log.error(
             `Port ${requestedPort} is already in use. Please close the application using this port and try again.`,
@@ -90,7 +102,7 @@ async function startAPI(requestedPort: number): Promise<number> {
       });
 
     return requestedPort;
-  } catch (error: any) {
+  } catch (error) {
     log.error("Error starting server:", error);
     throw error;
   }
@@ -105,7 +117,22 @@ async function startServer(port: number = 3000): Promise<void> {
       log.info("Auto-starting node with CLI configuration...");
 
       const hasEnrBootstrap = Boolean(process.env.WAKU_ENR_BOOTSTRAP);
-      const networkConfig: any = {
+
+      const networkConfig: AutoSharding | StaticSharding = process.env.WAKU_SHARD
+        ? ({
+            clusterId: process.env.WAKU_CLUSTER_ID
+              ? parseInt(process.env.WAKU_CLUSTER_ID, 10)
+              : DEFAULT_CLUSTER_ID,
+            shards: [parseInt(process.env.WAKU_SHARD, 10)],
+          } as StaticSharding)
+        : ({
+            clusterId: process.env.WAKU_CLUSTER_ID
+              ? parseInt(process.env.WAKU_CLUSTER_ID, 10)
+              : DEFAULT_CLUSTER_ID,
+            numShardsInCluster: DEFAULT_NUM_SHARDS,
+          } as AutoSharding);
+
+      const createOptions: CreateNodeOptions = {
         defaultBootstrap: false,
         ...(hasEnrBootstrap && {
           discovery: {
@@ -114,6 +141,7 @@ async function startServer(port: number = 3000): Promise<void> {
             peerCache: true,
           },
         }),
+        networkConfig,
       };
 
       log.info(
@@ -123,27 +151,13 @@ async function startServer(port: number = 3000): Promise<void> {
         log.info(`ENR bootstrap peers: ${process.env.WAKU_ENR_BOOTSTRAP}`);
       }
 
-      networkConfig.networkConfig = {
-        clusterId: process.env.WAKU_CLUSTER_ID
-          ? parseInt(process.env.WAKU_CLUSTER_ID, 10)
-          : DEFAULT_CLUSTER_ID,
-        numShardsInCluster: DEFAULT_NUM_SHARDS,
-      };
-
-      if (process.env.WAKU_SHARD) {
-        networkConfig.networkConfig.shards = [
-          parseInt(process.env.WAKU_SHARD, 10),
-        ];
-        delete networkConfig.networkConfig.numShardsInCluster;
-      }
-
       log.info(
-        `Network config: ${JSON.stringify(networkConfig.networkConfig)}`,
+        `Network config: ${JSON.stringify(networkConfig)}`,
       );
 
       await getPage()?.evaluate((config) => {
         return window.wakuApi.createWakuNode(config);
-      }, networkConfig);
+      }, createOptions);
       await getPage()?.evaluate(() => window.wakuApi.startNode());
 
       try {
@@ -159,7 +173,7 @@ async function startServer(port: number = 3000): Promise<void> {
     } catch (e) {
       log.warn("Auto-start failed:", e);
     }
-  } catch (error: any) {
+  } catch (error) {
     log.error("Error starting server:", error);
   }
 }
