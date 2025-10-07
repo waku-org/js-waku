@@ -1,27 +1,19 @@
-import { LightNode } from "@waku/sdk";
-import { IWakuNode } from "../src/api/common.js";
-import {
-  createWakuNode,
-  dialPeers,
-  getDebugInfo,
-  getPeerInfo,
-  pushMessage,
-  subscribe
-} from "../src/api/shared.js";
+import type { WakuHeadless } from "../web/index.js";
 
-// Define types for the Waku node and window
+export interface WindowNetworkConfig {
+  clusterId?: number;
+  shards?: number[];
+}
+
+export interface ITestBrowser extends Window {
+  wakuApi: WakuHeadless;
+  __WAKU_NETWORK_CONFIG?: WindowNetworkConfig;
+  __WAKU_LIGHTPUSH_NODE?: string | null;
+  __WAKU_ENR_BOOTSTRAP?: string | null;
+}
+
 declare global {
-  // eslint-disable-next-line no-unused-vars
   interface Window {
-    waku: IWakuNode & LightNode;
-    wakuAPI: {
-      getPeerInfo: typeof getPeerInfo;
-      getDebugInfo: typeof getDebugInfo;
-      pushMessage: typeof pushMessage;
-      dialPeers: typeof dialPeers;
-      createWakuNode: typeof createWakuNode;
-      subscribe: typeof subscribe;
-      [key: string]: any;
-    };
+    wakuApi: WakuHeadless;
   }
 }
