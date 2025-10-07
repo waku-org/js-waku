@@ -1,5 +1,5 @@
 import type { IWaku } from "@waku/interfaces";
-import type React from "react";
+import type * as React from "react";
 export type { CreateNodeOptions, AutoSharding } from "@waku/interfaces";
 
 type HookState = {

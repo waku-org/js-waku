@@ -1,5 +1,6 @@
+"use client";
 import type { CreateNodeOptions, IWaku, LightNode } from "@waku/interfaces";
-import React from "react";
+import * as React from "react";
 
 import type { CreateNodeResult, ReactChildrenProps } from "./types.js";
 import { useCreateLightNode } from "./useCreateWaku.js";

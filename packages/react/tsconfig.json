@@ -4,6 +4,7 @@
     "outDir": "dist/",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "declarationDir": "dist",
     "jsx": "react"
   },
   "include": ["src", "*.js"],
