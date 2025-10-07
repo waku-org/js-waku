@@ -70,7 +70,7 @@ export class MessageStore {
   }
 
   public async queue(message: ISendMessage): Promise<RequestId> {
-    const requestId = uuidv4();
+    const requestId = uuidv4(); // cspell:ignore uuidv4
 
     this.pendingRequests.set(requestId.toString(), {
       messageRequest: message,
