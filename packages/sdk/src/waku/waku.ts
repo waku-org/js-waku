@@ -21,7 +21,8 @@ import type {
   IWaku,
   IWakuEventEmitter,
   Libp2p,
-  NetworkConfig
+  NetworkConfig,
+  SubscribeListener
 } from "@waku/interfaces";
 import {
   DefaultNetworkConfig,
@@ -303,6 +304,25 @@ export class WakuNode implements IWaku {
     }
 
     return this.messaging.send(message);
+  }
+
+  public subscribe(
+    contentTopic: string,
+    cb: SubscribeListener
+  ): Promise<boolean> {
+    if (!this.messaging) {
+      throw new Error("Messaging not initialized");
+    }
+
+    return this.messaging.subscribe(contentTopic, cb);
+  }
+
+  public unsubscribe(contentTopic: string): Promise<void> {
+    if (!this.messaging) {
+      throw new Error("Messaging not initialized");
+    }
+
+    return this.messaging.unsubscribe(contentTopic);
   }
 
   private createRoutingInfo(

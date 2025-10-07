@@ -48,7 +48,7 @@ export class Sender {
   public async send(message: ISendMessage): Promise<RequestId> {
     const requestId = await this.messageStore.queue(message);
 
-    await this.ackManager.subscribe(message.contentTopic);
+    await this.ackManager.observe(message.contentTopic);
     await this.sendMessage(requestId, message);
 
     return requestId;
