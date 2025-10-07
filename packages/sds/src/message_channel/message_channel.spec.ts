@@ -75,7 +75,7 @@ describe("MessageChannel", function () {
       const timestampBefore = channelA["lamportTimestamp"];
       await sendMessage(channelA, utf8ToBytes("message"), callback);
       const timestampAfter = channelA["lamportTimestamp"];
-      expect(timestampAfter).to.equal(timestampBefore + 1);
+      expect(timestampAfter).to.equal(timestampBefore + 1n);
     });
 
     it("should push the message to the outgoing buffer", async () => {
@@ -95,7 +95,7 @@ describe("MessageChannel", function () {
 
     it("should insert message id into causal history", async () => {
       const payload = utf8ToBytes("message");
-      const expectedTimestamp = channelA["lamportTimestamp"] + 1;
+      const expectedTimestamp = channelA["lamportTimestamp"] + 1n;
       const messageId = MessageChannel.getMessageId(payload);
       await sendMessage(channelA, payload, callback);
       const messageIdLog = channelA["localHistory"] as ILocalHistory;
@@ -181,7 +181,7 @@ describe("MessageChannel", function () {
         return { success: true };
       });
       const timestampAfter = channelA["lamportTimestamp"];
-      expect(timestampAfter).to.equal(timestampBefore + 1);
+      expect(timestampAfter).to.equal(timestampBefore + 1n);
     });
 
     // TODO: test is failing in CI, investigate in https://github.com/waku-org/js-waku/issues/2648
@@ -201,7 +201,9 @@ describe("MessageChannel", function () {
         });
       }
       const timestampAfter = testChannelA["lamportTimestamp"];
-      expect(timestampAfter - timestampBefore).to.equal(messagesB.length);
+      expect(timestampAfter - timestampBefore).to.equal(
+        BigInt(messagesB.length)
+      );
     });
 
     // TODO: test is failing in CI, investigate in https://github.com/waku-org/js-waku/issues/2648
@@ -228,7 +230,7 @@ describe("MessageChannel", function () {
 
       const expectedLength = messagesA.length + messagesB.length;
       expect(channelA["lamportTimestamp"]).to.equal(
-        aTimestampBefore + expectedLength
+        aTimestampBefore + BigInt(expectedLength)
       );
       expect(channelA["lamportTimestamp"]).to.equal(
         channelB["lamportTimestamp"]
@@ -293,7 +295,7 @@ describe("MessageChannel", function () {
           channelA.channelId,
           "not-alice",
           [],
-          1,
+          1n,
           undefined,
           payload,
           testRetrievalHint
@@ -335,7 +337,7 @@ describe("MessageChannel", function () {
           channelA.channelId,
           "bob",
           [],
-          startTimestamp + 3, // Higher timestamp
+          startTimestamp + 3n, // Higher timestamp
           undefined,
           message3Payload
         )
@@ -349,7 +351,7 @@ describe("MessageChannel", function () {
           channelA.channelId,
           "carol",
           [],
-          startTimestamp + 2, // Middle timestamp
+          startTimestamp + 2n, // Middle timestamp
           undefined,
           message2Payload
         )
@@ -363,7 +365,7 @@ describe("MessageChannel", function () {
       const first = localHistory.findIndex(
         ({ messageId, lamportTimestamp }) => {
           return (
-            messageId === message1Id && lamportTimestamp === startTimestamp + 1
+            messageId === message1Id && lamportTimestamp === startTimestamp + 1n
           );
         }
       );
@@ -372,7 +374,7 @@ describe("MessageChannel", function () {
       const second = localHistory.findIndex(
         ({ messageId, lamportTimestamp }) => {
           return (
-            messageId === message2Id && lamportTimestamp === startTimestamp + 2
+            messageId === message2Id && lamportTimestamp === startTimestamp + 2n
           );
         }
       );
@@ -381,7 +383,7 @@ describe("MessageChannel", function () {
       const third = localHistory.findIndex(
         ({ messageId, lamportTimestamp }) => {
           return (
-            messageId === message3Id && lamportTimestamp === startTimestamp + 3
+            messageId === message3Id && lamportTimestamp === startTimestamp + 3n
           );
         }
       );
@@ -404,7 +406,7 @@ describe("MessageChannel", function () {
           channelA.channelId,
           "bob",
           [],
-          5, // Same timestamp
+          5n, // Same timestamp
           undefined,
           message2Payload
         )
@@ -417,7 +419,7 @@ describe("MessageChannel", function () {
           channelA.channelId,
           "carol",
           [],
-          5, // Same timestamp
+          5n, // Same timestamp
           undefined,
           message1Payload
         )
@@ -432,14 +434,14 @@ describe("MessageChannel", function () {
 
       const first = localHistory.findIndex(
         ({ messageId, lamportTimestamp }) => {
-          return messageId === expectedOrder[0] && lamportTimestamp == 5;
+          return messageId === expectedOrder[0] && lamportTimestamp == 5n;
         }
       );
       expect(first).to.eq(0);
 
       const second = localHistory.findIndex(
         ({ messageId, lamportTimestamp }) => {
-          return messageId === expectedOrder[1] && lamportTimestamp == 5;
+          return messageId === expectedOrder[1] && lamportTimestamp == 5n;
         }
       );
       expect(second).to.eq(1);
@@ -645,11 +647,12 @@ describe("MessageChannel", function () {
       });
 
       // And be sends a sync message
-      await channelB.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelB.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelA, message);
         return true;
       });
 
+      expect(res).to.be.true;
       expect(messageAcked).to.be.true;
     });
   });
@@ -1087,17 +1090,41 @@ describe("MessageChannel", function () {
         causalHistorySize: 2
       });
       channelB = new MessageChannel(channelId, "bob", { causalHistorySize: 2 });
+      const message = utf8ToBytes("first message in channel");
+      channelA["localHistory"].push(
+        new ContentMessage(
+          MessageChannel.getMessageId(message),
+          "MyChannel",
+          "alice",
+          [],
+          1n,
+          undefined,
+          message
+        )
+      );
     });
 
     it("should be sent with empty content", async () => {
-      await channelA.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelA.pushOutgoingSyncMessage(async (message) => {
         expect(message.content).to.be.undefined;
         return true;
       });
+      expect(res).to.be.true;
+    });
+
+    it("should not be sent when there is no history", async () => {
+      const channelC = new MessageChannel(channelId, "carol", {
+        causalHistorySize: 2
+      });
+      const res = await channelC.pushOutgoingSyncMessage(async (_msg) => {
+        throw "callback was called when it's not expected";
+      });
+      expect(res).to.be.false;
     });
 
     it("should not be added to outgoing buffer, bloom filter, or local log", async () => {
-      await channelA.pushOutgoingSyncMessage();
+      const res = await channelA.pushOutgoingSyncMessage();
+      expect(res).to.be.true;
 
       const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(0);
@@ -1108,15 +1135,16 @@ describe("MessageChannel", function () {
       ).to.equal(false);
 
       const localLog = channelA["localHistory"];
-      expect(localLog.length).to.equal(0);
+      expect(localLog.length).to.equal(1); // beforeEach adds one message
     });
 
     it("should not be delivered", async () => {
       const timestampBefore = channelB["lamportTimestamp"];
-      await channelA.pushOutgoingSyncMessage(async (message) => {
+      const res = await channelA.pushOutgoingSyncMessage(async (message) => {
         await receiveMessage(channelB, message);
         return true;
       });
+      expect(res).to.be.true;
       const timestampAfter = channelB["lamportTimestamp"];
       expect(timestampAfter).to.equal(timestampBefore);
 
@@ -1130,20 +1158,23 @@ describe("MessageChannel", function () {
     });
 
     it("should update ack status of messages in outgoing buffer", async () => {
+      const channelC = new MessageChannel(channelId, "carol", {
+        causalHistorySize: 2
+      });
       for (const m of messagesA) {
-        await sendMessage(channelA, utf8ToBytes(m), async (message) => {
+        await sendMessage(channelC, utf8ToBytes(m), async (message) => {
           await receiveMessage(channelB, message);
           return { success: true };
         });
       }
 
       await sendSyncMessage(channelB, async (message) => {
-        await receiveMessage(channelA, message);
+        await receiveMessage(channelC, message);
         return true;
       });
 
-      const causalHistorySize = channelA["causalHistorySize"];
-      const outgoingBuffer = channelA["outgoingBuffer"] as Message[];
+      const causalHistorySize = channelC["causalHistorySize"];
+      const outgoingBuffer = channelC["outgoingBuffer"] as Message[];
       expect(outgoingBuffer.length).to.equal(
         messagesA.length - causalHistorySize
       );

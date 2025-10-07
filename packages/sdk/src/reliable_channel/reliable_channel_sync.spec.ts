@@ -56,6 +56,19 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
+    // Send a message to have a history
+    const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
+    let messageSent = false;
+    reliableChannel.addEventListener("message-sent", (event) => {
+      if (event.detail === sentMsgId) {
+        messageSent = true;
+      }
+    });
+
+    while (!messageSent) {
+      await delay(50);
+    }
+
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
       MessageChannelEvent.OutSyncSent,
@@ -131,6 +144,19 @@ describe("Reliable Channel: Sync", () => {
       return 1;
     }; // will wait a full second
 
+    // Send a message to have a history
+    const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
+    let messageSent = false;
+    reliableChannelAlice.addEventListener("message-sent", (event) => {
+      if (event.detail === sentMsgId) {
+        messageSent = true;
+      }
+    });
+
+    while (!messageSent) {
+      await delay(50);
+    }
+
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
       MessageChannelEvent.OutSyncSent,
@@ -191,6 +217,19 @@ describe("Reliable Channel: Sync", () => {
       return 1;
     }; // will wait a full second
 
+    // Send a message to have a history
+    const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
+    let messageSent = false;
+    reliableChannelAlice.addEventListener("message-sent", (event) => {
+      if (event.detail === sentMsgId) {
+        messageSent = true;
+      }
+    });
+
+    while (!messageSent) {
+      await delay(50);
+    }
+
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
       MessageChannelEvent.OutSyncSent,
@@ -232,6 +271,19 @@ describe("Reliable Channel: Sync", () => {
       return 1;
     }; // will wait a full second
 
+    // Send a message to have a history
+    const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
+    let messageSent = false;
+    reliableChannel.addEventListener("message-sent", (event) => {
+      if (event.detail === sentMsgId) {
+        messageSent = true;
+      }
+    });
+
+    while (!messageSent) {
+      await delay(50);
+    }
+
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
       MessageChannelEvent.OutSyncSent,
@@ -272,6 +324,19 @@ describe("Reliable Channel: Sync", () => {
     (reliableChannel as any).random = () => {
       return 1;
     }; // will wait a full second
+
+    // Send a message to have a history
+    const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
+    let messageSent = false;
+    reliableChannel.addEventListener("message-sent", (event) => {
+      if (event.detail === sentMsgId) {
+        messageSent = true;
+      }
+    });
+
+    while (!messageSent) {
+      await delay(50);
+    }
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(

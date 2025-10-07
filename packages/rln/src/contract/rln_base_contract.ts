@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 
 import { IdentityCredential } from "../identity.js";
 import { DecryptedCredentials } from "../keystore/types.js";
-import { BytesUtils } from "../utils/bytes.js";
 
 import { RLN_ABI } from "./abi/rln.js";
 import {
@@ -632,7 +631,7 @@ export class RLNBaseContract {
           permit.v,
           permit.r,
           permit.s,
-          BytesUtils.buildBigIntFromUint8ArrayBE(identity.IDCommitment),
+          identity.IDCommitmentBigInt,
           this.rateLimit,
           idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
         );
