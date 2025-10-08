@@ -67,7 +67,7 @@ export class WakuNode implements IWaku {
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
   private readonly healthIndicator: HealthIndicator;
-  private readonly messaging: Messaging | null = null;
+  private messaging: Messaging | null = null;
 
   public constructor(
     options: CreateNodeOptions,

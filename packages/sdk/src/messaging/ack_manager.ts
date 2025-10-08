@@ -18,6 +18,9 @@ type AckManagerConstructorParams = {
   networkConfig: NetworkConfig;
 };
 
+const DEFAULT_QUERY_INTERVAL = 5000;
+const QUERY_TIME_WINDOW_MS = 60 * 60 * 1000;
+
 export class AckManager implements IAckManager {
   private readonly messageStore: MessageStore;
   private readonly filterAckManager: FilterAckManager;
@@ -25,6 +28,7 @@ export class AckManager implements IAckManager {
   private readonly networkConfig: NetworkConfig;
 
   private readonly subscribedContentTopics: Set<string> = new Set();
+  private readonly subscribingAttempts: Set<string> = new Set();
 
   public constructor(params: AckManagerConstructorParams) {
     this.messageStore = params.messageStore;
@@ -50,11 +54,15 @@ export class AckManager implements IAckManager {
   }
 
   public async subscribe(contentTopic: string): Promise<boolean> {
-    if (this.subscribedContentTopics.has(contentTopic)) {
+    if (
+      this.subscribedContentTopics.has(contentTopic) ||
+      this.subscribingAttempts.has(contentTopic)
+    ) {
       return true;
     }
 
-    this.subscribedContentTopics.add(contentTopic);
+    this.subscribingAttempts.add(contentTopic);
+
     const decoder = createDecoder(
       contentTopic,
       createRoutingInfo(this.networkConfig, {
@@ -62,12 +70,14 @@ export class AckManager implements IAckManager {
       })
     );
 
-    return (
-      await Promise.all([
-        this.filterAckManager.subscribe(decoder),
-        this.storeAckManager.subscribe(decoder)
-      ])
-    ).some((success) => success);
+    const promises = await Promise.all([
+      this.filterAckManager.subscribe(decoder),
+      this.storeAckManager.subscribe(decoder)
+    ]);
+
+    this.subscribedContentTopics.add(contentTopic);
+    this.subscribingAttempts.delete(contentTopic);
+    return promises.some((success) => success);
   }
 }
 
@@ -128,7 +138,7 @@ class StoreAckManager {
 
     this.interval = setInterval(() => {
       void this.query();
-    }, 5000);
+    }, DEFAULT_QUERY_INTERVAL);
   }
 
   public stop(): void {
@@ -157,7 +167,7 @@ class StoreAckManager {
           this.messageStore.markStoreAck(message.hashStr);
         },
         {
-          timeStart: new Date(Date.now() - 60 * 60 * 1000),
+          timeStart: new Date(Date.now() - QUERY_TIME_WINDOW_MS),
           timeEnd: new Date()
         }
       );

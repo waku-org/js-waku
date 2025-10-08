@@ -87,7 +87,7 @@ export class LightPush implements ILightPush {
       protocol: options.useLegacy ? "light-push-v2" : Protocols.LightPush,
       pubsubTopic: encoder.pubsubTopic
     });
-    peerIds = peerIds.slice(0, options.numPeersToUse);
+    peerIds = peerIds?.slice(0, options.numPeersToUse);
 
     const coreResults =
       peerIds?.length > 0

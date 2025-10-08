@@ -61,13 +61,13 @@ describe("Sender", () => {
       expect(setIntervalSpy.calledWith(sinon.match.func, 1000)).to.be.true;
     });
 
-    it("should create multiple intervals when called multiple times", () => {
+    it("should not create multiple intervals when called multiple times", () => {
       const setIntervalSpy = sinon.spy(global, "setInterval");
 
       sender.start();
       sender.start();
 
-      expect(setIntervalSpy.calledTwice).to.be.true;
+      expect(setIntervalSpy.calledOnce).to.be.true;
     });
   });
 

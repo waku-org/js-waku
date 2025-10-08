@@ -17,6 +17,8 @@ type SenderConstructorParams = {
   networkConfig: NetworkConfig;
 };
 
+const DEFAULT_SEND_INTERVAL = 1000;
+
 export class Sender {
   private readonly messageStore: MessageStore;
   private readonly lightPush: ILightPush;
@@ -35,7 +37,10 @@ export class Sender {
   }
 
   public start(): void {
-    this.sendInterval = setInterval(() => void this.backgroundSend(), 1000);
+    this.sendInterval = setInterval(
+      () => void this.backgroundSend(),
+      DEFAULT_SEND_INTERVAL
+    );
   }
 
   public stop(): void {
