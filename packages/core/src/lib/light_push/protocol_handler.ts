@@ -1,5 +1,10 @@
 import type { PeerId } from "@libp2p/interface";
-import type { IEncoder, IMessage, LightPushCoreResult } from "@waku/interfaces";
+import type {
+  IEncoder,
+  IMessage,
+  IProtoMessage,
+  LightPushCoreResult
+} from "@waku/interfaces";
 import { LightPushError, LightPushStatusCode } from "@waku/interfaces";
 import { PushResponse, WakuMessage } from "@waku/proto";
 import { isMessageSizeUnderCap, Logger } from "@waku/utils";
@@ -15,8 +20,8 @@ type VersionedPushRpc =
   | ({ version: "v3" } & PushRpc);
 
 type PreparePushMessageResult =
-  | { rpc: VersionedPushRpc; error: null }
-  | { rpc: null; error: LightPushError };
+  | { rpc: VersionedPushRpc; error: null; message?: IProtoMessage }
+  | { rpc: null; error: LightPushError; message?: IProtoMessage };
 
 const log = new Logger("light-push:protocol-handler");
 
@@ -47,13 +52,15 @@ export class ProtocolHandler {
         log.info("Creating v3 RPC message");
         return {
           rpc: ProtocolHandler.createV3Rpc(protoMessage, encoder.pubsubTopic),
-          error: null
+          error: null,
+          message: protoMessage
         };
       }
 
       log.info("Creating v2 RPC message");
       return {
         rpc: ProtocolHandler.createV2Rpc(protoMessage, encoder.pubsubTopic),
+        message: protoMessage,
         error: null
       };
     } catch (err) {
