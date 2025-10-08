@@ -37,6 +37,10 @@ export class Sender {
   }
 
   public start(): void {
+    if (this.sendInterval) {
+      return;
+    }
+
     this.sendInterval = setInterval(
       () => void this.backgroundSend(),
       DEFAULT_SEND_INTERVAL
