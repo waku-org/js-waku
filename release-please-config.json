@@ -23,6 +23,7 @@
     "packages/relay": {},
     "packages/discovery": {},
     "packages/sds": {},
-    "packages/rln": {}
+    "packages/rln": {},
+    "packages/react": {}
   }
 }
