@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 
 import { createEncoder } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
-import { createLightNode, Protocols, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode, Protocols } from "@waku/sdk";
 import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
