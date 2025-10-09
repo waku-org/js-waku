@@ -1,0 +1,126 @@
+# Environment variable definitions
+x-pg-pass: &pg_pass ${POSTGRES_PASSWORD:-test123}
+x-pg-user: &pg_user ${POSTGRES_USER:-postgres}
+
+x-pg-environment: &pg_env
+  POSTGRES_USER: *pg_user
+  POSTGRES_PASSWORD: *pg_pass
+
+# Shared nwaku configuration
+x-nwaku-base: &nwaku-base
+  image: ${NWAKU_IMAGE:-wakuorg/nwaku:v0.36.0}
+  restart: on-failure
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  postgres:
+    image: postgres:15.4-alpine3.18
+    restart: on-failure
+    environment:
+      <<: *pg_env
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nwaku-1:
+    <<: *nwaku-base
+    container_name: waku-local-node-1
+    ports:
+      - "${NODE1_TCP_PORT:-30303}:30303/tcp"
+      - "${NODE1_WS_PORT:-60000}:60000/tcp"
+      - "${NODE1_REST_PORT:-8646}:8646/tcp"
+    environment:
+      <<: *pg_env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - --relay=true
+      - --filter=true
+      - --lightpush=true
+      - --store=true
+      - --peer-exchange=true
+      - --discv5-discovery=true
+      - --cluster-id=0
+      - --shard=0
+      - --shard=1
+      - --shard=2
+      - --shard=3
+      - --shard=4
+      - --shard=5
+      - --shard=6
+      - --shard=7
+      - --listen-address=0.0.0.0
+      - --tcp-port=30303
+      - --websocket-support=true
+      - --websocket-port=60000
+      - --ext-multiaddr=/ip4/127.0.0.1/tcp/60000/ws
+      - --ext-multiaddr-only=true
+      - --rest=true
+      - --rest-address=0.0.0.0
+      - --rest-port=8646
+      - --rest-admin=true
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/postgres
+      - --log-level=${LOG_LEVEL:-INFO}
+      - --max-connections=150
+
+  nwaku-2:
+    <<: *nwaku-base
+    container_name: waku-local-node-2
+    ports:
+      - "${NODE2_TCP_PORT:-30304}:30304/tcp"
+      - "${NODE2_WS_PORT:-60001}:60001/tcp"
+      - "${NODE2_REST_PORT:-8647}:8647/tcp"
+    environment:
+      <<: *pg_env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nwaku-1:
+        condition: service_started
+    command:
+      - --relay=true
+      - --filter=true
+      - --lightpush=true
+      - --store=true
+      - --peer-exchange=true
+      - --discv5-discovery=true
+      - --cluster-id=0
+      - --shard=0
+      - --shard=1
+      - --shard=2
+      - --shard=3
+      - --shard=4
+      - --shard=5
+      - --shard=6
+      - --shard=7
+      - --listen-address=0.0.0.0
+      - --tcp-port=30304
+      - --websocket-support=true
+      - --websocket-port=60001
+      - --ext-multiaddr=/ip4/127.0.0.1/tcp/60001/ws
+      - --ext-multiaddr-only=true
+      - --rest=true
+      - --rest-address=0.0.0.0
+      - --rest-port=8647
+      - --rest-admin=true
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/postgres
+      - --log-level=${LOG_LEVEL:-INFO}
+      - --max-connections=150
+
+volumes:
+  postgres-data:
+
+networks:
+  default:
+    name: waku-local-network

@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.dev",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["src", "scripts", "tests"]
+}
