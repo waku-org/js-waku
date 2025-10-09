@@ -24,6 +24,7 @@
     "packages/discovery": {},
     "packages/sds": {},
     "packages/rln": {},
-    "packages/react": {}
+    "packages/react": {},
+    "packages/run": {}
   }
 }
