@@ -1,0 +1,11 @@
+# Environment variables
+.env
+
+# Docker volumes and runtime data
+postgres-data/
+
+# Logs
+*.log
+
+# Build output
+dist/
