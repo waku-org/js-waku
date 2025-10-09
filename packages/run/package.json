@@ -32,32 +32,40 @@
   ],
   "scripts": {
     "build": "tsc",
+    "build:web": "esbuild web/index.ts --bundle --format=esm --platform=browser --outdir=dist/web && cp web/index.html dist/web/index.html",
     "prepublishOnly": "npm run build",
     "start": "tsx scripts/start.ts",
     "stop": "docker compose down",
     "restart": "npm run stop && npm run start",
     "logs": "docker compose logs -f",
     "info": "tsx scripts/info.ts",
-    "test": "NODE_ENV=test node ./src/run-tests.js \"tests/**/*.spec.ts\"",
+    "test": "NODE_ENV=test node ./src/run-tests.js \"tests/basic.spec.ts\"",
+    "test:browser": "npm run build:web && npx playwright test --reporter=line",
     "fix": "run-s fix:*",
-    "fix:lint": "eslint src scripts tests --fix",
+    "fix:lint": "eslint src scripts tests web --fix",
     "check": "run-s check:*",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "check:lint": "eslint src scripts tests",
+    "check:lint": "eslint src scripts tests web",
     "check:spelling": "cspell \"{README.md,src/**/*.ts,scripts/**/*.ts,tests/**/*.ts}\""
   },
   "engines": {
     "node": ">=18"
   },
-  "devDependencies": {
-    "@types/chai": "^4.3.11",
-    "@types/mocha": "^10.0.6",
+  "dependencies": {
     "@waku/core": "*",
     "@waku/interfaces": "*",
     "@waku/sdk": "*",
-    "@waku/utils": "*",
+    "@waku/utils": "*"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/chai": "^4.3.11",
+    "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.6",
     "chai": "^4.3.10",
     "cspell": "^8.6.1",
+    "esbuild": "^0.21.5",
+    "express": "^4.21.2",
     "mocha": "^10.3.0",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
