@@ -21,39 +21,25 @@ class WakuBrowser {
     this.waku = await createLightNode({
       defaultBootstrap: false,
       bootstrapPeers: config.bootstrapPeers,
-      networkConfig: config.networkConfig
+      networkConfig: config.networkConfig,
+      libp2p: {
+        filterMultiaddrs: false
+      }
     });
 
     console.log("Starting node...");
     await this.waku.start();
 
-    // Explicitly dial each bootstrap peer
-    console.log("Dialing bootstrap peers...");
+    console.log("Connecting to bootstrap peers...");
     for (const peer of config.bootstrapPeers) {
-      try {
-        console.log(`Dialing ${peer}...`);
-        await this.waku.dial(peer);
-        console.log(`Successfully dialed ${peer}`);
-      } catch (error) {
-        console.warn(`Failed to dial ${peer}:`, error);
-      }
+      await this.waku.dial(peer);
     }
 
     console.log("Waiting for peers...");
-    try {
-      await this.waku.waitForPeers([Protocols.LightPush], 30000); // 30 second timeout
-      console.log("Peers found!");
-    } catch (error) {
-      console.warn("Timeout waiting for peers, continuing anyway:", error);
-      // Continue anyway - we can still try to send messages
-    }
+    await this.waku.waitForPeers([Protocols.LightPush]);
 
-    // Check connected peers
     const peers = this.waku.libp2p.getPeers();
-    console.log(
-      `Connected to ${peers.length} peers:`,
-      peers.map((p) => p.toString())
-    );
+    console.log(`Connected to ${peers.length} peers`);
 
     return { success: true };
   }

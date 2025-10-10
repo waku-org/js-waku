@@ -2,6 +2,8 @@
 
 import { execSync } from "child_process";
 
+import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+
 interface Colors {
   reset: string;
   cyan: string;
@@ -103,8 +105,8 @@ try {
 
   // Static peer IDs from --nodekey configuration
   // cspell:ignore nodekey
-  const peer1: string = "16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2";
-  const peer2: string = "16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ";
+  const peer1: string = NODE1_PEER_ID;
+  const peer2: string = NODE2_PEER_ID;
 
   // Print TypeScript-style config
   process.stdout.write(

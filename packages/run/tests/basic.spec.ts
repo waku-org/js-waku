@@ -6,6 +6,8 @@ import { createLightNode, Protocols } from "@waku/sdk";
 import { createRoutingInfo } from "@waku/utils";
 import { expect } from "chai";
 
+import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+
 describe("Waku Run - Basic Test", function () {
   this.timeout(90000);
 
@@ -39,8 +41,26 @@ describe("Waku Run - Basic Test", function () {
 
     // Nodes automatically connect via --staticnode configuration
     // cspell:ignore staticnode
-    // Wait a bit for the connection to establish
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Wait for nwaku nodes to connect to each other
+    let connected = false;
+    for (let i = 0; i < 15; i++) {
+      try {
+        const peers = await fetch("http://127.0.0.1:8646/admin/v1/peers").then(
+          (r) => r.json()
+        );
+        if (peers.length > 0 && peers[0].connected === "Connected") {
+          connected = true;
+          break;
+        }
+      } catch {
+        // Ignore errors
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    if (!connected) {
+      throw new Error("Nwaku nodes failed to connect to each other");
+    }
   });
 
   after(async function () {
@@ -60,8 +80,8 @@ describe("Waku Run - Basic Test", function () {
 
     // Static peer IDs from --nodekey configuration
     // cspell:ignore nodekey
-    const peer1 = "16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2";
-    const peer2 = "16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ";
+    const peer1 = NODE1_PEER_ID;
+    const peer2 = NODE2_PEER_ID;
 
     const networkConfig = {
       clusterId: 0,
