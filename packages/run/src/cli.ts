@@ -11,7 +11,9 @@ const command = process.argv[2];
 
 const scriptMap: Record<string, string> = {
   start: join(__dirname, "..", "scripts", "start.js"),
-  info: join(__dirname, "..", "scripts", "info.js")
+  stop: join(__dirname, "..", "scripts", "stop.js"),
+  info: join(__dirname, "..", "scripts", "info.js"),
+  logs: join(__dirname, "..", "scripts", "logs.js")
 };
 
 if (!command || !scriptMap[command]) {
@@ -19,7 +21,9 @@ if (!command || !scriptMap[command]) {
   process.stderr.write("\n");
   process.stderr.write("Commands:\n");
   process.stderr.write("  start    Start the local Waku network\n");
+  process.stderr.write("  stop     Stop the local Waku network\n");
   process.stderr.write("  info     Show connection info for running network\n");
+  process.stderr.write("  logs     View logs from running network\n");
   process.exit(1);
 }
 
