@@ -9,6 +9,7 @@ x-pg-environment: &pg_env
 # Shared nwaku configuration
 x-nwaku-base: &nwaku-base
   image: ${NWAKU_IMAGE:-wakuorg/nwaku:v0.36.0}
+  pull_policy: if_not_present
   restart: on-failure
   logging:
     driver: json-file
@@ -19,6 +20,7 @@ x-nwaku-base: &nwaku-base
 services:
   postgres:
     image: postgres:15.4-alpine3.18
+    pull_policy: if_not_present
     restart: on-failure
     environment:
       <<: *pg_env
