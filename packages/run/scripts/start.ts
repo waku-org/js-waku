@@ -25,6 +25,39 @@ const colors: Colors = {
   yellow: "\x1b[33m"
 };
 
+function checkAndPullImages(): void {
+  const nwakuImage = process.env.NWAKU_IMAGE || "wakuorg/nwaku:v0.36.0";
+  const postgresImage = "postgres:15.4-alpine3.18";
+  const images = [
+    { name: nwakuImage, label: "nwaku" },
+    { name: postgresImage, label: "postgres" }
+  ];
+
+  for (const { name, label } of images) {
+    try {
+      // Check if image exists locally
+      const imageId = execSync(`docker images -q ${name}`, {
+        encoding: "utf-8"
+      }).trim();
+
+      if (!imageId) {
+        // Image doesn't exist, pull it
+        process.stdout.write(
+          `${colors.cyan}Pulling ${label} image (${name})...${colors.reset}\n`
+        );
+        execSync(`docker pull ${name}`, { stdio: "inherit" });
+        process.stdout.write(
+          `${colors.green}✓${colors.reset} ${label} image ready\n`
+        );
+      }
+    } catch (error) {
+      process.stderr.write(
+        `${colors.yellow}⚠${colors.reset}  Failed to check/pull ${label} image. Continuing anyway...\n`
+      );
+    }
+  }
+}
+
 async function waitWithProgress(ms: number): Promise<void> {
   const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
   const startTime = Date.now();
@@ -55,6 +88,9 @@ process.stdout.write(
 );
 
 try {
+  // Check and pull images if needed
+  checkAndPullImages();
+
   // Start docker compose quietly
   execSync("docker compose up -d", {
     stdio: ["ignore", "ignore", "pipe"],
