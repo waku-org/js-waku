@@ -328,4 +328,72 @@ export class RepairManager {
       `Updated response groups to ${this.config.numResponseGroups} for ${numParticipants} participants`
     );
   }
+
+  /**
+   * Check if there are any pending outgoing repair requests
+   */
+  public hasPendingRequests(): boolean {
+    return this.outgoingBuffer.size > 0;
+  }
+
+  /**
+   * Get count of pending repair requests
+   */
+  public getPendingRequestCount(): number {
+    return this.outgoingBuffer.size;
+  }
+
+  /**
+   * Get count of pending repair responses
+   */
+  public getPendingResponseCount(): number {
+    return this.incomingBuffer.size;
+  }
+
+  /**
+   * Get next scheduled repair request time (earliest T_req)
+   */
+  public getNextRequestTime(): number | undefined {
+    const items = this.outgoingBuffer.getItems();
+    return items.length > 0 ? items[0].tReq : undefined;
+  }
+
+  /**
+   * Get next scheduled repair response time (earliest T_resp)
+   */
+  public getNextResponseTime(): number | undefined {
+    const items = this.incomingBuffer.getItems();
+    return items.length > 0 ? items[0].tResp : undefined;
+  }
+
+  /**
+   * Check if a specific message has a pending repair request
+   */
+  public isPendingRequest(messageId: string): boolean {
+    return this.outgoingBuffer.has(messageId);
+  }
+
+  /**
+   * Check if we have a pending response for a message
+   */
+  public isPendingResponse(messageId: string): boolean {
+    return this.incomingBuffer.has(messageId);
+  }
+
+  /**
+   * Get stats for monitoring/debugging
+   */
+  public getStats(): {
+    pendingRequests: number;
+    pendingResponses: number;
+    nextRequestTime?: number;
+    nextResponseTime?: number;
+  } {
+    return {
+      pendingRequests: this.getPendingRequestCount(),
+      pendingResponses: this.getPendingResponseCount(),
+      nextRequestTime: this.getNextRequestTime(),
+      nextResponseTime: this.getNextResponseTime()
+    };
+  }
 }

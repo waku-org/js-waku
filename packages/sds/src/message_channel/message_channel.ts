@@ -143,6 +143,31 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   }
 
   /**
+   * Check if there are pending repair requests that need to be sent.
+   * Useful for adaptive sync intervals - increase frequency when repairs pending.
+   */
+  public hasPendingRepairRequests(currentTime = Date.now()): boolean {
+    if (!this.repairManager.isEnabled) {
+      return false;
+    }
+
+    const nextRequestTime = this.repairManager.getNextRequestTime();
+    return nextRequestTime !== undefined && nextRequestTime <= currentTime;
+  }
+
+  /**
+   * Get repair statistics for monitoring/debugging.
+   */
+  public getRepairStats(): {
+    pendingRequests: number;
+    pendingResponses: number;
+    nextRequestTime?: number;
+    nextResponseTime?: number;
+  } {
+    return this.repairManager.getStats();
+  }
+
+  /**
    * Processes all queued tasks sequentially to ensure proper message ordering.
    *
    * This method should be called periodically by the library consumer to execute
