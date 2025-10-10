@@ -115,7 +115,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       options.possibleAcksThreshold ?? DEFAULT_POSSIBLE_ACKS_THRESHOLD;
     this.timeReceived = new Map();
     this.timeoutForLostMessagesMs = options.timeoutForLostMessagesMs;
-    this.repairManager = new RepairManager(senderId, options.repairConfig);
+    this.repairManager = new RepairManager(
+      senderId,
+      options.repairConfig,
+      (event: string, detail: unknown) => {
+        this.safeSendEvent(event as MessageChannelEvent, { detail });
+      }
+    );
   }
 
   public static getMessageId(payload: Uint8Array): MessageId {
@@ -385,6 +391,13 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
             "repair message rebroadcast",
             message.messageId
           );
+
+          // Emit RepairResponseSent event
+          this.safeSendEvent(MessageChannelEvent.RepairResponseSent, {
+            detail: {
+              messageId: message.messageId
+            }
+          });
         } catch (error) {
           log.error("Failed to rebroadcast repair message:", error);
         }
@@ -446,6 +459,17 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         this.safeSendEvent(MessageChannelEvent.OutSyncSent, {
           detail: message
         });
+
+        // Emit RepairRequestSent event if repair requests were included
+        if (repairRequests.length > 0) {
+          this.safeSendEvent(MessageChannelEvent.RepairRequestSent, {
+            detail: {
+              messageIds: repairRequests.map((r) => r.messageId),
+              carrierMessageId: message.messageId
+            }
+          });
+        }
+
         return true;
       } catch (error) {
         log.error(
@@ -517,6 +541,14 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     // SDS-R: Process incoming repair requests
     if (message.repairRequest && message.repairRequest.length > 0) {
+      // Emit RepairRequestReceived event
+      this.safeSendEvent(MessageChannelEvent.RepairRequestReceived, {
+        detail: {
+          messageIds: message.repairRequest.map((r) => r.messageId),
+          fromSenderId: message.senderId
+        }
+      });
+
       this.repairManager.processIncomingRepairRequests(
         message.repairRequest,
         this.localHistory

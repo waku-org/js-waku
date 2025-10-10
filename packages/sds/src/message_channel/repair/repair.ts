@@ -16,6 +16,11 @@ import {
 const log = new Logger("sds:repair:manager");
 
 /**
+ * Event emitter callback for repair events
+ */
+export type RepairEventEmitter = (event: string, detail: unknown) => void;
+
+/**
  * Configuration for SDS-R repair protocol
  */
 export interface RepairConfig {
@@ -51,10 +56,16 @@ export class RepairManager {
   private readonly config: Required<RepairConfig>;
   private readonly outgoingBuffer: OutgoingRepairBuffer;
   private readonly incomingBuffer: IncomingRepairBuffer;
+  private readonly eventEmitter?: RepairEventEmitter;
 
-  constructor(participantId: ParticipantId, config: RepairConfig = {}) {
+  public constructor(
+    participantId: ParticipantId,
+    config: RepairConfig = {},
+    eventEmitter?: RepairEventEmitter
+  ) {
     this.participantId = participantId;
     this.config = { ...DEFAULT_REPAIR_CONFIG, ...config };
+    this.eventEmitter = eventEmitter;
 
     this.outgoingBuffer = new OutgoingRepairBuffer(this.config.bufferSize);
     this.incomingBuffer = new IncomingRepairBuffer(this.config.bufferSize);
@@ -105,7 +116,7 @@ export class RepairManager {
     }
 
     const numGroups = BigInt(this.config.numResponseGroups);
-    if (numGroups <= 1n) {
+    if (numGroups <= BigInt(1)) {
       // Single group, everyone is in it
       return true;
     }
@@ -139,6 +150,12 @@ export class RepairManager {
       log.info(
         `Added missing dependency ${entry.messageId} to repair buffer with T_req=${tReq}`
       );
+
+      // Emit event
+      this.eventEmitter?.("RepairRequestQueued", {
+        messageId: entry.messageId,
+        tReq
+      });
     }
   }
 
@@ -223,6 +240,12 @@ export class RepairManager {
       log.info(
         `Will respond to repair request for ${request.messageId} at T_resp=${tResp}`
       );
+
+      // Emit event
+      this.eventEmitter?.("RepairResponseQueued", {
+        messageId: request.messageId,
+        tResp
+      });
     }
   }
 
