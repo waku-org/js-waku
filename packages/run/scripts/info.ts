@@ -1,8 +1,18 @@
 #!/usr/bin/env node
 
 import { execSync } from "child_process";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// In development: scripts are in packages/run/scripts
+// In published package: scripts are in node_modules/@waku/run/dist/scripts
+const packageRoot = __dirname.includes("dist")
+  ? join(__dirname, "..", "..")
+  : join(__dirname, "..");
 
 interface Colors {
   reset: string;
@@ -24,6 +34,7 @@ const colors: Colors = {
 try {
   // Check if containers are running
   const output: string = execSync("docker compose ps --quiet", {
+    cwd: packageRoot,
     encoding: "utf-8"
   }).trim();
 
