@@ -37,6 +37,9 @@ services:
   nwaku-1:
     <<: *nwaku-base
     container_name: waku-local-node-1
+    networks:
+      default:
+        ipv4_address: 172.20.0.10
     ports:
       - "${NODE1_TCP_PORT:-30303}:30303/tcp"
       - "${NODE1_WS_PORT:-60000}:60000/tcp"
@@ -47,6 +50,8 @@ services:
       postgres:
         condition: service_healthy
     command:
+      - --nodekey=e419c3cf4f09ac3babdf61856e6faa0e0c6a7d97674d5401a0114616549c7632
+      - --staticnode=/ip4/172.20.0.11/tcp/60001/ws/p2p/16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ
       - --relay=true
       - --filter=true
       - --lightpush=true
@@ -66,8 +71,8 @@ services:
       - --tcp-port=30303
       - --websocket-support=true
       - --websocket-port=60000
+      - --ext-multiaddr=/dns4/nwaku-1/tcp/60000/ws
       - --ext-multiaddr=/ip4/127.0.0.1/tcp/60000/ws
-      - --ext-multiaddr-only=true
       - --rest=true
       - --rest-address=0.0.0.0
       - --rest-port=8646
@@ -79,6 +84,9 @@ services:
   nwaku-2:
     <<: *nwaku-base
     container_name: waku-local-node-2
+    networks:
+      default:
+        ipv4_address: 172.20.0.11
     ports:
       - "${NODE2_TCP_PORT:-30304}:30304/tcp"
       - "${NODE2_WS_PORT:-60001}:60001/tcp"
@@ -91,6 +99,8 @@ services:
       nwaku-1:
         condition: service_started
     command:
+      - --nodekey=50632ab0efd313bfb4aa842de716f03dacd181c863770abd145e3409290fdaa7
+      - --staticnode=/ip4/172.20.0.10/tcp/60000/ws/p2p/16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2
       - --relay=true
       - --filter=true
       - --lightpush=true
@@ -110,8 +120,8 @@ services:
       - --tcp-port=30304
       - --websocket-support=true
       - --websocket-port=60001
+      - --ext-multiaddr=/dns4/nwaku-2/tcp/60001/ws
       - --ext-multiaddr=/ip4/127.0.0.1/tcp/60001/ws
-      - --ext-multiaddr-only=true
       - --rest=true
       - --rest-address=0.0.0.0
       - --rest-port=8647
@@ -126,3 +136,6 @@ volumes:
 networks:
   default:
     name: waku-local-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

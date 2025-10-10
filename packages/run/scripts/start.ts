@@ -11,10 +11,6 @@ interface Colors {
   yellow: string;
 }
 
-interface NodeInfo {
-  listenAddresses: string[];
-}
-
 // ANSI color codes
 const colors: Colors = {
   reset: "\x1b[0m",
@@ -105,16 +101,10 @@ try {
   const node1Port: string = process.env.NODE1_WS_PORT || "60000";
   const node2Port: string = process.env.NODE2_WS_PORT || "60001";
 
-  // Fetch node info
-  const node1Info: NodeInfo = await fetch(
-    "http://127.0.0.1:8646/debug/v1/info"
-  ).then((r) => r.json());
-  const node2Info: NodeInfo = await fetch(
-    "http://127.0.0.1:8647/debug/v1/info"
-  ).then((r) => r.json());
-
-  const peer1: string = node1Info.listenAddresses[0].split("/p2p/")[1];
-  const peer2: string = node2Info.listenAddresses[0].split("/p2p/")[1];
+  // Static peer IDs from --nodekey configuration
+  // cspell:ignore nodekey
+  const peer1: string = "16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2";
+  const peer2: string = "16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ";
 
   // Print TypeScript-style config
   process.stdout.write(
@@ -142,6 +132,12 @@ try {
     `    ${colors.yellow}"/ip4/127.0.0.1/tcp/${node2Port}/ws/p2p/${peer2}"${colors.reset}\n`
   );
   process.stdout.write(`  ],\n`);
+  process.stdout.write(`  numPeersToUse: ${colors.cyan}2${colors.reset},\n`);
+  process.stdout.write(`  libp2p: {\n`);
+  process.stdout.write(
+    `    filterMultiaddrs: ${colors.cyan}false${colors.reset}\n`
+  );
+  process.stdout.write(`  },\n`);
   process.stdout.write(`  networkConfig: {\n`);
   process.stdout.write(
     `    clusterId: ${colors.cyan}${clusterId}${colors.reset},\n`
