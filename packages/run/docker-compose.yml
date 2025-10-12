@@ -27,6 +27,7 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -77,7 +78,7 @@ services:
       - --rest-address=0.0.0.0
       - --rest-port=8646
       - --rest-admin=true
-      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/postgres
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/nwaku1
       - --log-level=${LOG_LEVEL:-INFO}
       - --max-connections=150
 
@@ -126,7 +127,7 @@ services:
       - --rest-address=0.0.0.0
       - --rest-port=8647
       - --rest-admin=true
-      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/postgres
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/nwaku2
       - --log-level=${LOG_LEVEL:-INFO}
       - --max-connections=150
 

@@ -27,6 +27,7 @@
   "files": [
     "dist",
     "docker-compose.yml",
+    "init-db.sh",
     "README.md"
   ],
   "scripts": {
