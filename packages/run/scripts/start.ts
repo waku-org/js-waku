@@ -99,7 +99,7 @@ try {
   // Check and pull images if needed
   checkAndPullImages();
 
-  // Start docker compose quietly
+  // Start docker compose from package root
   execSync("docker compose up -d", {
     cwd: packageRoot,
     stdio: ["ignore", "ignore", "pipe"],
@@ -162,14 +162,19 @@ try {
   process.stdout.write(`});\n`);
   process.stdout.write(`\n`);
   process.stdout.write(`${colors.gray}Management:${colors.reset}\n`);
+
+  // Detect if running via npx (published package) or npm run (development)
+  const isPublished = __dirname.includes("dist");
+  const cmdPrefix = isPublished ? "npx @waku/run" : "npm run";
+
   process.stdout.write(
-    `  ${colors.cyan}npm run logs${colors.reset}  - View logs\n`
+    `  ${colors.cyan}${cmdPrefix} logs${colors.reset}  - View logs\n`
   );
   process.stdout.write(
-    `  ${colors.cyan}npm run info${colors.reset}  - Show config again\n`
+    `  ${colors.cyan}${cmdPrefix} info${colors.reset}  - Show config again\n`
   );
   process.stdout.write(
-    `  ${colors.cyan}npm run stop${colors.reset}  - Stop network\n`
+    `  ${colors.cyan}${cmdPrefix} stop${colors.reset}  - Stop network\n`
   );
 } catch (error: unknown) {
   const err = error as { cause?: { code?: string }; message?: string };

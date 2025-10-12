@@ -27,7 +27,6 @@
   "files": [
     "dist",
     "docker-compose.yml",
-    ".env.example",
     "README.md"
   ],
   "scripts": {
