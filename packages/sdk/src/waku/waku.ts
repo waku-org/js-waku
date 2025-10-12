@@ -20,6 +20,7 @@ import type {
   IStore,
   IWaku,
   IWakuEventEmitter,
+  IWebRTC,
   Libp2p,
   NetworkConfig
 } from "@waku/interfaces";
@@ -35,6 +36,7 @@ import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
+import { WebRTC } from "../webrtc/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
@@ -52,6 +54,7 @@ export class WakuNode implements IWaku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
+  public webRTC?: IWebRTC;
 
   public readonly events: IWakuEventEmitter = new TypedEventEmitter();
 
@@ -123,6 +126,21 @@ export class WakuNode implements IWaku {
         libp2p,
         peerManager: this.peerManager,
         options: options.filter
+      });
+    }
+
+    if (this.lightPush && this.filter) {
+      const webRtcContentTopic = WebRTC.buildContentTopic(this.libp2p.peerId);
+
+      this.webRTC = new WebRTC({
+        lightPush: this.lightPush,
+        filter: this.filter,
+        encoder: this.createEncoder({
+          contentTopic: webRtcContentTopic
+        }),
+        decoder: this.createDecoder({
+          contentTopic: webRtcContentTopic
+        })
       });
     }
 

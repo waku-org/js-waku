@@ -1,1 +1,1 @@
-export WebRTC from "./webrtc.js";
+export { WebRTC } from "./webrtc.js";
