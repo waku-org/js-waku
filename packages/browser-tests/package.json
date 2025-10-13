@@ -17,7 +17,7 @@
     "docker:build": "docker build -t waku-browser-tests:local . && docker tag waku-browser-tests:local waku-browser-tests:latest"
   },
   "dependencies": {
-    "@playwright/test": "^1.51.1",
+    "@playwright/test": "^1.56.0",
     "@waku/discovery": "^0.0.11",
     "@waku/interfaces": "^0.0.33",
     "@waku/sdk": "^0.0.34",
