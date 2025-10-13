@@ -206,3 +206,105 @@ export function createDecoder(
 ): Decoder {
   return new Decoder(contentTopic, routingInfo, symKey);
 }
+
+/**
+ * Result of decrypting a message with AES symmetric encryption.
+ */
+export interface SymmetricDecryptionResult {
+  /** The decrypted payload */
+  payload: Uint8Array;
+  /** The signature if the message was signed */
+  signature?: Uint8Array;
+  /** The recovered public key if the message was signed */
+  signaturePublicKey?: Uint8Array;
+}
+
+/**
+ * AES symmetric encryption.
+ *
+ *
+ * Follows [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/) encryption standard.
+ */
+export class SymmetricEncryption {
+  /**
+   * Creates an AES Symmetric encryption instance.
+   *
+   * @param symKey - The symmetric key for encryption (32 bytes recommended)
+   * @param sigPrivKey - Optional private key to sign messages before encryption
+   */
+  public constructor(
+    private symKey: Uint8Array,
+    private sigPrivKey?: Uint8Array
+  ) {}
+
+  /**
+   * Encrypts a byte array payload.
+   *
+   * The encryption process:
+   * 1. Optionally signs the payload with the private key
+   * 2. Adds padding to obscure payload size
+   * 3. Encrypts using AES-256-GCM
+   *
+   * @param payload - The data to encrypt
+   * @returns The encrypted payload
+   */
+  public async encrypt(payload: Uint8Array): Promise<Uint8Array> {
+    const preparedPayload = await preCipher(payload, this.sigPrivKey);
+    return encryptSymmetric(preparedPayload, this.symKey);
+  }
+}
+
+/**
+ * AES symmetric decryption.
+ *
+ * Follows [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/) encryption standard.
+ */
+export class SymmetricDecryption {
+  /**
+   * Creates an AES Symmetric decryption instance.
+   *
+   * @param symKey - The symmetric key for decryption (must match encryption key)
+   */
+  public constructor(private symKey: Uint8Array) {}
+
+  /**
+   * Decrypts an encrypted byte array payload.
+   *
+   * The decryption process:
+   * 1. Decrypts using AES-256-GCM
+   * 2. Removes padding
+   * 3. Verifies and recovers signature if present
+   *
+   * @param encryptedPayload - The encrypted data (from [[SymmetricEncryption.encrypt]])
+   * @returns Object containing the decrypted payload and signature info, or undefined if decryption fails
+   */
+  public async decrypt(
+    encryptedPayload: Uint8Array
+  ): Promise<SymmetricDecryptionResult | undefined> {
+    try {
+      const decryptedData = await decryptSymmetric(
+        encryptedPayload,
+        this.symKey
+      );
+
+      if (!decryptedData) {
+        return undefined;
+      }
+
+      const result = postCipher(decryptedData);
+
+      if (!result) {
+        return undefined;
+      }
+
+      return {
+        payload: result.payload,
+        signature: result.sig?.signature,
+        signaturePublicKey: result.sig?.publicKey
+      };
+    } catch (error) {
+      log.error("Failed to decrypt payload", error);
+      return undefined;
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { TypedEventEmitter } from "@libp2p/interface";
 import { messageHash } from "@waku/core";
 import {
-  type Callback,
+  type ContentTopic,
   type IDecodedMessage,
   type IDecoder,
   type IEncoder,
@@ -23,6 +23,7 @@ import {
   SyncMessage
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
+import { bytesToHex } from "@waku/utils/bytes";
 
 import {
   QueryOnConnect,
@@ -131,10 +132,7 @@ export class ReliableChannel<
     sendOptions?: ISendOptions
   ) => Promise<LightPushSDKResult>;
 
-  private readonly _subscribe: (
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ) => Promise<boolean>;
+  private readonly _subscribe: (contentTopics: ContentTopic[]) => void;
 
   private readonly _retrieve?: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
@@ -156,6 +154,7 @@ export class ReliableChannel<
     public node: IWaku,
     public messageChannel: MessageChannel,
     private encoder: IEncoder,
+    // TODO: remove once _retrieve is aligned
     private decoder: IDecoder<T>,
     options?: ReliableChannelOptions
   ) {
@@ -168,15 +167,7 @@ export class ReliableChannel<
       throw "No protocol available to send messages";
     }
 
-    if (node.filter) {
-      this._subscribe = node.filter.subscribe.bind(node.filter);
-    } else if (node.relay) {
-      // TODO: Why do relay and filter have different interfaces?
-      //  this._subscribe = node.relay.subscribeWithUnsubscribe;
-      throw "Not implemented";
-    } else {
-      throw "No protocol available to receive messages";
-    }
+    this._subscribe = node.subscribe.bind(node);
 
     if (node.store) {
       this._retrieve = node.store.queryGenerator.bind(node.store);
@@ -220,7 +211,7 @@ export class ReliableChannel<
         options?.retrieveFrequencyMs,
         this._retrieve,
         async (msg: T) => {
-          await this.processIncomingMessage(msg);
+          await this.processIncomingMessage(msg.payload);
         }
       );
     }
@@ -280,7 +271,7 @@ export class ReliableChannel<
 
     const autoStart = options?.autoStart ?? true;
     if (autoStart) {
-      await messageChannel.start();
+      messageChannel.start();
     }
 
     return messageChannel;
@@ -324,10 +315,11 @@ export class ReliableChannel<
 
         const messageId = ReliableChannel.getMessageId(messagePayload);
 
-        // TODO: should the encoder give me the message hash?
-        // Encoding now to fail early, used later to get message hash
-        const protoMessage = await this.encoder.toProtoObj(wakuMessage);
-        if (!protoMessage) {
+        const retrievalHint = await computeRetrievalHint(
+          messagePayload,
+          this.encoder
+        );
+        if (!retrievalHint) {
           this.safeSendEvent("sending-message-irrecoverable-error", {
             detail: {
               messageId: messageId,
@@ -336,10 +328,6 @@ export class ReliableChannel<
           });
           return { success: false };
         }
-        const retrievalHint = messageHash(
-          this.encoder.pubsubTopic,
-          protoMessage
-        );
 
         this.safeSendEvent("sending-message", {
           detail: messageId
@@ -381,11 +369,14 @@ export class ReliableChannel<
       });
   }
 
-  private async subscribe(): Promise<boolean> {
+  private subscribe(): void {
     this.assertStarted();
-    return this._subscribe(this.decoder, async (message: T) => {
-      await this.processIncomingMessage(message);
-    });
+    this.node.messageEmitter.addEventListener(
+      this.decoder.contentTopic,
+      (event) => void this.processIncomingMessage(event.detail)
+    );
+
+    this._subscribe([this.decoder.contentTopic]);
   }
 
   /**
@@ -393,14 +384,12 @@ export class ReliableChannel<
    * @param msg
    * @private
    */
-  private async processIncomingMessage<T extends IDecodedMessage>(
-    msg: T
-  ): Promise<void> {
+  private async processIncomingMessage(payload: Uint8Array): Promise<void> {
     // New message arrives, we need to unwrap it first
-    const sdsMessage = SdsMessage.decode(msg.payload);
+    const sdsMessage = SdsMessage.decode(payload);
 
     if (!sdsMessage) {
-      log.error("could not SDS decode message", msg);
+      log.error("could not SDS decode message");
       return;
     }
 
@@ -412,8 +401,14 @@ export class ReliableChannel<
       return;
     }
 
-    const retrievalHint = msg.hash;
-    log.info(`processing message ${sdsMessage.messageId}:${msg.hashStr}`);
+    const retrievalHint = await computeRetrievalHint(payload, this.encoder);
+    if (!retrievalHint) {
+      log.error("could not compute retrieval hint");
+      return;
+    }
+    log.info(
+      `processing message ${sdsMessage.messageId}:${bytesToHex(retrievalHint)}`
+    );
     // SDS Message decoded, let's pass it to the channel so we can learn about
     // missing messages or the status of previous outgoing messages
     this.messageChannel.pushIncomingMessage(sdsMessage, retrievalHint);
@@ -422,25 +417,8 @@ export class ReliableChannel<
 
     if (sdsMessage.content && sdsMessage.content.length > 0) {
       // Now, process the message with callback
-
-      // Overrides msg.payload with unwrapped payload
-      // TODO: can we do better?
-      const { payload: _p, ...allButPayload } = msg;
-      const unwrappedMessage = Object.assign(allButPayload, {
-        payload: sdsMessage.content,
-        hash: msg.hash,
-        hashStr: msg.hashStr,
-        version: msg.version,
-        contentTopic: msg.contentTopic,
-        pubsubTopic: msg.pubsubTopic,
-        timestamp: msg.timestamp,
-        rateLimitProof: msg.rateLimitProof,
-        ephemeral: msg.ephemeral,
-        meta: msg.meta
-      });
-
       this.safeSendEvent("message-received", {
-        detail: unwrappedMessage as unknown as T
+        detail: sdsMessage.content
       });
     }
 
@@ -451,7 +429,7 @@ export class ReliableChannel<
     messages: T[]
   ): Promise<void> {
     for (const message of messages) {
-      await this.processIncomingMessage(message);
+      await this.processIncomingMessage(message.payload);
     }
   }
 
@@ -472,8 +450,8 @@ export class ReliableChannel<
     }
   }
 
-  public async start(): Promise<boolean> {
-    if (this._started) return true;
+  public start(): void {
+    if (this._started) return;
     this._started = true;
     this.setupEventListeners();
     this.restartSync();
@@ -482,7 +460,7 @@ export class ReliableChannel<
       this.missingMessageRetriever?.start();
       this.queryOnConnect?.start();
     }
-    return this.subscribe();
+    this.subscribe();
   }
 
   public stop(): void {
@@ -688,4 +666,17 @@ export class ReliableChannel<
       );
     }
   }
+}
+
+async function computeRetrievalHint(
+  payload: Uint8Array,
+  encoder: IEncoder
+): Promise<Uint8Array | undefined> {
+  // TODO: should the encoder give me the message hash?
+  // Encoding now to fail early, used later to get message hash
+  const protoMessage = await encoder.toProtoObj({ payload });
+  if (!protoMessage) {
+    return undefined;
+  }
+  return messageHash(encoder.pubsubTopic, protoMessage);
 }

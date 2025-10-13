@@ -105,6 +105,7 @@ export interface IEncoder {
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
   pubsubTopic: PubsubTopic;
+  routingInfo: IRoutingInfo;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubsubTopic: string,
