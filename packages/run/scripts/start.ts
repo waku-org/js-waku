@@ -168,6 +168,9 @@ try {
   const cmdPrefix = isPublished ? "npx @waku/run" : "npm run";
 
   process.stdout.write(
+    `  ${colors.cyan}${cmdPrefix} test${colors.reset}  - Test network with a message\n`
+  );
+  process.stdout.write(
     `  ${colors.cyan}${cmdPrefix} logs${colors.reset}  - View logs\n`
   );
   process.stdout.write(

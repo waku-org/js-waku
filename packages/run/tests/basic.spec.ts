@@ -1,17 +1,14 @@
 import { execSync } from "child_process";
 
-import { createEncoder } from "@waku/core";
-import type { LightNode } from "@waku/interfaces";
-import { createLightNode, Protocols } from "@waku/sdk";
-import { createRoutingInfo } from "@waku/utils";
+import { Protocols } from "@waku/sdk";
 import { expect } from "chai";
 
-import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import { WakuTestClient } from "../src/test-client.js";
 
 describe("Waku Run - Basic Test", function () {
   this.timeout(90000);
 
-  let waku: LightNode;
+  let client: WakuTestClient;
 
   before(async function () {
     // Step 1: Start the nodes
@@ -65,8 +62,8 @@ describe("Waku Run - Basic Test", function () {
 
   after(async function () {
     // Step 4: Stop the nodes
-    if (waku) {
-      await waku.stop();
+    if (client) {
+      await client.stop();
     }
     execSync("docker compose down", {
       stdio: "inherit"
@@ -74,59 +71,29 @@ describe("Waku Run - Basic Test", function () {
   });
 
   it("should connect to both nodes and send lightpush message to both peers", async function () {
-    // Step 2: Connect to nodes via js-waku
-    const node1Port = process.env.NODE1_WS_PORT || "60000";
-    const node2Port = process.env.NODE2_WS_PORT || "60001";
-
-    // Static peer IDs from --nodekey configuration
-    // cspell:ignore nodekey
-    const peer1 = NODE1_PEER_ID;
-    const peer2 = NODE2_PEER_ID;
-
-    const networkConfig = {
-      clusterId: 0,
-      numShardsInCluster: 8
-    };
-
-    waku = await createLightNode({
-      defaultBootstrap: false,
-      bootstrapPeers: [
-        `/ip4/127.0.0.1/tcp/${node1Port}/ws/p2p/${peer1}`,
-        `/ip4/127.0.0.1/tcp/${node2Port}/ws/p2p/${peer2}`
-      ],
-      networkConfig,
-      numPeersToUse: 2, // Use both peers for sending
-      libp2p: {
-        filterMultiaddrs: false
-      }
+    // Step 2: Connect to nodes via js-waku using WakuTestClient
+    client = new WakuTestClient({
+      contentTopic: "/test/1/basic/proto"
     });
 
-    await waku.start();
+    await client.start();
 
     // Wait for both peers to be connected
-    await waku.waitForPeers([Protocols.LightPush]);
-
-    // Verify we're connected to both peers
-    const connectedPeers = waku.libp2p.getPeers();
-    expect(connectedPeers.length).to.equal(
+    await client.waku!.waitForPeers([Protocols.LightPush]);
+    const connectedPeers = client.waku!.libp2p.getPeers().length;
+    expect(connectedPeers).to.equal(
       2,
       "Should be connected to both nwaku nodes"
     );
 
     // Step 3: Send lightpush message - it should be sent to both peers
-    const contentTopic = "/test/1/basic/proto";
-    const routingInfo = createRoutingInfo(networkConfig, { contentTopic });
-    const encoder = createEncoder({ contentTopic, routingInfo });
+    const result = await client.sendTestMessage("Hello Waku!");
 
-    const result = await waku.lightPush.send(encoder, {
-      payload: new TextEncoder().encode("Hello Waku!")
-    });
-
-    // With numPeersToUse=2, the message should be sent to both peers
-    expect(result.successes.length).to.equal(
+    expect(result.success).to.be.true;
+    expect(result.messagesSent).to.equal(
       2,
       "Message should be sent to both peers"
     );
-    expect(result.failures?.length || 0).to.equal(0, "Should have no failures");
+    expect(result.failures).to.equal(0, "Should have no failures");
   });
 });

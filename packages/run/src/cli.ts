@@ -13,7 +13,8 @@ const scriptMap: Record<string, string> = {
   start: join(__dirname, "..", "scripts", "start.js"),
   stop: join(__dirname, "..", "scripts", "stop.js"),
   info: join(__dirname, "..", "scripts", "info.js"),
-  logs: join(__dirname, "..", "scripts", "logs.js")
+  logs: join(__dirname, "..", "scripts", "logs.js"),
+  test: join(__dirname, "..", "scripts", "test.js")
 };
 
 if (!command || !scriptMap[command]) {
@@ -24,6 +25,7 @@ if (!command || !scriptMap[command]) {
   process.stderr.write("  stop     Stop the local Waku network\n");
   process.stderr.write("  info     Show connection info for running network\n");
   process.stderr.write("  logs     View logs from running network\n");
+  process.stderr.write("  test     Test the network by sending a message\n");
   process.exit(1);
 }
 
