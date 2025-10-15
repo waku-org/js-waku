@@ -18,8 +18,8 @@ import {
   MessageChannel,
   MessageChannelEvent,
   type MessageChannelOptions,
+  type ParticipantId,
   Message as SdsMessage,
-  type SenderId,
   SyncMessage
 } from "@waku/sds";
 import { Logger } from "@waku/utils";
@@ -304,7 +304,7 @@ export class ReliableChannel<
   public static async create<T extends IDecodedMessage>(
     node: IWaku,
     channelId: ChannelId,
-    senderId: SenderId,
+    senderId: ParticipantId,
     encoder: IEncoder,
     decoder: IDecoder<T>,
     options?: ReliableChannelOptions
