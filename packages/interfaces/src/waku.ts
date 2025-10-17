@@ -14,7 +14,7 @@ import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
 import { ContentTopic } from "./misc.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
-import type { ShardId } from "./sharding.js";
+import type { IRoutingInfo, ShardId } from "./sharding.js";
 import type { IStore } from "./store.js";
 
 export type CreateDecoderParams = {
@@ -68,7 +68,10 @@ export interface IWakuEvents {
 }
 
 export interface IMessageEmitterEvents {
-  [contentTopic: string]: CustomEvent<Uint8Array>;
+  [contentTopic: string]: CustomEvent<{
+    payload: Uint8Array;
+    messageHash: Uint8Array;
+  }>;
 }
 
 export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
@@ -252,6 +255,8 @@ export interface IWaku {
    * ```
    */
   createDecoder(params: CreateDecoderParams): IDecoder<IDecodedMessage>;
+
+  createRoutingInfo(contentTopic?: string, shardId?: number): IRoutingInfo;
 
   /**
    * Creates an encoder for Waku messages on a specific content topic.

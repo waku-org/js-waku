@@ -326,7 +326,7 @@ export class WakuNode implements IWaku {
     });
   }
 
-  private createRoutingInfo(
+  public createRoutingInfo(
     contentTopic?: string,
     shardId?: number
   ): IRoutingInfo {
