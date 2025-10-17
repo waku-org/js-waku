@@ -1,1 +1,5 @@
-export { messageHash, messageHashStr } from "./message_hash.js";
+export {
+  messageHash,
+  messageHashStr,
+  deterministicMessageHashing
+} from "./message_hash.js";
