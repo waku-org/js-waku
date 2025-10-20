@@ -5,11 +5,13 @@ import { fileURLToPath } from "url";
 import { Browser, chromium, expect, Page, test } from "@playwright/test";
 
 import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import { getProjectName } from "../src/utils.js";
 
 import { startTestServer, stopTestServer } from "./test-server.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const packageRoot = join(__dirname, "..");
 
 test.describe.configure({ mode: "serial" });
 
@@ -24,9 +26,11 @@ test.describe("Waku Run - Browser Test", () => {
     await startTestServer(testPort);
 
     // Start docker compose
-    execSync("docker compose up -d", {
+    const projectName = getProjectName(packageRoot);
+    execSync(`docker compose --project-name ${projectName} up -d`, {
       stdio: "inherit",
-      cwd: join(__dirname, "..")
+      cwd: packageRoot,
+      env: { ...process.env, COMPOSE_PROJECT_NAME: projectName }
     });
 
     // Wait for nodes to be ready
@@ -100,9 +104,11 @@ test.describe("Waku Run - Browser Test", () => {
       await browser.close();
     }
 
-    execSync("docker compose down", {
+    const projectName = getProjectName(packageRoot);
+    execSync(`docker compose --project-name ${projectName} down`, {
       stdio: "inherit",
-      cwd: join(__dirname, "..")
+      cwd: packageRoot,
+      env: { ...process.env, COMPOSE_PROJECT_NAME: projectName }
     });
 
     await stopTestServer();

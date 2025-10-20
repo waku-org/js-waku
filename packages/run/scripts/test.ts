@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { Protocols } from "@waku/sdk";
 
 import { WakuTestClient } from "../src/test-client.js";
+import { getProjectName } from "../src/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,10 +39,15 @@ async function main(): Promise<void> {
 
   try {
     // Check if containers are running
-    const output: string = execSync("docker compose ps --quiet", {
-      cwd: packageRoot,
-      encoding: "utf-8"
-    }).trim();
+    const projectName = getProjectName(packageRoot);
+    const output: string = execSync(
+      `docker compose --project-name ${projectName} ps --quiet`,
+      {
+        cwd: packageRoot,
+        encoding: "utf-8",
+        env: { ...process.env, COMPOSE_PROJECT_NAME: projectName }
+      }
+    ).trim();
 
     if (!output) {
       process.stderr.write(

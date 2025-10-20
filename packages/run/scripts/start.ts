@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import { getProjectName } from "../src/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -100,10 +101,12 @@ try {
   checkAndPullImages();
 
   // Start docker compose from package root
-  execSync("docker compose up -d", {
+  const projectName = getProjectName(packageRoot);
+  execSync(`docker compose --project-name ${projectName} up -d`, {
     cwd: packageRoot,
     stdio: ["ignore", "ignore", "pipe"],
-    encoding: "utf-8"
+    encoding: "utf-8",
+    env: { ...process.env, COMPOSE_PROJECT_NAME: projectName }
   });
 
   // Wait for nodes to be ready

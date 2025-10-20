@@ -37,7 +37,7 @@ services:
 
   nwaku-1:
     <<: *nwaku-base
-    container_name: waku-local-node-1
+    container_name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-node-1
     networks:
       default:
         ipv4_address: 172.20.0.10
@@ -84,7 +84,7 @@ services:
 
   nwaku-2:
     <<: *nwaku-base
-    container_name: waku-local-node-2
+    container_name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-node-2
     networks:
       default:
         ipv4_address: 172.20.0.11
@@ -136,7 +136,7 @@ volumes:
 
 networks:
   default:
-    name: waku-local-network
+    name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-network
     ipam:
       config:
         - subnet: 172.20.0.0/16

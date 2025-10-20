@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import { getProjectName } from "../src/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,10 +34,15 @@ const colors: Colors = {
 
 try {
   // Check if containers are running
-  const output: string = execSync("docker compose ps --quiet", {
-    cwd: packageRoot,
-    encoding: "utf-8"
-  }).trim();
+  const projectName = getProjectName(packageRoot);
+  const output: string = execSync(
+    `docker compose --project-name ${projectName} ps --quiet`,
+    {
+      cwd: packageRoot,
+      encoding: "utf-8",
+      env: { ...process.env, COMPOSE_PROJECT_NAME: projectName }
+    }
+  ).trim();
 
   if (!output) {
     process.stdout.write(
