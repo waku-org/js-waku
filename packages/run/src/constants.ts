@@ -19,3 +19,11 @@ export const NODE2_PEER_ID =
 // Static IP addresses (from docker-compose.yml network configuration)
 export const NODE1_IP = "172.20.0.10";
 export const NODE2_IP = "172.20.0.11";
+
+// Default WebSocket ports for local nodes
+export const DEFAULT_NODE1_WS_PORT = "60000";
+export const DEFAULT_NODE2_WS_PORT = "60001";
+
+// Default REST API ports for local nodes
+export const DEFAULT_NODE1_REST_PORT = "8646";
+export const DEFAULT_NODE2_REST_PORT = "8647";

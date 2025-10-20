@@ -4,13 +4,16 @@ import { execSync } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import {
+  DEFAULT_NODE1_WS_PORT,
+  DEFAULT_NODE2_WS_PORT,
+  NODE1_PEER_ID,
+  NODE2_PEER_ID
+} from "../src/constants.js";
 import { getProjectName } from "../src/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// In development: scripts are in packages/run/scripts
-// In published package: scripts are in node_modules/@waku/run/dist/scripts
 const packageRoot = __dirname.includes("dist")
   ? join(__dirname, "..", "..")
   : join(__dirname, "..");
@@ -114,8 +117,8 @@ try {
 
   // Get cluster config from env or defaults
   const clusterId: string = process.env.CLUSTER_ID || "0";
-  const node1Port: string = process.env.NODE1_WS_PORT || "60000";
-  const node2Port: string = process.env.NODE2_WS_PORT || "60001";
+  const node1Port: string = process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT;
+  const node2Port: string = process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT;
 
   // Static peer IDs from --nodekey configuration
   // cspell:ignore nodekey

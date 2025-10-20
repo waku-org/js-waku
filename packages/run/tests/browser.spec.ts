@@ -4,7 +4,14 @@ import { fileURLToPath } from "url";
 
 import { Browser, chromium, expect, Page, test } from "@playwright/test";
 
-import { NODE1_PEER_ID, NODE2_PEER_ID } from "../src/constants.js";
+import {
+  DEFAULT_NODE1_REST_PORT,
+  DEFAULT_NODE1_WS_PORT,
+  DEFAULT_NODE2_REST_PORT,
+  DEFAULT_NODE2_WS_PORT,
+  NODE1_PEER_ID,
+  NODE2_PEER_ID
+} from "../src/constants.js";
 import { getProjectName } from "../src/utils.js";
 
 import { startTestServer, stopTestServer } from "./test-server.js";
@@ -40,8 +47,12 @@ test.describe("Waku Run - Browser Test", () => {
 
     for (let i = 0; i < maxRetries; i++) {
       try {
-        await fetch("http://127.0.0.1:8646/debug/v1/info");
-        await fetch("http://127.0.0.1:8647/debug/v1/info");
+        await fetch(
+          `http://127.0.0.1:${DEFAULT_NODE1_REST_PORT}/debug/v1/info`
+        );
+        await fetch(
+          `http://127.0.0.1:${DEFAULT_NODE2_REST_PORT}/debug/v1/info`
+        );
         ready = true;
         break;
       } catch {
@@ -117,8 +128,8 @@ test.describe("Waku Run - Browser Test", () => {
   test("should initialize Waku node in browser", async () => {
     test.setTimeout(120000);
 
-    const node1Port = process.env.NODE1_WS_PORT || "60000";
-    const node2Port = process.env.NODE2_WS_PORT || "60001";
+    const node1Port = process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT;
+    const node2Port = process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT;
 
     // Static peer IDs from --nodekey configuration
     // cspell:ignore nodekey

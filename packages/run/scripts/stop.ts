@@ -8,8 +8,6 @@ import { getProjectName } from "../src/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// In development: scripts are in packages/run/scripts
-// In published package: scripts are in node_modules/@waku/run/dist/scripts
 const packageRoot = __dirname.includes("dist")
   ? join(__dirname, "..", "..")
   : join(__dirname, "..");

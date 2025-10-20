@@ -3,7 +3,12 @@ import type { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { createRoutingInfo } from "@waku/utils";
 
-import { NODE1_PEER_ID, NODE2_PEER_ID } from "./constants.js";
+import {
+  DEFAULT_NODE1_WS_PORT,
+  DEFAULT_NODE2_WS_PORT,
+  NODE1_PEER_ID,
+  NODE2_PEER_ID
+} from "./constants.js";
 
 export interface WakuTestClientOptions {
   node1Port?: string;
@@ -27,8 +32,10 @@ export class WakuTestClient {
 
   public constructor(options: WakuTestClientOptions = {}) {
     this.options = {
-      node1Port: options.node1Port || process.env.NODE1_WS_PORT || "60000",
-      node2Port: options.node2Port || process.env.NODE2_WS_PORT || "60001",
+      node1Port:
+        options.node1Port || process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT,
+      node2Port:
+        options.node2Port || process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT,
       clusterId: options.clusterId ?? 0,
       numShardsInCluster: options.numShardsInCluster ?? 8,
       contentTopic: options.contentTopic || "/waku-run/1/test/proto"

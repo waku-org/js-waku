@@ -5,6 +5,10 @@ import { fileURLToPath } from "url";
 import { Protocols } from "@waku/sdk";
 import { expect } from "chai";
 
+import {
+  DEFAULT_NODE1_REST_PORT,
+  DEFAULT_NODE2_REST_PORT
+} from "../src/constants.js";
 import { WakuTestClient } from "../src/test-client.js";
 import { getProjectName } from "../src/utils.js";
 
@@ -33,8 +37,12 @@ describe("Waku Run - Basic Test", function () {
 
     for (let i = 0; i < maxRetries; i++) {
       try {
-        await fetch("http://127.0.0.1:8646/debug/v1/info");
-        await fetch("http://127.0.0.1:8647/debug/v1/info");
+        await fetch(
+          `http://127.0.0.1:${DEFAULT_NODE1_REST_PORT}/debug/v1/info`
+        );
+        await fetch(
+          `http://127.0.0.1:${DEFAULT_NODE2_REST_PORT}/debug/v1/info`
+        );
         ready = true;
         break;
       } catch {
@@ -52,9 +60,9 @@ describe("Waku Run - Basic Test", function () {
     let connected = false;
     for (let i = 0; i < 15; i++) {
       try {
-        const peers = await fetch("http://127.0.0.1:8646/admin/v1/peers").then(
-          (r) => r.json()
-        );
+        const peers = await fetch(
+          `http://127.0.0.1:${DEFAULT_NODE1_REST_PORT}/admin/v1/peers`
+        ).then((r) => r.json());
         if (peers.length > 0 && peers[0].connected === "Connected") {
           connected = true;
           break;
