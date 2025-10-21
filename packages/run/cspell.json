@@ -1,27 +1,11 @@
 {
   "version": "0.2",
-  "language": "en",
+  "import": ["../../.cspell.json"],
   "words": [
     "hackathons",
-    "hackathon",
-    "waku",
-    "Waku",
-    "nwaku",
-    "wakuorg",
-    "dockerode",
-    "multiaddr",
-    "multiaddrs",
-    "libp2p",
-    "pubsub",
-    "gossipsub",
-    "lightpush",
-    "Lightpush",
-    "psql",
     "isready"
   ],
   "ignorePaths": [
-    "node_modules",
-    "dist",
     "*.log"
   ]
 }
