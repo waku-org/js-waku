@@ -28,7 +28,7 @@
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/core#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/waku-org/js-waku.git"
+    "url": "git+https://github.com/waku-org/js-waku.git"
   },
   "bugs": {
     "url": "https://github.com/waku-org/js-waku/issues"
