@@ -24,7 +24,7 @@ on:
         default: false
 
 env:
-  NODE_JS: "22"
+  NODE_JS: "24"
   # Ensure test type conditions remain consistent.
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
   DEBUG: ${{ inputs.debug }}
@@ -42,7 +42,7 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
 
       - name: Remove unwanted software
@@ -62,7 +62,7 @@ jobs:
 
       - name: Merge allure reports
         if: always() && env.ALLURE_REPORTS == 'true'
-        run: node ci/mergeAllureResults.cjs 
+        run: node ci/mergeAllureResults.cjs
 
       - name: Get allure history
         if: always() && env.ALLURE_REPORTS == 'true'

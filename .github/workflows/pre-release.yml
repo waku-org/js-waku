@@ -2,7 +2,7 @@ on:
     workflow_dispatch:
 
 env:
-  NODE_JS: "22"
+  NODE_JS: "24"
 
 permissions:
   id-token: write  # Required for npmjs' OIDC
@@ -22,10 +22,6 @@ jobs:
             with:
               node-version: ${{ env.NODE_JS }}
               registry-url: "https://registry.npmjs.org"
-
-          # Ensure npm 11.5.1 or later is installed
-          - name: Update npm
-            run: npm install -g npm@latest
 
           - run: npm install
 

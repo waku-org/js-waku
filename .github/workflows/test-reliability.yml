@@ -18,7 +18,7 @@ on:
           - all
 
 env:
-  NODE_JS: "22"
+  NODE_JS: "24"
 
 jobs:
   test:
@@ -34,7 +34,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' }}
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
 
       - name: Remove unwanted software
@@ -74,7 +74,7 @@ jobs:
     if: ${{ github.event.inputs.test_type != 'all' }}
     steps:
       - uses: actions/checkout@v3
-        with: 
+        with:
           repository: waku-org/js-waku
 
       - name: Remove unwanted software
