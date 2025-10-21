@@ -18,6 +18,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
+import { waitForEvent } from "./test_utils.js";
+
 import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
@@ -58,16 +60,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -146,16 +144,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannelAlice,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
@@ -165,10 +159,11 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Bob will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Bob will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannelBob.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
     // We should be faster than Bob as Bob will "randomly" wait a full second
@@ -219,16 +214,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannelAlice,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
@@ -238,10 +229,11 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Bob will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Bob will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannelBob.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
     // We should be faster than Bob as Bob will "randomly" wait a full second
@@ -273,16 +265,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -292,10 +280,11 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannel.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
     // We should be faster than automated sync as it will "randomly" wait a full second
@@ -327,16 +316,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -346,10 +331,11 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannel.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
     // We should be faster than automated sync as it will "randomly" wait a full second

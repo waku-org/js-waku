@@ -25,6 +25,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
+import { waitForEvent } from "./test_utils.js";
+
 import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
@@ -70,19 +72,15 @@ describe("Reliable Channel: Encryption", () => {
 
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
-    let messageSending = false;
-    reliableChannel.addEventListener("sending-message", (event) => {
-      if (event.detail === messageId) {
-        messageSending = true;
-      }
-    });
+
+    const sendingPromise = waitForEvent<string>(
+      reliableChannel,
+      "sending-message",
+      (id) => id === messageId
+    );
 
     reliableChannel.send(message);
-    while (!messageSending) {
-      await delay(50);
-    }
-
-    expect(messageSending).to.be.true;
+    await sendingPromise;
   });
 
   it("Outgoing message is emitted as sent", async () => {
@@ -98,19 +96,15 @@ describe("Reliable Channel: Encryption", () => {
 
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === messageId) {
-        messageSent = true;
-      }
-    });
+
+    const sentPromise = waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === messageId
+    );
 
     reliableChannel.send(message);
-    while (!messageSent) {
-      await delay(50);
-    }
-
-    expect(messageSent).to.be.true;
+    await sentPromise;
   });
 
   it("Encoder error raises irrecoverable error", async () => {
@@ -137,23 +131,16 @@ describe("Reliable Channel: Encryption", () => {
 
     // Setting up message tracking
     const messageId = ReliableChannel.getMessageId(message);
-    let irrecoverableError = false;
-    reliableChannel.addEventListener(
+
+    const errorPromise = waitForEvent<{ messageId: string; error: any }>(
+      reliableChannel,
       "sending-message-irrecoverable-error",
-      (event) => {
-        if (event.detail.messageId === messageId) {
-          irrecoverableError = true;
-        }
-      }
+      (detail) => detail.messageId === messageId
     );
 
     encoder.contentTopic = "...";
     reliableChannel.send(message);
-    while (!irrecoverableError) {
-      await delay(50);
-    }
-
-    expect(irrecoverableError).to.be.true;
+    await errorPromise;
   });
 
   it("Outgoing message is not emitted as acknowledged from own outgoing messages", async () => {
@@ -216,20 +203,20 @@ describe("Reliable Channel: Encryption", () => {
 
     // Alice sets up message tracking for first message
     const firstMessageId = ReliableChannel.getMessageId(messages[0]);
-    let firstMessagePossiblyAcknowledged = false;
-    reliableChannelAlice.addEventListener(
-      "message-possibly-acknowledged",
-      (event) => {
-        if (event.detail.messageId === firstMessageId) {
-          firstMessagePossiblyAcknowledged = true;
-        }
-      }
-    );
 
     let bobMessageReceived = 0;
     reliableChannelAlice.addEventListener("message-received", () => {
       bobMessageReceived++;
     });
+
+    const firstMessagePossiblyAckPromise = waitForEvent<{
+      messageId: string;
+      possibleAckCount: number;
+    }>(
+      reliableChannelAlice,
+      "message-possibly-acknowledged",
+      (detail) => detail.messageId === firstMessageId
+    );
 
     for (const m of messages) {
       reliableChannelAlice.send(m);
@@ -240,13 +227,9 @@ describe("Reliable Channel: Encryption", () => {
       await delay(50);
     }
 
-    // Bobs sends a message now, it should include first one in bloom filter
+    // Bob sends a message now, it should include first one in bloom filter
     reliableChannelBob.send(utf8ToBytes("message back"));
-    while (!firstMessagePossiblyAcknowledged) {
-      await delay(50);
-    }
-
-    expect(firstMessagePossiblyAcknowledged).to.be.true;
+    await firstMessagePossiblyAckPromise;
   });
 
   it("Outgoing message is acknowledged", async () => {
@@ -273,32 +256,26 @@ describe("Reliable Channel: Encryption", () => {
 
     // Alice sets up message tracking
     const messageId = ReliableChannel.getMessageId(message);
-    let messageAcknowledged = false;
-    reliableChannelAlice.addEventListener("message-acknowledged", (event) => {
-      if (event.detail === messageId) {
-        messageAcknowledged = true;
-      }
-    });
 
-    let bobReceivedMessage = false;
-    reliableChannelBob.addEventListener("message-received", () => {
-      bobReceivedMessage = true;
-    });
+    const bobReceivedPromise = waitForEvent<IDecodedMessage>(
+      reliableChannelBob,
+      "message-received"
+    );
+
+    const messageAcknowledgedPromise = waitForEvent<string>(
+      reliableChannelAlice,
+      "message-acknowledged",
+      (id) => id === messageId
+    );
 
     reliableChannelAlice.send(message);
 
     // Wait for Bob to receive the message
-    while (!bobReceivedMessage) {
-      await delay(50);
-    }
+    await bobReceivedPromise;
 
-    // Bobs sends a message now, it should include first one in causal history
+    // Bob sends a message now, it should include first one in causal history
     reliableChannelBob.send(utf8ToBytes("second message in channel"));
-    while (!messageAcknowledged) {
-      await delay(50);
-    }
-
-    expect(messageAcknowledged).to.be.true;
+    await messageAcknowledgedPromise;
   });
 
   it("Incoming message is emitted as received", async () => {
@@ -310,18 +287,16 @@ describe("Reliable Channel: Encryption", () => {
       decoder
     );
 
-    let receivedMessage: IDecodedMessage;
-    reliableChannel.addEventListener("message-received", (event) => {
-      receivedMessage = event.detail;
-    });
-
     const message = utf8ToBytes("message in channel");
 
-    reliableChannel.send(message);
-    while (!receivedMessage!) {
-      await delay(50);
-    }
+    const receivedPromise = waitForEvent<IDecodedMessage>(
+      reliableChannel,
+      "message-received"
+    );
 
-    expect(bytesToUtf8(receivedMessage!.payload)).to.eq(bytesToUtf8(message));
+    reliableChannel.send(message);
+    const receivedMessage = await receivedPromise;
+
+    expect(bytesToUtf8(receivedMessage.payload)).to.eq(bytesToUtf8(message));
   });
 });

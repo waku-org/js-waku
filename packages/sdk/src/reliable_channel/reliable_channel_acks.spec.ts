@@ -11,31 +11,9 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
+import { waitForEvent } from "./test_utils.js";
+
 import { ReliableChannel } from "./index.js";
-
-function waitForEvent<T>(
-  emitter: TypedEventEmitter<any>,
-  eventName: string,
-  predicate?: (detail: T) => boolean,
-  timeoutMs: number = 5000
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      emitter.removeEventListener(eventName, handler);
-      reject(new Error(`Timeout waiting for event: ${eventName}`));
-    }, timeoutMs);
-
-    const handler = (event: CustomEvent<T>): void => {
-      if (!predicate || predicate(event.detail)) {
-        clearTimeout(timeout);
-        emitter.removeEventListener(eventName, handler);
-        resolve(event.detail);
-      }
-    };
-
-    emitter.addEventListener(eventName, handler);
-  });
-}
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
 const TEST_NETWORK_CONFIG: AutoSharding = {
