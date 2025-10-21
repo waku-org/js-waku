@@ -4,25 +4,31 @@ on:
 env:
   NODE_JS: "22"
 
+permissions:
+  id-token: write  # Required for npmjs' OIDC
+  contents: read
+
 jobs:
     pre-release:
         name: pre-release
         runs-on: ubuntu-latest
         if: github.event_name == 'workflow_dispatch'
         steps:
-          - uses: actions/checkout@v3
-            with: 
+          - uses: actions/checkout@v4
+            with:
               repository: waku-org/js-waku
-    
-          - uses: actions/setup-node@v3
+
+          - uses: actions/setup-node@v4
             with:
               node-version: ${{ env.NODE_JS }}
               registry-url: "https://registry.npmjs.org"
-    
+
+          # Ensure npm 11.5.1 or later is installed
+          - name: Update npm
+            run: npm install -g npm@latest
+
           - run: npm install
-    
+
           - run: npm run build
-    
+
           - run: npm run publish -- --tag next
-            env:
-              NODE_AUTH_TOKEN: ${{ secrets.NPM_JS_WAKU_PUBLISH }}
