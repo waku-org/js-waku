@@ -114,7 +114,7 @@ describe("Reliable Channel: Sync", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
@@ -166,14 +166,14 @@ describe("Reliable Channel: Sync", () => {
     );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than Bob as Bob will "randomly" wait a full second
+    // We should be faster than Bob as Bob will "randomly" wait the full interval
     await reliableChannelAlice["sendSyncMessage"]();
 
-    // Bob should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // Bob should be waiting the full interval before sending a message after Alice
+    await delay(180);
 
     // Now, let's wait Bob to send the sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
@@ -184,7 +184,7 @@ describe("Reliable Channel: Sync", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
@@ -236,20 +236,20 @@ describe("Reliable Channel: Sync", () => {
     );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than Bob as Bob will "randomly" wait a full second
+    // We should be faster than Bob as Bob will "randomly" wait the full interval
     reliableChannelAlice.send(utf8ToBytes("some message"));
 
-    // Bob should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // Bob should be waiting the full interval before sending a message after Alice
+    await delay(180);
 
     // Now, let's wait Bob to send the sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
   it("Sync message is not sent if another sync message was just sent", async function () {
     this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannel = await ReliableChannel.create(
       mockWakuNode,
@@ -287,20 +287,20 @@ describe("Reliable Channel: Sync", () => {
     );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
+    // We should be faster than automated sync as it will "randomly" wait the full interval
     await reliableChannel["sendSyncMessage"]();
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // should be waiting the full interval before sending a message
+    await delay(180);
 
     // Now, let's wait to send the automated sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
   it("Sync message is not sent if another non-ephemeral message was just sent", async function () {
     this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannel = await ReliableChannel.create(
       mockWakuNode,
@@ -338,14 +338,14 @@ describe("Reliable Channel: Sync", () => {
     );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
+    // We should be faster than automated sync as it will "randomly" wait the full interval
     reliableChannel.send(utf8ToBytes("non-ephemeral message"));
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // should be waiting the full interval before sending a message
+    await delay(180);
 
     // Now, let's wait to send the automated sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
