@@ -4,8 +4,10 @@ import { createLightNode } from "@waku/sdk";
 import { createRoutingInfo } from "@waku/utils";
 
 import {
+  DEFAULT_CLUSTER_ID,
   DEFAULT_NODE1_WS_PORT,
   DEFAULT_NODE2_WS_PORT,
+  DEFAULT_NUM_SHARDS_IN_CLUSTER,
   NODE1_PEER_ID,
   NODE2_PEER_ID
 } from "./constants.js";
@@ -36,8 +38,9 @@ export class WakuTestClient {
         options.node1Port || process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT,
       node2Port:
         options.node2Port || process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT,
-      clusterId: options.clusterId ?? 0,
-      numShardsInCluster: options.numShardsInCluster ?? 8,
+      clusterId: options.clusterId ?? parseInt(DEFAULT_CLUSTER_ID),
+      numShardsInCluster:
+        options.numShardsInCluster ?? DEFAULT_NUM_SHARDS_IN_CLUSTER,
       contentTopic: options.contentTopic || "/waku-run/1/test/proto"
     };
   }

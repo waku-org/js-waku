@@ -27,3 +27,14 @@ export const DEFAULT_NODE2_WS_PORT = "60001";
 // Default REST API ports for local nodes
 export const DEFAULT_NODE1_REST_PORT = "8646";
 export const DEFAULT_NODE2_REST_PORT = "8647";
+
+// Docker images
+export const DEFAULT_NWAKU_IMAGE = "wakuorg/nwaku:v0.36.0";
+export const POSTGRES_IMAGE = "postgres:15.4-alpine3.18";
+
+// Timing configuration
+export const STARTUP_WAIT_MS = 20000; // Time to wait for nodes to start
+
+// Network configuration
+export const DEFAULT_CLUSTER_ID = "0";
+export const DEFAULT_NUM_SHARDS_IN_CLUSTER = 8;

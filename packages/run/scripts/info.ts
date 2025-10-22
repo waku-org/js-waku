@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import {
+  DEFAULT_CLUSTER_ID,
   DEFAULT_NODE1_WS_PORT,
   DEFAULT_NODE2_WS_PORT,
   NODE1_PEER_ID,
@@ -55,7 +56,7 @@ try {
   }
 
   // Get cluster config from env or defaults
-  const clusterId: string = process.env.CLUSTER_ID || "0";
+  const clusterId: string = process.env.CLUSTER_ID || DEFAULT_CLUSTER_ID;
   const node1Port: string = process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT;
   const node2Port: string = process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT;
 

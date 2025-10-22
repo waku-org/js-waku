@@ -1,6 +1,8 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
+import { DEFAULT_NUM_SHARDS_IN_CLUSTER } from "./constants.js";
+
 export function getProjectName(packageRoot: string): string {
   const packageJsonPath = join(packageRoot, "package.json");
   const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
@@ -54,7 +56,7 @@ export function printWakuConfig(
     `    clusterId: ${colors.cyan}${clusterId}${colors.reset},\n`
   );
   process.stdout.write(
-    `    numShardsInCluster: ${colors.cyan}8${colors.reset}\n`
+    `    numShardsInCluster: ${colors.cyan}${DEFAULT_NUM_SHARDS_IN_CLUSTER}${colors.reset}\n`
   );
   process.stdout.write(`  }\n`);
   process.stdout.write(`});\n`);

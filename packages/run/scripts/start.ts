@@ -5,10 +5,14 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import {
+  DEFAULT_CLUSTER_ID,
   DEFAULT_NODE1_WS_PORT,
   DEFAULT_NODE2_WS_PORT,
+  DEFAULT_NWAKU_IMAGE,
   NODE1_PEER_ID,
-  NODE2_PEER_ID
+  NODE2_PEER_ID,
+  POSTGRES_IMAGE,
+  STARTUP_WAIT_MS
 } from "../src/constants.js";
 import { getProjectName, printWakuConfig } from "../src/utils.js";
 
@@ -38,8 +42,8 @@ const colors: Colors = {
 };
 
 function checkAndPullImages(): void {
-  const nwakuImage = process.env.NWAKU_IMAGE || "wakuorg/nwaku:v0.36.0";
-  const postgresImage = "postgres:15.4-alpine3.18";
+  const nwakuImage = process.env.NWAKU_IMAGE || DEFAULT_NWAKU_IMAGE;
+  const postgresImage = POSTGRES_IMAGE;
   const images = [
     { name: nwakuImage, label: "nwaku" },
     { name: postgresImage, label: "postgres" }
@@ -113,10 +117,10 @@ try {
   });
 
   // Wait for nodes to be ready
-  await waitWithProgress(20000);
+  await waitWithProgress(STARTUP_WAIT_MS);
 
   // Get cluster config from env or defaults
-  const clusterId: string = process.env.CLUSTER_ID || "0";
+  const clusterId: string = process.env.CLUSTER_ID || DEFAULT_CLUSTER_ID;
   const node1Port: string = process.env.NODE1_WS_PORT || DEFAULT_NODE1_WS_PORT;
   const node2Port: string = process.env.NODE2_WS_PORT || DEFAULT_NODE2_WS_PORT;
 
