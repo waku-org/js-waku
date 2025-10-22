@@ -7,7 +7,7 @@
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/run#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/waku-org/js-waku.git"
+    "url": "git+https://github.com/waku-org/js-waku.git"
   },
   "bugs": {
     "url": "https://github.com/waku-org/js-waku/issues"
@@ -34,11 +34,11 @@
     "build": "tsc",
     "build:web": "esbuild web/index.ts --bundle --format=esm --platform=browser --outdir=dist/web && cp web/index.html dist/web/index.html",
     "prepublishOnly": "npm run build",
-    "start": "tsx scripts/start.ts",
-    "stop": "tsx scripts/stop.ts",
+    "start": "node dist/scripts/start.js",
+    "stop": "node dist/scripts/stop.js",
     "restart": "npm run stop && npm run start",
-    "logs": "tsx scripts/logs.ts",
-    "info": "tsx scripts/info.ts",
+    "logs": "node dist/scripts/logs.js",
+    "info": "node dist/scripts/info.js",
     "test": "if [ \"$CI\" = \"true\" ]; then echo 'Skipping tests in CI'; exit 0; fi && NODE_ENV=test node ./src/run-tests.js \"tests/basic.spec.ts\"",
     "test:browser": "if [ \"$CI\" = \"true\" ]; then echo 'Skipping browser tests in CI'; exit 0; fi && npm run build:web && npx playwright test --reporter=line",
     "fix": "run-s fix:*",
@@ -49,7 +49,7 @@
     "check:spelling": "cspell \"{README.md,src/**/*.ts,scripts/**/*.ts,tests/**/*.ts}\""
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "@waku/core": "*",
@@ -69,7 +69,6 @@
     "mocha": "^10.3.0",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
-    "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
 }
