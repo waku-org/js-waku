@@ -56,7 +56,7 @@
     "@types/chai-spies": "^1.0.6",
     "@waku/interfaces": "0.0.34",
     "@types/deep-equal-in-any-order": "^1.0.4",
-    "@types/lodash": "^4.17.15",
+    "@types/lodash": "^4.17.20",
     "@types/sinon": "^17.0.3",
     "@waku/build-utils": "^1.0.0",
     "@waku/message-encryption": "^0.0.37",
