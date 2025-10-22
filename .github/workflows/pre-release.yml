@@ -5,7 +5,7 @@ env:
   NODE_JS: "24"
 
 permissions:
-  id-token: write  # Required for npmjs' OIDC
+  id-token: write
   contents: read
 
 jobs:
@@ -28,3 +28,5 @@ jobs:
           - run: npm run build
 
           - run: npm run publish -- --tag next
+            env:
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_JS_WAKU_PUBLISH }}
