@@ -1,8 +1,0 @@
-# Package-specific ignores
-# (Common patterns like dist/, *.log, node_modules/ are in root .gitignore)
-
-# Environment variables
-.env
-
-# Docker volumes and runtime data
-postgres-data/
