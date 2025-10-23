@@ -16,6 +16,11 @@ import {
 const log = new Logger("sds:repair:manager");
 
 /**
+ * Per SDS-R spec: One response group per 128 participants
+ */
+const PARTICIPANTS_PER_RESPONSE_GROUP = 128;
+
+/**
  * Event emitter callback for repair events
  */
 export type RepairEventEmitter = (event: string, detail: unknown) => void;
@@ -42,7 +47,7 @@ export interface RepairConfig {
 export const DEFAULT_REPAIR_CONFIG: Required<RepairConfig> = {
   tMin: 30000, // 30 seconds
   tMax: 120000, // 120 seconds
-  numResponseGroups: 1, // Recommendation is 1 group per 128 participants
+  numResponseGroups: 1, // Recommendation is 1 group per PARTICIPANTS_PER_RESPONSE_GROUP participants
   bufferSize: 1000,
   enabled: true
 };
@@ -332,10 +337,10 @@ export class RepairManager {
       numParticipants = Number.MAX_SAFE_INTEGER;
     }
 
-    // Per spec: num_response_groups = max(1, num_participants / 128)
+    // Per spec: num_response_groups = max(1, num_participants / PARTICIPANTS_PER_RESPONSE_GROUP)
     this.config.numResponseGroups = Math.max(
       1,
-      Math.floor(numParticipants / 128)
+      Math.floor(numParticipants / PARTICIPANTS_PER_RESPONSE_GROUP)
     );
     log.info(
       `Updated response groups to ${this.config.numResponseGroups} for ${numParticipants} participants`

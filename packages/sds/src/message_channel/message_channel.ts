@@ -28,6 +28,11 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
   errorRate: 0.001
 };
 
+/**
+ * Maximum number of repair requests to include in a single message
+ */
+const MAX_REPAIR_REQUESTS_PER_MESSAGE = 3;
+
 const DEFAULT_CAUSAL_HISTORY_SIZE = 200;
 const DEFAULT_POSSIBLE_ACKS_THRESHOLD = 2;
 
@@ -421,7 +426,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.lamportTimestamp = lamportTimestampIncrement(this.lamportTimestamp);
 
     // Get repair requests to include in sync message (SDS-R)
-    const repairRequests = this.repairManager.getRepairRequests(3);
+    const repairRequests = this.repairManager.getRepairRequests(
+      MAX_REPAIR_REQUESTS_PER_MESSAGE
+    );
 
     const message = new SyncMessage(
       // does not need to be secure randomness
@@ -641,7 +648,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       log.info(this.senderId, "sending new message", messageId);
 
       // Get repair requests to include in the message (SDS-R)
-      const repairRequests = this.repairManager.getRepairRequests(3);
+      const repairRequests = this.repairManager.getRepairRequests(
+        MAX_REPAIR_REQUESTS_PER_MESSAGE
+      );
 
       message = new ContentMessage(
         messageId,
