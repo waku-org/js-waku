@@ -315,6 +315,23 @@ export class RepairManager {
    * Update number of response groups (e.g., when participants change)
    */
   public updateResponseGroups(numParticipants: number): void {
+    if (
+      numParticipants < 0 ||
+      !Number.isFinite(numParticipants) ||
+      !Number.isInteger(numParticipants)
+    ) {
+      throw new Error(
+        `Invalid numParticipants: ${numParticipants}. Must be a non-negative integer.`
+      );
+    }
+
+    if (numParticipants > Number.MAX_SAFE_INTEGER) {
+      log.warn(
+        `numParticipants ${numParticipants} exceeds MAX_SAFE_INTEGER, using MAX_SAFE_INTEGER`
+      );
+      numParticipants = Number.MAX_SAFE_INTEGER;
+    }
+
     // Per spec: num_response_groups = max(1, num_participants / 128)
     this.config.numResponseGroups = Math.max(
       1,

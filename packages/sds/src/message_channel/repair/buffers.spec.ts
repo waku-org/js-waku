@@ -38,7 +38,7 @@ describe("OutgoingRepairBuffer", () => {
     expect(items[0].tReq).to.equal(1000); // Should keep original
   });
 
-  it("should evict oldest entry when buffer is full", () => {
+  it("should evict furthest entry when buffer is full", () => {
     const entry1: HistoryEntry = { messageId: "msg1" };
     const entry2: HistoryEntry = { messageId: "msg2" };
     const entry3: HistoryEntry = { messageId: "msg3" };
@@ -47,13 +47,13 @@ describe("OutgoingRepairBuffer", () => {
     buffer.add(entry2, 2000);
     buffer.add(entry1, 1000);
     buffer.add(entry3, 3000);
-    buffer.add(entry4, 1500); // Should evict msg1 (oldest T_req)
+    buffer.add(entry4, 1500); // Should evict msg3 (furthest T_req = 3000)
 
     const items = buffer.getItems();
     expect(items).to.have.lengthOf(3);
-    expect(buffer.has("msg1")).to.be.false; // msg1 should be evicted
+    expect(buffer.has("msg3")).to.be.false; // msg3 should be evicted (furthest T_req)
+    expect(buffer.has("msg1")).to.be.true;
     expect(buffer.has("msg2")).to.be.true;
-    expect(buffer.has("msg3")).to.be.true;
     expect(buffer.has("msg4")).to.be.true;
   });
 
@@ -69,11 +69,23 @@ describe("OutgoingRepairBuffer", () => {
     const eligible = buffer.getEligible(1500, 3);
     expect(eligible).to.have.lengthOf(1);
     expect(eligible[0].messageId).to.equal("msg1");
+  });
 
-    const eligible2 = buffer.getEligible(2500, 3);
-    expect(eligible2).to.have.lengthOf(2);
-    expect(eligible2[0].messageId).to.equal("msg1");
-    expect(eligible2[1].messageId).to.equal("msg2");
+  it("should get multiple eligible entries at later time", () => {
+    const entry1: HistoryEntry = { messageId: "msg1" };
+    const entry2: HistoryEntry = { messageId: "msg2" };
+    const entry3: HistoryEntry = { messageId: "msg3" };
+
+    // Create new buffer for second test since getEligible marks entries as requested
+    const buffer2 = new OutgoingRepairBuffer(3);
+    buffer2.add(entry1, 1000);
+    buffer2.add(entry2, 2000);
+    buffer2.add(entry3, 3000);
+
+    const eligible = buffer2.getEligible(2500, 3);
+    expect(eligible).to.have.lengthOf(2);
+    expect(eligible[0].messageId).to.equal("msg1");
+    expect(eligible[1].messageId).to.equal("msg2");
   });
 
   it("should respect maxRequests limit", () => {

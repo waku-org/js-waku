@@ -55,10 +55,10 @@ export class OutgoingRepairBuffer {
 
     // Check buffer size limit
     if (this.items.length >= this.maxSize) {
-      // Evict oldest T_req entry (first in sorted array since we want to evict oldest)
-      const evicted = this.items.shift()!;
+      // Evict furthest T_req entry (last in sorted array) to preserve most urgent repairs
+      const evicted = this.items.pop()!;
       log.warn(
-        `Buffer full, evicted oldest entry ${evicted.entry.messageId} with T_req ${evicted.tReq}`
+        `Buffer full, evicted furthest entry ${evicted.entry.messageId} with T_req ${evicted.tReq}`
       );
     }
 
