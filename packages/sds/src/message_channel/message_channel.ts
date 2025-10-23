@@ -62,6 +62,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   private possibleAcks: Map<MessageId, number>;
   private incomingBuffer: Array<ContentMessage | SyncMessage>;
   private readonly localHistory: ILocalHistory;
+  private localHistoryIndex: Set<MessageId>;
   private timeReceived: Map<MessageId, number>;
   private readonly causalHistorySize: number;
   private readonly possibleAcksThreshold: number;
@@ -102,6 +103,9 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     this.possibleAcks = new Map();
     this.incomingBuffer = [];
     this.localHistory = localHistory;
+    this.localHistoryIndex = new Set(
+      localHistory.slice(0).map((msg) => msg.messageId)
+    );
     this.causalHistorySize =
       options.causalHistorySize ?? DEFAULT_CAUSAL_HISTORY_SIZE;
     // TODO: this should be determined based on the bloom filter parameters and number of hashes
@@ -272,9 +276,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         );
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
-            !this.localHistory.some(
-              ({ messageId }) => messageId === messageHistoryEntry.messageId
-            )
+            !this.localHistoryIndex.has(messageHistoryEntry.messageId)
         );
         if (missingDependencies.length === 0) {
           if (isContentMessage(message) && this.deliverMessage(message)) {
@@ -471,9 +473,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const missingDependencies = message.causalHistory.filter(
       (messageHistoryEntry) =>
-        !this.localHistory.some(
-          ({ messageId }) => messageId === messageHistoryEntry.messageId
-        )
+        !this.localHistoryIndex.has(messageHistoryEntry.messageId)
     );
 
     if (missingDependencies.length > 0) {
@@ -577,6 +577,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
           message.retrievalHint = retrievalHint;
           this.filter.insert(messageId);
           this.localHistory.push(message);
+          this.localHistoryIndex.add(messageId);
           this.timeReceived.set(messageId, Date.now());
           this.safeSendEvent(MessageChannelEvent.OutMessageSent, {
             detail: message
@@ -657,6 +658,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
 
     this.localHistory.push(message);
+    this.localHistoryIndex.add(message.messageId);
     return true;
   }
 
