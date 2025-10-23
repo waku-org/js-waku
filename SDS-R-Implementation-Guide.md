@@ -16,20 +16,22 @@ When a participant detects missing messages (via causal dependencies), it waits 
 message HistoryEntry {
   string message_id = 1;
   optional bytes retrieval_hint = 2;
-  optional string sender_id = 3;  // NEW: Original sender's ID (only for SDS-R)
+  optional string sender_id = 3;  // NEW: Participant ID of original message sender (only for SDS-R)
 }
 
-message Message {
-  string sender_id = 1;
-  string message_id = 2;
-  string channel_id = 3;
-  optional int32 lamport_timestamp = 10;
-  repeated HistoryEntry causal_history = 11;
-  optional bytes bloom_filter = 12;
-  repeated HistoryEntry repair_request = 13;  // NEW: List of missing messages
-  optional bytes content = 20;
+message SdsMessage {
+  string sender_id = 1;           // Participant ID of the message sender
+  string message_id = 2;          // Unique identifier of the message
+  string channel_id = 3;          // Identifier of the channel to which the message belongs
+  optional uint64 lamport_timestamp = 10;    // Logical timestamp for causal ordering in channel
+  repeated HistoryEntry causal_history = 11;  // List of preceding message IDs that this message causally depends on
+  optional bytes bloom_filter = 12;         // Bloom filter representing received message IDs in channel
+  repeated HistoryEntry repair_request = 13; // NEW: Capped list of missing messages (only for SDS-R)
+  optional bytes content = 20;             // Actual content of the message
 }
 ```
+
+**Note**: The actual implementation uses `SdsMessage` (not `Message`) and `uint64` for lamport_timestamp (not `int32`).
 
 ### Additional Participant State
 
