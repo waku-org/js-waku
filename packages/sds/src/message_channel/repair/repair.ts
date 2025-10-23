@@ -172,10 +172,22 @@ export class RepairManager {
    */
   public onMessageReceived(messageId: string): void {
     // Remove from both buffers as we no longer need to request or respond
-    this.outgoingBuffer.remove(messageId);
-    this.incomingBuffer.remove(messageId);
+    const wasInOutgoing = this.outgoingBuffer.has(messageId);
+    const wasInIncoming = this.incomingBuffer.has(messageId);
 
-    log.info(`Removed ${messageId} from repair buffers after receipt`);
+    if (wasInOutgoing) {
+      this.outgoingBuffer.remove(messageId);
+      log.info(
+        `Removed ${messageId} from outgoing repair buffer after receipt`
+      );
+    }
+
+    if (wasInIncoming) {
+      this.incomingBuffer.remove(messageId);
+      log.info(
+        `Removed ${messageId} from incoming repair buffer after receipt`
+      );
+    }
   }
 
   /**

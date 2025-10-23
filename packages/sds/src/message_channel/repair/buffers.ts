@@ -93,18 +93,25 @@ export class OutgoingRepairBuffer {
 
     // Iterate from front of sorted array (earliest T_req first)
     for (const item of this.items) {
-      // Only return items that are eligible and haven't been requested yet
-      if (
-        item.tReq <= currentTime &&
-        !item.requested &&
-        eligible.length < maxRequests
-      ) {
+      // Since array is sorted, once we hit an item with tReq > currentTime,
+      // all remaining items also have tReq > currentTime
+      if (item.tReq > currentTime) {
+        break;
+      }
+
+      // Only return items that haven't been requested yet
+      if (!item.requested && eligible.length < maxRequests) {
         eligible.push(item.entry);
         // Mark as requested so we don't request it again
         item.requested = true;
         log.info(
           `Repair request for ${item.entry.messageId} is eligible and marked as requested`
         );
+      }
+
+      // If we've found enough eligible items, exit early
+      if (eligible.length >= maxRequests) {
+        break;
       }
     }
 
