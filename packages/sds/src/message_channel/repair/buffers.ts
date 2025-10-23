@@ -212,21 +212,26 @@ export class IncomingRepairBuffer {
    * Removes and returns ready entries
    */
   public getReady(currentTime: number): HistoryEntry[] {
-    const ready: HistoryEntry[] = [];
-    const remaining: IncomingBufferEntry[] = [];
-
-    for (const item of this.items) {
-      if (item.tResp <= currentTime) {
-        ready.push(item.entry);
-        log.info(`Repair for ${item.entry.messageId} is ready to be sent`);
-      } else {
-        // Since array is sorted, all remaining entries are not ready
-        remaining.push(item);
+    // Find cutoff point - first item with tResp > currentTime
+    // Since array is sorted, all items before this are ready
+    let cutoff = 0;
+    for (let i = 0; i < this.items.length; i++) {
+      if (this.items[i].tResp > currentTime) {
+        cutoff = i;
+        break;
       }
+      // If we reach the end, all items are ready
+      cutoff = i + 1;
     }
 
-    // Keep only non-ready entries
-    this.items = remaining;
+    // Extract ready items and log them
+    const ready = this.items.slice(0, cutoff).map((item) => {
+      log.info(`Repair for ${item.entry.messageId} is ready to be sent`);
+      return item.entry;
+    });
+
+    // Keep only items after cutoff
+    this.items = this.items.slice(cutoff);
 
     return ready;
   }

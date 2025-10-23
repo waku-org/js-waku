@@ -18,4 +18,10 @@ export {
   type MessageId
 } from "./message_channel/index.js";
 
+/**
+ * @deprecated Use ParticipantId instead. SenderId has been renamed to ParticipantId
+ * to better reflect that it represents a channel participant, not just a message sender.
+ */
+export type SenderId = import("./message_channel/index.js").ParticipantId;
+
 export { BloomFilter };
