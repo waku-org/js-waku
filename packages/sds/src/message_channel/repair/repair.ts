@@ -144,18 +144,20 @@ export class RepairManager {
       // Calculate when to request this repair
       const tReq = this.calculateTReq(entry.messageId, currentTime);
 
-      // Add to outgoing buffer
-      this.outgoingBuffer.add(entry, tReq);
+      // Add to outgoing buffer - only log and emit event if actually added
+      const wasAdded = this.outgoingBuffer.add(entry, tReq);
 
-      log.info(
-        `Added missing dependency ${entry.messageId} to repair buffer with T_req=${tReq}`
-      );
+      if (wasAdded) {
+        log.info(
+          `Added missing dependency ${entry.messageId} to repair buffer with T_req=${tReq}`
+        );
 
-      // Emit event
-      this.eventEmitter?.("RepairRequestQueued", {
-        messageId: entry.messageId,
-        tReq
-      });
+        // Emit event
+        this.eventEmitter?.("RepairRequestQueued", {
+          messageId: entry.messageId,
+          tReq
+        });
+      }
     }
   }
 
@@ -234,18 +236,20 @@ export class RepairManager {
         currentTime
       );
 
-      // Add to incoming buffer
-      this.incomingBuffer.add(request, tResp);
+      // Add to incoming buffer - only log and emit event if actually added
+      const wasAdded = this.incomingBuffer.add(request, tResp);
 
-      log.info(
-        `Will respond to repair request for ${request.messageId} at T_resp=${tResp}`
-      );
+      if (wasAdded) {
+        log.info(
+          `Will respond to repair request for ${request.messageId} at T_resp=${tResp}`
+        );
 
-      // Emit event
-      this.eventEmitter?.("RepairResponseQueued", {
-        messageId: request.messageId,
-        tResp
-      });
+        // Emit event
+        this.eventEmitter?.("RepairResponseQueued", {
+          messageId: request.messageId,
+          tResp
+        });
+      }
     }
   }
 

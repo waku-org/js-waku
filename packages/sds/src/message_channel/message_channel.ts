@@ -285,9 +285,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         );
         const missingDependencies = message.causalHistory.filter(
           (messageHistoryEntry) =>
-            !this.localHistory.some(
-              ({ messageId }) => messageId === messageHistoryEntry.messageId
-            )
+            !this.isMessageAvailable(messageHistoryEntry.messageId)
         );
         if (missingDependencies.length === 0) {
           if (isContentMessage(message) && this.deliverMessage(message)) {
@@ -562,9 +560,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     const missingDependencies = message.causalHistory.filter(
       (messageHistoryEntry) =>
-        !this.localHistory.some(
-          ({ messageId }) => messageId === messageHistoryEntry.messageId
-        )
+        !this.isMessageAvailable(messageHistoryEntry.messageId)
     );
 
     if (missingDependencies.length > 0) {
@@ -713,6 +709,26 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
         throw error;
       }
     }
+  }
+
+  /**
+   * Check if a message is available (either in localHistory or incomingBuffer)
+   * This prevents treating messages as "missing" when they've already been received
+   * but are waiting in the incoming buffer for their dependencies.
+   *
+   * @param messageId - The ID of the message to check
+   * @private
+   */
+  private isMessageAvailable(messageId: MessageId): boolean {
+    // Check if in local history
+    if (this.localHistory.some((m) => m.messageId === messageId)) {
+      return true;
+    }
+    // Check if in incoming buffer (already received, waiting for dependencies)
+    if (this.incomingBuffer.some((m) => m.messageId === messageId)) {
+      return true;
+    }
+    return false;
   }
 
   /**
