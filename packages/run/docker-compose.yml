@@ -1,0 +1,142 @@
+# Environment variable definitions
+x-pg-pass: &pg_pass ${POSTGRES_PASSWORD:-test123}
+x-pg-user: &pg_user ${POSTGRES_USER:-postgres}
+
+x-pg-environment: &pg_env
+  POSTGRES_USER: *pg_user
+  POSTGRES_PASSWORD: *pg_pass
+
+# Shared nwaku configuration
+x-nwaku-base: &nwaku-base
+  image: ${NWAKU_IMAGE:-wakuorg/nwaku:v0.36.0}
+  pull_policy: if_not_present
+  restart: on-failure
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  postgres:
+    image: postgres:15.4-alpine3.18
+    pull_policy: if_not_present
+    restart: on-failure
+    environment:
+      <<: *pg_env
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nwaku-1:
+    <<: *nwaku-base
+    container_name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-node-1
+    networks:
+      default:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "${NODE1_TCP_PORT:-30303}:30303/tcp"
+      - "${NODE1_WS_PORT:-60000}:60000/tcp"
+      - "${NODE1_REST_PORT:-8646}:8646/tcp"
+    environment:
+      <<: *pg_env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - --nodekey=e419c3cf4f09ac3babdf61856e6faa0e0c6a7d97674d5401a0114616549c7632
+      - --staticnode=/ip4/172.20.0.11/tcp/60001/ws/p2p/16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ
+      - --relay=true
+      - --filter=true
+      - --lightpush=true
+      - --store=true
+      - --peer-exchange=true
+      - --discv5-discovery=true
+      - --cluster-id=0
+      - --shard=0
+      - --shard=1
+      - --shard=2
+      - --shard=3
+      - --shard=4
+      - --shard=5
+      - --shard=6
+      - --shard=7
+      - --listen-address=0.0.0.0
+      - --tcp-port=30303
+      - --websocket-support=true
+      - --websocket-port=60000
+      - --ext-multiaddr=/dns4/nwaku-1/tcp/60000/ws
+      - --ext-multiaddr=/ip4/127.0.0.1/tcp/60000/ws
+      - --rest=true
+      - --rest-address=0.0.0.0
+      - --rest-port=8646
+      - --rest-admin=true
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/nwaku1
+      - --log-level=${LOG_LEVEL:-INFO}
+      - --max-connections=150
+
+  nwaku-2:
+    <<: *nwaku-base
+    container_name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-node-2
+    networks:
+      default:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "${NODE2_TCP_PORT:-30304}:30304/tcp"
+      - "${NODE2_WS_PORT:-60001}:60001/tcp"
+      - "${NODE2_REST_PORT:-8647}:8647/tcp"
+    environment:
+      <<: *pg_env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nwaku-1:
+        condition: service_started
+    command:
+      - --nodekey=50632ab0efd313bfb4aa842de716f03dacd181c863770abd145e3409290fdaa7
+      - --staticnode=/ip4/172.20.0.10/tcp/60000/ws/p2p/16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2
+      - --relay=true
+      - --filter=true
+      - --lightpush=true
+      - --store=true
+      - --peer-exchange=true
+      - --discv5-discovery=true
+      - --cluster-id=0
+      - --shard=0
+      - --shard=1
+      - --shard=2
+      - --shard=3
+      - --shard=4
+      - --shard=5
+      - --shard=6
+      - --shard=7
+      - --listen-address=0.0.0.0
+      - --tcp-port=30304
+      - --websocket-support=true
+      - --websocket-port=60001
+      - --ext-multiaddr=/dns4/nwaku-2/tcp/60001/ws
+      - --ext-multiaddr=/ip4/127.0.0.1/tcp/60001/ws
+      - --rest=true
+      - --rest-address=0.0.0.0
+      - --rest-port=8647
+      - --rest-admin=true
+      - --store-message-db-url=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-test123}@postgres:5432/nwaku2
+      - --log-level=${LOG_LEVEL:-INFO}
+      - --max-connections=150
+
+volumes:
+  postgres-data:
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME:-waku-run-0-0-1}-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -55,6 +55,7 @@
     "fontsource",
     "globby",
     "gossipsub",
+    "hackathons",
     "huilong",
     "iasked",
     "ihave",
@@ -62,6 +63,7 @@
     "ineed",
     "IPAM",
     "ipfs",
+    "isready",
     "iwant",
     "jdev",
     "jswaku",
@@ -165,6 +167,7 @@
     "gen",
     "proto",
     "*.spec.ts",
+    "*.log",
     "CHANGELOG.md"
   ],
   "patterns": [
