@@ -15,6 +15,7 @@ import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { ShardId } from "./sharding.js";
 import type { IStore } from "./store.js";
+import type { IWebRTC } from "./webrtc.js";
 
 export type CreateDecoderParams = {
   contentTopic: string;
@@ -62,6 +63,7 @@ export interface IWaku {
   store?: IStore;
   filter?: IFilter;
   lightPush?: ILightPush;
+  webRTC?: IWebRTC;
 
   /**
    * Emits events related to the Waku node.
@@ -272,6 +274,7 @@ export interface LightNode extends IWaku {
   store: IStore;
   filter: IFilter;
   lightPush: ILightPush;
+  webRTC: IWebRTC;
 }
 
 export interface RelayNode extends IWaku {
