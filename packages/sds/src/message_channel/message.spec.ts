@@ -68,14 +68,24 @@ describe("Message serialization", () => {
       0n,
       undefined,
       undefined,
-      [{ messageId: repairMessageId, retrievalHint: repairRetrievalHint, senderId: repairSenderId }]
+      [
+        {
+          messageId: repairMessageId,
+          retrievalHint: repairRetrievalHint,
+          senderId: repairSenderId
+        }
+      ]
     );
 
     const bytes = message.encode();
     const decMessage = Message.decode(bytes);
 
     expect(decMessage!.repairRequest).to.deep.equal([
-      { messageId: repairMessageId, retrievalHint: repairRetrievalHint, senderId: repairSenderId }
+      {
+        messageId: repairMessageId,
+        retrievalHint: repairRetrievalHint,
+        senderId: repairSenderId
+      }
     ]);
   });
 });
