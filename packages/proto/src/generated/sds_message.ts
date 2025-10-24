@@ -13,6 +13,7 @@ import type { Uint8ArrayList } from 'uint8arraylist'
 export interface HistoryEntry {
   messageId: string
   retrievalHint?: Uint8Array
+  senderId?: string
 }
 
 export namespace HistoryEntry {
@@ -35,6 +36,11 @@ export namespace HistoryEntry {
           w.bytes(obj.retrievalHint)
         }
 
+        if (obj.senderId != null) {
+          w.uint32(26)
+          w.string(obj.senderId)
+        }
+
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
@@ -55,6 +61,10 @@ export namespace HistoryEntry {
             }
             case 2: {
               obj.retrievalHint = reader.bytes()
+              break
+            }
+            case 3: {
+              obj.senderId = reader.string()
               break
             }
             default: {
@@ -87,6 +97,7 @@ export interface SdsMessage {
   lamportTimestamp?: bigint
   causalHistory: HistoryEntry[]
   bloomFilter?: Uint8Array
+  repairRequest: HistoryEntry[]
   content?: Uint8Array
 }
 
@@ -132,6 +143,13 @@ export namespace SdsMessage {
           w.bytes(obj.bloomFilter)
         }
 
+        if (obj.repairRequest != null) {
+          for (const value of obj.repairRequest) {
+            w.uint32(106)
+            HistoryEntry.codec().encode(value, w)
+          }
+        }
+
         if (obj.content != null) {
           w.uint32(162)
           w.bytes(obj.content)
@@ -145,7 +163,8 @@ export namespace SdsMessage {
           senderId: '',
           messageId: '',
           channelId: '',
-          causalHistory: []
+          causalHistory: [],
+          repairRequest: []
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -182,6 +201,16 @@ export namespace SdsMessage {
             }
             case 12: {
               obj.bloomFilter = reader.bytes()
+              break
+            }
+            case 13: {
+              if (opts.limits?.repairRequest != null && obj.repairRequest.length === opts.limits.repairRequest) {
+                throw new MaxLengthError('Decode error - map field "repairRequest" had too many elements')
+              }
+
+              obj.repairRequest.push(HistoryEntry.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.repairRequest$
+              }))
               break
             }
             case 20: {
