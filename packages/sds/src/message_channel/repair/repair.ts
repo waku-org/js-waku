@@ -80,9 +80,9 @@ export class RepairManager {
 
   /**
    * Calculate T_req - when to request repair for a missing message
-   * Per spec (with bug fix): T_req = current_time + hash(participant_id, message_id) % (T_max - T_min) + T_min
+   * Per spec: T_req = current_time + hash(participant_id, message_id) % (T_max - T_min) + T_min
    */
-  public calculateTReq(messageId: string, currentTime = Date.now()): number {
+  public calculateTReq(messageId: MessageId, currentTime = Date.now()): number {
     const hash = combinedHash(this.participantId, messageId);
     const range = BigInt(this.config.tMax - this.config.tMin);
     const offset = bigintToNumber(hash % range) + this.config.tMin;
@@ -137,7 +137,7 @@ export class RepairManager {
    * Handle missing dependencies by adding them to outgoing repair buffer
    * Called when causal dependencies are detected as missing
    */
-  public onMissingDependencies(
+  public markDependenciesMissing(
     missingEntries: HistoryEntry[],
     currentTime = Date.now()
   ): void {
@@ -170,7 +170,7 @@ export class RepairManager {
    * Handle receipt of a message - remove from repair buffers
    * Called when a message is successfully received
    */
-  public onMessageReceived(messageId: string): void {
+  public markMessageReceived(messageId: string): void {
     // Remove from both buffers as we no longer need to request or respond
     const wasInOutgoing = this.outgoingBuffer.has(messageId);
     const wasInIncoming = this.incomingBuffer.has(messageId);
@@ -338,7 +338,7 @@ export class RepairManager {
       !Number.isInteger(numParticipants)
     ) {
       throw new Error(
-        `Invalid numParticipants: ${numParticipants}. Must be a non-negative integer.`
+        `Invalid numParticipants: ${numParticipants}. Must be a positive integer.`
       );
     }
 

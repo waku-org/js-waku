@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2";
-import { bytesToHex } from "@noble/hashes/utils";
+import { bytesToHex } from "@waku/utils/bytes";
 
 /**
  * ParticipantId can be a string or converted to a numeric representation for XOR operations

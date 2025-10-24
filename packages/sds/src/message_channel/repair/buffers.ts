@@ -10,7 +10,7 @@ const log = new Logger("sds:repair:buffers");
 interface OutgoingBufferEntry {
   entry: HistoryEntry;
   tReq: number; // Timestamp when this repair request should be sent
-  requested: boolean; // Whether this repair has been requested already
+  requested: boolean; // Whether this repair has already been requested by the local node
 }
 
 /**
@@ -55,7 +55,7 @@ export class OutgoingRepairBuffer {
 
     // Check buffer size limit
     if (this.items.length >= this.maxSize) {
-      // Evict furthest T_req entry (last in sorted array) to preserve most urgent repairs
+      // Evict furthest T_req entry (last in sorted array) to preserve repairs that need to be sent the soonest 
       const evicted = this.items.pop()!;
       log.warn(
         `Buffer full, evicted furthest entry ${evicted.entry.messageId} with T_req ${evicted.tReq}`
@@ -88,7 +88,7 @@ export class OutgoingRepairBuffer {
    * Returns up to maxRequests entries from the front of the sorted array
    * Marks returned entries as requested but keeps them in buffer until received
    */
-  public getEligible(currentTime: number, maxRequests = 3): HistoryEntry[] {
+  public getEligible(currentTime: number = Date.now(), maxRequests = 3): HistoryEntry[] {
     const eligible: HistoryEntry[] = [];
 
     // Iterate from front of sorted array (earliest T_req first)

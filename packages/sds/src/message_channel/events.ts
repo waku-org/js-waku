@@ -43,7 +43,7 @@ export type MessageChannelEvents = {
   }>;
   [MessageChannelEvent.RepairRequestReceived]: CustomEvent<{
     messageIds: MessageId[];
-    fromSenderId?: string;
+    fromSenderId?: ParticipantId;
   }>;
   [MessageChannelEvent.RepairResponseQueued]: CustomEvent<{
     messageId: MessageId;
