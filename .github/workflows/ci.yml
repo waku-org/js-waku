@@ -57,7 +57,7 @@ jobs:
   browser:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.53.1-jammy
+      image: mcr.microsoft.com/playwright:v1.56.1-jammy
     env:
       HOME: "/root"
     steps:
