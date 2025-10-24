@@ -96,7 +96,7 @@ export class RepairManager {
    */
   public calculateTResp(
     senderId: ParticipantId,
-    messageId: string,
+    messageId: MessageId,
     currentTime = Date.now()
   ): number {
     const distance = calculateXorDistance(this.participantId, senderId);
@@ -113,7 +113,7 @@ export class RepairManager {
    */
   public isInResponseGroup(
     senderId: ParticipantId,
-    messageId: string
+    messageId: MessageId
   ): boolean {
     if (!senderId) {
       // Cannot determine response group without sender_id
@@ -170,7 +170,7 @@ export class RepairManager {
    * Handle receipt of a message - remove from repair buffers
    * Called when a message is successfully received
    */
-  public markMessageReceived(messageId: string): void {
+  public markMessageReceived(messageId: MessageId): void {
     // Remove from both buffers as we no longer need to request or respond
     const wasInOutgoing = this.outgoingBuffer.has(messageId);
     const wasInIncoming = this.incomingBuffer.has(messageId);

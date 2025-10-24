@@ -1,6 +1,8 @@
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex } from "@waku/utils/bytes";
 
+import type { MessageId } from "../message.js";
+
 /**
  * ParticipantId can be a string or converted to a numeric representation for XOR operations
  */
@@ -23,7 +25,7 @@ export function hashToInteger(input: string): bigint {
  */
 export function combinedHash(
   participantId: ParticipantId,
-  messageId: string
+  messageId: MessageId
 ): bigint {
   const combined = `${participantId}${messageId}`;
   return hashToInteger(combined);

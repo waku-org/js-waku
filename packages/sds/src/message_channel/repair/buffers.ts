@@ -1,6 +1,6 @@
 import { Logger } from "@waku/utils";
 
-import type { HistoryEntry } from "../message.js";
+import type { HistoryEntry, MessageId } from "../message.js";
 
 const log = new Logger("sds:repair:buffers");
 
@@ -74,7 +74,7 @@ export class OutgoingRepairBuffer {
   /**
    * Remove a message from the buffer (e.g., when received)
    */
-  public remove(messageId: string): void {
+  public remove(messageId: MessageId): void {
     this.items = this.items.filter(
       (item) => item.entry.messageId !== messageId
     );
@@ -121,7 +121,7 @@ export class OutgoingRepairBuffer {
   /**
    * Check if a message is in the buffer
    */
-  public has(messageId: string): boolean {
+  public has(messageId: MessageId): boolean {
     return this.items.some((item) => item.entry.messageId === messageId);
   }
 
@@ -205,7 +205,7 @@ export class IncomingRepairBuffer {
   /**
    * Remove a message from the buffer
    */
-  public remove(messageId: string): void {
+  public remove(messageId: MessageId): void {
     this.items = this.items.filter(
       (item) => item.entry.messageId !== messageId
     );
@@ -243,7 +243,7 @@ export class IncomingRepairBuffer {
   /**
    * Check if a message is in the buffer
    */
-  public has(messageId: string): boolean {
+  public has(messageId: MessageId): boolean {
     return this.items.some((item) => item.entry.messageId === messageId);
   }
 

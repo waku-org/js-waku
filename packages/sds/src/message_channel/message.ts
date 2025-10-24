@@ -10,9 +10,9 @@ const log = new Logger("sds:message");
 
 export class Message implements proto_sds_message.SdsMessage {
   public constructor(
-    public messageId: string,
+    public messageId: MessageId,
     public channelId: string,
-    public senderId: string,
+    public senderId: ParticipantId,
     public causalHistory: proto_sds_message.HistoryEntry[],
     public lamportTimestamp?: bigint | undefined,
     public bloomFilter?: Uint8Array<ArrayBufferLike> | undefined,
@@ -95,9 +95,9 @@ export class Message implements proto_sds_message.SdsMessage {
 
 export class SyncMessage extends Message {
   public constructor(
-    public messageId: string,
+    public messageId: MessageId,
     public channelId: string,
-    public senderId: string,
+    public senderId: ParticipantId,
     public causalHistory: proto_sds_message.HistoryEntry[],
     public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
@@ -141,9 +141,9 @@ export function isSyncMessage(
 
 export class EphemeralMessage extends Message {
   public constructor(
-    public messageId: string,
+    public messageId: MessageId,
     public channelId: string,
-    public senderId: string,
+    public senderId: ParticipantId,
     public causalHistory: proto_sds_message.HistoryEntry[],
     public lamportTimestamp: undefined,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
@@ -191,9 +191,9 @@ function testEphemeralMessage(message: {
 
 export class ContentMessage extends Message {
   public constructor(
-    public messageId: string,
+    public messageId: MessageId,
     public channelId: string,
-    public senderId: string,
+    public senderId: ParticipantId,
     public causalHistory: proto_sds_message.HistoryEntry[],
     public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
