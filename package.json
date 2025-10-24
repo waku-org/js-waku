@@ -14,11 +14,12 @@
     "packages/rln",
     "packages/sdk",
     "packages/relay",
+    "packages/run",
     "packages/tests",
     "packages/reliability-tests",
-    "packages/headless-tests",
     "packages/browser-tests",
-    "packages/build-utils"
+    "packages/build-utils",
+    "packages/react"
   ],
   "scripts": {
     "prepare": "husky",
@@ -78,5 +79,6 @@
     "*.{ts,js}": [
       "eslint --fix"
     ]
-  }
+  },
+  "version": ""
 }

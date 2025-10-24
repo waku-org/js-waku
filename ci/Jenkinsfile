@@ -1,5 +1,13 @@
 pipeline {
-  agent { label 'linux' }
+  agent {
+    docker {
+      label 'linuxcontainer'
+      image 'harbor.status.im/infra/ci-build-containers:linux-base-1.0.0'
+      args '--volume=/nix:/nix ' +
+           '--volume=/etc/nix:/etc/nix ' +
+           '--user jenkins'
+    }
+  }
 
   options {
     disableConcurrentBuilds()
@@ -21,19 +29,25 @@ pipeline {
   stages {
     stage('Deps') {
       steps {
-        sh 'npm install'
+        script {
+          nix.develop('npm install', pure: true)
+        }
       }
     }
 
     stage('Packages') {
       steps {
-        sh 'npm run build'
+        script {
+          nix.develop('npm run build', pure: true)
+        }
       }
     }
 
     stage('Build') {
       steps {
-        sh 'npm run doc'
+        script {
+          nix.develop('npm run doc', pure: true)
+        }
       }
     }
 
@@ -41,7 +55,9 @@ pipeline {
       when { expression { GIT_BRANCH.endsWith('master') } }
       steps {
         sshagent(credentials: ['status-im-auto-ssh']) {
-          sh 'npm run deploy'
+          script {
+            nix.develop('npm run deploy', pure: true)
+          }
         }
       }
     }

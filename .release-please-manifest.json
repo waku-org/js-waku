@@ -9,5 +9,7 @@
   "packages/sdk": "0.0.35",
   "packages/discovery": "0.0.12",
   "packages/sds": "0.0.7",
-  "packages/rln": "0.1.9"
+  "packages/rln": "0.1.9",
+  "packages/react": "0.0.7",
+  "packages/run": "0.0.1"
 }
