@@ -1,4 +1,4 @@
-import { HistoryEntry, Message, MessageId } from "./message.js";
+import { HistoryEntry, Message, MessageId, ParticipantId } from "./message.js";
 
 export enum MessageChannelEvent {
   OutMessageSent = "sds:out:message-sent",

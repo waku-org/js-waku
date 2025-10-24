@@ -43,10 +43,7 @@ export class OutgoingRepairBuffer {
     const messageId = entry.messageId;
 
     // Check if already exists - do NOT update T_req per spec
-    const existingIndex = this.items.findIndex(
-      (item) => item.entry.messageId === messageId
-    );
-    if (existingIndex !== -1) {
+    if (this.has(messageId)) {
       log.info(
         `Message ${messageId} already in outgoing buffer, keeping original T_req`
       );
@@ -55,7 +52,7 @@ export class OutgoingRepairBuffer {
 
     // Check buffer size limit
     if (this.items.length >= this.maxSize) {
-      // Evict furthest T_req entry (last in sorted array) to preserve repairs that need to be sent the soonest 
+      // Evict furthest T_req entry (last in sorted array) to preserve repairs that need to be sent the soonest
       const evicted = this.items.pop()!;
       log.warn(
         `Buffer full, evicted furthest entry ${evicted.entry.messageId} with T_req ${evicted.tReq}`
@@ -88,7 +85,10 @@ export class OutgoingRepairBuffer {
    * Returns up to maxRequests entries from the front of the sorted array
    * Marks returned entries as requested but keeps them in buffer until received
    */
-  public getEligible(currentTime: number = Date.now(), maxRequests = 3): HistoryEntry[] {
+  public getEligible(
+    currentTime: number = Date.now(),
+    maxRequests = 3
+  ): HistoryEntry[] {
     const eligible: HistoryEntry[] = [];
 
     // Iterate from front of sorted array (earliest T_req first)
@@ -176,10 +176,7 @@ export class IncomingRepairBuffer {
     const messageId = entry.messageId;
 
     // Check if already exists - ignore per spec
-    const existingIndex = this.items.findIndex(
-      (item) => item.entry.messageId === messageId
-    );
-    if (existingIndex !== -1) {
+    if (this.has(messageId)) {
       log.info(`Message ${messageId} already in incoming buffer, ignoring`);
       return false;
     }

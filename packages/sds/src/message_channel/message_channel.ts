@@ -542,7 +542,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
     }
 
     // SDS-R: Handle received message in repair manager
-    this.repairManager.onMessageReceived(message.messageId);
+    this.repairManager.markMessageReceived(message.messageId);
 
     // SDS-R: Process incoming repair requests
     if (message.repairRequest && message.repairRequest.length > 0) {
@@ -582,7 +582,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
       );
 
       // SDS-R: Track missing dependencies in repair manager
-      this.repairManager.onMissingDependencies(missingDependencies);
+      this.repairManager.markDependenciesMissing(missingDependencies);
 
       this.safeSendEvent(MessageChannelEvent.InMessageMissing, {
         detail: Array.from(missingDependencies)

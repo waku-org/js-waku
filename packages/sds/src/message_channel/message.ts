@@ -102,7 +102,7 @@ export class SyncMessage extends Message {
     public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: undefined,
-    public override repairRequest: proto_sds_message.HistoryEntry[] = [],
+    public repairRequest: proto_sds_message.HistoryEntry[] = [],
     /**
      * Not encoded, set after it is sent, used to include in follow-up messages
      */
@@ -148,7 +148,7 @@ export class EphemeralMessage extends Message {
     public lamportTimestamp: undefined,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: Uint8Array<ArrayBufferLike>,
-    public override repairRequest: proto_sds_message.HistoryEntry[] = [],
+    public repairRequest: proto_sds_message.HistoryEntry[] = [],
     /**
      * Not encoded, set after it is sent, used to include in follow-up messages
      */
@@ -198,7 +198,7 @@ export class ContentMessage extends Message {
     public lamportTimestamp: bigint,
     public bloomFilter: Uint8Array<ArrayBufferLike> | undefined,
     public content: Uint8Array<ArrayBufferLike>,
-    public override repairRequest: proto_sds_message.HistoryEntry[] = [],
+    public repairRequest: proto_sds_message.HistoryEntry[] = [],
     /**
      * Not encoded, set after it is sent, used to include in follow-up messages
      */
