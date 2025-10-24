@@ -88,7 +88,7 @@
     "cspell": "^8.6.1",
     "datastore-core": "10.0.4",
     "debug": "^4.3.4",
-    "interface-datastore": "8.3.2",
+    "interface-datastore": "9.0.2",
     "libp2p": "2.8.11",
     "mocha": "^10.3.0",
     "mocha-multi-reporters": "^1.5.1",
