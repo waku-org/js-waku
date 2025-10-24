@@ -66,7 +66,7 @@
     "@types/mocha": "^10.0.9",
     "@types/react": "^18.0.28",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
-    "@typescript-eslint/parser": "^7.1.1",
+    "@typescript-eslint/parser": "^8.46.2",
     "@waku/build-utils": "*",
     "chai": "^5.1.1",
     "cspell": "^8.6.1",
