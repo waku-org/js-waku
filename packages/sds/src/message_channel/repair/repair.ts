@@ -37,8 +37,6 @@ export interface RepairConfig {
   numResponseGroups?: number;
   /** Maximum buffer size for repair requests */
   bufferSize?: number;
-  /** Whether repair is enabled */
-  enabled?: boolean;
 }
 
 /**
@@ -48,8 +46,7 @@ export const DEFAULT_REPAIR_CONFIG: Required<RepairConfig> = {
   tMin: 30000, // 30 seconds
   tMax: 120000, // 120 seconds
   numResponseGroups: 1, // Recommendation is 1 group per PARTICIPANTS_PER_RESPONSE_GROUP participants
-  bufferSize: 1000,
-  enabled: true
+  bufferSize: 1000
 };
 
 /**
@@ -141,10 +138,6 @@ export class RepairManager {
     missingEntries: HistoryEntry[],
     currentTime = Date.now()
   ): void {
-    if (!this.config.enabled) {
-      return;
-    }
-
     for (const entry of missingEntries) {
       // Calculate when to request this repair
       const tReq = this.calculateTReq(entry.messageId, currentTime);
@@ -198,10 +191,6 @@ export class RepairManager {
     maxRequests = 3,
     currentTime = Date.now()
   ): HistoryEntry[] {
-    if (!this.config.enabled) {
-      return [];
-    }
-
     return this.outgoingBuffer.getEligible(currentTime, maxRequests);
   }
 
@@ -214,10 +203,6 @@ export class RepairManager {
     localHistory: ILocalHistory,
     currentTime = Date.now()
   ): void {
-    if (!this.config.enabled) {
-      return;
-    }
-
     for (const request of requests) {
       // Remove from our own outgoing buffer (someone else is requesting it)
       this.outgoingBuffer.remove(request.messageId);
@@ -278,10 +263,6 @@ export class RepairManager {
     maxRequests = 3,
     currentTime = Date.now()
   ): HistoryEntry[] {
-    if (!this.config.enabled) {
-      return [];
-    }
-
     return this.getRepairRequests(maxRequests, currentTime);
   }
 
@@ -293,10 +274,6 @@ export class RepairManager {
     localHistory: ILocalHistory,
     currentTime = Date.now()
   ): Message[] {
-    if (!this.config.enabled) {
-      return [];
-    }
-
     const ready = this.incomingBuffer.getReady(currentTime);
     const messages: Message[] = [];
 
@@ -319,13 +296,6 @@ export class RepairManager {
   public clear(): void {
     this.outgoingBuffer.clear();
     this.incomingBuffer.clear();
-  }
-
-  /**
-   * Check if repair is enabled
-   */
-  public get isEnabled(): boolean {
-    return this.config.enabled;
   }
 
   /**
