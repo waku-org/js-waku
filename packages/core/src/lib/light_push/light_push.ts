@@ -55,11 +55,11 @@ export class LightPushCore {
       };
     }
 
-    const { rpc, error: prepError } = await ProtocolHandler.preparePushMessage(
-      encoder,
-      message,
-      protocol
-    );
+    const {
+      rpc,
+      error: prepError,
+      message: protoMessage
+    } = await ProtocolHandler.preparePushMessage(encoder, message, protocol);
 
     if (prepError) {
       return {
@@ -117,7 +117,21 @@ export class LightPushCore {
       };
     }
 
-    return ProtocolHandler.handleResponse(bytes, protocol, peerId);
+    const processedResponse = ProtocolHandler.handleResponse(
+      bytes,
+      protocol,
+      peerId
+    );
+
+    if (processedResponse.success) {
+      return {
+        success: processedResponse.success,
+        failure: null,
+        message: protoMessage
+      };
+    }
+
+    return processedResponse;
   }
 
   private async getProtocol(

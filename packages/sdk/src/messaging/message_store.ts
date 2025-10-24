@@ -1,0 +1,172 @@
+import { IDecodedMessage, ISendMessage, RequestId } from "@waku/interfaces";
+import { v4 as uuidv4 } from "uuid";
+
+type QueuedMessage = {
+  messageRequest?: ISendMessage;
+  filterAck: boolean;
+  storeAck: boolean;
+  lastSentAt?: number;
+  createdAt: number;
+};
+
+type AddMessageOptions = {
+  filterAck?: boolean;
+  storeAck?: boolean;
+};
+
+type MessageStoreOptions = {
+  resendIntervalMs?: number;
+};
+
+type MessageHashStr = string;
+
+export class MessageStore {
+  private readonly messages: Map<MessageHashStr, QueuedMessage> = new Map();
+
+  private readonly pendingRequests: Map<RequestId, QueuedMessage> = new Map();
+  private readonly pendingMessages: Map<MessageHashStr, RequestId> = new Map();
+
+  private readonly resendIntervalMs: number;
+
+  public constructor(options: MessageStoreOptions = {}) {
+    this.resendIntervalMs = options.resendIntervalMs ?? 5000;
+  }
+
+  public has(hashStr: string): boolean {
+    return this.messages.has(hashStr) || this.pendingMessages.has(hashStr);
+  }
+
+  public add(message: IDecodedMessage, options: AddMessageOptions = {}): void {
+    if (!this.has(message.hashStr)) {
+      this.messages.set(message.hashStr, {
+        filterAck: options.filterAck ?? false,
+        storeAck: options.storeAck ?? false,
+        createdAt: Date.now()
+      });
+    }
+  }
+
+  public markFilterAck(hashStr: string): void {
+    this.ackMessage(hashStr, { filterAck: true });
+    this.replacePendingWithMessage(hashStr);
+  }
+
+  public markStoreAck(hashStr: string): void {
+    this.ackMessage(hashStr, { storeAck: true });
+    this.replacePendingWithMessage(hashStr);
+  }
+
+  public markSent(requestId: RequestId, sentMessage: IDecodedMessage): void {
+    const entry = this.pendingRequests.get(requestId);
+
+    if (!entry || !entry.messageRequest) {
+      return;
+    }
+
+    entry.lastSentAt = Number(sentMessage.timestamp);
+    this.pendingMessages.set(sentMessage.hashStr, requestId);
+
+    this.replacePendingWithMessage(sentMessage.hashStr);
+  }
+
+  public async queue(message: ISendMessage): Promise<RequestId> {
+    const requestId = uuidv4(); // cspell:ignore uuidv4
+
+    this.pendingRequests.set(requestId.toString(), {
+      messageRequest: message,
+      filterAck: false,
+      storeAck: false,
+      createdAt: Date.now()
+    });
+
+    return requestId;
+  }
+
+  public getMessagesToSend(): Array<{
+    requestId: string;
+    message: ISendMessage;
+  }> {
+    const res: Array<{
+      requestId: string;
+      message: ISendMessage;
+    }> = [];
+
+    for (const [requestId, entry] of this.pendingRequests.entries()) {
+      const isAcknowledged = entry.filterAck || entry.storeAck;
+
+      if (!entry.messageRequest || isAcknowledged) {
+        continue;
+      }
+
+      const sentAt = entry.lastSentAt || entry.createdAt;
+      const notTooRecent = Date.now() - sentAt >= this.resendIntervalMs;
+      const notAcknowledged = !isAcknowledged;
+
+      if (notTooRecent && notAcknowledged) {
+        res.push({
+          requestId,
+          message: entry.messageRequest
+        });
+      }
+    }
+
+    return res;
+  }
+
+  private ackMessage(
+    hashStr: MessageHashStr,
+    ackParams: AddMessageOptions = {}
+  ): void {
+    let entry = this.messages.get(hashStr);
+
+    if (entry) {
+      entry.filterAck = ackParams.filterAck ?? entry.filterAck;
+      entry.storeAck = ackParams.storeAck ?? entry.storeAck;
+      return;
+    }
+
+    const requestId = this.pendingMessages.get(hashStr);
+
+    if (!requestId) {
+      return;
+    }
+
+    entry = this.pendingRequests.get(requestId);
+
+    if (!entry) {
+      return;
+    }
+
+    entry.filterAck = ackParams.filterAck ?? entry.filterAck;
+    entry.storeAck = ackParams.storeAck ?? entry.storeAck;
+  }
+
+  private replacePendingWithMessage(hashStr: MessageHashStr): void {
+    const requestId = this.pendingMessages.get(hashStr);
+
+    if (!requestId) {
+      return;
+    }
+
+    let entry = this.pendingRequests.get(requestId);
+
+    if (!entry) {
+      return;
+    }
+
+    // merge with message entry if possible
+    // this can happen if message we sent got received before we could add it to the message store
+    const messageEntry = this.messages.get(hashStr);
+    entry = {
+      ...entry,
+      ...messageEntry,
+      filterAck: messageEntry?.filterAck ?? entry.filterAck,
+      storeAck: messageEntry?.storeAck ?? entry.storeAck
+    };
+
+    this.pendingRequests.delete(requestId);
+    this.pendingMessages.delete(hashStr);
+
+    this.messages.set(hashStr, entry);
+  }
+}

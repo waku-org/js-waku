@@ -5,7 +5,7 @@ import type { DiscoveryOptions, PeerCache } from "./discovery.js";
 import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { LightPushProtocolOptions } from "./light_push.js";
-import type { IDecodedMessage } from "./message.js";
+import type { IDecodedMessage, IProtoMessage } from "./message.js";
 import type { ThisAndThat, ThisOrThat } from "./misc.js";
 import { NetworkConfig } from "./sharding.js";
 import type { StoreProtocolOptions } from "./store.js";
@@ -195,7 +195,13 @@ export type LightPushCoreResult = ThisOrThat<
   PeerId,
   "failure",
   LightPushFailure
->;
+> & {
+  /**
+   * The proto object of the message.
+   * Present only if the message was successfully pushed to the network.
+   */
+  message?: IProtoMessage;
+};
 
 export type FilterCoreResult = ThisOrThat<
   "success",
@@ -209,7 +215,13 @@ export type LightPushSDKResult = ThisAndThat<
   PeerId[],
   "failures",
   LightPushFailure[]
->;
+> & {
+  /**
+   * The proto objects of the messages.
+   * Present only if the messages were successfully pushed to the network.
+   */
+  messages?: IProtoMessage[];
+};
 
 export type FilterSDKResult = ThisAndThat<
   "successes",
