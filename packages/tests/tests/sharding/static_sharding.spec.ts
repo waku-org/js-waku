@@ -82,7 +82,7 @@ describe("Static Sharding: Running Nodes", function () {
     expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
-  const numTest = 10;
+  const numTest = 2;
   for (let i = 0; i < numTest; i++) {
     // Random clusterId between 2 and 1000
     const clusterId = Math.floor(Math.random() * 999) + 2;

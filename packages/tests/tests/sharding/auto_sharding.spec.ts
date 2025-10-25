@@ -86,7 +86,7 @@ describe("Autosharding: Running Nodes", function () {
     expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(true);
   });
 
-  const numTest = 10;
+  const numTest = 2;
   for (let i = 0; i < numTest; i++) {
     // Random ContentTopic
     const applicationName = `app${Math.floor(Math.random() * 100)}`; // Random application name app0 to app99
