@@ -1,11 +1,10 @@
-import { RLN_ABI } from "./contract/abi/rln.js";
 import { RLN_CONTRACT } from "./contract/index.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
 import { createRLN } from "./create.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
 import { RLNInstance } from "./rln.js";
-import { extractMetaMaskSigner } from "./utils/index.js";
+import { createViemClientsFromWindow } from "./utils/index.js";
 
 export {
   RLNBaseContract,
@@ -14,9 +13,16 @@ export {
   RLNInstance,
   IdentityCredential,
   RLN_CONTRACT,
-  extractMetaMaskSigner,
-  RLN_ABI
+  createViemClientsFromWindow as extractMetaMaskSigner
 };
+
+// Export wagmi-generated ABIs
+export {
+  wakuRlnV2Abi,
+  linearPriceCalculatorAbi,
+  iPriceCalculatorAbi,
+  membershipUpgradeableAbi
+} from "./contract/wagmi/generated.js";
 
 export type {
   DecryptedCredentials,
