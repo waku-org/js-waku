@@ -24,6 +24,10 @@ export {
   membershipUpgradeableAbi
 } from "./contract/wagmi/generated.js";
 
+// Export token utilities
+export { getTokenBalance, erc20Abi } from "./contract/token.js";
+export type { TokenBalance } from "./contract/token.js";
+
 export type {
   DecryptedCredentials,
   EncryptedCredentials,
