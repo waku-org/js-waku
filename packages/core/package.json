@@ -70,7 +70,7 @@
     "@waku/proto": "0.0.14",
     "@waku/utils": "0.0.27",
     "debug": "^4.3.4",
-    "@noble/hashes": "^1.3.2",
+    "@noble/hashes": "^2.0.1",
     "it-all": "^3.0.4",
     "it-length-prefixed": "^9.0.4",
     "it-pipe": "^3.0.1",

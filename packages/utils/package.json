@@ -63,7 +63,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@noble/hashes": "^1.3.2",
+    "@noble/hashes": "^2.0.1",
     "@waku/interfaces": "0.0.34",
     "chai": "^4.3.10",
     "debug": "^4.3.4",
