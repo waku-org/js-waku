@@ -12,13 +12,15 @@ import {
   ILightPush,
   type IMessage,
   IRelay,
+  ISendMessage,
   ISendOptions,
   IStore,
   IWaku,
   IWakuEventEmitter,
   Libp2p,
   LightPushSDKResult,
-  Protocols
+  Protocols,
+  RequestId
 } from "@waku/interfaces";
 
 export type MockWakuEvents = {
@@ -152,6 +154,9 @@ export class MockWakuNode implements IWaku {
     throw new Error("Method not implemented.");
   }
   public createEncoder(_params: CreateEncoderParams): IEncoder {
+    throw new Error("Method not implemented.");
+  }
+  public send(_message: ISendMessage): Promise<RequestId> {
     throw new Error("Method not implemented.");
   }
   public isStarted(): boolean {
