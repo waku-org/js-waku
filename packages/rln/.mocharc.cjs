@@ -20,6 +20,9 @@ if (process.env.CI) {
   config.reporterOptions = {
     configFile: '.mocha.reporters.json'
   };
+  // Exclude integration tests in CI (they require RPC access)
+  console.log("Excluding integration tests in CI environment");
+  config.ignore = 'src/**/*.integration.spec.ts';
 } else {
   console.log("Running tests serially. To enable parallel execution update mocha config");
 }

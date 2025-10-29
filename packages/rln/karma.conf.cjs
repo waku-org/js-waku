@@ -38,8 +38,18 @@ module.exports = function (config) {
         watched: false,
         type: "wasm",
         nocache: true
+      },
+      {
+        pattern: "../../node_modules/@waku/zerokit-rln-wasm-utils/*.wasm",
+        included: false,
+        served: true,
+        watched: false,
+        type: "wasm",
+        nocache: true
       }
     ],
+
+    exclude: process.env.CI ? ["src/**/*.integration.spec.ts"] : [],
 
     preprocessors: {
       "src/**/*.spec.ts": ["webpack"]
@@ -81,6 +91,12 @@ module.exports = function (config) {
         path.resolve(
           __dirname,
           "../../node_modules/@waku/zerokit-rln-wasm/rln_wasm_bg.wasm"
+        ),
+      "/base/rln_wasm_utils_bg.wasm":
+        "/absolute" +
+        path.resolve(
+          __dirname,
+          "../../node_modules/@waku/zerokit-rln-wasm-utils/rln_wasm_utils_bg.wasm"
         ),
       "/base/rln.wasm":
         "/absolute" + path.resolve(__dirname, "src/resources/rln.wasm"),
