@@ -141,12 +141,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * Useful for adaptive sync intervals - increase frequency when repairs pending.
    */
   public hasPendingRepairRequests(currentTime = Date.now()): boolean {
-    if (!this.repairManager) {
-      return false;
-    }
-
-    const nextRequestTime = this.repairManager.getNextRequestTime();
-    return nextRequestTime !== undefined && nextRequestTime <= currentTime;
+    return this.repairManager?.hasRequestsReady(currentTime) ?? false;
   }
 
   /**
