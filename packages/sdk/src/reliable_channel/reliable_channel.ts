@@ -42,7 +42,6 @@ const DEFAULT_MAX_RETRY_ATTEMPTS = 10;
 const DEFAULT_SWEEP_IN_BUF_INTERVAL_MS = 5 * 1000;
 const DEFAULT_SWEEP_REPAIR_INTERVAL_MS = 10 * 1000; // 10 seconds
 const DEFAULT_PROCESS_TASK_MIN_ELAPSE_MS = 1000;
-const DEFAULT_SDSR_FALLBACK_TIMEOUT_MS = 120 * 1000; // 2 minutes
 
 const IRRECOVERABLE_SENDING_ERRORS: LightPushError[] = [
   LightPushError.ENCODE_FAILED,
@@ -118,7 +117,7 @@ export type ReliableChannelOptions = MessageChannelOptions & {
 
   /**
    * Strategy for retrieving missing messages.
-   * - 'both': Use SDS-R peer repair and Store queries (default)
+   * - 'both': Use SDS-R peer repair and Store queries in parallel (default)
    * - 'sds-r-only': Only use SDS-R peer repair
    * - 'store-only': Only use Store queries (legacy behavior)
    * - 'none': No automatic retrieval
@@ -126,14 +125,6 @@ export type ReliableChannelOptions = MessageChannelOptions & {
    * @default 'both'
    */
   retrievalStrategy?: "both" | "sds-r-only" | "store-only" | "none";
-
-  /**
-   * How long to wait for SDS-R repair before falling back to Store.
-   * Only applies when retrievalStrategy is 'both'.
-   *
-   * @default 120,000 (2 minutes - matches SDS-R T_max)
-   */
-  sdsrFallbackTimeoutMs?: number;
 };
 
 /**
@@ -179,11 +170,6 @@ export class ReliableChannel<
     | "sds-r-only"
     | "store-only"
     | "none";
-  private readonly sdsrFallbackTimeoutMs: number;
-  private readonly missingMessageTimeouts: Map<
-    string,
-    ReturnType<typeof setTimeout>
-  >;
   private _started: boolean;
 
   private constructor(
@@ -249,9 +235,6 @@ export class ReliableChannel<
       options?.processTaskMinElapseMs ?? DEFAULT_PROCESS_TASK_MIN_ELAPSE_MS;
 
     this.retrievalStrategy = options?.retrievalStrategy ?? "both";
-    this.sdsrFallbackTimeoutMs =
-      options?.sdsrFallbackTimeoutMs ?? DEFAULT_SDSR_FALLBACK_TIMEOUT_MS;
-    this.missingMessageTimeouts = new Map();
 
     // Only enable Store retrieval based on strategy
     if (this._retrieve && this.shouldUseStore()) {
@@ -458,13 +441,7 @@ export class ReliableChannel<
     // missing messages or the status of previous outgoing messages
     this.messageChannel.pushIncomingMessage(sdsMessage, retrievalHint);
 
-    // Cancel Store fallback timeout if message was retrieved
-    const timeout = this.missingMessageTimeouts.get(sdsMessage.messageId);
-    if (timeout) {
-      clearTimeout(timeout);
-      this.missingMessageTimeouts.delete(sdsMessage.messageId);
-    }
-
+    // Remove from Store retriever if message was retrieved
     this.missingMessageRetriever?.removeMissingMessage(sdsMessage.messageId);
 
     if (sdsMessage.content && sdsMessage.content.length > 0) {
@@ -544,7 +521,6 @@ export class ReliableChannel<
     this.stopSync();
     this.stopSweepIncomingBufferLoop();
     this.stopRepairSweepLoop();
-    this.clearMissingMessageTimeouts();
     this.missingMessageRetriever?.stop();
     this.queryOnConnect?.stop();
     // TODO unsubscribe
@@ -585,13 +561,6 @@ export class ReliableChannel<
 
   private stopRepairSweepLoop(): void {
     if (this.sweepRepairInterval) clearInterval(this.sweepRepairInterval);
-  }
-
-  private clearMissingMessageTimeouts(): void {
-    for (const timeout of this.missingMessageTimeouts.values()) {
-      clearTimeout(timeout);
-    }
-    this.missingMessageTimeouts.clear();
   }
 
   private shouldUseStore(): boolean {
@@ -773,27 +742,19 @@ export class ReliableChannel<
       MessageChannelEvent.InMessageMissing,
       (event) => {
         for (const { messageId, retrievalHint } of event.detail) {
-          // Coordinated retrieval strategy
+          // Parallel retrieval strategy
           if (this.retrievalStrategy === "both") {
-            // SDS-R will attempt first, schedule Store fallback
-            // Note: missingMessageRetriever only exists if Store protocol is available
+            // Both SDS-R and Store work in parallel
+            // SDS-R automatically handles repair via RepairManager
+            // Store retrieval starts immediately
             if (retrievalHint && this.missingMessageRetriever) {
-              const timeout = setTimeout(() => {
-                // Still missing after SDS-R timeout, try Store
-                log.info(
-                  `Message ${messageId} not retrieved via SDS-R, falling back to Store`
-                );
-                this.missingMessageRetriever?.addMissingMessage(
-                  messageId,
-                  retrievalHint
-                );
-                this.missingMessageTimeouts.delete(messageId);
-              }, this.sdsrFallbackTimeoutMs);
-
-              this.missingMessageTimeouts.set(messageId, timeout);
+              this.missingMessageRetriever.addMissingMessage(
+                messageId,
+                retrievalHint
+              );
             }
           } else if (this.retrievalStrategy === "store-only") {
-            // Immediate Store retrieval
+            // Immediate Store retrieval only
             if (retrievalHint && this.missingMessageRetriever) {
               this.missingMessageRetriever.addMissingMessage(
                 messageId,
@@ -801,7 +762,8 @@ export class ReliableChannel<
               );
             }
           }
-          // For 'sds-r-only' and 'none', SDS-R handles it or nothing happens
+          // For 'sds-r-only', only SDS-R repair manager operates
+          // For 'none', nothing happens
         }
       }
     );

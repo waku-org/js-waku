@@ -128,13 +128,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
 
     // Only construct RepairManager if repair is enabled (default: true)
     if (options.enableRepair ?? true) {
-      this.repairManager = new RepairManager(
-        senderId,
-        options.repairConfig,
-        (event: string, detail: unknown) => {
-          this.safeSendEvent(event as MessageChannelEvent, { detail });
-        }
-      );
+      this.repairManager = new RepairManager(senderId, options.repairConfig);
     }
   }
 
@@ -147,24 +141,12 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
    * Useful for adaptive sync intervals - increase frequency when repairs pending.
    */
   public hasPendingRepairRequests(currentTime = Date.now()): boolean {
-    if (!this.repairManager.isEnabled) {
+    if (!this.repairManager) {
       return false;
     }
 
     const nextRequestTime = this.repairManager.getNextRequestTime();
     return nextRequestTime !== undefined && nextRequestTime <= currentTime;
-  }
-
-  /**
-   * Get repair statistics for monitoring/debugging.
-   */
-  public getRepairStats(): {
-    pendingRequests: number;
-    pendingResponses: number;
-    nextRequestTime?: number;
-    nextResponseTime?: number;
-  } {
-    return this.repairManager.getStats();
   }
 
   /**
