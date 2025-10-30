@@ -742,28 +742,18 @@ export class ReliableChannel<
       MessageChannelEvent.InMessageMissing,
       (event) => {
         for (const { messageId, retrievalHint } of event.detail) {
-          // Parallel retrieval strategy
-          if (this.retrievalStrategy === "both") {
-            // Both SDS-R and Store work in parallel
-            // SDS-R automatically handles repair via RepairManager
-            // Store retrieval starts immediately
-            if (retrievalHint && this.missingMessageRetriever) {
-              this.missingMessageRetriever.addMissingMessage(
-                messageId,
-                retrievalHint
-              );
-            }
-          } else if (this.retrievalStrategy === "store-only") {
-            // Immediate Store retrieval only
-            if (retrievalHint && this.missingMessageRetriever) {
-              this.missingMessageRetriever.addMissingMessage(
-                messageId,
-                retrievalHint
-              );
-            }
+          // Store retrieval (for 'both' and 'store-only' strategies)
+          // SDS-R repair happens automatically via RepairManager for 'both' and 'sds-r-only'
+          if (
+            this.shouldUseStore() &&
+            retrievalHint &&
+            this.missingMessageRetriever
+          ) {
+            this.missingMessageRetriever.addMissingMessage(
+              messageId,
+              retrievalHint
+            );
           }
-          // For 'sds-r-only', only SDS-R repair manager operates
-          // For 'none', nothing happens
         }
       }
     );
