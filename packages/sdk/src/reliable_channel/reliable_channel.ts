@@ -292,7 +292,15 @@ export class ReliableChannel<
     decoder: IDecoder<T>,
     options?: ReliableChannelOptions
   ): Promise<ReliableChannel<T>> {
-    const sdsMessageChannel = new MessageChannel(channelId, senderId, options);
+    // Enable SDS-R repair only if retrieval strategy uses it
+    const retrievalStrategy = options?.retrievalStrategy ?? "both";
+    const enableRepair =
+      retrievalStrategy === "both" || retrievalStrategy === "sds-r-only";
+
+    const sdsMessageChannel = new MessageChannel(channelId, senderId, {
+      ...options,
+      enableRepair
+    });
     const messageChannel = new ReliableChannel(
       node,
       sdsMessageChannel,
