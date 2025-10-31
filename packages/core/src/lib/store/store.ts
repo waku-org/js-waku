@@ -72,6 +72,11 @@ export class StoreCore {
 
     let currentCursor = queryOpts.paginationCursor;
     while (true) {
+      if (queryOpts.abortSignal?.aborted) {
+        log.info("Store query aborted by signal");
+        break;
+      }
+
       const storeQueryRequest = StoreQueryRequest.create({
         ...queryOpts,
         paginationCursor: currentCursor
@@ -93,13 +98,22 @@ export class StoreCore {
         break;
       }
 
-      const res = await pipe(
-        [storeQueryRequest.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
+      let res;
+      try {
+        res = await pipe(
+          [storeQueryRequest.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source)
+        );
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          log.info(`Store query aborted for peer ${peerId.toString()}`);
+          break;
+        }
+        throw error;
+      }
 
       const bytes = new Uint8ArrayList();
       res.forEach((chunk) => {
@@ -125,6 +139,11 @@ export class StoreCore {
       log.info(
         `${storeQueryResponse.messages.length} messages retrieved from store`
       );
+
+      if (queryOpts.abortSignal?.aborted) {
+        log.info("Store query aborted by signal before processing messages");
+        break;
+      }
 
       const decodedMessages = storeQueryResponse.messages.map((protoMsg) => {
         if (!protoMsg.message) {
