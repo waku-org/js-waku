@@ -99,6 +99,7 @@ export type QueryRequestParams = {
 export type IStore = {
   readonly multicodec: string;
 
+  stop(): void;
   createCursor(message: IDecodedMessage): StoreCursor;
   queryGenerator: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],

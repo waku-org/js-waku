@@ -46,6 +46,10 @@ export class Store implements IStore {
     return this.protocol.multicodec;
   }
 
+  public stop(): void {
+    this.protocol.stop();
+  }
+
   /**
    * Queries the Waku Store for historical messages using the provided decoders and options.
    * Returns an asynchronous generator that yields promises of decoded messages.
