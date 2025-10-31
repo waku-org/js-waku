@@ -24,7 +24,15 @@ export class RetryManager {
     const timeout = this.timeouts.get(id);
     if (timeout) {
       clearTimeout(timeout);
+      this.timeouts.delete(id);
     }
+  }
+
+  public stopAllRetries(): void {
+    for (const [_id, timeout] of this.timeouts.entries()) {
+      clearTimeout(timeout);
+    }
+    this.timeouts.clear();
   }
 
   public startRetries(id: string, retry: () => void | Promise<void>): void {
@@ -36,7 +44,7 @@ export class RetryManager {
     retry: () => void | Promise<void>,
     attemptNumber: number
   ): void {
-    clearTimeout(this.timeouts.get(id));
+    this.stopRetries(id);
     if (attemptNumber < this.maxRetryNumber) {
       const interval = setTimeout(() => {
         void retry();
