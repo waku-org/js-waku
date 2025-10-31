@@ -534,7 +534,7 @@ export class ReliableChannel<
     }
 
     if (this.queryOnConnect) {
-      this.queryOnConnect.stop();
+      await this.queryOnConnect.stop();
     }
 
     if (this.retryManager) {
