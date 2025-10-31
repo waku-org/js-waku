@@ -65,6 +65,7 @@ export class LightPush implements ILightPush {
 
   public stop(): void {
     this.retryManager.stop();
+    this.protocol.stop();
   }
 
   public async send(
