@@ -35,6 +35,10 @@ export class StoreCore {
     this.streamManager = new StreamManager(StoreCodec, libp2p.components);
   }
 
+  public stop(): void {
+    this.streamManager.stop();
+  }
+
   public get maxTimeLimit(): number {
     return MAX_TIME_RANGE;
   }

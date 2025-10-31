@@ -61,6 +61,7 @@ export class FilterCore {
   }
 
   public async stop(): Promise<void> {
+    this.streamManager.stop();
     try {
       await this.libp2p.unhandle(FilterCodecs.PUSH);
     } catch (e) {

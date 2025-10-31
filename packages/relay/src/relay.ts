@@ -67,6 +67,10 @@ export class Relay implements IRelay {
    * Observers under key `""` are always called.
    */
   private observers: Map<PubsubTopic, Map<ContentTopic, Set<unknown>>>;
+  private messageEventHandlers: Map<
+    PubsubTopic,
+    (event: CustomEvent<GossipsubMessage>) => void
+  > = new Map();
 
   public constructor(params: RelayConstructorParams) {
     if (!this.isRelayPubsub(params.libp2p.services.pubsub)) {
@@ -103,6 +107,19 @@ export class Relay implements IRelay {
 
     await this.gossipSub.start();
     this.subscribeToAllTopics();
+  }
+
+  public async stop(): Promise<void> {
+    for (const pubsubTopic of this.pubsubTopics) {
+      const handler = this.messageEventHandlers.get(pubsubTopic);
+      if (handler) {
+        this.gossipSub.removeEventListener("gossipsub:message", handler);
+      }
+      this.gossipSub.topicValidators.delete(pubsubTopic);
+      this.gossipSub.unsubscribe(pubsubTopic);
+    }
+    this.messageEventHandlers.clear();
+    this.observers.clear();
   }
 
   /**
@@ -299,17 +316,17 @@ export class Relay implements IRelay {
    * @override
    */
   private gossipSubSubscribe(pubsubTopic: string): void {
-    this.gossipSub.addEventListener(
-      "gossipsub:message",
-      (event: CustomEvent<GossipsubMessage>) => {
-        if (event.detail.msg.topic !== pubsubTopic) return;
+    const handler = (event: CustomEvent<GossipsubMessage>): void => {
+      if (event.detail.msg.topic !== pubsubTopic) return;
 
-        this.processIncomingMessage(
-          event.detail.msg.topic,
-          event.detail.msg.data
-        ).catch((e) => log.error("Failed to process incoming message", e));
-      }
-    );
+      this.processIncomingMessage(
+        event.detail.msg.topic,
+        event.detail.msg.data
+      ).catch((e) => log.error("Failed to process incoming message", e));
+    };
+
+    this.messageEventHandlers.set(pubsubTopic, handler);
+    this.gossipSub.addEventListener("gossipsub:message", handler);
 
     this.gossipSub.topicValidators.set(pubsubTopic, messageValidator);
     this.gossipSub.subscribe(pubsubTopic);
