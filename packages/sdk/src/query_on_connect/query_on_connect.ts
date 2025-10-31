@@ -54,6 +54,7 @@ export class QueryOnConnect<
 
   private isRunning: boolean = false;
   private abortController?: AbortController;
+  private activeQueryPromise?: Promise<void>;
 
   private boundStoreConnectHandler?: (event: CustomEvent<PeerId>) => void;
   private boundHealthHandler?: (event: CustomEvent<HealthStatus>) => void;
@@ -87,7 +88,7 @@ export class QueryOnConnect<
     this.setupEventListeners();
   }
 
-  public stop(): void {
+  public async stop(): Promise<void> {
     if (!this.isRunning) {
       return;
     }
@@ -97,6 +98,15 @@ export class QueryOnConnect<
     if (this.abortController) {
       this.abortController.abort();
       this.abortController = undefined;
+    }
+
+    if (this.activeQueryPromise) {
+      log.info("Waiting for active query to complete...");
+      try {
+        await this.activeQueryPromise;
+      } catch (error) {
+        log.warn("Active query failed during stop:", error);
+      }
     }
 
     this.unsetEventListeners();
@@ -130,7 +140,10 @@ export class QueryOnConnect<
       this.lastTimeOffline > this.lastSuccessfulQuery ||
       timeSinceLastQuery > this.forceQueryThresholdMs
     ) {
-      await this.query(peerId);
+      this.activeQueryPromise = this.query(peerId).finally(() => {
+        this.activeQueryPromise = undefined;
+      });
+      await this.activeQueryPromise;
     } else {
       log.info(`no querying`);
     }
