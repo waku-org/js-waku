@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.8](https://github.com/waku-org/js-waku/compare/sds-v0.0.7...sds-v0.0.8) (2025-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* do not send sync messages with empty history ([#2658](https://github.com/waku-org/js-waku/issues/2658))
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664))
+
+### Features
+
+* Add SDS-Repair (SDS-R) to the SDS implementation ([#2698](https://github.com/waku-org/js-waku/issues/2698)) ([5334a7f](https://github.com/waku-org/js-waku/commit/5334a7fcc91544d33294beaad9b45e641ecf404d))
+* Do not send sync messages with empty history ([#2658](https://github.com/waku-org/js-waku/issues/2658)) ([e92f6a2](https://github.com/waku-org/js-waku/commit/e92f6a2409b915a8a1edd839ef3b0c6c8670b1ec))
+* Reliable channels search up to 30 days to find message ([#2657](https://github.com/waku-org/js-waku/issues/2657)) ([593bc45](https://github.com/waku-org/js-waku/commit/593bc452259c48503e099946bb316c764f89cc1d))
+
+
+### Bug Fixes
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664)) ([c0ecb6a](https://github.com/waku-org/js-waku/commit/c0ecb6abbaae0544f352b89293f59f274600a916))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.14 to ^0.0.15
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/sds-v0.0.6...sds-v0.0.7) (2025-09-20)
 
 

@@ -47,6 +47,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.36](https://github.com/waku-org/js-waku/compare/sdk-v0.0.35...sdk-v0.0.36) (2025-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* do not send sync messages with empty history ([#2658](https://github.com/waku-org/js-waku/issues/2658))
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664))
+* **rln:** use zerokit for credential generation ([#2632](https://github.com/waku-org/js-waku/issues/2632))
+
+### Features
+
+* Do not send sync messages with empty history ([#2658](https://github.com/waku-org/js-waku/issues/2658)) ([e92f6a2](https://github.com/waku-org/js-waku/commit/e92f6a2409b915a8a1edd839ef3b0c6c8670b1ec))
+* Reliable channels search up to 30 days to find message ([#2657](https://github.com/waku-org/js-waku/issues/2657)) ([593bc45](https://github.com/waku-org/js-waku/commit/593bc452259c48503e099946bb316c764f89cc1d))
+* **rln:** Use zerokit for credential generation ([#2632](https://github.com/waku-org/js-waku/issues/2632)) ([bbcfc94](https://github.com/waku-org/js-waku/commit/bbcfc9487937eb89c04502c12e50052f18fdac87))
+
+
+### Bug Fixes
+
+* SDS lamport timestamp overflow and keep it to current time ([#2664](https://github.com/waku-org/js-waku/issues/2664)) ([c0ecb6a](https://github.com/waku-org/js-waku/commit/c0ecb6abbaae0544f352b89293f59f274600a916))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.39 to 0.0.40
+    * @waku/discovery bumped from 0.0.12 to 0.0.13
+    * @waku/proto bumped from ^0.0.14 to ^0.0.15
+    * @waku/sds bumped from ^0.0.7 to ^0.0.8
+  * devDependencies
+    * @waku/message-encryption bumped from ^0.0.37 to ^0.0.38
+
 ## [0.0.35](https://github.com/waku-org/js-waku/compare/sdk-v0.0.34...sdk-v0.0.35) (2025-09-20)
 
 

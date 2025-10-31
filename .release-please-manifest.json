@@ -1,15 +1,15 @@
 {
   "packages/utils": "0.0.27",
-  "packages/proto": "0.0.14",
+  "packages/proto": "0.0.15",
   "packages/interfaces": "0.0.34",
   "packages/enr": "0.0.33",
-  "packages/core": "0.0.39",
-  "packages/message-encryption": "0.0.37",
-  "packages/relay": "0.0.22",
-  "packages/sdk": "0.0.35",
-  "packages/discovery": "0.0.12",
-  "packages/sds": "0.0.7",
-  "packages/rln": "0.1.9",
-  "packages/react": "0.0.7",
-  "packages/run": "0.0.1"
+  "packages/core": "0.0.40",
+  "packages/message-encryption": "0.0.38",
+  "packages/relay": "0.0.23",
+  "packages/sdk": "0.0.36",
+  "packages/discovery": "0.0.13",
+  "packages/sds": "0.0.8",
+  "packages/rln": "0.1.10",
+  "packages/react": "0.0.8",
+  "packages/run": "0.0.2"
 }

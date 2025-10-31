@@ -1,6 +1,6 @@
 {
   "name": "@waku/run",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Run a local Waku network for development and testing",
   "type": "module",
   "author": "Waku Team",
@@ -50,9 +50,9 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@waku/core": "*",
+    "@waku/core": "0.0.40",
     "@waku/interfaces": "*",
-    "@waku/sdk": "*",
+    "@waku/sdk": "0.0.36",
     "@waku/utils": "*"
   },
   "devDependencies": {

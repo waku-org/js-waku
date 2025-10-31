@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.10](https://github.com/waku-org/js-waku/compare/rln-v0.1.9...rln-v0.1.10) (2025-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **rln:** use zerokit for credential generation ([#2632](https://github.com/waku-org/js-waku/issues/2632))
+
+### Features
+
+* **rln:** Use zerokit for credential generation ([#2632](https://github.com/waku-org/js-waku/issues/2632)) ([bbcfc94](https://github.com/waku-org/js-waku/commit/bbcfc9487937eb89c04502c12e50052f18fdac87))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.39 to ^0.0.40
+  * devDependencies
+    * @waku/message-encryption bumped from ^0.0.37 to ^0.0.38
+
 ## [0.1.9](https://github.com/waku-org/js-waku/compare/rln-v0.1.8...rln-v0.1.9) (2025-09-20)
 
 

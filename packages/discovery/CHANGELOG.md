@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.13](https://github.com/waku-org/js-waku/compare/discovery-v0.0.12...discovery-v0.0.13) (2025-10-31)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.39 to 0.0.40
+    * @waku/proto bumped from ^0.0.14 to ^0.0.15
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/discovery-v0.0.11...discovery-v0.0.12) (2025-09-20)
 
 
