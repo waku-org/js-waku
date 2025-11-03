@@ -5,8 +5,14 @@ import {
   TypedEventEmitter
 } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, createDecoder, createEncoder } from "@waku/core";
-import type {
+import {
+  ConnectionManager,
+  createDecoder,
+  createEncoder,
+  DecodedMessage
+} from "@waku/core";
+import {
+  ContentTopic,
   CreateDecoderParams,
   CreateEncoderParams,
   CreateNodeOptions,
@@ -15,20 +21,22 @@ import type {
   IEncoder,
   IFilter,
   ILightPush,
+  IMessageEmitter,
   IRelay,
   IRoutingInfo,
   IStore,
   IWaku,
   IWakuEventEmitter,
   Libp2p,
-  NetworkConfig
+  NetworkConfig,
+  PubsubTopic
 } from "@waku/interfaces";
 import {
   DefaultNetworkConfig,
   HealthStatus,
   Protocols
 } from "@waku/interfaces";
-import { createRoutingInfo, Logger } from "@waku/utils";
+import { createRoutingInfo, Logger, pushOrInitMapSet } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
@@ -54,6 +62,7 @@ export class WakuNode implements IWaku {
   public lightPush?: ILightPush;
 
   public readonly events: IWakuEventEmitter = new TypedEventEmitter();
+  public readonly messageEmitter: IMessageEmitter = new TypedEventEmitter();
 
   private readonly networkConfig: NetworkConfig;
 
@@ -132,6 +141,41 @@ export class WakuNode implements IWaku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
+  }
+
+  public subscribe(contentTopics: ContentTopic[]): void {
+    // Group decoders by pubsubTopics in case they spread across several shards
+    const ctToDecoders: Map<
+      PubsubTopic,
+      Set<IDecoder<DecodedMessage>>
+    > = new Map();
+    for (const contentTopic of contentTopics) {
+      const decoder = this.createDecoder({ contentTopic });
+      pushOrInitMapSet(ctToDecoders, decoder.pubsubTopic, decoder);
+    }
+
+    if (this.filter) {
+      for (const [_, decoders] of ctToDecoders) {
+        void this.filter
+          .subscribe(
+            Array.from(decoders),
+            this.emitIncomingMessages.bind(this, Array.from(contentTopics))
+          )
+          .then((_) => {
+            // TODO: emit irrecoverable errors
+          })
+          .catch((_) => {
+            // TODO: emit irrecoverable errors
+          });
+      }
+
+      return;
+    }
+
+    if (this.relay) {
+      throw "not implemented";
+    }
+    throw "no subscribe protocol available";
   }
 
   public get peerId(): PeerId {
@@ -282,10 +326,26 @@ export class WakuNode implements IWaku {
     });
   }
 
-  private createRoutingInfo(
+  public createRoutingInfo(
     contentTopic?: string,
     shardId?: number
   ): IRoutingInfo {
     return createRoutingInfo(this.networkConfig, { contentTopic, shardId });
+  }
+
+  private emitIncomingMessages(
+    contentTopics: ContentTopic[],
+    message: {
+      contentTopic: ContentTopic;
+      payload: Uint8Array;
+    }
+  ): void {
+    if (contentTopics.includes(message.contentTopic)) {
+      this.messageEmitter.dispatchEvent(
+        new CustomEvent<Uint8Array>(message.contentTopic, {
+          detail: message.payload
+        })
+      );
+    }
   }
 }

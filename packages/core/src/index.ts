@@ -25,4 +25,8 @@ export { StreamManager } from "./lib/stream_manager/index.js";
 
 export { MetadataCodec, wakuMetadata } from "./lib/metadata/index.js";
 
-export { messageHash, messageHashStr } from "./lib/message_hash/index.js";
+export {
+  messageHash,
+  messageHashStr,
+  deterministicMessageHashing
+} from "./lib/message_hash/index.js";
