@@ -23,6 +23,15 @@ npm install
 npm run doc
 ```
 
+# Using Nix shell
+```shell
+git clone https://github.com/waku-org/js-waku.git
+cd js-waku
+nix develop
+npm install
+npm run doc
+```
+
 ## Bugs, Questions & Features
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/waku-org/js-waku/issues/new/).

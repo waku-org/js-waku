@@ -162,7 +162,8 @@ describe("MessageChannel", function () {
         .slice(-causalHistorySize - 1, -1)
         .map((message) => ({
           messageId: MessageChannel.getMessageId(utf8ToBytes(message)),
-          retrievalHint: undefined
+          retrievalHint: undefined,
+          senderId: "alice"
         }));
       expect(causalHistory).to.deep.equal(expectedCausalHistory);
     });
@@ -298,6 +299,7 @@ describe("MessageChannel", function () {
           1n,
           undefined,
           payload,
+          undefined,
           testRetrievalHint
         ),
         testRetrievalHint

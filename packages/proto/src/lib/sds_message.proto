@@ -3,6 +3,8 @@ syntax = "proto3";
 message HistoryEntry {
   string message_id = 1; // Unique identifier of the SDS message, as defined in `Message`
   optional bytes retrieval_hint = 2; // Optional information to help remote parties retrieve this SDS message; For example, A Waku deterministic message hash or routing payload hash
+
+  optional string sender_id = 3; // Participant ID of original message sender. Only populated if using optional SDS Repair extension
 }
 
 message SdsMessage {
@@ -12,5 +14,8 @@ message SdsMessage {
   optional uint64 lamport_timestamp = 10;    // Logical timestamp for causal ordering in channel
   repeated HistoryEntry causal_history = 11;  // List of preceding message IDs that this message causally depends on. Generally 2 or 3 message IDs are included.
   optional bytes bloom_filter = 12;         // Bloom filter representing received message IDs in channel
+
+  repeated HistoryEntry repair_request = 13; // Capped list of history entries missing from sender's causal history. Only populated if using the optional SDS Repair extension.
+
   optional bytes content = 20;             // Actual content of the message
 }

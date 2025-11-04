@@ -8,7 +8,7 @@ export {
   HistoryEntry,
   Message,
   MessageId,
-  SenderId,
+  ParticipantId,
   SyncMessage,
   isContentMessage,
   isEphemeralMessage,
