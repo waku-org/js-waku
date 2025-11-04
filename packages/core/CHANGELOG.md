@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.40](https://github.com/waku-org/js-waku/compare/core-v0.0.39...core-v0.0.40) (2025-10-31)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from 0.0.14 to 0.0.15
+
 ## [0.0.39](https://github.com/waku-org/js-waku/compare/core-v0.0.38...core-v0.0.39) (2025-09-20)
 
 
