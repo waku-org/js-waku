@@ -1,3 +1,6 @@
+#!/usr/bin/env groovy
+library 'status-jenkins-lib@v1.9.27'
+
 pipeline {
   agent {
     docker {
@@ -56,7 +59,7 @@ pipeline {
       steps {
         sshagent(credentials: ['status-im-auto-ssh']) {
           script {
-            nix.develop('npm run deploy', pure: true)
+            nix.develop('npm run deploy', pure: false)
           }
         }
       }
