@@ -1,0 +1,98 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@waku/run | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><a href="../index.html" class="title">Documentation</a><div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/><ul role="listbox" id="tsd-search-results"></ul><div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><ul class="tsd-breadcrumb" aria-label="Breadcrumb"><li><a href="" aria-current="page">@waku/run</a></li></ul><h1>Module @waku/run</h1></div><section class="tsd-panel tsd-typography"><h1 id="wakurun" class="tsd-anchor-link">@waku/run<a href="#wakurun" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h1><blockquote>
+<p><strong>Spin up a local Waku network for development without relying on external infrastructure</strong></p>
+</blockquote>
+<p>Perfect for hackathons, offline development, or when you need a controlled testing environment for your js-waku application.</p>
+<h2 id="whats-included" class="tsd-anchor-link">What's Included<a href="#whats-included" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><ul>
+<li><strong>2 nwaku nodes</strong> connected to each other with all protocols enabled:</li>
+<li><strong>PostgreSQL database</strong> for message persistence</li>
+<li><strong>Isolated network</strong> - nodes only connect to each other</li>
+</ul>
+<h2 id="requirements" class="tsd-anchor-link">Requirements<a href="#requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><ul>
+<li><a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> or Docker Engine with Compose plugin</li>
+</ul>
+<h2 id="quick-start" class="tsd-anchor-link">Quick Start<a href="#quick-start" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><h3 id="1-start-the-network" class="tsd-anchor-link">1. Start the Network<a href="#1-start-the-network" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">start</span>
+</code><button type="button">Copy</button></pre>
+
+<p>This will:</p>
+<ul>
+<li>Start 2 nwaku nodes and a PostgreSQL database</li>
+<li>Run in the background (detached mode)</li>
+<li>Display connection information you need for your app</li>
+</ul>
+<p><strong>Example output:</strong></p>
+<pre><code class="typescript"><span class="hl-8">import</span><span class="hl-1"> { </span><span class="hl-5">createLightNode</span><span class="hl-1"> } </span><span class="hl-8">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@waku/sdk&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-7">waku</span><span class="hl-1"> = </span><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-0">createLightNode</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">defaultBootstrap:</span><span class="hl-1"> </span><span class="hl-4">false</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">bootstrapPeers:</span><span class="hl-1"> [</span><br/><span class="hl-1">    </span><span class="hl-2">&quot;/ip4/127.0.0.1/tcp/60000/ws/p2p/16Uiu2HAmF6oAsd23RMAnZb3NJgxXrExxBTPMdEoih232iAZkviU2&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">&quot;/ip4/127.0.0.1/tcp/60001/ws/p2p/16Uiu2HAm5aZU47YkiUoARqivbCXwuFPzFFXXiURAorySqAQbL6EQ&quot;</span><br/><span class="hl-1">  ],</span><br/><span class="hl-1">  </span><span class="hl-5">numPeersToUse:</span><span class="hl-1"> </span><span class="hl-9">2</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">libp2p:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">filterMultiaddrs:</span><span class="hl-1"> </span><span class="hl-4">false</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  </span><span class="hl-5">networkConfig:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">clusterId:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-5">numShardsInCluster:</span><span class="hl-1"> </span><span class="hl-9">8</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="2-connect-your-js-waku-app" class="tsd-anchor-link">2. Connect Your js-waku App<a href="#2-connect-your-js-waku-app" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Copy the configuration from the output above and paste it into your application. Then start your node:</p>
+<pre><code class="typescript"><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-5">waku</span><span class="hl-1">.</span><span class="hl-0">start</span><span class="hl-1">();</span><br/><br/><span class="hl-3">// Your app is now connected to your local Waku network!</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="3-stop-when-done" class="tsd-anchor-link">3. Stop When Done<a href="#3-stop-when-done" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">stop</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="available-commands" class="tsd-anchor-link">Available Commands<a href="#available-commands" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><h3 id="using-npx-published-package" class="tsd-anchor-link">Using npx (published package)<a href="#using-npx-published-package" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npx @waku/run start</code></td>
+<td>Start the network (detached) and show connection info</td>
+</tr>
+<tr>
+<td><code>npx @waku/run stop</code></td>
+<td>Stop the network and clean up</td>
+</tr>
+<tr>
+<td><code>npx @waku/run info</code></td>
+<td>Show connection info for running network</td>
+</tr>
+<tr>
+<td><code>npx @waku/run logs</code></td>
+<td>View and follow logs from all nodes</td>
+</tr>
+<tr>
+<td><code>npx @waku/run test</code></td>
+<td>Test the network by sending a message</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration" class="tsd-anchor-link">Configuration<a href="#configuration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><p>All configuration is done via environment variables passed to the command.</p>
+<h3 id="custom-ports" class="tsd-anchor-link">Custom Ports<a href="#custom-ports" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><p>If the default ports are in use, specify custom ports:</p>
+<pre><code class="bash"><span class="hl-5">NODE1_WS_PORT</span><span class="hl-1">=</span><span class="hl-2">50000</span><span class="hl-1"> </span><span class="hl-5">NODE2_WS_PORT</span><span class="hl-1">=</span><span class="hl-2">50001</span><span class="hl-1"> </span><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">start</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Available port configuration:</p>
+<ul>
+<li><code>NODE1_WS_PORT</code> (default: 60000)</li>
+<li><code>NODE2_WS_PORT</code> (default: 60001)</li>
+<li><code>NODE1_REST_PORT</code> (default: 8646)</li>
+<li><code>NODE2_REST_PORT</code> (default: 8647)</li>
+</ul>
+<h3 id="cluster-configuration" class="tsd-anchor-link">Cluster Configuration<a href="#cluster-configuration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><p>The default configuration uses:</p>
+<ul>
+<li>Cluster ID: 0</li>
+<li>Number of shards: 8</li>
+</ul>
+<p>To test with a different cluster:</p>
+<pre><code class="bash"><span class="hl-5">CLUSTER_ID</span><span class="hl-1">=</span><span class="hl-2">16</span><span class="hl-1"> </span><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">start</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="custom-nwaku-version" class="tsd-anchor-link">Custom nwaku Version<a href="#custom-nwaku-version" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><p>To use a different nwaku image version:</p>
+<pre><code class="bash"><span class="hl-5">NWAKU_IMAGE</span><span class="hl-1">=</span><span class="hl-2">wakuorg/nwaku:v0.35.0</span><span class="hl-1"> </span><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">start</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="debugging" class="tsd-anchor-link">Debugging<a href="#debugging" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><h3 id="view-node-logs" class="tsd-anchor-link">View Node Logs<a href="#view-node-logs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-0">npx</span><span class="hl-1"> </span><span class="hl-2">@waku/run</span><span class="hl-1"> </span><span class="hl-2">logs</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="check-node-health" class="tsd-anchor-link">Check Node Health<a href="#check-node-health" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-3"># Node 1</span><br/><span class="hl-0">curl</span><span class="hl-1"> </span><span class="hl-2">http://127.0.0.1:8646/health</span><br/><br/><span class="hl-3"># Node 2</span><br/><span class="hl-0">curl</span><span class="hl-1"> </span><span class="hl-2">http://127.0.0.1:8647/health</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="check-peer-connections" class="tsd-anchor-link">Check Peer Connections<a href="#check-peer-connections" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3><pre><code class="bash"><span class="hl-3"># Node 1 debug info</span><br/><span class="hl-0">curl</span><span class="hl-1"> </span><span class="hl-2">http://127.0.0.1:8646/debug/v1/info</span><br/><br/><span class="hl-3"># Node 2 debug info</span><br/><span class="hl-0">curl</span><span class="hl-1"> </span><span class="hl-2">http://127.0.0.1:8647/debug/v1/info</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2><p>MIT OR Apache-2.0</p>
+</section></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#wakurun"><span>@waku/run</span></a><ul><li><a href="#whats-included"><span>What&#39;s <wbr/>Included</span></a></li><li><a href="#requirements"><span>Requirements</span></a></li><li><a href="#quick-start"><span>Quick <wbr/>Start</span></a></li><li><ul><li><a href="#1-start-the-network"><span>1. <wbr/>Start the <wbr/>Network</span></a></li><li><a href="#2-connect-your-js-waku-app"><span>2. <wbr/>Connect <wbr/>Your js-<wbr/>waku <wbr/>App</span></a></li><li><a href="#3-stop-when-done"><span>3. <wbr/>Stop <wbr/>When <wbr/>Done</span></a></li></ul></li><li><a href="#available-commands"><span>Available <wbr/>Commands</span></a></li><li><ul><li><a href="#using-npx-published-package"><span>Using npx (published package)</span></a></li></ul></li><li><a href="#configuration"><span>Configuration</span></a></li><li><ul><li><a href="#custom-ports"><span>Custom <wbr/>Ports</span></a></li><li><a href="#cluster-configuration"><span>Cluster <wbr/>Configuration</span></a></li><li><a href="#custom-nwaku-version"><span>Custom nwaku <wbr/>Version</span></a></li></ul></li><li><a href="#debugging"><span>Debugging</span></a></li><li><ul><li><a href="#view-node-logs"><span>View <wbr/>Node <wbr/>Logs</span></a></li><li><a href="#check-node-health"><span>Check <wbr/>Node <wbr/>Health</span></a></li><li><a href="#check-peer-connections"><span>Check <wbr/>Peer <wbr/>Connections</span></a></li></ul></li><li><a href="#license"><span>License</span></a></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="../modules.html">Documentation</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
