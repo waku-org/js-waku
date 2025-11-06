@@ -34,7 +34,7 @@ describe("StreamManager", () => {
         createMockStream({ id: "1", protocol: MULTICODEC, writeStatus })
       ];
 
-      streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+      (streamManager["libp2p"]["connectionManager"] as any).getConnections = (
         _peerId: PeerId | undefined
       ) => [con1];
 
@@ -46,7 +46,7 @@ describe("StreamManager", () => {
   });
 
   it("should return undefined if no connection provided", async () => {
-    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+    (streamManager["libp2p"]["connectionManager"] as any).getConnections = (
       _peerId: PeerId | undefined
     ) => [];
 
@@ -70,7 +70,7 @@ describe("StreamManager", () => {
       );
 
       con1.newStream = newStreamSpy;
-      streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+      (streamManager["libp2p"]["connectionManager"] as any).getConnections = (
         _peerId: PeerId | undefined
       ) => [con1];
 
@@ -97,7 +97,7 @@ describe("StreamManager", () => {
     );
 
     con1.newStream = newStreamSpy;
-    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+    (streamManager["libp2p"]["connectionManager"] as any).getConnections = (
       _peerId: PeerId | undefined
     ) => [con1];
 
@@ -148,7 +148,7 @@ describe("StreamManager", () => {
         writeStatus: "writable"
       })
     ];
-    streamManager["libp2p"]["connectionManager"]["getConnections"] = (
+    (streamManager["libp2p"]["connectionManager"] as any).getConnections = (
       _id: PeerId | undefined
     ) => [con1];
 
@@ -178,7 +178,6 @@ function createMockConnection(options: MockConnectionOptions = {}): Connection {
     }
   } as Connection;
 }
-
 type MockStreamOptions = {
   id?: string;
   protocol?: string;
