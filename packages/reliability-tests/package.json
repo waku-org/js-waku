@@ -66,7 +66,7 @@
     "fast-check": "^3.19.0",
     "p-retry": "^6.1.0",
     "p-timeout": "^6.1.0",
-    "portfinder": "^1.0.32",
+    "portfinder": "^1.0.38",
     "sinon": "^18.0.0",
     "tail": "^2.2.6"
   },
