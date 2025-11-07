@@ -60,7 +60,7 @@
         "node": ">=22"
     },
     "dependencies": {
-        "@libp2p/interface": "2.10.4",
+        "@libp2p/interface": "3.1.0",
         "@noble/hashes": "^1.7.1",
         "@waku/proto": "^0.0.15",
         "@waku/utils": "^0.0.27",
