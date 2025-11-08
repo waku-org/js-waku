@@ -13,7 +13,7 @@ import {
   LightPushSDKResult,
   QueryRequestParams
 } from "@waku/interfaces";
-import { ContentMessage, SyncMessage } from "@waku/sds";
+import { ContentMessage, MessageChannelEvent, SyncMessage } from "@waku/sds";
 import {
   createRoutingInfo,
   delay,
@@ -380,8 +380,10 @@ describe("Reliable Channel", () => {
   });
 
   // the test is failing when run with all tests in sdk package
-  // no clear reason why, skipping for now
-  // TODO: fix this test https://github.com/waku-org/js-waku/issues/2648
+  // no clear reason why, skipping for now.
+  // Message retrieval using Waku Message hash is to be deprecated in favour
+  // SDS-Repair
+  // TODO: delete this feature https://github.com/waku-org/js-waku/issues/2648
   describe.skip("Missing Message Retrieval", () => {
     it("Automatically retrieves missing message", async () => {
       const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
@@ -1128,6 +1130,118 @@ describe("Reliable Channel", () => {
 
       const result = reliableChannel["isChannelMessageWithCausalHistory"](msg);
       expect(result).to.be.true;
+    });
+  });
+
+  describe("Irretrievably lost messages", () => {
+    it("Sends ack once message is marked as irretrievably lost", async () => {
+      const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
+      const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
+
+      // Setup, Alice first
+      const reliableChannelAlice = await ReliableChannel.create(
+        mockWakuNodeAlice,
+        "MyChannel",
+        "alice",
+        encoder,
+        decoder,
+        {
+          // disable any automation to better control the test
+          retryIntervalMs: 0,
+          syncMinIntervalMs: 0,
+          retrieveFrequencyMs: 0,
+          processTaskMinElapseMs: 10
+        }
+      );
+
+      // Bob is offline, Alice sends a message, this is the message we want
+      // Bob to consider irretrievable in this test.
+      const message = utf8ToBytes("missing message");
+      reliableChannelAlice.send(message);
+      // Wait to be sent
+      await new Promise((resolve) => {
+        reliableChannelAlice.addEventListener("message-sent", resolve, {
+          once: true
+        });
+      });
+
+      // Now Bob goes online
+      const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
+
+      const reliableChannelBob = await ReliableChannel.create(
+        mockWakuNodeBob,
+        "MyChannel",
+        "bob",
+        encoder,
+        decoder,
+        {
+          retryIntervalMs: 0, // disable any automation to better control the test
+          syncMinIntervalMs: 0,
+          sweepInBufIntervalMs: 10,
+          retrieveFrequencyMs: 0,
+          timeoutForLostMessagesMs: 30
+        }
+      );
+
+      const waitForMessageWithDep = new Promise((resolve) => {
+        reliableChannelBob.addEventListener("message-received", (event) => {
+          if (bytesToUtf8(event.detail.payload) === "message with dep") {
+            resolve(true);
+          }
+        });
+
+        setTimeout(() => {
+          resolve(false);
+        }, 1000);
+      });
+
+      // Alice sends a second message that refers to the first message.
+      // Bob should emit it, and learn about missing messages, and then finally
+      // mark it lost
+      const messageWithDep = utf8ToBytes("message with dep");
+      const messageWithDepId = reliableChannelAlice.send(messageWithDep);
+      // Wait to be sent
+      await new Promise((resolve) => {
+        reliableChannelAlice.addEventListener("message-sent", resolve, {
+          once: true
+        });
+      });
+
+      let messageIsAcknowledged = false;
+      reliableChannelAlice.messageChannel.addEventListener(
+        MessageChannelEvent.OutMessageAcknowledged,
+        (event) => {
+          if (event.detail == messageWithDepId) {
+            messageIsAcknowledged = true;
+          }
+        }
+      );
+
+      let messageMarkedLost = false;
+      reliableChannelBob.messageChannel.addEventListener(
+        MessageChannelEvent.InMessageLost,
+        (_event) => {
+          // TODO: check message matches
+          messageMarkedLost = true;
+        }
+      );
+
+      const messageWithDepRcvd = await waitForMessageWithDep;
+      expect(messageWithDepRcvd, "message with dep received and emitted").to.be
+        .true;
+
+      while (!messageMarkedLost) {
+        await delay(50);
+      }
+      expect(messageMarkedLost, "message marked hast lost").to.be.true;
+
+      // Bob should now include Alice's message in a sync message and ack it
+      await reliableChannelBob["sendSyncMessage"]();
+
+      while (!messageIsAcknowledged) {
+        await delay(50);
+      }
+      expect(messageIsAcknowledged, "message has been acknowledged").to.be.true;
     });
   });
 });
