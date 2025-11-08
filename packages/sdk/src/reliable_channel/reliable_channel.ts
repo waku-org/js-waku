@@ -33,6 +33,7 @@ import {
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { MissingMessageRetriever } from "./missing_message_retriever.js";
 import { RetryManager } from "./retry_manager.js";
+import { SyncStatus } from "./sync_status.js";
 
 const log = new Logger("sdk:reliable-channel");
 
@@ -234,7 +235,19 @@ export class ReliableChannel<
     }
 
     this._started = false;
+
+    this.syncStatus = new SyncStatus();
   }
+
+  /**
+   * Emit events when the channel is aware of missing message.
+   * Note that "syncd" may mean some messages are irretrievably lost.
+   * Check the emitted data for details.
+   *
+   * @emits [[StatusEvents]]
+   *
+   */
+  public syncStatus: SyncStatus;
 
   public get isStarted(): boolean {
     return this._started;
@@ -709,6 +722,7 @@ export class ReliableChannel<
     this.addTrackedEventListener(
       MessageChannelEvent.InMessageReceived,
       (event) => {
+        this.syncStatus.onMessagesReceived(event.detail.messageId);
         // restart the timeout when a content message has been received
         if (isContentMessage(event.detail)) {
           // send a sync message faster to ack someone's else
@@ -730,6 +744,10 @@ export class ReliableChannel<
     this.addTrackedEventListener(
       MessageChannelEvent.InMessageMissing,
       (event) => {
+        this.syncStatus.onMessagesMissing(
+          ...event.detail.map((m) => m.messageId)
+        );
+
         for (const { messageId, retrievalHint } of event.detail) {
           if (retrievalHint && this.missingMessageRetriever) {
             this.missingMessageRetriever.addMissingMessage(
@@ -738,6 +756,13 @@ export class ReliableChannel<
             );
           }
         }
+      }
+    );
+
+    this.messageChannel.addEventListener(
+      MessageChannelEvent.InMessageLost,
+      (event) => {
+        this.syncStatus.onMessagesLost(...event.detail.map((m) => m.messageId));
       }
     );
 

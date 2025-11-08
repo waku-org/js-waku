@@ -283,7 +283,7 @@ export class MessageChannel extends TypedEventEmitter<MessageChannelEvents> {
   /**
    * Processes messages in the incoming buffer, delivering those with satisfied dependencies.
    *
-   * @returns Array of history entries for messages still missing dependencies
+   * @returns The missing dependencies
    */
   public sweepIncomingBuffer(): HistoryEntry[] {
     const { buffer, missing } = this.incomingBuffer.reduce<{
