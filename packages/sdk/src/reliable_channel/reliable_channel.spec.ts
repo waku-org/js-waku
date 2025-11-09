@@ -22,7 +22,7 @@ import {
 } from "@waku/utils";
 import { bytesToUtf8, hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import { beforeEach, describe } from "mocha";
+import { afterEach, beforeEach, describe } from "mocha";
 import sinon from "sinon";
 
 import { ReliableChannel } from "./index.js";
@@ -40,6 +40,9 @@ describe("Reliable Channel", () => {
   let mockWakuNode: IWaku;
   let encoder: IEncoder;
   let decoder: IDecoder<IDecodedMessage>;
+  let reliableChannel: ReliableChannel<IDecodedMessage>;
+  let reliableChannelAlice: ReliableChannel<IDecodedMessage>;
+  let reliableChannelBob: ReliableChannel<IDecodedMessage>;
 
   beforeEach(async () => {
     mockWakuNode = new MockWakuNode();
@@ -50,8 +53,14 @@ describe("Reliable Channel", () => {
     decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
   });
 
+  afterEach(async () => {
+    await reliableChannel?.stop();
+    await reliableChannelAlice?.stop();
+    await reliableChannelBob?.stop();
+  });
+
   it("Outgoing message is emitted as sending", async () => {
-    const reliableChannel = await ReliableChannel.create(
+    reliableChannel = await ReliableChannel.create(
       mockWakuNode,
       "MyChannel",
       "alice",
@@ -78,7 +87,7 @@ describe("Reliable Channel", () => {
   });
 
   it("Outgoing message is emitted as sent", async () => {
-    const reliableChannel = await ReliableChannel.create(
+    reliableChannel = await ReliableChannel.create(
       mockWakuNode,
       "MyChannel",
       "alice",
@@ -117,7 +126,7 @@ describe("Reliable Channel", () => {
       });
     };
 
-    const reliableChannel = await ReliableChannel.create(
+    reliableChannel = await ReliableChannel.create(
       mockWakuNode,
       "MyChannel",
       "alice",
@@ -149,7 +158,7 @@ describe("Reliable Channel", () => {
   });
 
   it("Outgoing message is not emitted as acknowledged from own outgoing messages", async () => {
-    const reliableChannel = await ReliableChannel.create(
+    reliableChannel = await ReliableChannel.create(
       mockWakuNode,
       "MyChannel",
       "alice",
@@ -182,14 +191,14 @@ describe("Reliable Channel", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const reliableChannelAlice = await ReliableChannel.create(
+    reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
       "alice",
       encoder,
       decoder
     );
-    const reliableChannelBob = await ReliableChannel.create(
+    reliableChannelBob = await ReliableChannel.create(
       mockWakuNodeBob,
       "MyChannel",
       "bob",
@@ -245,14 +254,14 @@ describe("Reliable Channel", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const reliableChannelAlice = await ReliableChannel.create(
+    reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
       "alice",
       encoder,
       decoder
     );
-    const reliableChannelBob = await ReliableChannel.create(
+    reliableChannelBob = await ReliableChannel.create(
       mockWakuNodeBob,
       "MyChannel",
       "bob",
@@ -292,7 +301,7 @@ describe("Reliable Channel", () => {
   });
 
   it("Incoming message is emitted as received", async () => {
-    const reliableChannel = await ReliableChannel.create(
+    reliableChannel = await ReliableChannel.create(
       mockWakuNode,
       "MyChannel",
       "alice",
@@ -321,7 +330,7 @@ describe("Reliable Channel", () => {
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
       const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-      const reliableChannelAlice = await ReliableChannel.create(
+      reliableChannelAlice = await ReliableChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
         "alice",
@@ -332,7 +341,7 @@ describe("Reliable Channel", () => {
           processTaskMinElapseMs: 10 // faster so it process message as soon as they arrive
         }
       );
-      const reliableChannelBob = await ReliableChannel.create(
+      reliableChannelBob = await ReliableChannel.create(
         mockWakuNodeBob,
         "MyChannel",
         "bob",
@@ -390,7 +399,7 @@ describe("Reliable Channel", () => {
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
 
       // Setup, Alice first
-      const reliableChannelAlice = await ReliableChannel.create(
+      reliableChannelAlice = await ReliableChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
         "alice",
@@ -444,7 +453,7 @@ describe("Reliable Channel", () => {
         queryGenerator: queryGeneratorStub
       };
 
-      const reliableChannelBob = await ReliableChannel.create(
+      reliableChannelBob = await ReliableChannel.create(
         mockWakuNodeBob,
         "MyChannel",
         "bob",
@@ -483,201 +492,6 @@ describe("Reliable Channel", () => {
       const callArgs = queryGeneratorStub.getCall(0).args;
       expect(callArgs[1]).to.have.property("messageHashes");
       expect(callArgs[1].messageHashes).to.be.an("array");
-    });
-  });
-
-  describe("Query On Connect Integration E2E Tests", () => {
-    let mockWakuNode: MockWakuNode;
-    let reliableChannel: ReliableChannel<IDecodedMessage>;
-    let encoder: IEncoder;
-    let decoder: IDecoder<IDecodedMessage>;
-    let mockPeerManagerEvents: TypedEventEmitter<any>;
-    let queryGeneratorStub: sinon.SinonStub;
-    let mockPeerId: PeerId;
-
-    beforeEach(async () => {
-      // Setup mock waku node with store capability
-      mockWakuNode = new MockWakuNode();
-
-      // Setup mock peer manager events for QueryOnConnect
-      mockPeerManagerEvents = new TypedEventEmitter();
-      (mockWakuNode as any).peerManager = {
-        events: mockPeerManagerEvents
-      };
-
-      // Setup encoder and decoder
-      encoder = createEncoder({
-        contentTopic: TEST_CONTENT_TOPIC,
-        routingInfo: TEST_ROUTING_INFO
-      });
-
-      decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
-
-      // Setup store with queryGenerator for QueryOnConnect
-      queryGeneratorStub = sinon.stub();
-      mockWakuNode.store = {
-        queryGenerator: queryGeneratorStub
-      } as any;
-
-      mockPeerId = {
-        toString: () => "QmTestPeerId"
-      } as unknown as PeerId;
-    });
-
-    it("should trigger QueryOnConnect when going offline and store peer reconnects", async () => {
-      // Create a message that will be auto-retrieved
-      const messageText = "Auto-retrieved message";
-      const messagePayload = utf8ToBytes(messageText);
-
-      const sdsMessage = new ContentMessage(
-        ReliableChannel.getMessageId(messagePayload),
-        "testChannel",
-        "testSender",
-        [],
-        1n,
-        undefined,
-        messagePayload
-      );
-
-      const autoRetrievedMessage: IDecodedMessage = {
-        hash: hexToBytes("1234"),
-        hashStr: "1234",
-        version: 1,
-        timestamp: new Date(),
-        contentTopic: TEST_CONTENT_TOPIC,
-        pubsubTopic: decoder.pubsubTopic,
-        payload: sdsMessage.encode(),
-        rateLimitProof: undefined,
-        ephemeral: false,
-        meta: undefined
-      };
-
-      // Setup queryGenerator to return the auto-retrieved message
-      queryGeneratorStub.callsFake(async function* () {
-        yield [Promise.resolve(autoRetrievedMessage)];
-      });
-
-      // Create ReliableChannel with queryOnConnect enabled
-      reliableChannel = await ReliableChannel.create(
-        mockWakuNode,
-        "testChannel",
-        "testSender",
-        encoder,
-        decoder
-      );
-
-      // Wait for initial setup
-      await delay(50);
-
-      // Setup complete - focus on testing QueryOnConnect trigger
-
-      // Simulate going offline (change health status)
-      mockWakuNode.events.dispatchEvent(
-        new CustomEvent("health", { detail: HealthStatus.Unhealthy })
-      );
-
-      await delay(10);
-
-      // Simulate store peer reconnection which should trigger QueryOnConnect
-      mockPeerManagerEvents.dispatchEvent(
-        new CustomEvent("store:connect", { detail: mockPeerId })
-      );
-
-      // Wait for store query to be triggered
-      await delay(200);
-
-      // Verify that QueryOnConnect was triggered by the conditions
-      expect(queryGeneratorStub.called).to.be.true;
-    });
-
-    it("should trigger QueryOnConnect when time threshold is exceeded", async () => {
-      // Create multiple messages that will be auto-retrieved
-      const message1Text = "First auto-retrieved message";
-      const message2Text = "Second auto-retrieved message";
-      const message1Payload = utf8ToBytes(message1Text);
-      const message2Payload = utf8ToBytes(message2Text);
-
-      const sdsMessage1 = new ContentMessage(
-        ReliableChannel.getMessageId(message1Payload),
-        "testChannel",
-        "testSender",
-        [],
-        1n,
-        undefined,
-        message1Payload
-      );
-
-      const sdsMessage2 = new ContentMessage(
-        ReliableChannel.getMessageId(message2Payload),
-        "testChannel",
-        "testSender",
-        [],
-        2n,
-        undefined,
-        message2Payload
-      );
-
-      const autoRetrievedMessage1: IDecodedMessage = {
-        hash: hexToBytes("5678"),
-        hashStr: "5678",
-        version: 1,
-        timestamp: new Date(Date.now() - 1000),
-        contentTopic: TEST_CONTENT_TOPIC,
-        pubsubTopic: decoder.pubsubTopic,
-        payload: sdsMessage1.encode(),
-        rateLimitProof: undefined,
-        ephemeral: false,
-        meta: undefined
-      };
-
-      const autoRetrievedMessage2: IDecodedMessage = {
-        hash: hexToBytes("9abc"),
-        hashStr: "9abc",
-        version: 1,
-        timestamp: new Date(),
-        contentTopic: TEST_CONTENT_TOPIC,
-        pubsubTopic: decoder.pubsubTopic,
-        payload: sdsMessage2.encode(),
-        rateLimitProof: undefined,
-        ephemeral: false,
-        meta: undefined
-      };
-
-      // Setup queryGenerator to return multiple messages
-      queryGeneratorStub.callsFake(async function* () {
-        yield [Promise.resolve(autoRetrievedMessage1)];
-        yield [Promise.resolve(autoRetrievedMessage2)];
-      });
-
-      // Create ReliableChannel with queryOnConnect enabled
-      reliableChannel = await ReliableChannel.create(
-        mockWakuNode,
-        "testChannel",
-        "testSender",
-        encoder,
-        decoder,
-        { queryOnConnect: true }
-      );
-
-      await delay(50);
-
-      // Simulate old last successful query by accessing QueryOnConnect internals
-      // The default threshold is 5 minutes, so we'll set it to an old time
-      if ((reliableChannel as any).queryOnConnect) {
-        ((reliableChannel as any).queryOnConnect as any).lastSuccessfulQuery =
-          Date.now() - 6 * 60 * 1000; // 6 minutes ago
-      }
-
-      // Simulate store peer connection which should trigger retrieval due to time threshold
-      mockPeerManagerEvents.dispatchEvent(
-        new CustomEvent("store:connect", { detail: mockPeerId })
-      );
-
-      // Wait for store query to be triggered
-      await delay(200);
-
-      // Verify that QueryOnConnect was triggered due to time threshold
-      expect(queryGeneratorStub.called).to.be.true;
     });
   });
 
@@ -794,7 +608,7 @@ describe("Reliable Channel", () => {
         yield [Promise.resolve(messages[2])];
       });
 
-      const reliableChannel = await ReliableChannel.create(
+      reliableChannel = await ReliableChannel.create(
         mockWakuNode,
         channelId,
         senderId,
@@ -876,7 +690,7 @@ describe("Reliable Channel", () => {
         yield [Promise.resolve(messages[1])];
       });
 
-      const reliableChannel = await ReliableChannel.create(
+      reliableChannel = await ReliableChannel.create(
         mockWakuNode,
         channelId,
         senderId,
@@ -981,7 +795,7 @@ describe("Reliable Channel", () => {
         yield [Promise.resolve(messages[2])];
       });
 
-      const reliableChannel = await ReliableChannel.create(
+      reliableChannel = await ReliableChannel.create(
         mockWakuNode,
         channelId,
         senderId,
@@ -1006,7 +820,6 @@ describe("Reliable Channel", () => {
 
   describe("isChannelMessageWithCausalHistory predicate", () => {
     let mockWakuNode: MockWakuNode;
-    let reliableChannel: ReliableChannel<IDecodedMessage>;
     let encoder: IEncoder;
     let decoder: IDecoder<IDecodedMessage>;
 
@@ -1134,12 +947,13 @@ describe("Reliable Channel", () => {
   });
 
   describe("Irretrievably lost messages", () => {
-    it("Sends ack once message is marked as irretrievably lost", async () => {
+    it("Sends ack once message is marked as irretrievably lost", async function (): Promise<void> {
+      this.timeout(5000);
       const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
 
       // Setup, Alice first
-      const reliableChannelAlice = await ReliableChannel.create(
+      reliableChannelAlice = await ReliableChannel.create(
         mockWakuNodeAlice,
         "MyChannel",
         "alice",
@@ -1168,7 +982,7 @@ describe("Reliable Channel", () => {
       // Now Bob goes online
       const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-      const reliableChannelBob = await ReliableChannel.create(
+      reliableChannelBob = await ReliableChannel.create(
         mockWakuNodeBob,
         "MyChannel",
         "bob",
@@ -1177,22 +991,18 @@ describe("Reliable Channel", () => {
         {
           retryIntervalMs: 0, // disable any automation to better control the test
           syncMinIntervalMs: 0,
-          sweepInBufIntervalMs: 10,
+          sweepInBufIntervalMs: 20,
+          processTaskMinElapseMs: 10,
           retrieveFrequencyMs: 0,
           timeoutForLostMessagesMs: 30
         }
       );
 
-      const waitForMessageWithDep = new Promise((resolve) => {
-        reliableChannelBob.addEventListener("message-received", (event) => {
-          if (bytesToUtf8(event.detail.payload) === "message with dep") {
-            resolve(true);
-          }
-        });
-
-        setTimeout(() => {
-          resolve(false);
-        }, 1000);
+      let messageWithDepRcvd = false;
+      reliableChannelBob.addEventListener("message-received", (event) => {
+        if (bytesToUtf8(event.detail.payload) === "message with dep") {
+          messageWithDepRcvd = true;
+        }
       });
 
       // Alice sends a second message that refers to the first message.
@@ -1200,12 +1010,6 @@ describe("Reliable Channel", () => {
       // mark it lost
       const messageWithDep = utf8ToBytes("message with dep");
       const messageWithDepId = reliableChannelAlice.send(messageWithDep);
-      // Wait to be sent
-      await new Promise((resolve) => {
-        reliableChannelAlice.addEventListener("message-sent", resolve, {
-          once: true
-        });
-      });
 
       let messageIsAcknowledged = false;
       reliableChannelAlice.messageChannel.addEventListener(
@@ -1217,6 +1021,13 @@ describe("Reliable Channel", () => {
         }
       );
 
+      // Wait to be sent
+      await new Promise((resolve) => {
+        reliableChannelAlice.addEventListener("message-sent", resolve, {
+          once: true
+        });
+      });
+
       let messageMarkedLost = false;
       reliableChannelBob.messageChannel.addEventListener(
         MessageChannelEvent.InMessageLost,
@@ -1226,14 +1037,17 @@ describe("Reliable Channel", () => {
         }
       );
 
-      const messageWithDepRcvd = await waitForMessageWithDep;
+      while (!messageWithDepRcvd) {
+        await delay(50);
+      }
+
       expect(messageWithDepRcvd, "message with dep received and emitted").to.be
         .true;
 
       while (!messageMarkedLost) {
         await delay(50);
       }
-      expect(messageMarkedLost, "message marked hast lost").to.be.true;
+      expect(messageMarkedLost, "message marked as lost").to.be.true;
 
       // Bob should now include Alice's message in a sync message and ack it
       await reliableChannelBob["sendSyncMessage"]();
@@ -1243,5 +1057,204 @@ describe("Reliable Channel", () => {
       }
       expect(messageIsAcknowledged, "message has been acknowledged").to.be.true;
     });
+  });
+});
+
+describe("Query On Connect Integration E2E Tests", () => {
+  let mockWakuNode: MockWakuNode;
+  let reliableChannel: ReliableChannel<IDecodedMessage>;
+  let encoder: IEncoder;
+  let decoder: IDecoder<IDecodedMessage>;
+  let mockPeerManagerEvents: TypedEventEmitter<any>;
+  let queryGeneratorStub: sinon.SinonStub;
+  let mockPeerId: PeerId;
+
+  beforeEach(async () => {
+    // Setup mock waku node with store capability
+    mockWakuNode = new MockWakuNode();
+
+    // Setup mock peer manager events for QueryOnConnect
+    mockPeerManagerEvents = new TypedEventEmitter();
+    (mockWakuNode as any).peerManager = {
+      events: mockPeerManagerEvents
+    };
+
+    // Setup encoder and decoder
+    encoder = createEncoder({
+      contentTopic: TEST_CONTENT_TOPIC,
+      routingInfo: TEST_ROUTING_INFO
+    });
+
+    decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
+
+    // Setup store with queryGenerator for QueryOnConnect
+    queryGeneratorStub = sinon.stub();
+    mockWakuNode.store = {
+      queryGenerator: queryGeneratorStub
+    } as any;
+
+    mockPeerId = {
+      toString: () => "QmTestPeerId"
+    } as unknown as PeerId;
+  });
+
+  afterEach(async () => {
+    await reliableChannel?.stop();
+  });
+
+  it("should trigger QueryOnConnect when going offline and store peer reconnects", async () => {
+    // Create a message that will be auto-retrieved
+    const messageText = "Auto-retrieved message";
+    const messagePayload = utf8ToBytes(messageText);
+
+    const sdsMessage = new ContentMessage(
+      ReliableChannel.getMessageId(messagePayload),
+      "testChannel",
+      "testSender",
+      [],
+      1n,
+      undefined,
+      messagePayload
+    );
+
+    const autoRetrievedMessage: IDecodedMessage = {
+      hash: hexToBytes("1234"),
+      hashStr: "1234",
+      version: 1,
+      timestamp: new Date(),
+      contentTopic: TEST_CONTENT_TOPIC,
+      pubsubTopic: decoder.pubsubTopic,
+      payload: sdsMessage.encode(),
+      rateLimitProof: undefined,
+      ephemeral: false,
+      meta: undefined
+    };
+
+    // Setup queryGenerator to return the auto-retrieved message
+    queryGeneratorStub.callsFake(async function* () {
+      yield [Promise.resolve(autoRetrievedMessage)];
+    });
+
+    // Create ReliableChannel with queryOnConnect enabled
+    reliableChannel = await ReliableChannel.create(
+      mockWakuNode,
+      "testChannel",
+      "testSender",
+      encoder,
+      decoder
+    );
+
+    // Wait for initial setup
+    await delay(50);
+
+    // Setup complete - focus on testing QueryOnConnect trigger
+
+    // Simulate going offline (change health status)
+    mockWakuNode.events.dispatchEvent(
+      new CustomEvent("health", { detail: HealthStatus.Unhealthy })
+    );
+
+    await delay(10);
+
+    // Simulate store peer reconnection which should trigger QueryOnConnect
+    mockPeerManagerEvents.dispatchEvent(
+      new CustomEvent("store:connect", { detail: mockPeerId })
+    );
+
+    // Wait for store query to be triggered
+    await delay(200);
+
+    // Verify that QueryOnConnect was triggered by the conditions
+    expect(queryGeneratorStub.called).to.be.true;
+  });
+
+  it("should trigger QueryOnConnect when time threshold is exceeded", async () => {
+    // Create multiple messages that will be auto-retrieved
+    const message1Text = "First auto-retrieved message";
+    const message2Text = "Second auto-retrieved message";
+    const message1Payload = utf8ToBytes(message1Text);
+    const message2Payload = utf8ToBytes(message2Text);
+
+    const sdsMessage1 = new ContentMessage(
+      ReliableChannel.getMessageId(message1Payload),
+      "testChannel",
+      "testSender",
+      [],
+      1n,
+      undefined,
+      message1Payload
+    );
+
+    const sdsMessage2 = new ContentMessage(
+      ReliableChannel.getMessageId(message2Payload),
+      "testChannel",
+      "testSender",
+      [],
+      2n,
+      undefined,
+      message2Payload
+    );
+
+    const autoRetrievedMessage1: IDecodedMessage = {
+      hash: hexToBytes("5678"),
+      hashStr: "5678",
+      version: 1,
+      timestamp: new Date(Date.now() - 1000),
+      contentTopic: TEST_CONTENT_TOPIC,
+      pubsubTopic: decoder.pubsubTopic,
+      payload: sdsMessage1.encode(),
+      rateLimitProof: undefined,
+      ephemeral: false,
+      meta: undefined
+    };
+
+    const autoRetrievedMessage2: IDecodedMessage = {
+      hash: hexToBytes("9abc"),
+      hashStr: "9abc",
+      version: 1,
+      timestamp: new Date(),
+      contentTopic: TEST_CONTENT_TOPIC,
+      pubsubTopic: decoder.pubsubTopic,
+      payload: sdsMessage2.encode(),
+      rateLimitProof: undefined,
+      ephemeral: false,
+      meta: undefined
+    };
+
+    // Setup queryGenerator to return multiple messages
+    queryGeneratorStub.callsFake(async function* () {
+      yield [Promise.resolve(autoRetrievedMessage1)];
+      yield [Promise.resolve(autoRetrievedMessage2)];
+    });
+
+    // Create ReliableChannel with queryOnConnect enabled
+    reliableChannel = await ReliableChannel.create(
+      mockWakuNode,
+      "testChannel",
+      "testSender",
+      encoder,
+      decoder,
+      { queryOnConnect: true }
+    );
+
+    await delay(50);
+
+    // Simulate old last successful query by accessing QueryOnConnect internals
+    // The default threshold is 5 minutes, so we'll set it to an old time
+    if ((reliableChannel as any).queryOnConnect) {
+      ((reliableChannel as any).queryOnConnect as any).lastSuccessfulQuery =
+        Date.now() - 6 * 60 * 1000; // 6 minutes ago
+    }
+
+    // Simulate store peer connection which should trigger retrieval due to time threshold
+    mockPeerManagerEvents.dispatchEvent(
+      new CustomEvent("store:connect", { detail: mockPeerId })
+    );
+
+    // Wait for store query to be triggered
+    await delay(200);
+
+    // Verify that QueryOnConnect was triggered due to time threshold
+    expect(queryGeneratorStub.called).to.be.true;
   });
 });

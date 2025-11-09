@@ -180,7 +180,7 @@ describe("Status", () => {
       {
         retrieveFrequencyMs: 0,
         syncMinIntervalMs: 0,
-        sweepInBufIntervalMs: 50, // frequently sweep incoming buffer to mark msg as lost
+        sweepInBufIntervalMs: 0, // we want to control this
         timeoutForLostMessagesMs: 200 // timeout within the test
       }
     );
@@ -213,6 +213,11 @@ describe("Status", () => {
     reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       syncedStatusDetail = event.detail;
     });
+
+    // await long enough so message will be marked as lost
+    await delay(200);
+    reliableChannelBob.messageChannel["sweepIncomingBuffer"]();
+
     while (!syncedStatusDetail!) {
       await delay(50);
     }
