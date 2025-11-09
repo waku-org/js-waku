@@ -388,12 +388,7 @@ describe("Reliable Channel", () => {
     });
   });
 
-  // the test is failing when run with all tests in sdk package
-  // no clear reason why, skipping for now.
-  // Message retrieval using Waku Message hash is to be deprecated in favour
-  // SDS-Repair
-  // TODO: delete this feature https://github.com/waku-org/js-waku/issues/2648
-  describe.skip("Missing Message Retrieval", () => {
+  describe("Missing Message Retrieval", () => {
     it("Automatically retrieves missing message", async () => {
       const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
