@@ -35,6 +35,7 @@ import {
 
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { MissingMessageRetriever } from "./missing_message_retriever.js";
+import { RandomTimeout } from "./random_timeout.js";
 import { RetryManager } from "./retry_manager.js";
 import { SyncStatus } from "./sync_status.js";
 
@@ -151,8 +152,7 @@ export class ReliableChannel<
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 
   private eventListenerCleanups: Array<() => void> = [];
-  private readonly syncMinIntervalMs: number;
-  private syncTimeout: ReturnType<typeof setTimeout> | undefined;
+  private syncRandomTimeout: RandomTimeout;
   private sweepInBufInterval: ReturnType<typeof setInterval> | undefined;
   private readonly sweepInBufIntervalMs: number;
   private processTaskTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -207,8 +207,11 @@ export class ReliableChannel<
       }
     }
 
-    this.syncMinIntervalMs =
-      options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS;
+    this.syncRandomTimeout = new RandomTimeout(
+      options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS,
+      2,
+      this.sendSyncMessage.bind(this)
+    );
 
     this.sweepInBufIntervalMs =
       options?.sweepInBufIntervalMs ?? DEFAULT_SWEEP_IN_BUF_INTERVAL_MS;
@@ -244,7 +247,7 @@ export class ReliableChannel<
 
   /**
    * Emit events when the channel is aware of missing message.
-   * Note that "syncd" may mean some messages are irretrievably lost.
+   * Note that "synced" may mean some messages are irretrievably lost.
    * Check the emitted data for details.
    *
    * @emits [[StatusEvents]]
@@ -592,18 +595,11 @@ export class ReliableChannel<
         void this.restartSync(2);
       }, timeoutMs);
     }
+    this.syncRandomTimeout.restart(multiplier);
   }
 
   private stopSync(): void {
-    if (this.syncTimeout) {
-      clearTimeout(this.syncTimeout);
-      this.syncTimeout = undefined;
-    }
-  }
-
-  // Used to enable overriding when testing
-  private random(): number {
-    return Math.random();
+    this.syncRandomTimeout.stop();
   }
 
   private safeSendEvent<T extends ReliableChannelEvent>(
