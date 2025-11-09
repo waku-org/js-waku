@@ -949,6 +949,7 @@ describe("Reliable Channel", () => {
   describe("Irretrievably lost messages", () => {
     it("Sends ack once message is marked as irretrievably lost", async function (): Promise<void> {
       this.timeout(5000);
+      sinon.restore();
       const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
       const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
 
