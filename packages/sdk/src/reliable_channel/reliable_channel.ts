@@ -34,6 +34,7 @@ import {
 
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { MissingMessageRetriever } from "./missing_message_retriever.js";
+import { RandomTimeout } from "./random_timeout.js";
 import { RetryManager } from "./retry_manager.js";
 import { SyncStatus } from "./sync_status.js";
 
@@ -150,8 +151,7 @@ export class ReliableChannel<
     options?: Partial<QueryRequestParams>
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 
-  private readonly syncMinIntervalMs: number;
-  private syncTimeout: ReturnType<typeof setTimeout> | undefined;
+  private syncRandomTimeout: RandomTimeout;
   private sweepInBufInterval: ReturnType<typeof setInterval> | undefined;
   private readonly sweepInBufIntervalMs: number;
   private processTaskTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -205,8 +205,11 @@ export class ReliableChannel<
       }
     }
 
-    this.syncMinIntervalMs =
-      options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS;
+    this.syncRandomTimeout = new RandomTimeout(
+      options?.syncMinIntervalMs ?? DEFAULT_SYNC_MIN_INTERVAL_MS,
+      2,
+      this.sendSyncMessage.bind(this)
+    );
 
     this.sweepInBufIntervalMs =
       options?.sweepInBufIntervalMs ?? DEFAULT_SWEEP_IN_BUF_INTERVAL_MS;
@@ -547,30 +550,11 @@ export class ReliableChannel<
   }
 
   private restartSync(multiplier: number = 1): void {
-    if (this.syncTimeout) {
-      clearTimeout(this.syncTimeout);
-    }
-    if (this.syncMinIntervalMs) {
-      const timeoutMs = this.random() * this.syncMinIntervalMs * multiplier;
-
-      this.syncTimeout = setTimeout(() => {
-        void this.sendSyncMessage();
-        // Always restart a sync, no matter whether the message was sent.
-        // Set a multiplier so we wait a bit longer to not hog the conversation
-        void this.restartSync(2);
-      }, timeoutMs);
-    }
+    this.syncRandomTimeout.restart(multiplier);
   }
 
   private stopSync(): void {
-    if (this.syncTimeout) {
-      clearTimeout(this.syncTimeout);
-    }
-  }
-
-  // Used to enable overriding when testing
-  private random(): number {
-    return Math.random();
+    this.syncRandomTimeout.stop();
   }
 
   private safeSendEvent<T extends ReliableChannelEvent>(
