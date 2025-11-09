@@ -18,7 +18,6 @@ import {
   MessageChannel,
   MessageChannelEvent,
   type MessageChannelOptions,
-  type MessageId,
   Message as SdsMessage,
   type SenderId,
   SyncMessage
@@ -33,7 +32,7 @@ import {
 import { ReliableChannelEvent, ReliableChannelEvents } from "./events.js";
 import { MissingMessageRetriever } from "./missing_message_retriever.js";
 import { RetryManager } from "./retry_manager.js";
-import { StatusEmitter } from "./status.js";
+import { SyncStatus } from "./sync_status.js";
 
 const log = new Logger("sdk:reliable-channel");
 
@@ -153,9 +152,6 @@ export class ReliableChannel<
   private readonly queryOnConnect?: QueryOnConnect<T>;
   private readonly processTaskMinElapseMs: number;
   private _started: boolean;
-  private readonly receivedMessages: Set<MessageId>;
-  private readonly missingMessages: Set<MessageId>;
-  private readonly lostMessages: Set<MessageId>;
 
   private constructor(
     public node: IWaku,
@@ -232,10 +228,7 @@ export class ReliableChannel<
 
     this._started = false;
 
-    this.status = new StatusEmitter();
-    this.receivedMessages = new Set();
-    this.missingMessages = new Set();
-    this.lostMessages = new Set();
+    this.syncStatus = new SyncStatus();
   }
 
   /**
@@ -246,7 +239,7 @@ export class ReliableChannel<
    * @emits [[StatusEvents]]
    *
    */
-  public status: StatusEmitter;
+  public syncStatus: SyncStatus;
 
   public get isStarted(): boolean {
     return this._started;
@@ -570,14 +563,6 @@ export class ReliableChannel<
     }
   }
 
-  private statusSafeSend(): void {
-    this.status.safeSend({
-      received: this.receivedMessages.size,
-      missing: this.missingMessages.size,
-      lost: this.lostMessages.size
-    });
-  }
-
   private async sendSyncMessage(): Promise<void> {
     this.assertStarted();
     await this.messageChannel.pushOutgoingSyncMessage(
@@ -675,11 +660,7 @@ export class ReliableChannel<
     this.messageChannel.addEventListener(
       MessageChannelEvent.InMessageReceived,
       (event) => {
-        const messageId = event.detail.messageId;
-        this.missingMessages.delete(messageId);
-        this.lostMessages.delete(messageId);
-        this.receivedMessages.add(messageId);
-        this.statusSafeSend();
+        this.syncStatus.onMessagesReceived(event.detail.messageId);
         // restart the timeout when a content message has been received
         if (isContentMessage(event.detail)) {
           // send a sync message faster to ack someone's else
@@ -701,8 +682,11 @@ export class ReliableChannel<
     this.messageChannel.addEventListener(
       MessageChannelEvent.InMessageMissing,
       (event) => {
+        this.syncStatus.onMessagesMissing(
+          ...event.detail.map((m) => m.messageId)
+        );
+
         for (const { messageId, retrievalHint } of event.detail) {
-          this.missingMessages.add(messageId);
           if (retrievalHint && this.missingMessageRetriever) {
             this.missingMessageRetriever.addMissingMessage(
               messageId,
@@ -710,18 +694,13 @@ export class ReliableChannel<
             );
           }
         }
-        this.statusSafeSend();
       }
     );
 
     this.messageChannel.addEventListener(
       MessageChannelEvent.InMessageLost,
       (event) => {
-        for (const { messageId } of event.detail) {
-          this.missingMessages.delete(messageId);
-          this.lostMessages.add(messageId);
-        }
-        this.statusSafeSend();
+        this.syncStatus.onMessagesLost(...event.detail.map((m) => m.messageId));
       }
     );
 

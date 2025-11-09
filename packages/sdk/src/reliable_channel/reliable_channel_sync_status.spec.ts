@@ -60,7 +60,7 @@ describe("Status", () => {
     );
 
     let statusDetail: StatusDetail;
-    reliableChannelBob.status.addEventListener("synced", (event) => {
+    reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       statusDetail = event.detail;
     });
 
@@ -109,12 +109,12 @@ describe("Status", () => {
     );
 
     let syncingStatusDetail: StatusDetail;
-    reliableChannelBob.status.addEventListener("syncing", (event) => {
+    reliableChannelBob.syncStatus.addEventListener("syncing", (event) => {
       syncingStatusDetail = event.detail;
     });
 
     let syncedStatusDetail: StatusDetail;
-    reliableChannelBob.status.addEventListener("synced", (event) => {
+    reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       syncedStatusDetail = event.detail;
     });
 
@@ -186,7 +186,7 @@ describe("Status", () => {
     );
 
     let syncingStatusDetail: StatusDetail;
-    reliableChannelBob.status.addEventListener("syncing", (event) => {
+    reliableChannelBob.syncStatus.addEventListener("syncing", (event) => {
       syncingStatusDetail = event.detail;
     });
 
@@ -210,7 +210,7 @@ describe("Status", () => {
     expect(syncingStatusDetail.lost).to.eq(0, "at first, no loss");
 
     let syncedStatusDetail: StatusDetail;
-    reliableChannelBob.status.addEventListener("synced", (event) => {
+    reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       syncedStatusDetail = event.detail;
     });
     while (!syncedStatusDetail!) {

@@ -4,5 +4,5 @@ export {
   StatusEvent,
   StatusEvents,
   StatusDetail,
-  StatusEmitter
-} from "./status.js";
+  SyncStatus
+} from "./sync_status.js";
