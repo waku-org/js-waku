@@ -245,7 +245,7 @@ export class ReliableChannel<
 
   /**
    * Emit events when the channel is aware of missing message.
-   * Note that "syncd" may mean some messages are irretrievably lost.
+   * Note that "synced" may mean some messages are irretrievably lost.
    * Check the emitted data for details.
    *
    * @emits [[StatusEvents]]

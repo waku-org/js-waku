@@ -7,7 +7,7 @@ export class RandomTimeout {
 
   public constructor(
     /**
-     * The maximum interval one would wait before the call is made, in millseconds.
+     * The maximum interval one would wait before the call is made, in milliseconds.
      */
     private maxIntervalMs: number,
     /**
