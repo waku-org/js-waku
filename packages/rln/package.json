@@ -39,8 +39,6 @@
     "check:lint": "eslint \"src/!(resources)/**/*.{ts,js}\" *.js",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "test": "NODE_ENV=test run-s test:*",
-    "test:unit": "NODE_ENV=test mocha 'src/**/*.spec.ts' --ignore 'src/**/*.integration.spec.ts'",
-    "test:integration": "NODE_ENV=test mocha 'src/**/*.integration.spec.ts'",
     "test:browser": "karma start karma.conf.cjs",
     "watch:build": "tsc -p tsconfig.json -w",
     "watch:test": "mocha --watch",

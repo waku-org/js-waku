@@ -50,15 +50,12 @@ describe("RLN Proof Integration Tests", function () {
     // Use the known credential hash and password from the test data
     const credentialHash = TEST_KEYSTORE_DATA.credentialHash;
     const password = TEST_KEYSTORE_DATA.password;
-    console.log(`Using credential hash: ${credentialHash}`);
     const credential = await keystore.readCredential(credentialHash, password);
     if (!credential) {
       throw new Error("Failed to unlock credential with provided password");
     }
 
-    // Extract the ID commitment from the credential
     const idCommitment = credential.identity.IDCommitmentBigInt;
-    console.log(`ID Commitment from keystore: ${idCommitment.toString()}`);
 
     const publicClient = createPublicClient({
       chain: lineaSepolia,
@@ -76,36 +73,25 @@ describe("RLN Proof Integration Tests", function () {
       walletClient: dummyWalletClient
     });
 
-    // First, get membership info to find the index
     const membershipInfo = await contract.getMembershipInfo(idCommitment);
 
     if (!membershipInfo) {
-      console.log(
+      throw new Error(
         `ID commitment ${idCommitment.toString()} not found in membership set`
       );
-      this.skip();
-      return;
     }
 
-    console.log(`Found membership at index: ${membershipInfo.index}`);
-    console.log(`Membership state: ${membershipInfo.state}`);
-
-    // Get the merkle proof for this member's index
     const merkleProof = await contract.getMerkleProof(membershipInfo.index);
 
     expect(merkleProof).to.be.an("array");
     expect(merkleProof).to.have.lengthOf(MERKLE_TREE_DEPTH); // RLN uses fixed depth merkle tree
 
-    console.log(`Merkle proof for ID commitment ${idCommitment.toString()}:`);
-    console.log(`Index: ${membershipInfo.index}`);
-    console.log(`Proof elements (${merkleProof.length}):`);
     merkleProof.forEach((element, i) => {
       console.log(
         `  [${i}]: ${element.toString()} (0x${element.toString(16)})`
       );
     });
 
-    // Verify all proof elements are valid bigints
     merkleProof.forEach((element, i) => {
       expect(element).to.be.a(
         "bigint",
@@ -115,7 +101,7 @@ describe("RLN Proof Integration Tests", function () {
     });
   });
 
-  it.only("should generate a valid RLN proof", async function () {
+  it("should generate a valid RLN proof", async function () {
     const publicClient = createPublicClient({
       chain: lineaSepolia,
       transport: http(rpcUrl)
@@ -131,7 +117,6 @@ describe("RLN Proof Integration Tests", function () {
       publicClient,
       walletClient: dummyWalletClient
     });
-    // get credential from keystore
     const keystore = Keystore.fromString(TEST_KEYSTORE_DATA.keystoreJson);
     if (!keystore) {
       throw new Error("Failed to load test keystore");
@@ -153,7 +138,6 @@ describe("RLN Proof Integration Tests", function () {
     const merkleRoot = await contract.getMerkleRoot();
     const rateCommitment = calculateRateCommitment(idCommitment, rateLimit);
 
-    // Get the array of indexes that correspond to each proof element
     const proofElementIndexes = extractPathDirectionsFromProof(
       merkleProof,
       rateCommitment,
@@ -163,10 +147,8 @@ describe("RLN Proof Integration Tests", function () {
       throw new Error("Failed to extract proof element indexes");
     }
 
-    // Verify the array has the correct length
     expect(proofElementIndexes).to.have.lengthOf(MERKLE_TREE_DEPTH);
 
-    // Verify that we can reconstruct the root using these indexes
     const reconstructedRoot = reconstructMerkleRoot(
       merkleProof as bigint[],
       BigInt(membershipInfo.index),
