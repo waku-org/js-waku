@@ -52,7 +52,7 @@ export class QueryOnConnect<
   private lastTimeOffline: number;
   private readonly forceQueryThresholdMs: number;
 
-  private isRunning: boolean = false;
+  private isStarted: boolean = false;
   private abortController?: AbortController;
   private activeQueryPromise?: Promise<void>;
 
@@ -78,22 +78,22 @@ export class QueryOnConnect<
   }
 
   public start(): void {
-    if (this.isRunning) {
+    if (this.isStarted) {
       log.warn("QueryOnConnect already running");
       return;
     }
     log.info("starting query-on-connect service");
-    this.isRunning = true;
+    this.isStarted = true;
     this.abortController = new AbortController();
     this.setupEventListeners();
   }
 
   public async stop(): Promise<void> {
-    if (!this.isRunning) {
+    if (!this.isStarted) {
       return;
     }
     log.info("stopping query-on-connect service");
-    this.isRunning = false;
+    this.isStarted = false;
 
     if (this.abortController) {
       this.abortController.abort();
