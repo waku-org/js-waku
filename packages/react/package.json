@@ -70,7 +70,7 @@
     "@waku/build-utils": "*",
     "chai": "^5.1.1",
     "cspell": "^8.6.1",
-    "eslint": "^8.34.0",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.32.2",
