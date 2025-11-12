@@ -404,7 +404,7 @@ export class ReliableChannel<
     if (!this._unsubscribe) {
       throw Error("No unsubscribe method available");
     }
-    return await this._unsubscribe(this.decoder);
+    return this._unsubscribe(this.decoder);
   }
 
   /**
