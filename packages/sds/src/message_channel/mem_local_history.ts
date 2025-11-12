@@ -48,12 +48,8 @@ export class MemLocalHistory {
 
     // Let's drop older messages if max length is reached
     if (this.length > this.maxLength) {
-      // TODO: Would it be faster to reverse, pop, reverse?
       const numItemsToRemove = this.length - this.maxLength;
-      const timestampCutoff = this.items[numItemsToRemove - 1].lamportTimestamp;
-      this.items = this.items.filter(
-        (m) => m.lamportTimestamp > timestampCutoff
-      );
+      this.items.splice(0, numItemsToRemove);
     }
 
     return this.items.length;
