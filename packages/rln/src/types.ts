@@ -10,7 +10,7 @@ export type StartRLNOptions = {
   /**
    * If not set - will attempt to create from provider injected in window.
    */
-  rpcClient?: WalletClient;
+  walletClient?: WalletClient;
   /**
    * If not set - will use default SEPOLIA_CONTRACT address.
    */

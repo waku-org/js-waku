@@ -3,15 +3,15 @@ import {
   type Address,
   decodeEventLog,
   getContract,
-  GetContractReturnType,
+  type GetContractReturnType,
   type Hash,
-  publicActions,
-  PublicClient,
-  WalletClient
+  type PublicClient,
+  type WalletClient
 } from "viem";
 
 import { IdentityCredential } from "../identity.js";
-import { DecryptedCredentials } from "../keystore/types.js";
+import type { DecryptedCredentials } from "../keystore/types.js";
+import type { RpcClient } from "../utils/index.js";
 
 import {
   DEFAULT_RATE_LIMIT,
@@ -32,7 +32,7 @@ export class RLNBaseContract {
     typeof wakuRlnV2Abi,
     PublicClient | WalletClient
   >;
-  public rpcClient: WalletClient & PublicClient;
+  public rpcClient: RpcClient;
   private rateLimit: number;
   private minRateLimit?: number;
   private maxRateLimit?: number;
@@ -45,8 +45,7 @@ export class RLNBaseContract {
 
     log.info("Initializing RLNBaseContract", { address, rateLimit });
 
-    this.rpcClient = rpcClient.extend(publicActions) as WalletClient &
-      PublicClient;
+    this.rpcClient = rpcClient;
     this.contract = getContract({
       address,
       abi: wakuRlnV2Abi,
@@ -223,7 +222,7 @@ export class RLNBaseContract {
     try {
       await this.contract.simulate.extendMemberships([[idCommitmentBigInt]], {
         chain: this.rpcClient.chain,
-        account: (this.rpcClient as WalletClient).account!.address
+        account: this.rpcClient.account.address
       });
     } catch (err) {
       throw new Error("Simulating extending membership failed: " + err);
@@ -231,7 +230,7 @@ export class RLNBaseContract {
     const hash = await this.contract.write.extendMemberships(
       [[idCommitmentBigInt]],
       {
-        account: this.rpcClient.account!,
+        account: this.rpcClient.account,
         chain: this.rpcClient.chain
       }
     );
@@ -261,7 +260,7 @@ export class RLNBaseContract {
         [[idCommitmentBigInt], eraseFromMembershipSet],
         {
           chain: this.rpcClient.chain,
-          account: (this.rpcClient as WalletClient).account!.address
+          account: this.rpcClient.account.address
         }
       );
     } catch (err) {
@@ -272,7 +271,7 @@ export class RLNBaseContract {
       [[idCommitmentBigInt], eraseFromMembershipSet],
       {
         chain: this.rpcClient.chain,
-        account: this.rpcClient.account!
+        account: this.rpcClient.account
       }
     );
     await this.rpcClient.waitForTransactionReceipt({ hash });
@@ -301,7 +300,7 @@ export class RLNBaseContract {
         [idCommitmentBigInt, rateLimit, []],
         {
           chain: this.rpcClient.chain,
-          account: (this.rpcClient as WalletClient).account!.address
+          account: this.rpcClient.account.address
         }
       );
     } catch (err) {
@@ -312,7 +311,7 @@ export class RLNBaseContract {
       [idCommitmentBigInt, rateLimit, []],
       {
         chain: this.rpcClient.chain,
-        account: this.rpcClient.account!
+        account: this.rpcClient.account
       }
     );
     await this.rpcClient.waitForTransactionReceipt({ hash });
@@ -333,7 +332,7 @@ export class RLNBaseContract {
     try {
       await this.contract.simulate.withdraw([token as Address], {
         chain: this.rpcClient.chain,
-        account: (this.rpcClient as WalletClient).account!.address
+        account: this.rpcClient.account.address
       });
     } catch (err) {
       throw new Error("Error simulating withdraw: " + err);
@@ -341,7 +340,7 @@ export class RLNBaseContract {
 
     const hash = await this.contract.write.withdraw([token as Address], {
       chain: this.rpcClient.chain,
-      account: this.rpcClient.account!
+      account: this.rpcClient.account
     });
 
     await this.rpcClient.waitForTransactionReceipt({ hash });
@@ -351,6 +350,12 @@ export class RLNBaseContract {
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
     try {
+      if (!this.rpcClient.account) {
+        throw new Error(
+          "Failed to registerWithIdentity: no account set in wallet client"
+        );
+      }
+
       log.info(
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
@@ -377,7 +382,7 @@ export class RLNBaseContract {
         [identity.IDCommitmentBigInt, this.rateLimit, []],
         {
           chain: this.rpcClient.chain,
-          account: (this.rpcClient as WalletClient).account!.address
+          account: this.rpcClient.account.address
         }
       );
 
@@ -385,7 +390,7 @@ export class RLNBaseContract {
         [identity.IDCommitmentBigInt, this.rateLimit, []],
         {
           chain: this.rpcClient.chain,
-          account: this.rpcClient.account!
+          account: this.rpcClient.account
         }
       );
 

@@ -1,5 +1,5 @@
 import { Logger } from "@waku/utils";
-import { publicActions, PublicClient, WalletClient } from "viem";
+import { publicActions } from "viem";
 
 import { RLN_CONTRACT } from "./contract/constants.js";
 import { RLNBaseContract } from "./contract/rln_base_contract.js";
@@ -10,7 +10,7 @@ import type {
 } from "./keystore/index.js";
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import { RegisterMembershipOptions, StartRLNOptions } from "./types.js";
-import { createViemClientFromWindow } from "./utils/index.js";
+import { createViemClientFromWindow, RpcClient } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
 const log = new Logger("rln:credentials");
@@ -24,7 +24,7 @@ export class RLNCredentialsManager {
   protected starting = false;
 
   public contract: undefined | RLNBaseContract;
-  public rpcClient: undefined | (WalletClient & PublicClient);
+  public rpcClient: undefined | RpcClient;
 
   protected keystore = Keystore.create();
   public credentials: undefined | DecryptedCredentials;
@@ -128,7 +128,7 @@ export class RLNCredentialsManager {
   protected async determineStartOptions(
     options: StartRLNOptions,
     credentials: KeystoreEntity | undefined
-  ): Promise<StartRLNOptions & { rpcClient: WalletClient & PublicClient }> {
+  ): Promise<StartRLNOptions & { rpcClient: RpcClient }> {
     let chainId = credentials?.membership.chainId;
     const address =
       credentials?.membership.address ||
@@ -140,11 +140,9 @@ export class RLNCredentialsManager {
       log.info(`Using Linea contract with chainId: ${chainId}`);
     }
 
-    let rpcClient: (WalletClient & PublicClient) | undefined =
-      options.rpcClient?.extend(publicActions) as WalletClient & PublicClient;
-    if (!rpcClient) {
-      rpcClient = await createViemClientFromWindow();
-    }
+    const rpcClient: RpcClient = options.walletClient
+      ? options.walletClient.extend(publicActions)
+      : await createViemClientFromWindow();
 
     const currentChainId = rpcClient.chain?.id;
     log.info(`Current chain ID: ${currentChainId}`);

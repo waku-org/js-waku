@@ -1,4 +1,6 @@
-import { Address, WalletClient } from "viem";
+import { Address } from "viem";
+
+import { RpcClient } from "../utils/index.js";
 
 export type Member = {
   idCommitment: string;
@@ -6,7 +8,7 @@ export type Member = {
 };
 
 export interface RLNContractOptions {
-  rpcClient: WalletClient;
+  rpcClient: RpcClient;
   address: Address;
   rateLimit?: number;
 }
