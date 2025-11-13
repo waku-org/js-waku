@@ -112,6 +112,12 @@ export type ReliableChannelOptions = MessageChannelOptions & {
    * @default 1000 (1 second)
    */
   processTaskMinElapseMs?: number;
+  /**
+   * Maximum lookback window for the initial store query performed by
+   * QueryOnConnect when a store peer connects.
+   * @default 24h
+   */
+  initialQueryLookbackMs?: number;
 };
 
 /**
@@ -198,7 +204,12 @@ export class ReliableChannel<
           this.isChannelMessageWithCausalHistory.bind(this),
           peerManagerEvents,
           node.events,
-          this._retrieve.bind(this)
+          this._retrieve.bind(this),
+          {
+            maxTimeRangeQueryMs: options?.initialQueryLookbackMs,
+            // Keep existing default unless user overrides
+            forceQueryThresholdMs: undefined
+          }
         );
       }
     }

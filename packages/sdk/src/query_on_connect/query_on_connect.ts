@@ -26,6 +26,12 @@ export interface QueryOnConnectOptions {
    * @default [[DEFAULT_FORCE_QUERY_THRESHOLD_MS]]
    */
   forceQueryThresholdMs?: number;
+  /**
+   * Maximum lookback window for the initial store query performed by
+   * QueryOnConnect when a store peer connects.
+   * @default [[MAX_TIME_RANGE_QUERY_MS]] (24 hours)
+   */
+  maxTimeRangeQueryMs?: number;
 }
 
 export enum QueryOnConnectEvent {
@@ -51,6 +57,7 @@ export class QueryOnConnect<
   private lastSuccessfulQuery: number;
   private lastTimeOffline: number;
   private readonly forceQueryThresholdMs: number;
+  private readonly maxTimeRangeQueryMs: number;
 
   private isStarted: boolean = false;
   private abortController?: AbortController;
@@ -75,6 +82,8 @@ export class QueryOnConnect<
     this.lastTimeOffline = 0;
     this.forceQueryThresholdMs =
       options?.forceQueryThresholdMs ?? DEFAULT_FORCE_QUERY_THRESHOLD_MS;
+    this.maxTimeRangeQueryMs =
+      options?.maxTimeRangeQueryMs ?? MAX_TIME_RANGE_QUERY_MS;
   }
 
   public start(): void {
@@ -183,7 +192,7 @@ export class QueryOnConnect<
     return calculateTimeRange(
       Date.now(),
       this.lastSuccessfulQuery,
-      MAX_TIME_RANGE_QUERY_MS
+      this.maxTimeRangeQueryMs
     );
   }
 
