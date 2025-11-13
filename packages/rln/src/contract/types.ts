@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 import { Address } from "viem";
 
 import { RpcClient } from "../utils/index.js";
-=======
-import { Address, PublicClient, WalletClient } from "viem";
->>>>>>> a88dd8cdbd (feat: migrate rln from ethers to viem)
 
 export type Member = {
   idCommitment: string;
@@ -12,12 +8,7 @@ export type Member = {
 };
 
 export interface RLNContractOptions {
-<<<<<<< HEAD
   rpcClient: RpcClient;
-=======
-  publicClient: PublicClient;
-  walletClient: WalletClient;
->>>>>>> a88dd8cdbd (feat: migrate rln from ethers to viem)
   address: Address;
   rateLimit?: number;
 }
