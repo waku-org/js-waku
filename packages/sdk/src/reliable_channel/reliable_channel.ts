@@ -581,20 +581,6 @@ export class ReliableChannel<
   }
 
   private restartSync(multiplier: number = 1): void {
-    if (this.syncTimeout) {
-      clearTimeout(this.syncTimeout);
-      this.syncTimeout = undefined;
-    }
-    if (this.syncMinIntervalMs) {
-      const timeoutMs = this.random() * this.syncMinIntervalMs * multiplier;
-
-      this.syncTimeout = setTimeout(() => {
-        void this.sendSyncMessage();
-        // Always restart a sync, no matter whether the message was sent.
-        // Set a multiplier so we wait a bit longer to not hog the conversation
-        void this.restartSync(2);
-      }, timeoutMs);
-    }
     this.syncRandomTimeout.restart(multiplier);
   }
 

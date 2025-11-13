@@ -42,6 +42,7 @@ export class RandomTimeout {
   public stop(): void {
     if (this.timeout) {
       clearTimeout(this.timeout);
+      this.timeout = undefined;
     }
   }
 }
