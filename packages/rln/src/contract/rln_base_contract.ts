@@ -1,92 +1,74 @@
 import { Logger } from "@waku/utils";
-import { ethers } from "ethers";
+import {
+  type Address,
+  decodeEventLog,
+  getContract,
+  type GetContractReturnType,
+  type Hash,
+  type PublicClient,
+  type WalletClient
+} from "viem";
 
 import { IdentityCredential } from "../identity.js";
-import { DecryptedCredentials } from "../keystore/types.js";
+import type { DecryptedCredentials } from "../keystore/types.js";
+import type { RpcClient } from "../utils/index.js";
 
-import { RLN_ABI } from "./abi/rln.js";
 import {
   DEFAULT_RATE_LIMIT,
-  PRICE_CALCULATOR_CONTRACT,
-  RATE_LIMIT_PARAMS
+  RATE_LIMIT_PARAMS,
+  RLN_CONTRACT
 } from "./constants.js";
 import {
-  CustomQueryOptions,
-  FetchMembersOptions,
-  Member,
   MembershipInfo,
-  MembershipRegisteredEvent,
   MembershipState,
-  RLNContractInitOptions
+  RLNContractOptions
 } from "./types.js";
+import { iPriceCalculatorAbi, wakuRlnV2Abi } from "./wagmi/generated.js";
 
 const log = new Logger("rln:contract:base");
 
 export class RLNBaseContract {
-  public contract: ethers.Contract;
-  private deployBlock: undefined | number;
+  public contract: GetContractReturnType<
+    typeof wakuRlnV2Abi,
+    PublicClient | WalletClient
+  >;
+  public rpcClient: RpcClient;
   private rateLimit: number;
   private minRateLimit?: number;
   private maxRateLimit?: number;
 
-  protected _members: Map<number, Member> = new Map();
-  private _membersFilter: ethers.EventFilter;
-  private _membershipErasedFilter: ethers.EventFilter;
-  private _membersExpiredFilter: ethers.EventFilter;
-
   /**
    * Private constructor for RLNBaseContract. Use static create() instead.
    */
-  protected constructor(options: RLNContractInitOptions) {
-    const {
-      address,
-      signer,
-      rateLimit = DEFAULT_RATE_LIMIT,
-      contract
-    } = options;
+  protected constructor(options: RLNContractOptions) {
+    const { address, rpcClient, rateLimit = DEFAULT_RATE_LIMIT } = options;
 
     log.info("Initializing RLNBaseContract", { address, rateLimit });
 
-    this.contract = contract || new ethers.Contract(address, RLN_ABI, signer);
+    this.rpcClient = rpcClient;
+    this.contract = getContract({
+      address,
+      abi: wakuRlnV2Abi,
+      client: this.rpcClient
+    });
     this.rateLimit = rateLimit;
-
-    try {
-      log.info("Setting up event filters");
-      // Initialize event filters
-      this._membersFilter = this.contract.filters.MembershipRegistered();
-      this._membershipErasedFilter = this.contract.filters.MembershipErased();
-      this._membersExpiredFilter = this.contract.filters.MembershipExpired();
-      log.info("Event filters initialized successfully");
-    } catch (error) {
-      log.error("Failed to initialize event filters", { error });
-      throw new Error(
-        "Failed to initialize event filters: " + (error as Error).message
-      );
-    }
-
-    // Initialize members and subscriptions
-    this.fetchMembers()
-      .then(() => {
-        this.subscribeToMembers();
-      })
-      .catch((error) => {
-        log.error("Failed to initialize members", { error });
-      });
   }
 
   /**
    * Static async factory to create and initialize RLNBaseContract
    */
   public static async create(
-    options: RLNContractInitOptions
+    options: RLNContractOptions
   ): Promise<RLNBaseContract> {
     const instance = new RLNBaseContract(options);
+
     const [min, max] = await Promise.all([
-      instance.contract.minMembershipRateLimit(),
-      instance.contract.maxMembershipRateLimit()
+      instance.contract.read.minMembershipRateLimit(),
+      instance.contract.read.maxMembershipRateLimit()
     ]);
-    instance.minRateLimit = ethers.BigNumber.from(min).toNumber();
-    instance.maxRateLimit = ethers.BigNumber.from(max).toNumber();
+
+    instance.minRateLimit = min;
+    instance.maxRateLimit = max;
 
     instance.validateRateLimit(instance.rateLimit);
     return instance;
@@ -104,13 +86,6 @@ export class RLNBaseContract {
    */
   public get address(): string {
     return this.contract.address;
-  }
-
-  /**
-   * Gets the contract provider
-   */
-  public get provider(): ethers.providers.Provider {
-    return this.contract.provider;
   }
 
   /**
@@ -136,8 +111,7 @@ export class RLNBaseContract {
    * @returns Promise<number> The maximum total rate limit in messages per epoch
    */
   public async getMaxTotalRateLimit(): Promise<number> {
-    const maxTotalRate = await this.contract.maxTotalRateLimit();
-    return maxTotalRate.toNumber();
+    return await this.contract.read.maxTotalRateLimit();
   }
 
   /**
@@ -145,8 +119,7 @@ export class RLNBaseContract {
    * @returns Promise<number> The current total rate limit usage in messages per epoch
    */
   public async getCurrentTotalRateLimit(): Promise<number> {
-    const currentTotal = await this.contract.currentTotalRateLimit();
-    return currentTotal.toNumber();
+    return Number(await this.contract.read.currentTotalRateLimit());
   }
 
   /**
@@ -154,11 +127,10 @@ export class RLNBaseContract {
    * @returns Promise<number> The remaining rate limit that can be allocated
    */
   public async getRemainingTotalRateLimit(): Promise<number> {
-    const [maxTotal, currentTotal] = await Promise.all([
-      this.contract.maxTotalRateLimit(),
-      this.contract.currentTotalRateLimit()
-    ]);
-    return Number(maxTotal) - Number(currentTotal);
+    return (
+      (await this.contract.read.maxTotalRateLimit()) -
+      Number(await this.contract.read.currentTotalRateLimit())
+    );
   }
 
   /**
@@ -170,233 +142,35 @@ export class RLNBaseContract {
     this.rateLimit = newRateLimit;
   }
 
-  public get members(): Member[] {
-    const sortedMembers = Array.from(this._members.values()).sort(
-      (left, right) => left.index.toNumber() - right.index.toNumber()
-    );
-    return sortedMembers;
+  /**
+   * Gets the Merkle tree root for RLN proof verification
+   * @returns Promise<bigint> The Merkle tree root
+   *
+   */
+  public async getMerkleRoot(): Promise<bigint> {
+    return this.contract.read.root();
   }
 
-  public async fetchMembers(options: FetchMembersOptions = {}): Promise<void> {
-    const registeredMemberEvents = await RLNBaseContract.queryFilter(
-      this.contract,
-      {
-        fromBlock: this.deployBlock,
-        ...options,
-        membersFilter: this.membersFilter
-      }
-    );
-    const removedMemberEvents = await RLNBaseContract.queryFilter(
-      this.contract,
-      {
-        fromBlock: this.deployBlock,
-        ...options,
-        membersFilter: this.membershipErasedFilter
-      }
-    );
-    const expiredMemberEvents = await RLNBaseContract.queryFilter(
-      this.contract,
-      {
-        fromBlock: this.deployBlock,
-        ...options,
-        membersFilter: this.membersExpiredFilter
-      }
-    );
-
-    const events = [
-      ...registeredMemberEvents,
-      ...removedMemberEvents,
-      ...expiredMemberEvents
-    ];
-    this.processEvents(events);
-  }
-
-  public static async queryFilter(
-    contract: ethers.Contract,
-    options: CustomQueryOptions
-  ): Promise<ethers.Event[]> {
-    const FETCH_CHUNK = 5;
-    const BLOCK_RANGE = 3000;
-
-    const {
-      fromBlock,
-      membersFilter,
-      fetchRange = BLOCK_RANGE,
-      fetchChunks = FETCH_CHUNK
-    } = options;
-
-    if (fromBlock === undefined) {
-      return contract.queryFilter(membersFilter);
-    }
-
-    if (!contract.provider) {
-      throw Error("No provider found on the contract.");
-    }
-
-    const toBlock = await contract.provider.getBlockNumber();
-
-    if (toBlock - fromBlock < fetchRange) {
-      return contract.queryFilter(membersFilter, fromBlock, toBlock);
-    }
-
-    const events: ethers.Event[][] = [];
-    const chunks = RLNBaseContract.splitToChunks(
-      fromBlock,
-      toBlock,
-      fetchRange
-    );
-
-    for (const portion of RLNBaseContract.takeN<[number, number]>(
-      chunks,
-      fetchChunks
-    )) {
-      const promises = portion.map(([left, right]) =>
-        RLNBaseContract.ignoreErrors(
-          contract.queryFilter(membersFilter, left, right),
-          []
-        )
-      );
-      const fetchedEvents = await Promise.all(promises);
-      events.push(fetchedEvents.flatMap((v) => v));
-    }
-
-    return events.flatMap((v) => v);
-  }
-
-  public processEvents(events: ethers.Event[]): void {
-    const toRemoveTable = new Map<number, number[]>();
-    const toInsertTable = new Map<number, ethers.Event[]>();
-
-    events.forEach((evt) => {
-      if (!evt.args) {
-        return;
-      }
-
-      if (
-        evt.event === "MembershipErased" ||
-        evt.event === "MembershipExpired"
-      ) {
-        let index = evt.args.index;
-
-        if (!index) {
-          return;
-        }
-
-        if (typeof index === "number" || typeof index === "string") {
-          index = ethers.BigNumber.from(index);
-        }
-
-        const toRemoveVal = toRemoveTable.get(evt.blockNumber);
-        if (toRemoveVal != undefined) {
-          toRemoveVal.push(index.toNumber());
-          toRemoveTable.set(evt.blockNumber, toRemoveVal);
-        } else {
-          toRemoveTable.set(evt.blockNumber, [index.toNumber()]);
-        }
-      } else if (evt.event === "MembershipRegistered") {
-        let eventsPerBlock = toInsertTable.get(evt.blockNumber);
-        if (eventsPerBlock == undefined) {
-          eventsPerBlock = [];
-        }
-
-        eventsPerBlock.push(evt);
-        toInsertTable.set(evt.blockNumber, eventsPerBlock);
-      }
-    });
-  }
-
-  public static splitToChunks(
-    from: number,
-    to: number,
-    step: number
-  ): Array<[number, number]> {
-    const chunks: Array<[number, number]> = [];
-
-    let left = from;
-    while (left < to) {
-      const right = left + step < to ? left + step : to;
-
-      chunks.push([left, right] as [number, number]);
-
-      left = right;
-    }
-
-    return chunks;
-  }
-
-  public static *takeN<T>(array: T[], size: number): Iterable<T[]> {
-    let start = 0;
-
-    while (start < array.length) {
-      const portion = array.slice(start, start + size);
-
-      yield portion;
-
-      start += size;
-    }
-  }
-
-  public static async ignoreErrors<T>(
-    promise: Promise<T>,
-    defaultValue: T
-  ): Promise<T> {
-    try {
-      return await promise;
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        log.info(`Ignoring an error during query: ${err.message}`);
-      } else {
-        log.info(`Ignoring an unknown error during query`);
-      }
-      return defaultValue;
-    }
-  }
-
-  public subscribeToMembers(): void {
-    this.contract.on(
-      this.membersFilter,
-      (
-        _idCommitment: bigint,
-        _membershipRateLimit: ethers.BigNumber,
-        _index: ethers.BigNumber,
-        event: ethers.Event
-      ) => {
-        this.processEvents([event]);
-      }
-    );
-
-    this.contract.on(
-      this.membershipErasedFilter,
-      (
-        _idCommitment: bigint,
-        _membershipRateLimit: ethers.BigNumber,
-        _index: ethers.BigNumber,
-        event: ethers.Event
-      ) => {
-        this.processEvents([event]);
-      }
-    );
-
-    this.contract.on(
-      this.membersExpiredFilter,
-      (
-        _idCommitment: bigint,
-        _membershipRateLimit: ethers.BigNumber,
-        _index: ethers.BigNumber,
-        event: ethers.Event
-      ) => {
-        this.processEvents([event]);
-      }
-    );
+  /**
+   * Gets the Merkle proof for a member at a given index
+   * @param index The index of the member in the membership set
+   * @returns Promise<bigint[]> Array of 20 Merkle proof elements
+   *
+   */
+  public async getMerkleProof(index: number): Promise<readonly bigint[]> {
+    return await this.contract.read.getMerkleProof([index]);
   }
 
   public async getMembershipInfo(
     idCommitmentBigInt: bigint
   ): Promise<MembershipInfo | undefined> {
     try {
-      const membershipData =
-        await this.contract.memberships(idCommitmentBigInt);
-      const currentBlock = await this.contract.provider.getBlockNumber();
+      const membershipData = await this.contract.read.memberships([
+        idCommitmentBigInt
+      ]);
+
+      const currentBlock = await this.rpcClient.getBlockNumber();
+
       const [
         depositAmount,
         activeDuration,
@@ -408,12 +182,13 @@ export class RLNBaseContract {
         token
       ] = membershipData;
 
-      const gracePeriodEnd = gracePeriodStartTimestamp.add(gracePeriodDuration);
+      const gracePeriodEnd =
+        Number(gracePeriodStartTimestamp) + Number(gracePeriodDuration);
 
       let state: MembershipState;
-      if (currentBlock < gracePeriodStartTimestamp.toNumber()) {
+      if (currentBlock < Number(gracePeriodStartTimestamp)) {
         state = MembershipState.Active;
-      } else if (currentBlock < gracePeriodEnd.toNumber()) {
+      } else if (currentBlock < gracePeriodEnd) {
         state = MembershipState.GracePeriod;
       } else {
         state = MembershipState.Expired;
@@ -422,9 +197,9 @@ export class RLNBaseContract {
       return {
         index,
         idCommitment: idCommitmentBigInt.toString(),
-        rateLimit: Number(rateLimit),
-        startBlock: gracePeriodStartTimestamp.toNumber(),
-        endBlock: gracePeriodEnd.toNumber(),
+        rateLimit: rateLimit,
+        startBlock: Number(gracePeriodStartTimestamp),
+        endBlock: gracePeriodEnd,
         state,
         depositAmount,
         activeDuration,
@@ -438,43 +213,75 @@ export class RLNBaseContract {
     }
   }
 
-  public async extendMembership(
-    idCommitmentBigInt: bigint
-  ): Promise<ethers.ContractTransaction> {
-    const tx = await this.contract.extendMemberships([idCommitmentBigInt]);
-    await tx.wait();
-    return tx;
+  public async extendMembership(idCommitmentBigInt: bigint): Promise<Hash> {
+    if (!this.rpcClient.account) {
+      throw new Error(
+        "Failed to extendMembership: no account set in wallet client"
+      );
+    }
+    try {
+      await this.contract.simulate.extendMemberships([[idCommitmentBigInt]], {
+        chain: this.rpcClient.chain,
+        account: this.rpcClient.account.address
+      });
+    } catch (err) {
+      throw new Error("Simulating extending membership failed: " + err);
+    }
+    const hash = await this.contract.write.extendMemberships(
+      [[idCommitmentBigInt]],
+      {
+        account: this.rpcClient.account,
+        chain: this.rpcClient.chain
+      }
+    );
+
+    await this.rpcClient.waitForTransactionReceipt({ hash });
+    return hash;
   }
 
   public async eraseMembership(
     idCommitmentBigInt: bigint,
     eraseFromMembershipSet: boolean = true
-  ): Promise<ethers.ContractTransaction> {
+  ): Promise<Hash> {
     if (
       !(await this.isExpired(idCommitmentBigInt)) ||
       !(await this.isInGracePeriod(idCommitmentBigInt))
     ) {
       throw new Error("Membership is not expired or in grace period");
     }
+    if (!this.rpcClient.account) {
+      throw new Error(
+        "Failed to eraseMembership: no account set in wallet client"
+      );
+    }
 
-    const estimatedGas = await this.contract.estimateGas[
-      "eraseMemberships(uint256[],bool)"
-    ]([idCommitmentBigInt], eraseFromMembershipSet);
-    const gasLimit = estimatedGas.add(10000);
+    try {
+      await this.contract.simulate.eraseMemberships(
+        [[idCommitmentBigInt], eraseFromMembershipSet],
+        {
+          chain: this.rpcClient.chain,
+          account: this.rpcClient.account.address
+        }
+      );
+    } catch (err) {
+      throw new Error("Error simulating eraseMemberships: " + err);
+    }
 
-    const tx = await this.contract["eraseMemberships(uint256[],bool)"](
-      [idCommitmentBigInt],
-      eraseFromMembershipSet,
-      { gasLimit }
+    const hash = await this.contract.write.eraseMemberships(
+      [[idCommitmentBigInt], eraseFromMembershipSet],
+      {
+        chain: this.rpcClient.chain,
+        account: this.rpcClient.account
+      }
     );
-    await tx.wait();
-    return tx;
+    await this.rpcClient.waitForTransactionReceipt({ hash });
+    return hash;
   }
 
   public async registerMembership(
     idCommitmentBigInt: bigint,
     rateLimit: number = DEFAULT_RATE_LIMIT
-  ): Promise<ethers.ContractTransaction> {
+  ): Promise<Hash> {
     if (
       rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
       rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
@@ -483,21 +290,72 @@ export class RLNBaseContract {
         `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
       );
     }
-    return this.contract.register(idCommitmentBigInt, rateLimit, []);
+    if (!this.rpcClient.account) {
+      throw new Error(
+        "Failed to registerMembership: no account set in wallet client"
+      );
+    }
+    try {
+      await this.contract.simulate.register(
+        [idCommitmentBigInt, rateLimit, []],
+        {
+          chain: this.rpcClient.chain,
+          account: this.rpcClient.account.address
+        }
+      );
+    } catch (err) {
+      throw new Error("Failed to simulate register membership: " + err);
+    }
+
+    const hash = await this.contract.write.register(
+      [idCommitmentBigInt, rateLimit, []],
+      {
+        chain: this.rpcClient.chain,
+        account: this.rpcClient.account
+      }
+    );
+    await this.rpcClient.waitForTransactionReceipt({ hash });
+    return hash;
   }
 
-  public async withdraw(token: string, walletAddress: string): Promise<void> {
-    try {
-      const tx = await this.contract.withdraw(token, walletAddress);
-      await tx.wait();
-    } catch (error) {
-      log.error(`Error in withdraw: ${(error as Error).message}`);
+  /**
+   * Withdraw deposited tokens after membership is erased.
+   * The smart contract validates that the sender is the holder of the membership,
+   * and will only send tokens to that address.
+   * @param token - Token address to withdraw
+   */
+  public async withdraw(token: string): Promise<Hash> {
+    if (!this.rpcClient.account) {
+      throw new Error("Failed to withdraw: no account set in wallet client");
     }
+
+    try {
+      await this.contract.simulate.withdraw([token as Address], {
+        chain: this.rpcClient.chain,
+        account: this.rpcClient.account.address
+      });
+    } catch (err) {
+      throw new Error("Error simulating withdraw: " + err);
+    }
+
+    const hash = await this.contract.write.withdraw([token as Address], {
+      chain: this.rpcClient.chain,
+      account: this.rpcClient.account
+    });
+
+    await this.rpcClient.waitForTransactionReceipt({ hash });
+    return hash;
   }
   public async registerWithIdentity(
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
     try {
+      if (!this.rpcClient.account) {
+        throw new Error(
+          "Failed to registerWithIdentity: no account set in wallet client"
+        );
+      }
+
       log.info(
         `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
       );
@@ -520,62 +378,71 @@ export class RLNBaseContract {
         );
       }
 
-      const estimatedGas = await this.contract.estimateGas.register(
-        identity.IDCommitmentBigInt,
-        this.rateLimit,
-        []
+      await this.contract.simulate.register(
+        [identity.IDCommitmentBigInt, this.rateLimit, []],
+        {
+          chain: this.rpcClient.chain,
+          account: this.rpcClient.account.address
+        }
       );
-      const gasLimit = estimatedGas.add(10000);
 
-      const txRegisterResponse: ethers.ContractTransaction =
-        await this.contract.register(
-          identity.IDCommitmentBigInt,
-          this.rateLimit,
-          [],
-          {
-            gasLimit
-          }
-        );
+      const hash: Hash = await this.contract.write.register(
+        [identity.IDCommitmentBigInt, this.rateLimit, []],
+        {
+          chain: this.rpcClient.chain,
+          account: this.rpcClient.account
+        }
+      );
 
-      const txRegisterReceipt = await txRegisterResponse.wait();
+      const txRegisterReceipt = await this.rpcClient.waitForTransactionReceipt({
+        hash
+      });
 
-      if (txRegisterReceipt.status === 0) {
+      if (txRegisterReceipt.status === "reverted") {
         throw new Error("Transaction failed on-chain");
       }
 
-      const memberRegistered = txRegisterReceipt.events?.find(
-        (event: ethers.Event) => event.event === "MembershipRegistered"
-      );
+      // Parse MembershipRegistered event from logs
+      const memberRegisteredLog = txRegisterReceipt.logs.find((log) => {
+        try {
+          const decoded = decodeEventLog({
+            abi: wakuRlnV2Abi,
+            data: log.data,
+            topics: log.topics
+          });
+          return decoded.eventName === "MembershipRegistered";
+        } catch {
+          return false;
+        }
+      });
 
-      if (!memberRegistered || !memberRegistered.args) {
+      if (!memberRegisteredLog) {
         log.error(
           "Failed to register membership: No MembershipRegistered event found"
         );
         return undefined;
       }
 
-      const decodedData: MembershipRegisteredEvent = {
-        idCommitment: memberRegistered.args.idCommitment,
-        membershipRateLimit: memberRegistered.args.membershipRateLimit,
-        index: memberRegistered.args.index
-      };
+      // Decode the event
+      const decoded = decodeEventLog({
+        abi: wakuRlnV2Abi,
+        data: memberRegisteredLog.data,
+        topics: memberRegisteredLog.topics,
+        eventName: "MembershipRegistered"
+      });
 
       log.info(
-        `Successfully registered membership with index ${decodedData.index} ` +
-          `and rate limit ${decodedData.membershipRateLimit}`
+        `Successfully registered membership with index ${decoded.args.index} ` +
+          `and rate limit ${decoded.args.membershipRateLimit}`
       );
-
-      const network = await this.contract.provider.getNetwork();
-      const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
 
       return {
         identity,
         membership: {
-          address,
-          treeIndex: membershipId,
-          chainId: network.chainId.toString(),
-          rateLimit: decodedData.membershipRateLimit.toNumber()
+          address: this.contract.address,
+          treeIndex: decoded.args.index,
+          chainId: String(RLN_CONTRACT.chainId),
+          rateLimit: Number(decoded.args.membershipRateLimit)
         }
       };
     } catch (error) {
@@ -608,78 +475,6 @@ export class RLNBaseContract {
     }
   }
 
-  public async registerWithPermitAndErase(
-    identity: IdentityCredential,
-    permit: {
-      owner: string;
-      deadline: number;
-      v: number;
-      r: string;
-      s: string;
-    },
-    idCommitmentsToErase: string[]
-  ): Promise<DecryptedCredentials | undefined> {
-    try {
-      log.info(
-        `Registering identity with permit and rate limit: ${this.rateLimit} messages/epoch`
-      );
-
-      const txRegisterResponse: ethers.ContractTransaction =
-        await this.contract.registerWithPermit(
-          permit.owner,
-          permit.deadline,
-          permit.v,
-          permit.r,
-          permit.s,
-          identity.IDCommitmentBigInt,
-          this.rateLimit,
-          idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
-        );
-      const txRegisterReceipt = await txRegisterResponse.wait();
-
-      const memberRegistered = txRegisterReceipt.events?.find(
-        (event: ethers.Event) => event.event === "MembershipRegistered"
-      );
-
-      if (!memberRegistered || !memberRegistered.args) {
-        log.error(
-          "Failed to register membership with permit: No MembershipRegistered event found"
-        );
-        return undefined;
-      }
-
-      const decodedData: MembershipRegisteredEvent = {
-        idCommitment: memberRegistered.args.idCommitment,
-        membershipRateLimit: memberRegistered.args.membershipRateLimit,
-        index: memberRegistered.args.index
-      };
-
-      log.info(
-        `Successfully registered membership with permit. Index: ${decodedData.index}, ` +
-          `Rate limit: ${decodedData.membershipRateLimit}, Erased ${idCommitmentsToErase.length} commitments`
-      );
-
-      const network = await this.contract.provider.getNetwork();
-      const address = this.contract.address;
-      const membershipId = Number(decodedData.index);
-
-      return {
-        identity,
-        membership: {
-          address,
-          treeIndex: membershipId,
-          chainId: network.chainId.toString(),
-          rateLimit: decodedData.membershipRateLimit.toNumber()
-        }
-      };
-    } catch (error) {
-      log.error(
-        `Error in registerWithPermitAndErase: ${(error as Error).message}`
-      );
-      return undefined;
-    }
-  }
-
   /**
    * Validates that the rate limit is within the allowed range (sync)
    * @throws Error if the rate limit is outside the allowed range
@@ -695,50 +490,17 @@ export class RLNBaseContract {
     }
   }
 
-  private get membersFilter(): ethers.EventFilter {
-    if (!this._membersFilter) {
-      throw Error("Members filter was not initialized.");
-    }
-    return this._membersFilter;
-  }
-
-  private get membershipErasedFilter(): ethers.EventFilter {
-    if (!this._membershipErasedFilter) {
-      throw Error("MembershipErased filter was not initialized.");
-    }
-    return this._membershipErasedFilter;
-  }
-
-  private get membersExpiredFilter(): ethers.EventFilter {
-    if (!this._membersExpiredFilter) {
-      throw Error("MembersExpired filter was not initialized.");
-    }
-    return this._membersExpiredFilter;
-  }
-
-  private async getMemberIndex(
-    idCommitmentBigInt: bigint
-  ): Promise<ethers.BigNumber | undefined> {
-    try {
-      const events = await this.contract.queryFilter(
-        this.contract.filters.MembershipRegistered(idCommitmentBigInt)
-      );
-      if (events.length === 0) return undefined;
-
-      // Get the most recent registration event
-      const event = events[events.length - 1];
-      return event.args?.index;
-    } catch (error) {
-      return undefined;
-    }
+  private async getMemberIndex(idCommitmentBigInt: bigint): Promise<number> {
+    // Current version of the contract has the index at position 5 in the membership struct
+    return (await this.contract.read.memberships([idCommitmentBigInt]))[5];
   }
 
   public async getMembershipStatus(
     idCommitment: bigint
   ): Promise<"expired" | "grace" | "active"> {
     const [isExpired, isInGrace] = await Promise.all([
-      this.contract.isExpired(idCommitment),
-      this.contract.isInGracePeriod(idCommitment)
+      this.contract.read.isExpired([idCommitment]),
+      this.contract.read.isInGracePeriod([idCommitment])
     ]);
 
     if (isExpired) return "expired";
@@ -753,7 +515,7 @@ export class RLNBaseContract {
    */
   public async isExpired(idCommitmentBigInt: bigint): Promise<boolean> {
     try {
-      return await this.contract.isExpired(idCommitmentBigInt);
+      return await this.contract.read.isExpired([idCommitmentBigInt]);
     } catch (error) {
       log.error("Error in isExpired:", error);
       return false;
@@ -767,7 +529,7 @@ export class RLNBaseContract {
    */
   public async isInGracePeriod(idCommitmentBigInt: bigint): Promise<boolean> {
     try {
-      return await this.contract.isInGracePeriod(idCommitmentBigInt);
+      return await this.contract.read.isInGracePeriod([idCommitmentBigInt]);
     } catch (error) {
       log.error("Error in isInGracePeriod:", error);
       return false;
@@ -779,21 +541,18 @@ export class RLNBaseContract {
    * @param rateLimit The rate limit to calculate the price for
    * @param contractFactory Optional factory for creating the contract (for testing)
    */
-  public async getPriceForRateLimit(
-    rateLimit: number,
-    contractFactory?: typeof import("ethers").Contract
-  ): Promise<{
+  public async getPriceForRateLimit(rateLimit: number): Promise<{
     token: string | null;
-    price: import("ethers").BigNumber | null;
+    price: bigint | null;
   }> {
-    const provider = this.contract.provider;
-    const ContractCtor = contractFactory || ethers.Contract;
-    const priceCalculator = new ContractCtor(
-      PRICE_CALCULATOR_CONTRACT.address,
-      PRICE_CALCULATOR_CONTRACT.abi,
-      provider
-    );
-    const [token, price] = await priceCalculator.calculate(rateLimit);
+    const address = await this.contract.read.priceCalculator();
+    const [token, price] = await this.rpcClient.readContract({
+      address,
+      abi: iPriceCalculatorAbi,
+      functionName: "calculate",
+      args: [rateLimit]
+    });
+
     // Defensive: if token or price is null/undefined, return nulls
     if (!token || !price) {
       return { token: null, price: null };

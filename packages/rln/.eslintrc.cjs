@@ -3,5 +3,10 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: "./tsconfig.dev.json"
   },
-  ignorePatterns: ["src/resources/**/*"]
+  ignorePatterns: ["src/resources/**/*"],
+  overrides: [
+    {
+      files: ["*.config.ts", "*.config.js"]
+    }
+  ]
 };

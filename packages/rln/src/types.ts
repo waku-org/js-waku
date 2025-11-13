@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { WalletClient } from "viem";
 
 import { IdentityCredential } from "./identity.js";
 import {
@@ -8,9 +8,9 @@ import {
 
 export type StartRLNOptions = {
   /**
-   * If not set - will extract MetaMask account and get signer from it.
+   * If not set - will attempt to create from provider injected in window.
    */
-  signer?: ethers.Signer;
+  walletClient?: WalletClient;
   /**
    * If not set - will use default SEPOLIA_CONTRACT address.
    */
