@@ -18,6 +18,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
 
+import { waitForEvent } from "./test_utils.js";
+
 import { ReliableChannel } from "./index.js";
 
 const TEST_CONTENT_TOPIC = "/my-tests/0/topic-name/proto";
@@ -58,16 +60,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -116,7 +114,7 @@ describe("Reliable Channel: Sync", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
@@ -146,16 +144,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannelAlice,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
@@ -165,20 +159,21 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Bob will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Bob will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannelBob.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than Bob as Bob will "randomly" wait a full second
+    // We should be faster than Bob as Bob will "randomly" wait the full interval
     await reliableChannelAlice["sendSyncMessage"]();
 
-    // Bob should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // Bob should be waiting the full interval before sending a message after Alice
+    await delay(180);
 
     // Now, let's wait Bob to send the sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
@@ -189,7 +184,7 @@ describe("Reliable Channel: Sync", () => {
     const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
     const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
 
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
@@ -219,16 +214,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannelAlice.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannelAlice,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannelBob.messageChannel.addEventListener(
@@ -238,26 +229,27 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Bob will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Bob will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannelBob.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than Bob as Bob will "randomly" wait a full second
+    // We should be faster than Bob as Bob will "randomly" wait the full interval
     reliableChannelAlice.send(utf8ToBytes("some message"));
 
-    // Bob should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // Bob should be waiting the full interval before sending a message after Alice
+    await delay(180);
 
     // Now, let's wait Bob to send the sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
   it("Sync message is not sent if another sync message was just sent", async function () {
     this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannel = await ReliableChannel.create(
       mockWakuNode,
@@ -273,16 +265,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -292,26 +280,27 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannel.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
+    // We should be faster than automated sync as it will "randomly" wait the full interval
     await reliableChannel["sendSyncMessage"]();
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // should be waiting the full interval before sending a message
+    await delay(180);
 
     // Now, let's wait to send the automated sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
   it("Sync message is not sent if another non-ephemeral message was just sent", async function () {
     this.timeout(5000);
-    const syncMinIntervalMs = 1000;
+    const syncMinIntervalMs = 200;
 
     const reliableChannel = await ReliableChannel.create(
       mockWakuNode,
@@ -327,16 +316,12 @@ describe("Reliable Channel: Sync", () => {
 
     // Send a message to have a history
     const sentMsgId = reliableChannel.send(utf8ToBytes("some message"));
-    let messageSent = false;
-    reliableChannel.addEventListener("message-sent", (event) => {
-      if (event.detail === sentMsgId) {
-        messageSent = true;
-      }
-    });
 
-    while (!messageSent) {
-      await delay(50);
-    }
+    await waitForEvent<string>(
+      reliableChannel,
+      "message-sent",
+      (id) => id === sentMsgId
+    );
 
     let syncMessageSent = false;
     reliableChannel.messageChannel.addEventListener(
@@ -346,20 +331,21 @@ describe("Reliable Channel: Sync", () => {
       }
     );
 
-    while (!syncMessageSent) {
-      // Will send a sync message as soon as it started, we are waiting for this one
-      await delay(100);
-    }
+    // Will send a sync message as soon as it started, we are waiting for this one
+    await waitForEvent(
+      reliableChannel.messageChannel,
+      MessageChannelEvent.OutSyncSent
+    );
     // Let's reset the tracker
     syncMessageSent = false;
-    // We should be faster than automated sync as it will "randomly" wait a full second
+    // We should be faster than automated sync as it will "randomly" wait the full interval
     reliableChannel.send(utf8ToBytes("non-ephemeral message"));
 
-    // should be waiting a full second before sending a message after Alice
-    await delay(900);
+    // should be waiting the full interval before sending a message
+    await delay(180);
 
     // Now, let's wait to send the automated sync message
-    await delay(200);
+    await delay(40);
     expect(syncMessageSent).to.be.true;
   });
 
