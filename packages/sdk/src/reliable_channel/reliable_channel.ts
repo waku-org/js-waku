@@ -529,17 +529,11 @@ export class ReliableChannel<
       await this.activePendingProcessTask;
     }
 
-    if (this.missingMessageRetriever) {
-      await this.missingMessageRetriever.stop();
-    }
+    await this.missingMessageRetriever?.stop();
 
-    if (this.queryOnConnect) {
-      await this.queryOnConnect.stop();
-    }
+    await this.queryOnConnect?.stop();
 
-    if (this.retryManager) {
-      this.retryManager.stopAllRetries();
-    }
+    this.retryManager?.stopAllRetries();
 
     await this.unsubscribe();
 
