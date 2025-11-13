@@ -47,6 +47,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.37](https://github.com/waku-org/js-waku/compare/sdk-v0.0.36...sdk-v0.0.37) (2025-11-13)
+
+
+### Bug Fixes
+
+* Cleanup routines on reliable channel and core protocols ([#2733](https://github.com/waku-org/js-waku/issues/2733)) ([84a6ea6](https://github.com/waku-org/js-waku/commit/84a6ea69cf8630dacea0cafd58dd8c605ee8dc48))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.40 to 0.0.41
+    * @waku/discovery bumped from 0.0.13 to 0.0.14
+    * @waku/interfaces bumped from 0.0.34 to 0.0.35
+    * @waku/sds bumped from ^0.0.8 to ^0.0.9
+    * @waku/utils bumped from 0.0.27 to 0.0.28
+  * devDependencies
+    * @waku/message-encryption bumped from ^0.0.38 to ^0.0.39
+
 ## [0.0.36](https://github.com/waku-org/js-waku/compare/sdk-v0.0.35...sdk-v0.0.36) (2025-10-31)
 
 

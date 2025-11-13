@@ -1,6 +1,6 @@
 {
   "name": "@waku/react",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "React hooks and components to use js-waku",
   "type": "module",
   "main": "dist/index.cjs.js",
@@ -54,9 +54,9 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@waku/interfaces": "0.0.34",
-    "@waku/sdk": "0.0.36",
-    "@waku/utils": "0.0.27"
+    "@waku/interfaces": "0.0.35",
+    "@waku/sdk": "0.0.37",
+    "@waku/utils": "0.0.28"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/sds-v0.0.8...sds-v0.0.9) (2025-11-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from ^0.0.27 to ^0.0.28
+
 ## [0.0.8](https://github.com/waku-org/js-waku/compare/sds-v0.0.7...sds-v0.0.8) (2025-10-31)
 
 
