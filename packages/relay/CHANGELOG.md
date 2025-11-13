@@ -25,6 +25,23 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.24](https://github.com/waku-org/js-waku/compare/relay-v0.0.23...relay-v0.0.24) (2025-11-13)
+
+
+### Bug Fixes
+
+* Cleanup routines on reliable channel and core protocols ([#2733](https://github.com/waku-org/js-waku/issues/2733)) ([84a6ea6](https://github.com/waku-org/js-waku/commit/84a6ea69cf8630dacea0cafd58dd8c605ee8dc48))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.40 to 0.0.41
+    * @waku/sdk bumped from 0.0.36 to 0.0.37
+    * @waku/interfaces bumped from 0.0.34 to 0.0.35
+    * @waku/utils bumped from 0.0.27 to 0.0.28
+
 ## [0.0.23](https://github.com/waku-org/js-waku/compare/relay-v0.0.22...relay-v0.0.23) (2025-10-31)
 
 

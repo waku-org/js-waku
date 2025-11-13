@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.11](https://github.com/waku-org/js-waku/compare/rln-v0.1.10...rln-v0.1.11) (2025-11-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from ^0.0.40 to ^0.0.41
+    * @waku/utils bumped from ^0.0.27 to ^0.0.28
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.34 to 0.0.35
+    * @waku/message-encryption bumped from ^0.0.38 to ^0.0.39
+
 ## [0.1.10](https://github.com/waku-org/js-waku/compare/rln-v0.1.9...rln-v0.1.10) (2025-10-31)
 
 
