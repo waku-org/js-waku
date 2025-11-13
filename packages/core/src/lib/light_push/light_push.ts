@@ -33,6 +33,11 @@ export class LightPushCore {
     this.streamManager = new StreamManager(CODECS.v3, libp2p.components);
   }
 
+  public stop(): void {
+    this.streamManager.stop();
+    this.streamManagerV2.stop();
+  }
+
   public async send(
     encoder: IEncoder,
     message: IMessage,

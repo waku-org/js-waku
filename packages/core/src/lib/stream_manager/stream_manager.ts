@@ -23,6 +23,15 @@ export class StreamManager {
     );
   }
 
+  public stop(): void {
+    this.libp2p.events.removeEventListener(
+      "peer:update",
+      this.handlePeerUpdateStreamPool
+    );
+    this.streamPool.clear();
+    this.ongoingCreation.clear();
+  }
+
   public async getStream(peerId: PeerId): Promise<Stream | undefined> {
     try {
       const peerIdStr = peerId.toString();

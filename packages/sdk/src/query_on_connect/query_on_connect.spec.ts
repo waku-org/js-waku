@@ -158,14 +158,14 @@ describe("QueryOnConnect", () => {
       expect(wakuEventSpy.calledWith(WakuEvent.Health)).to.be.true;
     });
 
-    it("should remove event listeners when stopped", () => {
+    it("should remove event listeners when stopped", async () => {
       const peerRemoveSpy =
         mockPeerManagerEventEmitter.removeEventListener as sinon.SinonSpy;
       const wakuRemoveSpy =
         mockWakuEventEmitter.removeEventListener as sinon.SinonSpy;
 
       queryOnConnect.start();
-      queryOnConnect.stop();
+      await queryOnConnect.stop();
 
       expect(peerRemoveSpy.calledWith(PeerManagerEventNames.StoreConnect)).to.be
         .true;

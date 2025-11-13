@@ -232,7 +232,9 @@ export class WakuNode implements IWaku {
     this._nodeStateLock = true;
 
     this.lightPush?.stop();
+    this.store?.stop();
     await this.filter?.stop();
+    await this.relay?.stop();
     this.healthIndicator.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
