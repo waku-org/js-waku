@@ -1,6 +1,6 @@
 /**
  * Enables waiting a random time before doing an action (using `setTimeout`),
- * with possibility to apply a multipliers to manipulate said time.
+ * with possibility to apply a multiplier to manipulate said time.
  */
 export class RandomTimeout {
   private timeout: ReturnType<typeof setTimeout> | undefined;
