@@ -14,14 +14,11 @@ import {
 } from "@waku/interfaces";
 import {
   type ChannelId,
-  HistoryEntry,
   isContentMessage,
-  Message,
   MessageChannel,
   MessageChannelEvent,
   MessageChannelEvents,
   type MessageChannelOptions,
-  MessageId,
   Message as SdsMessage,
   type SenderId,
   SyncMessage
@@ -517,8 +514,10 @@ export class ReliableChannel<
   }
 
   private clearProcessTasks(): void {
-    clearTimeout(this.processTaskTimeout);
-    this.processTaskTimeout = undefined;
+    if (this.processTaskTimeout) {
+      clearTimeout(this.processTaskTimeout);
+      this.processTaskTimeout = undefined;
+    }
   }
 
   public async start(): Promise<boolean> {
@@ -540,6 +539,7 @@ export class ReliableChannel<
     log.info("Stopping ReliableChannel...");
     this._started = false;
 
+    this.removeAllEventListeners();
     this.stopSync();
     this.stopSweepIncomingBufferLoop();
     this.clearProcessTasks();
@@ -555,8 +555,6 @@ export class ReliableChannel<
     this.retryManager?.stopAllRetries();
 
     await this.unsubscribe();
-
-    this.removeAllEventListeners();
 
     log.info("ReliableChannel stopped successfully");
   }
@@ -644,82 +642,6 @@ export class ReliableChannel<
     return sdsMessage.causalHistory && sdsMessage.causalHistory.length > 0;
   }
 
-  private onMessageSent(event: CustomEvent<Message>): void {
-    if (event.detail.content) {
-      const messageId = ReliableChannel.getMessageId(event.detail.content);
-      this.safeSendEvent("message-sent", {
-        detail: messageId
-      });
-
-      // restart the timeout when a content message has been sent
-      // because the functionality is fulfilled (content message contains
-      // causal history)
-      this.restartSync();
-    }
-  }
-
-  private onMessageAcknowledged(event: CustomEvent<MessageId>): void {
-    if (event.detail) {
-      this.safeSendEvent("message-acknowledged", {
-        detail: event.detail
-      });
-
-      // Stopping retries as the message was acknowledged
-      this.retryManager?.stopRetries(event.detail);
-    }
-  }
-
-  private onMessagePossiblyAcknowledged(
-    event: CustomEvent<{
-      messageId: MessageId;
-      count: number;
-    }>
-  ): void {
-    if (event.detail) {
-      this.safeSendEvent("message-possibly-acknowledged", {
-        detail: {
-          messageId: event.detail.messageId,
-          possibleAckCount: event.detail.count
-        }
-      });
-    }
-  }
-
-  private onSyncMessage(_event: CustomEvent<Message>): void {
-    // restart the timeout when a sync message has been received
-    this.restartSync();
-  }
-
-  private onMessageReceived(event: CustomEvent<Message>): void {
-    this.syncStatus.onMessagesReceived(event.detail.messageId);
-    // restart the timeout when a content message has been received
-    if (isContentMessage(event.detail)) {
-      // send a sync message faster to ack someone's else
-      this.restartSync(0.5);
-    }
-  }
-
-  private onMessageMissing(event: CustomEvent<HistoryEntry[]>): void {
-    this.syncStatus.onMessagesMissing(...event.detail.map((m) => m.messageId));
-
-    for (const { messageId, retrievalHint } of event.detail) {
-      if (retrievalHint && this.missingMessageRetriever) {
-        this.missingMessageRetriever.addMissingMessage(
-          messageId,
-          retrievalHint
-        );
-      }
-    }
-  }
-
-  private onMessageLost(event: CustomEvent<HistoryEntry[]>): void {
-    this.syncStatus.onMessagesLost(...event.detail.map((m) => m.messageId));
-  }
-
-  private onQueryOnConnect(event: CustomEvent<IDecodedMessage[]>): void {
-    void this.processIncomingMessages(event.detail);
-  }
-
   private addTrackedEventListener<K extends keyof MessageChannelEvents>(
     eventName: K,
     listener: (event: MessageChannelEvents[K]) => void
@@ -734,49 +656,107 @@ export class ReliableChannel<
   private setupEventListeners(): void {
     this.addTrackedEventListener(
       MessageChannelEvent.OutMessageSent,
-      this.onMessageSent
+      (event) => {
+        if (isContentMessage(event.detail)) {
+          const messageId = ReliableChannel.getMessageId(event.detail.content);
+          this.safeSendEvent("message-sent", {
+            detail: messageId
+          });
+
+          // restart the timeout when a content message has been sent
+          // because the functionality is fulfilled (content message contains
+          // causal history)
+          this.restartSync();
+        }
+      }
     );
 
     this.addTrackedEventListener(
       MessageChannelEvent.OutMessageAcknowledged,
-      this.onMessageAcknowledged
+      (event) => {
+        if (event.detail) {
+          this.safeSendEvent("message-acknowledged", {
+            detail: event.detail
+          });
+
+          // Stopping retries as the message was acknowledged
+          this.retryManager?.stopRetries(event.detail);
+        }
+      }
     );
 
     this.addTrackedEventListener(
       MessageChannelEvent.OutMessagePossiblyAcknowledged,
-      this.onMessagePossiblyAcknowledged
+      (event) => {
+        if (event.detail) {
+          this.safeSendEvent("message-possibly-acknowledged", {
+            detail: {
+              messageId: event.detail.messageId,
+              possibleAckCount: event.detail.count
+            }
+          });
+        }
+      }
     );
 
     this.addTrackedEventListener(
       MessageChannelEvent.InSyncReceived,
-      this.onSyncMessage
+      (_event) => {
+        // restart the timeout when a sync message has been received
+        this.restartSync();
+      }
     );
 
     this.addTrackedEventListener(
       MessageChannelEvent.InMessageReceived,
-      this.onMessageReceived
-    );
-
-    this.addTrackedEventListener(
-      MessageChannelEvent.OutMessageSent,
-      this.onMessageSent
+      (event) => {
+        this.syncStatus.onMessagesReceived(event.detail.messageId);
+        // restart the timeout when a content message has been received
+        if (isContentMessage(event.detail)) {
+          // send a sync message faster to ack someone's else
+          this.restartSync(0.5);
+        }
+      }
     );
 
     this.addTrackedEventListener(
       MessageChannelEvent.InMessageMissing,
-      this.onMessageMissing
+      (event) => {
+        this.syncStatus.onMessagesMissing(
+          ...event.detail.map((m) => m.messageId)
+        );
+
+        for (const { messageId, retrievalHint } of event.detail) {
+          if (retrievalHint && this.missingMessageRetriever) {
+            this.missingMessageRetriever.addMissingMessage(
+              messageId,
+              retrievalHint
+            );
+          }
+        }
+      }
     );
 
-    this.addTrackedEventListener(
-      MessageChannelEvent.InMessageLost,
-      this.onMessageLost
-    );
+    this.addTrackedEventListener(MessageChannelEvent.InMessageLost, (event) => {
+      this.syncStatus.onMessagesLost(...event.detail.map((m) => m.messageId));
+    });
 
     if (this.queryOnConnect) {
+      const queryListener = (event: any): void => {
+        void this.processIncomingMessages(event.detail);
+      };
+
       this.queryOnConnect.addEventListener(
         QueryOnConnectEvent.MessagesRetrieved,
-        this.onQueryOnConnect
+        queryListener
       );
+
+      this.eventListenerCleanups.push(() => {
+        this.queryOnConnect?.removeEventListener(
+          QueryOnConnectEvent.MessagesRetrieved,
+          queryListener
+        );
+      });
     }
   }
 
