@@ -42,6 +42,7 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
   private readonly receivedMessages: Set<MessageId>;
   private readonly missingMessages: Set<MessageId>;
   private readonly lostMessages: Set<MessageId>;
+  private sendScheduled = false;
 
   public constructor() {
     super();
@@ -66,7 +67,7 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
       this.lostMessages.delete(messageId);
       this.receivedMessages.add(messageId);
     }
-    this.safeSend();
+    this.scheduleSend();
   }
 
   public onMessagesMissing(...messageIds: MessageId[]): void {
@@ -83,7 +84,7 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
         );
       }
     }
-    this.safeSend();
+    this.scheduleSend();
   }
 
   public onMessagesLost(...messageIds: MessageId[]): void {
@@ -91,7 +92,22 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
       this.missingMessages.delete(messageId);
       this.lostMessages.add(messageId);
     }
-    this.safeSend();
+    this.scheduleSend();
+  }
+
+  /**
+   * Schedule an event to be sent on the next microtask.
+   * Multiple calls within the same task will result in only one event being sent.
+   * This prevents event spam when processing batches of messages.
+   */
+  private scheduleSend(): void {
+    if (!this.sendScheduled) {
+      this.sendScheduled = true;
+      queueMicrotask(() => {
+        this.sendScheduled = false;
+        this.safeSend();
+      });
+    }
   }
 
   private safeSend(): void {

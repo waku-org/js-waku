@@ -160,4 +160,26 @@ describe("Sync Status", () => {
       "4"
     );
   });
+
+  it("Debounces events when receiving batch of messages", async () => {
+    let eventCount = 0;
+    let statusDetail: StatusDetail | undefined;
+
+    syncStatus.addEventListener("synced", (event) => {
+      eventCount++;
+      statusDetail = event.detail;
+    });
+
+    // Process 100 messages in the same task
+    for (let i = 0; i < 100; i++) {
+      syncStatus.onMessagesReceived(`msg-${i}`);
+    }
+
+    // Wait for microtask to complete
+    await delay(10);
+
+    // Should only emit 1 event despite 100 calls
+    expect(eventCount).to.eq(1, "Should only emit one event for batch");
+    expect(statusDetail!.received).to.eq(100, "Should track all 100 messages");
+  });
 });
