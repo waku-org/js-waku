@@ -1,4 +1,3 @@
-import { TypedEventEmitter } from "@libp2p/interface";
 import { createDecoder, createEncoder } from "@waku/core";
 import {
   AutoSharding,
@@ -6,15 +5,17 @@ import {
   IDecoder,
   IEncoder
 } from "@waku/interfaces";
-import {
-  createRoutingInfo,
-  delay,
-  MockWakuEvents,
-  MockWakuNode
-} from "@waku/utils";
+import { createRoutingInfo, delay, MockWakuNode } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { beforeEach, describe } from "mocha";
+
+import {
+  createMockNodes,
+  sendAndWaitForEvent,
+  TEST_CONSTANTS,
+  waitFor
+} from "./test_utils.js";
 
 import { ReliableChannel, StatusDetail } from "./index.js";
 
@@ -30,6 +31,10 @@ const TEST_ROUTING_INFO = createRoutingInfo(TEST_NETWORK_CONFIG, {
 describe("Status", () => {
   let encoder: IEncoder;
   let decoder: IDecoder<IDecodedMessage>;
+  let mockWakuNodeAlice: MockWakuNode;
+  let mockWakuNodeBob: MockWakuNode;
+  let reliableChannelAlice: ReliableChannel<any> | undefined;
+  let reliableChannelBob: ReliableChannel<any> | undefined;
 
   beforeEach(async () => {
     encoder = createEncoder({
@@ -37,21 +42,32 @@ describe("Status", () => {
       routingInfo: TEST_ROUTING_INFO
     });
     decoder = createDecoder(TEST_CONTENT_TOPIC, TEST_ROUTING_INFO);
+
+    const mockNodes = createMockNodes();
+    mockWakuNodeAlice = mockNodes.alice;
+    mockWakuNodeBob = mockNodes.bob;
+  });
+
+  afterEach(async () => {
+    if (reliableChannelAlice) {
+      await reliableChannelAlice.stop();
+      reliableChannelAlice = undefined;
+    }
+    if (reliableChannelBob) {
+      await reliableChannelBob.stop();
+      reliableChannelBob = undefined;
+    }
   });
 
   it("Synced status is emitted when a message is received", async () => {
-    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
-    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
-    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
-
-    const reliableChannelAlice = await ReliableChannel.create(
+    reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
       "alice",
       encoder,
       decoder
     );
-    const reliableChannelBob = await ReliableChannel.create(
+    reliableChannelBob = await ReliableChannel.create(
       mockWakuNodeBob,
       "MyChannel",
       "bob",
@@ -59,7 +75,7 @@ describe("Status", () => {
       decoder
     );
 
-    let statusDetail: StatusDetail;
+    let statusDetail: StatusDetail | undefined;
     reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       statusDetail = event.detail;
     });
@@ -67,40 +83,30 @@ describe("Status", () => {
     const message = utf8ToBytes("message in channel");
 
     reliableChannelAlice.send(message);
-    while (!statusDetail!) {
-      await delay(50);
-    }
+    await waitFor(() => statusDetail);
 
-    expect(statusDetail.received).to.eq(1);
+    expect(statusDetail!.received).to.eq(1);
   });
 
   it("Synced status is emitted when a missing message is received", async () => {
-    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
-    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
-    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
-
-    const reliableChannelAlice = await ReliableChannel.create(
+    reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
       "alice",
       encoder,
       decoder,
       {
-        retryIntervalMs: 300 // shorter retry so that it resends message in test
+        retryIntervalMs: TEST_CONSTANTS.RETRY_INTERVAL_MS
       }
     );
 
     // Send a message before Bob goes online so it's marked as missing
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (_event) => {
-      messageSent = true;
-    });
-    reliableChannelAlice.send(utf8ToBytes("missing message"));
-    while (!messageSent) {
-      await delay(50);
-    }
+    await sendAndWaitForEvent(
+      reliableChannelAlice,
+      utf8ToBytes("missing message")
+    );
 
-    const reliableChannelBob = await ReliableChannel.create(
+    reliableChannelBob = await ReliableChannel.create(
       mockWakuNodeBob,
       "MyChannel",
       "bob",
@@ -108,48 +114,34 @@ describe("Status", () => {
       decoder
     );
 
-    let syncingStatusDetail: StatusDetail;
+    let syncingStatusDetail: StatusDetail | undefined;
     reliableChannelBob.syncStatus.addEventListener("syncing", (event) => {
       syncingStatusDetail = event.detail;
     });
 
-    let syncedStatusDetail: StatusDetail;
+    let syncedStatusDetail: StatusDetail | undefined;
     reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       syncedStatusDetail = event.detail;
     });
 
-    messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (_event) => {
-      messageSent = true;
-    });
-    reliableChannelAlice.send(
+    await sendAndWaitForEvent(
+      reliableChannelAlice,
       utf8ToBytes("second message with missing message as dep")
     );
-    while (!messageSent) {
-      await delay(50);
-    }
 
-    while (!syncingStatusDetail!) {
-      await delay(50);
-    }
+    await waitFor(() => syncingStatusDetail);
 
-    expect(syncingStatusDetail.missing).to.eq(1);
-    expect(syncingStatusDetail.received).to.eq(1);
+    expect(syncingStatusDetail!.missing).to.eq(1);
+    expect(syncingStatusDetail!.received).to.eq(1);
 
-    while (!syncedStatusDetail!) {
-      await delay(50);
-    }
+    await waitFor(() => syncedStatusDetail);
 
-    expect(syncedStatusDetail.missing).to.eq(0);
-    expect(syncedStatusDetail.received).to.eq(2);
+    expect(syncedStatusDetail!.missing).to.eq(0);
+    expect(syncedStatusDetail!.received).to.eq(2);
   });
 
-  it("Synced status is emitted when a missing message is mark as lost", async () => {
-    const commonEventEmitter = new TypedEventEmitter<MockWakuEvents>();
-    const mockWakuNodeAlice = new MockWakuNode(commonEventEmitter);
-    const mockWakuNodeBob = new MockWakuNode(commonEventEmitter);
-
-    const reliableChannelAlice = await ReliableChannel.create(
+  it("Synced status is emitted when a missing message is marked as lost", async () => {
+    reliableChannelAlice = await ReliableChannel.create(
       mockWakuNodeAlice,
       "MyChannel",
       "alice",
@@ -162,16 +154,12 @@ describe("Status", () => {
     );
 
     // Send a message before Bob goes online so it's marked as missing
-    let messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (_event) => {
-      messageSent = true;
-    });
-    reliableChannelAlice.send(utf8ToBytes("missing message"));
-    while (!messageSent) {
-      await delay(50);
-    }
+    await sendAndWaitForEvent(
+      reliableChannelAlice,
+      utf8ToBytes("missing message")
+    );
 
-    const reliableChannelBob = await ReliableChannel.create(
+    reliableChannelBob = await ReliableChannel.create(
       mockWakuNodeBob,
       "MyChannel",
       "bob",
@@ -185,31 +173,23 @@ describe("Status", () => {
       }
     );
 
-    let syncingStatusDetail: StatusDetail;
+    let syncingStatusDetail: StatusDetail | undefined;
     reliableChannelBob.syncStatus.addEventListener("syncing", (event) => {
       syncingStatusDetail = event.detail;
     });
 
-    messageSent = false;
-    reliableChannelAlice.addEventListener("message-sent", (_event) => {
-      messageSent = true;
-    });
-    reliableChannelAlice.send(
+    await sendAndWaitForEvent(
+      reliableChannelAlice,
       utf8ToBytes("second message with missing message as dep")
     );
-    while (!messageSent) {
-      await delay(50);
-    }
 
-    while (!syncingStatusDetail!) {
-      await delay(50);
-    }
+    await waitFor(() => syncingStatusDetail);
 
-    expect(syncingStatusDetail.missing).to.eq(1, "at first, one missing");
-    expect(syncingStatusDetail.received).to.eq(1, "at first, one received");
-    expect(syncingStatusDetail.lost).to.eq(0, "at first, no loss");
+    expect(syncingStatusDetail!.missing).to.eq(1, "at first, one missing");
+    expect(syncingStatusDetail!.received).to.eq(1, "at first, one received");
+    expect(syncingStatusDetail!.lost).to.eq(0, "at first, no loss");
 
-    let syncedStatusDetail: StatusDetail;
+    let syncedStatusDetail: StatusDetail | undefined;
     reliableChannelBob.syncStatus.addEventListener("synced", (event) => {
       syncedStatusDetail = event.detail;
     });
@@ -218,12 +198,10 @@ describe("Status", () => {
     await delay(200);
     reliableChannelBob.messageChannel["sweepIncomingBuffer"]();
 
-    while (!syncedStatusDetail!) {
-      await delay(50);
-    }
+    await waitFor(() => syncedStatusDetail);
 
-    expect(syncedStatusDetail.missing).to.eq(0, "no more missing message");
-    expect(syncedStatusDetail.received).to.eq(1, "still one received message");
-    expect(syncedStatusDetail.lost).to.eq(1, "missing message is marked lost");
+    expect(syncedStatusDetail!.missing).to.eq(0, "no more missing message");
+    expect(syncedStatusDetail!.received).to.eq(1, "still one received message");
+    expect(syncedStatusDetail!.lost).to.eq(1, "missing message is marked lost");
   });
 });
