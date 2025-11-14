@@ -23,7 +23,18 @@ export class RandomTimeout {
      * The function to call when the timer is reached
      */
     private callback: () => void | Promise<void>
-  ) {}
+  ) {
+    if (!Number.isFinite(maxIntervalMs) || maxIntervalMs < 0) {
+      throw new Error(
+        `maxIntervalMs must be a non-negative finite number, got: ${maxIntervalMs}`
+      );
+    }
+    if (!Number.isFinite(multiplierOnCall)) {
+      throw new Error(
+        `multiplierOnCall must be a finite number, got: ${multiplierOnCall}`
+      );
+    }
+  }
 
   /**
    * Use to start the timer. If a timer was already set, it deletes it and
