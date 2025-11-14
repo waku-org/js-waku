@@ -28,7 +28,7 @@ const TEST_ROUTING_INFO = createRoutingInfo(TEST_NETWORK_CONFIG, {
   contentTopic: TEST_CONTENT_TOPIC
 });
 
-describe("Status", () => {
+describe("Sync Status", () => {
   let encoder: IEncoder;
   let decoder: IDecoder<IDecodedMessage>;
   let mockWakuNodeAlice: MockWakuNode;
