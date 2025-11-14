@@ -1,3 +1,7 @@
+import { Logger } from "@waku/utils";
+
+const log = new Logger("sdk:random-timeout");
+
 /**
  * Enables waiting a random time before doing an action (using `setTimeout`),
  * with possibility to apply a multiplier to manipulate said time.
@@ -33,7 +37,11 @@ export class RandomTimeout {
       const timeoutMs = Math.random() * this.maxIntervalMs * multiplier;
 
       this.timeout = setTimeout(() => {
-        void this.callback();
+        try {
+          void this.callback();
+        } catch (error) {
+          log.error("Error in RandomTimeout callback:", error);
+        }
         void this.restart(this.multiplierOnCall);
       }, timeoutMs);
     }
