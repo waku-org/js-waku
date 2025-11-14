@@ -62,7 +62,17 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
 
   public onMessagesMissing(...messageIds: MessageId[]): void {
     for (const messageId of messageIds) {
-      this.missingMessages.add(messageId);
+      if (
+        !this.receivedMessages.has(messageId) &&
+        !this.lostMessages.has(messageId)
+      ) {
+        this.missingMessages.add(messageId);
+      } else {
+        log.error(
+          "A message previously received or lost has been marked as missing",
+          messageId
+        );
+      }
     }
     this.safeSend();
   }
