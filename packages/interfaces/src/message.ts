@@ -69,6 +69,21 @@ export interface IMessage {
   rateLimitProof?: IRateLimitProof;
 }
 
+/**
+ * Send message data structure used in {@link IWaku.send}.
+ */
+export interface ISendMessage {
+  contentTopic: string;
+  payload: Uint8Array;
+  ephemeral?: boolean;
+  rateLimitProof?: boolean;
+}
+
+/**
+ * Request ID of attempt to send a message.
+ */
+export type RequestId = string;
+
 export interface IMetaSetter {
   (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }

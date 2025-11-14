@@ -20,6 +20,12 @@ export type ISendOptions = {
    * @default false
    */
   useLegacy?: boolean;
+
+  /**
+   * Amount of peers to send message to.
+   * Overrides `numPeersToUse` in {@link @waku/interfaces!CreateNodeOptions}.
+   */
+  numPeersToUse?: number;
 };
 
 export interface ISender {

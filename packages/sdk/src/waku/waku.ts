@@ -26,13 +26,16 @@ import type {
 import {
   DefaultNetworkConfig,
   HealthStatus,
-  Protocols
+  ISendMessage,
+  Protocols,
+  RequestId
 } from "@waku/interfaces";
 import { createRoutingInfo, Logger } from "@waku/utils";
 
 import { Filter } from "../filter/index.js";
 import { HealthIndicator } from "../health_indicator/index.js";
 import { LightPush } from "../light_push/index.js";
+import { Messaging } from "../messaging/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { Store } from "../store/index.js";
 
@@ -64,6 +67,7 @@ export class WakuNode implements IWaku {
   private readonly connectionManager: ConnectionManager;
   private readonly peerManager: PeerManager;
   private readonly healthIndicator: HealthIndicator;
+  private messaging: Messaging | null = null;
 
   public constructor(
     options: CreateNodeOptions,
@@ -123,6 +127,15 @@ export class WakuNode implements IWaku {
         libp2p,
         peerManager: this.peerManager,
         options: options.filter
+      });
+    }
+
+    if (this.lightPush && this.filter && this.store) {
+      this.messaging = new Messaging({
+        lightPush: this.lightPush,
+        filter: this.filter,
+        store: this.store,
+        networkConfig: this.networkConfig
       });
     }
 
@@ -221,6 +234,7 @@ export class WakuNode implements IWaku {
     this.peerManager.start();
     this.healthIndicator.start();
     this.lightPush?.start();
+    this.messaging?.start();
 
     this._nodeStateLock = false;
     this._nodeStarted = true;
@@ -231,6 +245,7 @@ export class WakuNode implements IWaku {
 
     this._nodeStateLock = true;
 
+    await this.messaging?.stop();
     this.lightPush?.stop();
     this.store?.stop();
     await this.filter?.stop();
@@ -282,6 +297,14 @@ export class WakuNode implements IWaku {
       ephemeral: params.ephemeral,
       routingInfo: routingInfo
     });
+  }
+
+  public send(message: ISendMessage): Promise<RequestId> {
+    if (!this.messaging) {
+      throw new Error("Messaging not initialized");
+    }
+
+    return this.messaging.send(message);
   }
 
   private createRoutingInfo(

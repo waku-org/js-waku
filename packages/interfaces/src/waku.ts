@@ -10,7 +10,13 @@ import type { IFilter } from "./filter.js";
 import type { HealthStatus } from "./health_status.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
-import { IDecodedMessage, IDecoder, IEncoder } from "./message.js";
+import {
+  IDecodedMessage,
+  IDecoder,
+  IEncoder,
+  ISendMessage,
+  RequestId
+} from "./message.js";
 import type { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { ShardId } from "./sharding.js";
@@ -58,9 +64,22 @@ export type IWakuEventEmitter = TypedEventEmitter<IWakuEvents>;
 
 export interface IWaku {
   libp2p: Libp2p;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.send} and {@link IWaku.subscribe} instead
+   */
   relay?: IRelay;
+
   store?: IStore;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.subscribe} instead
+   */
   filter?: IFilter;
+
+  /**
+   * @deprecated should not be accessed directly, use {@link IWaku.send} instead
+   */
   lightPush?: ILightPush;
 
   /**
@@ -250,6 +269,14 @@ export interface IWaku {
    * ```
    */
   createEncoder(params: CreateEncoderParams): IEncoder;
+
+  /**
+   * Sends a message to the Waku network.
+   *
+   * @param {ISendMessage} message - The message to send.
+   * @returns {Promise<RequestId>} A promise that resolves to the request ID
+   */
+  send(message: ISendMessage): Promise<RequestId>;
 
   /**
    * @returns {boolean} `true` if the node was started and `false` otherwise
