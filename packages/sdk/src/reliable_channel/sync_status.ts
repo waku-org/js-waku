@@ -38,6 +38,29 @@ export interface StatusEvents {
   syncing: CustomEvent<StatusDetail>;
 }
 
+/**
+ * Read-only interface for sync status events.
+ * Only exposes event listener methods, hiding internal state management.
+ */
+export interface ISyncStatusEvents {
+  addEventListener(
+    event: "synced",
+    callback: (e: CustomEvent<StatusDetail>) => void
+  ): void;
+  addEventListener(
+    event: "syncing",
+    callback: (e: CustomEvent<StatusDetail>) => void
+  ): void;
+  removeEventListener(
+    event: "synced",
+    callback: (e: CustomEvent<StatusDetail>) => void
+  ): void;
+  removeEventListener(
+    event: "syncing",
+    callback: (e: CustomEvent<StatusDetail>) => void
+  ): void;
+}
+
 export class SyncStatus extends TypedEventEmitter<StatusEvents> {
   private readonly receivedMessages: Set<MessageId>;
   private readonly missingMessages: Set<MessageId>;

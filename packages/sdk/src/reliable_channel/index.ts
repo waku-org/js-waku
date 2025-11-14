@@ -4,5 +4,5 @@ export {
   StatusEvent,
   StatusEvents,
   StatusDetail,
-  SyncStatus
+  ISyncStatusEvents
 } from "./sync_status.js";
