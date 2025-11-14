@@ -33,6 +33,10 @@ describe("Sync Status", () => {
     syncStatus = new SyncStatus();
   });
 
+  afterEach(() => {
+    syncStatus.cleanUp();
+  });
+
   it("Emits 'synced' when new message received", async () => {
     await testSyncStatus(
       syncStatus,

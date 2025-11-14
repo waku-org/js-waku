@@ -66,6 +66,7 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
   private readonly missingMessages: Set<MessageId>;
   private readonly lostMessages: Set<MessageId>;
   private sendScheduled = false;
+  private cleaned = false;
 
   public constructor() {
     super();
@@ -79,6 +80,8 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
    * Cleanup all tracked message IDs. Should be called when stopping the channel.
    */
   public cleanUp(): void {
+    // Mark as cleaned to prevent any pending microtasks from firing
+    this.cleaned = true;
     this.receivedMessages.clear();
     this.missingMessages.clear();
     this.lostMessages.clear();
@@ -134,6 +137,11 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
   }
 
   private safeSend(): void {
+    // Don't send events if cleanup was already called
+    if (this.cleaned) {
+      return;
+    }
+
     const statusEvent =
       this.missingMessages.size === 0
         ? StatusEvent.Synced
