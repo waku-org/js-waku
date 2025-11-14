@@ -51,6 +51,15 @@ export class SyncStatus extends TypedEventEmitter<StatusEvents> {
     this.lostMessages = new Set();
   }
 
+  /**
+   * Cleanup all tracked message IDs. Should be called when stopping the channel.
+   */
+  public cleanUp(): void {
+    this.receivedMessages.clear();
+    this.missingMessages.clear();
+    this.lostMessages.clear();
+  }
+
   public onMessagesReceived(...messageIds: MessageId[]): void {
     for (const messageId of messageIds) {
       this.missingMessages.delete(messageId);

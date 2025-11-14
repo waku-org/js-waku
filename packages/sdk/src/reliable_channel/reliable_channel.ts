@@ -556,6 +556,8 @@ export class ReliableChannel<
 
     await this.unsubscribe();
 
+    this.syncStatus.cleanUp();
+
     log.info("ReliableChannel stopped successfully");
   }
 
